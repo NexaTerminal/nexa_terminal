@@ -12,5 +12,5 @@ This is a bilingual (English/Macedonian) web application built with React and No
 - `server/` - Node.js backend
 
 ## Deployment
-- Frontend: Deployed to Vercel
-- Backend: Can be deployed separately
+- Frontend: Deployed to Vercel at https://nexa-terminal.vercel.app
+- Backend: Deployed to Render at https://nexa-terminal-api.onrender.com

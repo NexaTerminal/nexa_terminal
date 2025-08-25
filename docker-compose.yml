@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:5.0
+    container_name: nexa-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: nexa
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - nexa-network
+
+  # Backend API Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: nexa-server
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://admin:password123@mongo:27017/nexa?authSource=admin
+      - JWT_SECRET=your-super-secure-32-char-production-secret-12345678
+      - CSRF_SECRET=your-unique-csrf-secret-production-key-987654321
+      - CLIENT_URL=http://localhost:3001
+      - PORT=5001
+    depends_on:
+      - mongo
+    networks:
+      - nexa-network
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./server/public/uploads:/app/public/uploads
+
+  # React Client App
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: nexa-client
+    restart: unless-stopped
+    ports:
+      - "3001:3001" # Changed from 3001:80 to map directly to react-scripts dev server
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5001
+      - CHOKIDAR_USEPOLLING=true # Often needed for Docker volume mounts to detect changes
+      - PORT=3001 # Ensure react-scripts starts on port 3001
+    depends_on:
+      - server
+    networks:
+      - nexa-network
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  nexa-network:
+    driver: bridge

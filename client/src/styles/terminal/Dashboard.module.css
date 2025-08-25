@@ -1,0 +1,290 @@
+/* Professional Business Color Palette */
+:root {
+  /* Primary Business Colors */
+  --color-primary: #2563eb; /* Professional blue - trust and reliability */
+  --color-primary-light: #3b82f6; /* Lighter blue for hover states */
+  --color-primary-dark: #1d4ed8; /* Darker blue for emphasis */
+  
+  /* Neutral Grays */
+  --color-neutral-50: #f8fafc; /* Very light gray - main background */
+  --color-neutral-100: #f1f5f9; /* Light gray - sidebar background */
+  --color-neutral-200: #e2e8f0; /* Border color */
+  --color-neutral-300: #cbd5e1; /* Subtle borders */
+  --color-neutral-600: #475569; /* Secondary text */
+  --color-neutral-700: #334155; /* Primary text */
+  --color-neutral-800: #1e293b; /* Dark text */
+  --color-neutral-900: #0f172a; /* Darkest text */
+  
+  /* Success and Status Colors */
+  --color-success: #059669; /* Professional green */
+  --color-success-light: #10b981;
+  --color-warning: #d97706; /* Professional orange */
+  --color-danger: #dc2626; /* Professional red */
+  
+  /* Surface Colors */
+  --color-white: #ffffff;
+  --color-surface: #ffffff; /* Cards and elevated surfaces */
+  --color-background: var(--color-neutral-50);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Spacing and Typography */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --transition-fast: 0.15s ease-in-out;
+  --transition-medium: 0.25s ease-in-out;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+.dashboard-sidebar {
+  width: 260px;
+  min-width: 200px;
+  background-color: #fff;
+  border-right: 1px solid #e9ecef;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.dashboard-main {
+  flex: 1 1 0;
+  max-width: 850px;
+  min-width: 700px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 32px 32px 32px;
+  background: #fff;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  align-self: flex-start;
+}
+
+.right-sidebar {
+  width: 300px;
+  min-width: 200px;
+  background: transparent;
+  position: fixed;
+  right: 0;
+  top: 64px;
+  height: calc(100vh - 64px);
+  z-index: 9;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-main {
+    max-width: 100vw;
+    min-width: 0;
+  }
+  .right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-main {
+    margin: 0;
+    max-width: 100vw;
+    padding: 16px 0 8px 0;
+  }
+  .dashboard-sidebar,
+  .right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-main {
+    padding: 4vw 0 4vw 0;
+  }
+}
+
+/* Styles for elements directly within Dashboard.js or its main content area */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--dark-purple-border); /* Dark purple border */
+}
+
+.dashboard-header h2 { /* If there's an h2 in the header */
+  margin: 0;
+  color: var(--dark-purple-text); /* Dark purple text */
+  font-size: var(--font-size-large);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.user-info span {
+  font-weight: 500;
+  color: var(--dark-purple-text); /* Dark purple text */
+}
+
+.profile-link {
+  color: var(--dark-purple-accent); /* Dark purple for link */
+  text-decoration: none;
+  font-size: var(--font-size-small);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--dark-purple-accent); /* Dark purple border for link */
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-medium);
+}
+
+.profile-link:hover {
+  background-color: var(--dark-purple-accent); /* Dark purple background on hover */
+  color: var(--light-surface); /* Light text on hover */
+  border-color: var(--dark-purple-accent-hover);
+}
+
+/* Adapting other existing styles to the light theme */
+.dashboard-welcome {
+  background-color: var(--light-surface); /* Light surface for welcome box */
+  color: var(--dark-purple-text); /* Dark purple text */
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--dark-purple-border); /* Optional: add border */
+}
+
+.dashboard-welcome h2 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--dark-purple-text); /* Dark purple text */
+}
+
+.menu-item { /* Assuming this class might be used by Sidebar or other nav components */
+  background-color: transparent;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  color: var(--dark-purple-text); /* Dark purple text for menu items */
+  text-decoration: none;
+  transition: background-color var(--transition-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.menu-item:hover {
+  background-color: #e9ecef; /* Slightly darker light gray for hover */
+  color: var(--dark-purple-accent-hover); /* Darker purple text on hover */
+}
+
+.menu-item.active {
+  background-color: #dee2e6; /* A bit darker for active state */
+  color: var(--dark-purple-accent-hover);
+  font-weight: 500;
+}
+
+.menu-item h3 {
+  margin: 0;
+  font-size: var(--font-size-medium);
+  color: inherit;
+}
+
+.company-info { /* If this section exists */
+  background-color: var(--light-surface); /* Light surface */
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  color: var(--dark-purple-text);
+  border: 1px solid var(--dark-purple-border);
+}
+
+.company-info h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--dark-purple-text);
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: var(--spacing-sm);
+}
+
+.info-label {
+  font-weight: 500;
+  width: 150px;
+  color: var(--dark-purple-text);
+}
+
+.complete-profile-banner {
+  /* Using a light purple gradient or a solid light color */
+  background: linear-gradient(135deg, #e1bee7, #ce93d8); /* Light purple gradient */
+  color: var(--dark-purple-text); /* Dark purple text, or a contrasting light color if background is darker */
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  border: 1px solid var(--dark-purple-border);
+}
+
+.complete-profile-banner h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-large);
+  color: var(--dark-purple-text);
+}
+
+.complete-profile-banner p {
+  margin: 0 0 var(--spacing-md) 0;
+  opacity: 0.9;
+  color: var(--dark-purple-text);
+}
+
+.complete-profile-btn {
+  background-color: var(--dark-purple-accent); /* Dark purple background */
+  color: var(--light-surface); /* Light text */
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-medium);
+  display: inline-block;
+  border: 1px solid var(--dark-purple-accent-hover);
+}
+
+.complete-profile-btn:hover {
+  background-color: var(--dark-purple-accent-hover); /* Darker purple on hover */
+  color: var(--light-surface);
+  transform: translateY(-2px);
+}
+
+/* Ensure global styles or App.css also reflect light theme for body, header, footer if they are not already light */

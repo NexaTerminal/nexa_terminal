@@ -1,0 +1,64 @@
+/* filepath: /Users/martinboshkoski/Desktop/nexa-bilingual (working version)/client/src/styles/DocumentGenerator/CategoryList.module.css */
+.categoryListContainer {
+    padding: 20px;
+    background-color: #f9fafb; /* Light gray background */
+  }
+  
+  .title {
+    font-size: 1.8rem;
+    color: #111827; /* Dark gray text */
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .categoryItem {
+    background-color: #fff; /* White background for items */
+    color: #1f2937; /* Dark text */
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-left: 5px solid transparent; /* Default border, color will be set by JS */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .categoryItem:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .categoryItem.selected {
+    box-shadow: 0 0 0 2px var(--border-color, #4F46E5), 0 10px 15px rgba(0,0,0,0.1); /* Use CSS variable for border color */
+    transform: translateY(-2px);
+  }
+  
+  .icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    color: white; /* Icon color is white, background is set by JS */
+  }
+  
+  .categoryTitle {
+    font-size: 1.3rem;
+    color: #1f2937; /* Slightly lighter dark gray */
+    margin-bottom: 8px;
+  }
+  
+  .categoryDescription {
+    font-size: 0.9rem;
+    color: #6b7280; /* Medium gray text */
+    line-height: 1.5;
+  }
+  

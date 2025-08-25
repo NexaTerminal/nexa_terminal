@@ -1,0 +1,54 @@
+/* filepath: /Users/martinboshkoski/Desktop/nexa-bilingual (working version)/client/src/styles/DocumentGenerator/DocumentItem.module.css */
+.documentItemContainer {
+    background-color: #fff;
+    color: #1f2937;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px; /* Space between items */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb; /* Light border */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes button to the bottom */
+    height: 100%; /* Ensure items in a grid row have same height */
+  }
+  
+  .documentItemContainer:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--category-color, #4F46E5);
+  }
+  
+  .templateName {
+    font-size: 1.2rem;
+    color: #1f2937;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  
+  .templateDescription {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Allows description to take available space */
+  }
+  
+  .selectButton {
+    background-color: var(--category-color, #4F46E5); /* Default to a primary color */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    align-self: flex-start; /* Align button to the start of the flex container */
+  }
+  
+  .selectButton:hover {
+    opacity: 0.9;
+  }
+  

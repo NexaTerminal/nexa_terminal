@@ -1,0 +1,275 @@
+.layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  background-color: #f5f5f5;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.blogContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.backButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s;
+}
+
+.backButton:hover {
+  background: #0056b3;
+}
+
+.blogArticle {
+  padding: 40px 48px 32px 48px;
+}
+
+.blogHeader {
+  margin-bottom: 30px;
+}
+
+.blogMeta {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.blogCategory {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.blogDate {
+  color: #666;
+}
+
+.blogViews {
+  color: #666;
+}
+
+.blogTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+  line-height: 1.2;
+}
+
+.blogExcerpt {
+  font-size: 1.1rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.blogAuthor {
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #666;
+}
+
+.blogTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.tag {
+  background: #f0f0f0;
+  color: #555;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.blogImage {
+  width: 100%;
+  margin: 0 0 2.5rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f3f4f6;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/7;
+}
+
+.featuredImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  display: block;
+  max-height: 420px;
+  background: #f3f4f6;
+}
+
+.blogContent {
+  margin: 30px 0;
+}
+
+.content {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #333;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.content h1 { font-size: 2rem; }
+.content h2 { font-size: 1.75rem; }
+.content h3 { font-size: 1.5rem; }
+.content h4 { font-size: 1.25rem; }
+.content h5 { font-size: 1.1rem; }
+.content h6 { font-size: 1rem; }
+
+.content p {
+  margin-bottom: 20px;
+}
+
+.content ul,
+.content ol {
+  margin-bottom: 20px;
+  padding-left: 30px;
+}
+
+.content li {
+  margin-bottom: 8px;
+}
+
+.content blockquote {
+  border-left: 4px solid #007bff;
+  padding-left: 20px;
+  margin: 20px 0;
+  font-style: italic;
+  color: #666;
+}
+
+.content code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.content pre {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
+.content pre code {
+  background: none;
+  padding: 0;
+}
+
+.content a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.content a:hover {
+  text-decoration: underline;
+}
+
+.content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.blogFooter {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.blogStats {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.blogLikes {
+  color: #666;
+}
+
+.blogLanguage {
+  color: #666;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #dc3545;
+  font-size: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .blogContainer {
+    max-width: 98vw;
+  }
+  .blogArticle {
+    padding: 32px 12px 24px 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  .blogContainer {
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .blogArticle {
+    padding: 16px 0 16px 0;
+  }
+} 

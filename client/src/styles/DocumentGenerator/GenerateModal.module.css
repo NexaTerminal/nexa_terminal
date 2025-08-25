@@ -1,0 +1,198 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  
+  .modalContent {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border-top: 5px solid var(--category-color, #4F46E5); /* Dynamic border color */
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .closeButton:hover {
+    color: #333;
+  }
+  
+  .modalTitle {
+    font-size: 1.8rem;
+    color: #1f2937;
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .modalDescription {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 25px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  
+  .modalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .label {
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .inputField,
+  .selectField,
+  .textareaField {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #1f2937;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .inputField:focus,
+  .selectField:focus,
+  .textareaField:focus {
+    outline: none;
+    border-color: var(--category-color, #4F46E5);
+    box-shadow: 0 0 0 3px rgba(var(--category-color-rgb, 79, 70, 229), 0.2);
+  }
+  
+  .textareaField {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .checkboxContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .checkboxInput {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--category-color, #4F46E5);
+  }
+  
+  .checkboxLabel {
+    font-size: 0.9rem;
+    color: #374151;
+  }
+  
+  .tooltip {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 5px;
+  }
+  
+  .submitButton {
+    background-color: var(--category-color, #4F46E5); /* Dynamic background */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .submitButton:hover {
+    opacity: 0.9;
+  }
+  
+  .submitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .errorMessage,
+  .successMessage {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  
+  .errorMessage {
+    background-color: #fee2e2; /* Light red */
+    color: #b91c1c; /* Dark red */
+    border: 1px solid #fecaca; /* Red border */
+  }
+  
+  .successMessage {
+    background-color: #dcfce7; /* Light green */
+    color: #166534; /* Dark green */
+    border: 1px solid #bbf7d0; /* Green border */
+  }
+  
+  /* Loader styling (if using a specific loader component) */
+  .loader {
+    margin-right: 8px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .modalContent {
+      padding: 20px;
+    }
+    .modalTitle {
+      font-size: 1.5rem;
+    }
+    .label {
+      font-size: 0.85rem;
+    }
+    .inputField,
+    .selectField,
+    .textareaField {
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+    .submitButton {
+      padding: 10px 15px;
+      font-size: 0.9rem;
+    }
+  }

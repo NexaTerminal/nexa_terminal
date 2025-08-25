@@ -1,0 +1,554 @@
+/* Admin Verification Styles */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.header h2 {
+  color: #00ff00;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.header p {
+  color: #999;
+  font-size: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #00ff00;
+  font-size: 18px;
+}
+
+.error {
+  background: #ff000020;
+  border: 1px solid #ff0000;
+  color: #ff6666;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.success {
+  background: #00ff0020;
+  border: 1px solid #00ff00;
+  color: #66ff66;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: 10px 20px;
+  background: #2a2a2a;
+  border: 1px solid #555;
+  color: #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.filterBtn:hover {
+  background: #333;
+  border-color: #00ff00;
+}
+
+.filterBtn.active {
+  background: #00ff00;
+  color: #000;
+  border-color: #00ff00;
+  font-weight: bold;
+}
+
+.verificationsList {
+  display: grid;
+  gap: 20px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-style: italic;
+  background: #2a2a2a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.verificationCard {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.verificationCard:hover {
+  border-color: #00ff00;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.companyInfo h3 {
+  color: #00ff00;
+  margin-bottom: 5px;
+  font-size: 18px;
+}
+
+.companyInfo p {
+  color: #999;
+  font-size: 14px;
+}
+
+.cardStatus {
+  text-align: right;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 15px;
+  color: #000;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.score {
+  color: #0099ff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.cardContent {
+  margin-bottom: 15px;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.cardContent div {
+  margin-bottom: 5px;
+}
+
+.userInfo,
+.submittedDate,
+.reviewedDate {
+  color: #999;
+}
+
+.cardActions {
+  display: flex;
+  gap: 10px;
+}
+
+.viewBtn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #0099ff, #0066cc);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.viewBtn:hover {
+  background: linear-gradient(135deg, #0066cc, #004499);
+  transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.modalHeader h3 {
+  color: #00ff00;
+  margin: 0;
+  font-size: 20px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #ff6666;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.3s ease;
+}
+
+.closeBtn:hover {
+  background: #ff000020;
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.section h4 {
+  color: #0099ff;
+  margin-bottom: 15px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.section h4::before {
+  content: "▶";
+  margin-right: 8px;
+  color: #00ff00;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.infoGrid div {
+  padding: 8px;
+  background: #2a2a2a;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.infoGrid strong {
+  color: #00ff00;
+}
+
+.infoGrid a {
+  color: #0099ff;
+  text-decoration: none;
+}
+
+.infoGrid a:hover {
+  text-decoration: underline;
+}
+
+.description {
+  margin: 15px 0;
+}
+
+.description strong {
+  color: #00ff00;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.description p {
+  background: #2a2a2a;
+  padding: 12px;
+  border-radius: 4px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.statusInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.statusInfo div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusInfo strong {
+  color: #00ff00;
+}
+
+.documents {
+  margin-top: 15px;
+}
+
+.documents ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.documents li {
+  background: #2a2a2a;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  border-left: 3px solid #0099ff;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.actionBtn.approve {
+  background: #00ff0020;
+  color: #00ff00;
+  border-color: #00ff00;
+}
+
+.actionBtn.approve:hover,
+.actionBtn.approve.active {
+  background: #00ff00;
+  color: #000;
+}
+
+.actionBtn.reject {
+  background: #ff000020;
+  color: #ff6666;
+  border-color: #ff0000;
+}
+
+.actionBtn.reject:hover,
+.actionBtn.reject.active {
+  background: #ff0000;
+  color: #fff;
+}
+
+.actionBtn.requestInfo {
+  background: #ffaa0020;
+  color: #ffaa00;
+  border-color: #ffaa00;
+}
+
+.actionBtn.requestInfo:hover,
+.actionBtn.requestInfo.active {
+  background: #ffaa00;
+  color: #000;
+}
+
+.reviewForm {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid #444;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.formGroup textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #00ff00;
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.submitReviewBtn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #00ff00, #00cc00);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+}
+
+.submitReviewBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00cc00, #009900);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 0, 0.4);
+}
+
+.submitReviewBtn:disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .cardStatus {
+    text-align: left;
+  }
+  
+  .filters {
+    justify-content: center;
+  }
+  
+  .filterBtn {
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .actionBtn {
+    width: 100%;
+  }
+  
+  .modal {
+    padding: 10px;
+  }
+  
+  .modalContent {
+    max-height: 95vh;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation for loading and state changes */
+.verificationCard {
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statusBadge {
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

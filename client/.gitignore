@@ -1,0 +1,11 @@
+# Vercel deployment
+.vercel
+
+# Environment files (contain sensitive/local configuration)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local development overrides
+.env

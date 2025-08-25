@@ -1,0 +1,126 @@
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tableContainer {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  background: var(--color-background-light);
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.table tr:hover {
+  background: var(--color-background-light);
+}
+
+.select {
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-small);
+  background: var(--color-white);
+  cursor: pointer;
+}
+
+.actionButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.activate {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.activate:hover {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.deactivate {
+  background: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.deactivate:hover {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+}
+
+.active {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.inactive {
+  background: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.error {
+  background: var(--color-error-light);
+  color: var(--color-error);
+  padding: 1rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1rem;
+}
+
+.success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+  padding: 1rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: var(--font-size-large);
+  color: var(--color-text-light);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .tableContainer {
+    margin-top: 1rem;
+    border-radius: var(--border-radius-md);
+  }
+}

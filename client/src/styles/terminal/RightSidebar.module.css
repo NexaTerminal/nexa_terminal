@@ -1,0 +1,525 @@
+/* Right Sidebar Styles */
+.rightSidebar {
+  width: 336px; /* Increased by 20% to match left sidebar */
+  background-color: var(--color-neutral-100); /* Modern light gray to match left sidebar */
+  color: var(--color-text-primary);
+  padding: var(--spacing-6) var(--spacing-5);
+  border-left: 1px solid var(--color-border);
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  position: fixed;
+  right: 0;
+  top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  text-align: center;
+}
+
+/* Section Styles */
+.section {
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  background: var(--color-white);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--gradient-secondary);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.sectionIcon {
+  font-size: var(--font-size-lg);
+}
+
+.sectionContent {
+  padding: var(--spacing-5);
+  text-align: center;
+}
+
+.sectionLink {
+  display: inline-block;
+  margin-top: var(--spacing-4);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  transition: var(--transition-colors);
+}
+
+.sectionLink:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Social Cards */
+.socialCard {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-xs);
+  text-align: left;
+}
+
+.socialCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.socialCard:last-of-type {
+  margin-bottom: 0;
+}
+
+.socialHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+.socialPlatform {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+}
+
+.socialDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.socialContent {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dark);
+  margin: var(--spacing-2) 0;
+  line-height: 1.4;
+}
+
+.socialImage {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--border-radius-md);
+  margin-top: var(--spacing-2);
+}
+
+/* Blog Cards */
+.blogCard {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-xs);
+  text-align: left;
+}
+
+.blogCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.blogCard:last-of-type {
+  margin-bottom: 0;
+}
+
+.blogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-2);
+}
+
+.blogTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-dark);
+  line-height: 1.3;
+  flex: 1;
+  margin-right: var(--spacing-2);
+}
+
+.blogDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.blogExcerpt {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-2) 0;
+  line-height: 1.4;
+}
+
+.blogMeta {
+  display: flex;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+}
+
+.blogAuthor {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+}
+
+.blogCategory {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+}
+
+/* Investment Cards */
+.investmentCard {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-xs);
+}
+
+.investmentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.investmentCard:last-of-type {
+  margin-bottom: 0;
+}
+
+.investmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-2);
+}
+
+.investmentTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-dark);
+  line-height: 1.3;
+  flex: 1;
+  margin-right: var(--spacing-2);
+}
+
+.investmentAmount {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  white-space: nowrap;
+}
+
+.investmentDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-2) 0;
+  line-height: 1.4;
+}
+
+.investmentMeta {
+  display: flex;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+}
+
+.investmentSector {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+}
+
+.investmentRisk {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+}
+
+/* Project Actions */
+.projectActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+  border-color: var(--dark-purple-border, #6a1b9a);
+}
+
+.actionIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.actionText {
+  flex: 1;
+}
+
+.actionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark-purple-text, #4a0e6c);
+  margin-bottom: 2px;
+}
+
+.actionDesc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+}
+
+/* Marketing Banner */
+.marketingBanner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.bannerTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.bannerDescription {
+  font-size: 13px;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.bannerFeatures {
+  margin-bottom: 16px;
+}
+
+.feature {
+  font-size: 12px;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.bannerButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.bannerButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Quick Stats */
+.quickStats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+  padding: 16px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.statNumber {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark-purple-accent, #8e24aa);
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Loading and No Data States */
+.loading,
+.noData {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .rightSidebar {
+    width: 336px; /* Keep consistent with increased width */
+  }
+}
+
+@media (max-width: 1200px) {
+  .rightSidebar {
+    display: none;
+  }
+}
+
+.marketingSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem 1rem;
+  background: var(--color-white);
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.marketingTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--color-primary);
+  padding-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.marketingTitle::before {
+  content: "📢";
+  font-size: 1.1rem;
+}
+
+.marketingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-neutral-50);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.2rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.3s ease;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.marketingCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.marketingCard:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--color-primary-light);
+}
+
+.marketingCard:hover::before {
+  opacity: 1;
+}
+
+.marketingCard:last-child {
+  margin-bottom: 0;
+}
+
+.marketingImage {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.marketingCard:hover .marketingImage {
+  transform: scale(1.05);
+}
+
+.marketingQuote {
+  color: var(--color-text-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  padding: 0 0.5rem;
+}
+
+.marketingLink {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-align: center;
+  word-break: break-all;
+  opacity: 0.8;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.marketingCard:hover .marketingLink {
+  opacity: 1;
+}

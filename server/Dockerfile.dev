@@ -1,0 +1,22 @@
+# Dockerfile.dev for Node.js Backend (Development)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies, including devDependencies
+RUN npm install
+
+# Copy source code (though it will be mounted by docker-compose)
+COPY . .
+
+# Expose port
+EXPOSE 5001
+
+# Set environment
+ENV NODE_ENV=development
+
+# Start the application with nodemon
+CMD [ "npm", "run", "dev" ]

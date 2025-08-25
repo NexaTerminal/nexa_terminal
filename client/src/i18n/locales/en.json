@@ -1,0 +1,15 @@
+{
+  "contactPublic": {
+    "title": "Public Contact Form",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "phone": "Phone (Optional)",
+    "submit": "Send Message",
+    "loading": "Sending...",
+    "submitErrorDefault": "An error occurred while submitting the form. Please try again.",
+    "submitSuccessDefault": "Your message has been sent successfully!",
+    "submitErrorNetwork": "A network error occurred. Please check your connection and try again."
+  }
+}

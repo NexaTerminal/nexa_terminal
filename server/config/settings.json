@@ -1,0 +1,166 @@
+{
+  "development": {
+    "features": {
+      "authentication": {
+        "enabled": true,
+        "description": "Core auth: login, signup, profile management - always required"
+      },
+      "documentAutomation": {
+        "enabled": true,
+        "description": "Document generation and templates"
+      },
+      "blog": {
+        "enabled": true,
+        "description": "News and blog posting system"
+      },
+      "socialMedia": {
+        "enabled": true,
+        "description": "Social media posting and management"
+      },
+      "legalHealthCheck": {
+        "enabled": false,
+        "description": "Legal compliance health checks"
+      },
+      "investments": {
+        "enabled": true,
+        "description": "Investment tracking and management"
+      },
+      "companyVerification": {
+        "enabled": false,
+        "description": "Company verification and validation"
+      },
+      "fileUploads": {
+        "enabled": false,
+        "description": "File upload and management system"
+      },
+      "notifications": {
+        "enabled": false,
+        "description": "Email and push notifications"
+      },
+      "analytics": {
+        "enabled": false,
+        "description": "User analytics and tracking"
+      }
+    },
+    "database": {
+      "collections": {
+        "users": true,
+        "sessions": true,
+        "documents": true,
+        "templates": true,
+        "news": false,
+        "blogs": false,
+        "social_posts": true,
+        "investments": true,
+        "companies": false,
+        "uploads": false,
+        "analytics": false
+      }
+    },
+    "routes": {
+      "auth": true,
+      "profile": true,
+      "documents": true,
+      "templates": true,
+      "news": false,
+      "blog": true,
+      "social": true,
+      "investments": true,
+      "companies": false,
+      "uploads": false,
+      "analytics": false
+    },
+    "middleware": {
+      "authentication": true,
+      "validation": true,
+      "security": true,
+      "cors": true,
+      "rateLimit": true,
+      "csrf": false,
+      "fileUpload": false,
+      "analytics": false
+    }
+  },
+  "production": {
+    "features": {
+      "authentication": {
+        "enabled": true,
+        "description": "Core auth: login, signup, profile management"
+      },
+      "documentAutomation": {
+        "enabled": true,
+        "description": "Document generation and templates"
+      },
+      "blog": {
+        "enabled": true,
+        "description": "News and blog posting system"
+      },
+      "socialMedia": {
+        "enabled": true,
+        "description": "Social media posting and management"
+      },
+      "legalHealthCheck": {
+        "enabled": true,
+        "description": "Legal compliance health checks"
+      },
+      "investments": {
+        "enabled": true,
+        "description": "Investment tracking and management"
+      },
+      "companyVerification": {
+        "enabled": true,
+        "description": "Company verification and validation"
+      },
+      "fileUploads": {
+        "enabled": true,
+        "description": "File upload and management system"
+      },
+      "notifications": {
+        "enabled": true,
+        "description": "Email and push notifications"
+      },
+      "analytics": {
+        "enabled": true,
+        "description": "User analytics and tracking"
+      }
+    },
+    "database": {
+      "collections": {
+        "users": true,
+        "sessions": true,
+        "documents": true,
+        "templates": true,
+        "news": true,
+        "blogs": true,
+        "social_posts": true,
+        "investments": true,
+        "companies": true,
+        "uploads": true,
+        "analytics": true
+      }
+    },
+    "routes": {
+      "auth": true,
+      "profile": true,
+      "documents": true,
+      "templates": true,
+      "news": true,
+      "blog": true,
+      "social": true,
+      "investments": true,
+      "companies": true,
+      "uploads": true,
+      "analytics": true
+    },
+    "middleware": {
+      "authentication": true,
+      "validation": true,
+      "security": true,
+      "cors": true,
+      "rateLimit": true,
+      "csrf": true,
+      "fileUpload": true,
+      "analytics": true
+    }
+  }
+}

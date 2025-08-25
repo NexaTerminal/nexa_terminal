@@ -1,0 +1,32 @@
+services:
+  # Backend API Service
+  - type: web
+    name: nexa-terminal-api
+    env: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        fromDatabase:
+          name: nexa-terminal-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CSRF_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://nexa-terminal.vercel.app
+      - key: CORS_ORIGINS
+        value: https://nexa-terminal.vercel.app,https://nexa-terminal-git-main-martinboshkoskis-projects.vercel.app
+
+databases:
+  - name: nexa-terminal-db
+    databaseName: nexa_terminal
+    user: nexa_user
+    plan: free

@@ -1,0 +1,29 @@
+/* client/src/styles/website/TypewriterFeatures.module.css */
+.typewriterText {
+  font-size: 1.6rem; /* Slightly larger for impact */
+  font-weight: 500; /* Medium weight */
+  color: #2c3e50; /* Darker, more professional color */
+  text-align: center;
+  min-height: 2.5em; /* To prevent layout shift, accommodate longer strings */
+  line-height: 1.25; /* Ensure multi-line features look good if they wrap */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* padding: 0 10px; Add some horizontal padding */
+  font-family: 'Roboto', sans-serif; /* Example of a clean font */
+}
+
+.cursor {
+  animation: blink 1s step-end infinite;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  from, to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

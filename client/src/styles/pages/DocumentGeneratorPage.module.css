@@ -1,0 +1,76 @@
+.pageContainer {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif; /* Assuming Inter is a loaded font */
+    background-color: #f9fafb; /* Light gray background for the page */
+    min-height: 100vh;
+  }
+  
+  .pageHeader {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .pageHeader h1 {
+    font-size: 2.5rem;
+    color: #111827; /* Darker gray */
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  
+  .pageDescription {
+    font-size: 1.1rem;
+    color: #4b5563; /* Medium gray */
+    max-width: 700px;
+    margin: 0 auto 20px auto;
+    line-height: 1.6;
+  }
+  
+  .searchContainer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .searchInput {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .searchInput:focus {
+    outline: none;
+    border-color: #4F46E5; /* Primary color from your theme */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .pageContainer {
+      padding: 15px;
+    }
+    .pageHeader {
+      padding: 20px 15px;
+      margin-bottom: 30px;
+    }
+    .pageHeader h1 {
+      font-size: 2rem;
+    }
+    .pageDescription {
+      font-size: 1rem;
+    }
+    .searchInput {
+      padding: 10px 15px;
+      font-size: 0.9rem;
+    }
+  }

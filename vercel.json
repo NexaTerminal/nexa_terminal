@@ -1,8 +1,8 @@
 {
-  "buildCommand": "cd client && npm ci && npm run build",
+  "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/build",
-  "installCommand": "npm ci",
-  "framework": "create-react-app",
+  "installCommand": "cd client && npm install",
+  "framework": null,
   "env": {
     "REACT_APP_API_URL": "https://nexa-terminal-api.onrender.com/api"
   }

@@ -88,7 +88,7 @@ class UserController {
       console.error('Error updating profile:', error);
       res.status(500).json({ message: 'Error updating profile' });
     }
-  },
+  }
 
   // Create or update company profile (separate companies collection)
   async createOrUpdateCompany(req, res) {

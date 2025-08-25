@@ -13,9 +13,7 @@ services:
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        fromDatabase:
-          name: nexa-terminal-db
-          property: connectionString
+        value: mongodb+srv://terminalnexa:Dav1dBoshkosk1@nexacluster.ddjqk.mongodb.net/nexa
       - key: JWT_SECRET
         generateValue: true
       - key: CSRF_SECRET
@@ -24,9 +22,3 @@ services:
         value: https://nexa-terminal.vercel.app
       - key: CORS_ORIGINS
         value: https://nexa-terminal.vercel.app,https://nexa-terminal-git-main-martinboshkoskis-projects.vercel.app
-
-databases:
-  - name: nexa-terminal-db
-    databaseName: nexa_terminal
-    user: nexa_user
-    plan: free

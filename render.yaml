@@ -22,3 +22,11 @@ services:
         value: https://nexa-terminal.vercel.app
       - key: CORS_ORIGINS
         value: https://nexa-terminal.vercel.app,https://nexa-terminal-git-main-martinboshkoskis-projects.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        value: placeholder-google-client-id
+      - key: GOOGLE_CLIENT_SECRET
+        value: placeholder-google-client-secret
+      - key: LINKEDIN_CLIENT_ID
+        value: placeholder-linkedin-client-id
+      - key: LINKEDIN_CLIENT_SECRET
+        value: placeholder-linkedin-client-secret

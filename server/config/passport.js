@@ -89,14 +89,15 @@ module.exports = (db) => {
     )
   );
 
-  // Google OAuth Strategy
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL,
-      },
+  // Google OAuth Strategy (only if credentials are provided)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
+        },
       async (accessToken, refreshToken, profile, done) => {
         try {
           // Check if user already exists by Google ID or email
@@ -130,17 +131,19 @@ module.exports = (db) => {
         }
       }
     )
-  );
+    );
+  }
 
-  // LinkedIn OAuth Strategy
-  passport.use(
-    new LinkedInStrategy(
-      {
-        clientID: process.env.LINKEDIN_CLIENT_ID,
-        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-        callbackURL: process.env.LINKEDIN_CALLBACK_URL,
-        scope: ["r_emailaddress", "r_liteprofile"],
-      },
+  // LinkedIn OAuth Strategy (only if credentials are provided)
+  if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+    passport.use(
+      new LinkedInStrategy(
+        {
+          clientID: process.env.LINKEDIN_CLIENT_ID,
+          clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+          callbackURL: process.env.LINKEDIN_CALLBACK_URL || '/api/auth/linkedin/callback',
+          scope: ["r_emailaddress", "r_liteprofile"],
+        },
       async (accessToken, refreshToken, profile, done) => {
         try {
           // Check if user already exists by LinkedIn ID or email
@@ -173,5 +176,6 @@ module.exports = (db) => {
         }
       }
     )
-  );
+    );
+  }
 };

@@ -123,20 +123,20 @@
 
 /* Simple Hero Section with Large Logo Focus */
 .heroSection {
-  text-align: center; /* Center everything by default */
+  text-align: left; /* Left align on desktop */
   padding-top: 8rem;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start; /* Left align on desktop */
   justify-content: center;
 }
 
 .logoContainer {
   margin-bottom: 2rem;
-  text-align: center; /* Center the logo */
+  text-align: left; /* Left align on desktop */
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Left align on desktop */
   align-items: center;
 }
 
@@ -554,14 +554,16 @@
   }
   .heroSection {
     padding-top: 2rem; /* Much less padding on mobile */
-    text-align: center;
+    text-align: center; /* Center on mobile */
     width: 100%;
+    align-items: center; /* Center alignment on mobile */
   }
   .logoContainer {
     margin-bottom: 3rem; /* Prominent spacing for logo */
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Center logo on mobile */
+    text-align: center; /* Center alignment override for mobile */
   }
   .nexaLogo {
     height: 220px; /* Very large on mobile for focus */

@@ -6,8 +6,8 @@
 
 .layout {
   display: flex;
-  min-height: calc(100vh - 64px); /* Account for header height */
-  margin-top: 64px;
+  min-height: calc(100vh - 100px); /* Account for header height */
+  margin-top: 100px;
 }
 
 .mainContent {

@@ -8,7 +8,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    height: 64px;
+    height: 100px; /* Increased to accommodate larger logo */
     display: flex;
     align-items: center;
     box-shadow: var(--shadow-lg);
@@ -43,7 +43,7 @@
 }
 
 .logo-image {
-    height: 48px; /* Increased by 150% from 32px */
+    height: 86px; /* Increased by 80% from 48px (48 * 1.8 = 86.4) */
     width: auto;
     transition: all 0.3s ease;
 }
@@ -532,7 +532,7 @@
 }
 
 .logoTerminal .logo-image {
-  height: 42px; /* Increased by 150% from 28px */
+  height: 76px; /* Increased by 80% from 42px (42 * 1.8 = 75.6) */
 }
 
 /* Desktop-specific sidebar alignment */

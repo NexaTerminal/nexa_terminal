@@ -121,19 +121,27 @@
   gap: 3rem;
 }
 
-/* Simple Hero Section with Large Nexa Title */
+/* Simple Hero Section with Large Logo Focus */
 .heroSection {
-  text-align: left;
+  text-align: center; /* Center everything by default */
   padding-top: 8rem;
   margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .logoContainer {
   margin-bottom: 2rem;
+  text-align: center; /* Center the logo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .nexaLogo {
-  height: 120px; /* Increased by 150% from 80px */
+  height: 180px; /* Further increased for better mobile focus */
   width: auto;
   transition: all 0.3s ease;
 }
@@ -300,6 +308,17 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
   border: 1px solid rgba(229, 229, 229, 1); /* border-neutral-200 */
   transition: all 0.3s ease;
+}
+
+/* Mobile-specific login container improvements */
+@media (max-width: 768px) {
+  .loginContainer {
+    max-width: 90%; /* Use more screen width on mobile */
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: 1.5rem; /* Slightly more rounded on mobile */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* Stronger shadow on mobile */
+  }
 }
 
 .loginContainer:hover {
@@ -505,11 +524,14 @@
     order: 2;
     min-height: unset;
   }
-  .nexaTitle {
-    font-size: 4rem;
-  }
   .heroSection {
-    padding-top: 4rem;
+    padding-top: 3rem; /* Reduced padding for mobile focus on logo */
+  }
+  .logoContainer {
+    margin-bottom: 3rem; /* More space around logo on tablet */
+  }
+  .nexaLogo {
+    height: 200px; /* Even larger on tablet */
   }
 }
 
@@ -519,16 +541,30 @@
   }
   .loginSidebar {
     order: 1;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem; /* Reduced margin for more logo focus */
     padding: 1rem 0.5rem;
   }
   .businessContent {
     order: 2;
-    padding: 0.5rem;
-    gap: 1.5rem;
+    padding: 1rem; /* Better mobile padding */
+    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content on mobile */
   }
-  .nexaTitle {
-    font-size: 3rem;
+  .heroSection {
+    padding-top: 2rem; /* Much less padding on mobile */
+    text-align: center;
+    width: 100%;
+  }
+  .logoContainer {
+    margin-bottom: 3rem; /* Prominent spacing for logo */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .nexaLogo {
+    height: 220px; /* Very large on mobile for focus */
   }
   .sectionTitle {
     font-size: 1.75rem;
@@ -547,5 +583,30 @@
   .demoArrow {
     transform: rotate(90deg);
     justify-self: center;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .heroSection {
+    padding-top: 1rem; /* Minimal top padding on very small screens */
+  }
+  .logoContainer {
+    margin-bottom: 2rem;
+  }
+  .nexaLogo {
+    height: 200px; /* Still prominent but slightly smaller on very small screens */
+  }
+  .loginContainer {
+    max-width: 95%; /* Use even more screen width */
+    padding: 1rem; /* Compact padding */
+    margin: 1rem auto;
+  }
+  .businessContent {
+    padding: 0.5rem;
+    gap: 1rem;
+  }
+  .loginSidebar {
+    padding: 0.5rem;
   }
 }

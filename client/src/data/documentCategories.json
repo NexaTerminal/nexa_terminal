@@ -23,6 +23,12 @@
         "name": "Спогодба за престанок на работен однос",
         "description": "Автоматизирана спогодба за раскинување на договор за вработување.",
         "route": "/terminal/documents/employment/termination-agreement"
+      },
+      {
+        "id": "employmentAgreement",
+        "name": "Договор за вработување",
+        "description": "Автоматизирано генерирање на договор за вработување.",
+        "route": "/terminal/documents/employment/employment-agreement"
       }
     ]
   },

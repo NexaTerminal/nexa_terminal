@@ -30,6 +30,7 @@ const documentHeadlines = {
   terminationAgreement: "СПОГОДБА ЗА ПРЕСТАНОК НА РАБОТЕН ОДНОС",
   annualLeaveDecision: "РЕШЕНИЕ ЗА ГОДИШЕН ОДМОР",
   confirmationOfEmployment: "ПОТВРДА ЗА ВРАБОТУВАЊЕ",
+  employmentAgreement: "ДОГОВОР ЗА ВРАБОТУВАЊЕ",
 
   // Personal Data Protection
   consentForPersonalDataProcessing: "СОГЛАСНОСТ ЗА ОБРАБОТКА НА ЛИЧНИ ПОДАТОЦИ",
@@ -48,12 +49,25 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
     annualLeaveYear: 'Година на одмор',
     annualLeaveStart: 'Почеток на одмор',
     annualLeaveEnd: 'Крај на одмор',
+    jobPosition: 'Работна позиција',
+    workTasks: 'Работни обврски',
+    netSalary: 'Основна плата',
+    placeOfWork: 'Место на работа',
+    otherWorkPlace: 'Друго место на работа',
+    agreementDate: 'Датум на договор',
+    agreementDurationType: 'Тип на договор',
+    definedDuration: 'Краен датум',
+    dailyWorkTime: 'Работно време',
+    otherWorkTime: 'Друго работно време',
+    concurrentClause: 'Конкурентска клаузула',
+    concurrentClauseInput: 'Детали за конкурентска клаузула',
     // Add more fields as needed
   };
   // Define which fields to show for each document type (order matters)
   const documentFields = {
     terminationAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'endDate'],
     annualLeaveDecision: ['employeeName', 'annualLeaveYear', 'annualLeaveStart', 'annualLeaveEnd'],
+    employmentAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'jobPosition', 'workTasks', 'netSalary', 'agreementDate', 'agreementDurationType', 'dailyWorkTime'],
     // Add more document types as needed
   };
   const fieldsToShow = documentFields[documentType] || Object.keys(formData);
@@ -72,7 +86,13 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
       {fieldsToShow.map((field) => (
         formData[field] ? (
           <p key={field}>
-            <strong>{fieldLabels[field] || field}:</strong> {['endDate', 'annualLeaveStart', 'annualLeaveEnd'].includes(field) ? formatDate(formData[field]) : formData[field]}
+            <strong>{fieldLabels[field] || field}:</strong> {
+              Array.isArray(formData[field]) 
+                ? formData[field].join(', ')
+                : ['endDate', 'annualLeaveStart', 'annualLeaveEnd', 'agreementDate', 'definedDuration'].includes(field) 
+                  ? formatDate(formData[field]) 
+                  : formData[field]
+            }
           </p>
         ) : null
       ))}

@@ -30,6 +30,7 @@ import Education from './pages/terminal/Education';
 
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
 import ConfirmationOfEmploymentPage from './pages/terminal/documents/employment/ConfirmationOfEmploymentPage';
+import EmploymentAgreementPage from './pages/terminal/documents/employment/EmploymentAgreementPage';
 
 // Document Pages
 // Employment
@@ -88,6 +89,7 @@ function App() {
       {/* Employment */}
       <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><TerminationAgreementPage /></PrivateRoute>} />
       <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage/></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><EmploymentAgreementPage/></PrivateRoute>} />
  
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

@@ -43,7 +43,7 @@
 }
 
 .logo-image {
-    height: 32px;
+    height: 48px; /* Increased by 150% from 32px */
     width: auto;
     transition: all 0.3s ease;
 }
@@ -532,7 +532,7 @@
 }
 
 .logoTerminal .logo-image {
-  height: 28px; /* Slightly smaller for terminal view */
+  height: 42px; /* Increased by 150% from 28px */
 }
 
 /* Desktop-specific sidebar alignment */

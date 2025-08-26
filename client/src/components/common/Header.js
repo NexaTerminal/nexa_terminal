@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from './LanguageSwitcher';
+// import LanguageSwitcher from './LanguageSwitcher'; // DISABLED FOR NOW
 
 const Header = ({ isTerminal = false }) => {
   const { t } = useTranslation();
@@ -154,7 +154,7 @@ const Header = ({ isTerminal = false }) => {
           <nav className={styles['nav-links']}>
             {renderNavLinks()}
           </nav>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> DISABLED FOR NOW */}
         </div>
 
         {/* Mobile menu button */}
@@ -176,7 +176,7 @@ const Header = ({ isTerminal = false }) => {
           <nav className={styles.mobileNav}>
             {renderNavLinks()}
             <div className={styles.mobileLangSwitcher}>
-              <LanguageSwitcher />
+              {/* <LanguageSwitcher /> DISABLED FOR NOW */}
             </div>
           </nav>
         </div>

@@ -89,14 +89,14 @@ const LandingPage = () => {
 
   return (
     <div className={styles.landingPage}>
-      {/* Top Bar with Language Selector */}
-      <div className={styles.topBar}>
+      {/* Top Bar with Language Selector - DISABLED FOR NOW */}
+      {/* <div className={styles.topBar}>
         <div className={styles.languageSelector}>
           <button onClick={() => i18n.changeLanguage('en')} className={i18n.language === 'en' ? styles.activeLang : ''}>EN</button>
           <span className={styles.langDivider}>|</span>
           <button onClick={() => i18n.changeLanguage('mk')} className={i18n.language === 'mk' ? styles.activeLang : ''}>MK</button>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Split Layout */}
       <div className={styles.mainContainer}>
@@ -111,7 +111,7 @@ const LandingPage = () => {
                 className={styles.nexaLogo}
               />
             </div>
-            <h1 className={styles.nexaTitle}>Nexa</h1>
+            {/* <h1 className={styles.nexaTitle}>Nexa</h1> */}
           </section>
 
           {/* What Nexa Does Section */}

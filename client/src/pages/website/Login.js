@@ -79,8 +79,8 @@ const Login = () => {
 
   return (
     <div className={styles.loginPage}>
-      {/* Top Bar with Language Selector */}
-      <div className={styles.topBar}>
+      {/* Top Bar with Language Selector - DISABLED FOR NOW */}
+      {/* <div className={styles.topBar}>
         <div className={styles.topLeftControls}>
           <div className={styles.languageSelector}>
             <button onClick={() => i18n.changeLanguage('en')} className={i18n.language === 'en' ? styles.activeLang : ''}>EN</button>
@@ -88,7 +88,7 @@ const Login = () => {
             <button onClick={() => i18n.changeLanguage('mk')} className={i18n.language === 'mk' ? styles.activeLang : ''}>MK</button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Split Layout */}
       <div className={styles.mainContainer}>
@@ -103,7 +103,7 @@ const Login = () => {
                 className={styles.nexaLogo}
               />
             </div>
-            <h1 className={styles.nexaTitle}>{t('login.nexaTitle', 'Nexa')}</h1>
+            {/* <h1 className={styles.nexaTitle}>{t('login.nexaTitle', 'Nexa')}</h1> */}
           </section>
 
           {/* What Nexa Does Section */}

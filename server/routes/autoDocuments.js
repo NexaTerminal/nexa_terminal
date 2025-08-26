@@ -5,6 +5,7 @@ const generate = require('../controllers/autoDocuments/consentForPersonalDataPro
 const terminationAgreementController = require('../controllers/autoDocuments/terminationAgreementController');
 const annualLeaveDecisionController = require('../controllers/autoDocuments/annualLeaveDecisionController');
 const confirmationOfEmploymentController = require('../controllers/autoDocuments/confirmationOfEmploymentController');
+const employmentAgreementController = require('../controllers/autoDocuments/employmentAgreementController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, generate);
@@ -18,6 +19,9 @@ router.post('/termination-agreement', authenticateJWT, terminationAgreementContr
 
 // Annual Leave Decision (Решение за годишен одмор)
 router.post('/annual-leave-decision', authenticateJWT, annualLeaveDecisionController);
+
+// Employment Agreement (Договор за вработување)
+router.post('/employment-agreement', authenticateJWT, employmentAgreementController);
 
 // Add more document routes here as needed
 

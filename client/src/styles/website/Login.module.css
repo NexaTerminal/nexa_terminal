@@ -129,15 +129,22 @@
 }
 
 .nexaTitle {
-  font-size: 6rem;
+  font-size: 3.75rem; /* 60px desktop as per design system */
   font-weight: 700;
   color: var(--color-dark);
   margin: 0;
-  background: var(--gradient-text);
+  background: linear-gradient(to right, var(--color-neutral-900), var(--color-primary), var(--color-neutral-700));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.02em;
+  margin-bottom: 1.5rem; /* mb-6 from design system */
+}
+
+@media (max-width: 1024px) {
+  .nexaTitle {
+    font-size: 2.25rem; /* 36px mobile as per design system */
+  }
 }
 
 /* What Nexa Does Section */
@@ -146,11 +153,17 @@
 }
 
 .sectionTitle {
-  font-size: 2.25rem;
-  font-weight: 600;
-  color: var(--color-dark);
-  /* margin-bottom: 2rem; */
+  font-size: 1.875rem; /* 30px mobile as per design system */
+  font-weight: 700; /* Bold weight per design system */
+  color: var(--color-neutral-900); /* Primary text color */
+  margin-bottom: 2rem;
   line-height: 1.2;
+}
+
+@media (min-width: 1024px) {
+  .sectionTitle {
+    font-size: 2.25rem; /* 36px desktop as per design system */
+  }
 }
 
 /* Styles for the container of the TypewriterFeatures component if needed */
@@ -255,7 +268,7 @@
 /* Login Sidebar (Right Side - 2/5) */
 .loginSidebar {
   flex: 2;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1E4DB7 0%, #3B82F6 50%, #06B6D4 100%); /* Business gradient from design system */
   padding: 2rem;
   display: flex;
   align-items: center;
@@ -266,11 +279,18 @@
 .loginContainer {
   width: 100%;
   max-width: 400px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
+  background: white;
+  border-radius: 1rem; /* rounded-2xl from design system */
   padding: 2rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  border: 1px solid rgba(229, 229, 229, 1); /* border-neutral-200 */
+  transition: all 0.3s ease;
+}
+
+.loginContainer:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+  border-color: rgba(30, 77, 183, 0.2); /* primary/20 */
+  transform: translateY(-4px);
 }
 
 .loginContainer h1 {
@@ -325,9 +345,10 @@
 }
 
 .formInput:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+  box-shadow: none;
 }
 
 .formInput::placeholder {
@@ -335,21 +356,22 @@
 }
 
 .submitButton {
-  padding: 0.875rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem 2rem; /* py-4 px-8 from design system */
+  background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 1rem; /* rounded-2xl from design system */
+  font-size: 1.125rem; /* text-lg from design system */
+  font-weight: 700; /* font-bold from design system */
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-modern */
 }
 
 .submitButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  background-color: var(--color-primary-600);
+  transform: scale(1.05);
 }
 
 .submitButton:disabled {

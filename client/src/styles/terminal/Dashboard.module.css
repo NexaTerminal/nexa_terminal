@@ -86,7 +86,7 @@
 .dashboard-main {
   flex: 1 1 0;
   max-width: 850px;
-  min-width: 700px;
+  min-width: 0; /* Allow full compression on mobile */
   width: 100%;
   margin: 0 auto;
   padding: 40px 32px 32px 32px;
@@ -124,7 +124,7 @@
   .dashboard-main {
     margin: 0;
     max-width: 100vw;
-    padding: 16px 0 8px 0;
+    padding: var(--spacing-lg); /* Better mobile padding */
   }
   .dashboard-sidebar,
   .right-sidebar {
@@ -134,7 +134,7 @@
 
 @media (max-width: 600px) {
   .dashboard-main {
-    padding: 4vw 0 4vw 0;
+    padding: var(--spacing-md); /* Consistent mobile spacing */
   }
 }
 

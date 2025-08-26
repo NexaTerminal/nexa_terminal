@@ -246,7 +246,7 @@
     transition: opacity 0.2s;
   }
   .mobile-menu-button {
-    display: block;
+    display: flex;
     position: fixed;
     top: 1rem;
     left: 1rem;
@@ -257,15 +257,22 @@
     color: #fff;
     border: none;
     border-radius: 50%;
-    font-size: 2rem;
+    font-size: 1.25rem;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-menu-button:hover {
+    background: var(--color-primary-600);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
   .menu-item {
     font-size: 1.15rem;
     padding: var(--spacing-lg) var(--spacing-xl);
-    min-height: 56px;
+    min-height: 48px; /* Touch-friendly minimum height */
   }
 }
 

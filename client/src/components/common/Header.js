@@ -141,7 +141,11 @@ const Header = ({ isTerminal = false }) => {
         {/* Left section with logo */}
         <div className={styles['left-section']}>
           <Link to={isTerminal ? '/terminal' : '/'} className={`${styles.logo} ${isTerminal ? styles.logoTerminal : ''}`}>
-            Nexa
+            <img 
+              src="/nexa-logo-navbar.png" 
+              alt="Nexa Terminal" 
+              className={styles['logo-image']}
+            />
           </Link>
         </div>
 

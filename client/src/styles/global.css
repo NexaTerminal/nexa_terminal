@@ -707,17 +707,17 @@ label {
     padding: var(--spacing-4) 0;
   }
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.875rem; /* Increased for better readability */
   }
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* Increased for better readability */
   }
   h3 {
-    font-size: 1.05rem;
+    font-size: 1.25rem; /* Increased for better readability */
   }
   button, input, select, textarea {
-    min-height: 44px;
-    font-size: 1rem;
+    min-height: 48px; /* Increased for better touch targets */
+    font-size: 16px; /* Prevent iOS zoom */
   }
   .card, .card-sm, .card-lg {
     padding: var(--spacing-3);

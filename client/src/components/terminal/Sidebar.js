@@ -34,14 +34,18 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Remove the mobile menu button to eliminate the floating circle */}
-      {/* <button 
+      {/* Mobile menu button - restored with improved styling */}
+      <button 
         className={styles["mobile-menu-button"]} 
         onClick={toggleSidebar}
         aria-label="Toggle menu"
+        style={{ display: 'none' }} // Will be shown via CSS media query
       >
-        <span className={styles["hamburger-icon"]}></span>
-      </button> */}
+        ☰
+      </button>
+
+      {/* Backdrop for mobile */}
+      {isOpen && <div className={styles["sidebar-backdrop"]} onClick={toggleSidebar}></div>}
 
       <aside className={`${styles["dashboard-sidebar"]} ${isOpen ? styles["open"] : ""}`}>
         {/* <div className={styles["dashboard-welcome"]}>

@@ -35,6 +35,11 @@
     color: #888;
     cursor: pointer;
     line-height: 1;
+    min-width: 48px; /* Touch-friendly size */
+    min-height: 48px; /* Touch-friendly size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .closeButton:hover {
     color: #333;
@@ -176,23 +181,29 @@
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
+    .modalOverlay {
+      padding: var(--spacing-2);
+    }
     .modalContent {
-      padding: 20px;
+      padding: var(--spacing-4);
+      max-height: 95vh;
     }
     .modalTitle {
       font-size: 1.5rem;
     }
     .label {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
     .inputField,
     .selectField,
     .textareaField {
-      padding: 10px 12px;
-      font-size: 0.9rem;
+      padding: 12px;
+      font-size: 16px; /* Prevent iOS zoom */
+      min-height: 48px; /* Touch-friendly */
     }
     .submitButton {
-      padding: 10px 15px;
-      font-size: 0.9rem;
+      padding: 12px 20px;
+      font-size: 1rem;
+      min-height: 48px; /* Touch-friendly */
     }
   }

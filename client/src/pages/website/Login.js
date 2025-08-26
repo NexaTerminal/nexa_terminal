@@ -96,6 +96,13 @@ const Login = () => {
         <div className={styles.businessContent}>
           {/* Simple Hero Section */}
           <section className={styles.heroSection}>
+            <div className={styles.logoContainer}>
+              <img 
+                src="/nexa-logo-navbar.png" 
+                alt="Nexa" 
+                className={styles.nexaLogo}
+              />
+            </div>
             <h1 className={styles.nexaTitle}>{t('login.nexaTitle', 'Nexa')}</h1>
           </section>
 

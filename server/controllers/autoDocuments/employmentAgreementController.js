@@ -10,49 +10,16 @@ async function generate(req, res) {
       return res.status(400).json({ message: 'User or company info missing.' });
     }
 
-    // Validate required fields
-    const requiredFields = [
-      'employeeName', 
-      'employeeAddress', 
-      'employeePIN', 
-      'jobPosition', 
-      'workTasks', 
-      'netSalary', 
-      'agreementDate'
-    ];
-
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        return res.status(400).json({ message: `Missing required field: ${field}` });
-      }
+    // Basic validation - only check if formData exists
+    if (!formData) {
+      return res.status(400).json({ message: 'Form data is required.' });
     }
 
-    // Validate work tasks array
-    if (!Array.isArray(formData.workTasks) || formData.workTasks.length === 0) {
-      return res.status(400).json({ message: 'At least one work task is required.' });
-    }
-    
-    // Check if at least one work task has content
-    const validWorkTasks = formData.workTasks.filter(task => task && task.trim().length > 0);
-    if (validWorkTasks.length === 0) {
-      return res.status(400).json({ message: 'At least one work task is required.' });
-    }
-
-    // Conditional validation
-    if (formData.placeOfWork === 'Друго место' && !formData.otherWorkPlace) {
-      return res.status(400).json({ message: 'Other work place must be specified when selected.' });
-    }
-
-    if (formData.agreementDurationType === 'определено времетраење' && !formData.definedDuration) {
-      return res.status(400).json({ message: 'Duration must be specified for fixed-term agreements.' });
-    }
-
-    if (formData.dailyWorkTime === 'other' && !formData.otherWorkTime) {
-      return res.status(400).json({ message: 'Custom work time must be specified when selected.' });
-    }
-
-    if (formData.concurrentClause && !formData.concurrentClauseInput) {
-      return res.status(400).json({ message: 'Concurrent clause details must be provided when enabled.' });
+    // Ensure workTasks is an array (even if empty)
+    if (!formData.workTasks) {
+      formData.workTasks = [];
+    } else if (!Array.isArray(formData.workTasks)) {
+      formData.workTasks = [formData.workTasks];
     }
 
     const { doc } = generateEmploymentAgreementDoc(formData, user, user.companyInfo);

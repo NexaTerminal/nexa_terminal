@@ -28,6 +28,8 @@ const EmploymentAgreementPage = () => {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [missingFields, setMissingFields] = useState([]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -62,46 +64,62 @@ const EmploymentAgreementPage = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const checkMissingFields = () => {
+    const missing = [];
+    
     if (!formData.employeeName.trim())
-      newErrors.employeeName = "Ова поле е задолжително";
+      missing.push("Име и презиме на работникот");
     if (!formData.employeeAddress.trim())
-      newErrors.employeeAddress = "Ова поле е задолжително";
+      missing.push("Адреса на работникот");
     if (!formData.employeePIN.trim())
-      newErrors.employeePIN = "Ова поле е задолжително";
+      missing.push("ЕМБГ на работникот");
     if (!formData.jobPosition.trim())
-      newErrors.jobPosition = "Ова поле е задолжително";
-    // Check if at least one work task has content
+      missing.push("Работна позиција");
+    
+    // Check work tasks
     const validWorkTasks = formData.workTasks.filter(task => task && task.trim().length > 0);
     if (validWorkTasks.length === 0)
-      newErrors.workTasks = "Најмалку една работна обврска е задолжителна";
-    if (!formData.netSalary.trim())
-      newErrors.netSalary = "Ова поле е задолжително";
-    if (!formData.agreementDate.trim())
-      newErrors.agreementDate = "Ова поле е задолжително";
+      missing.push("Работни обврски");
     
-    // Conditional validation
+    if (!formData.netSalary.trim())
+      missing.push("Основна плата");
+    if (!formData.agreementDate.trim())
+      missing.push("Датум на договор");
+    
+    // Conditional fields
     if (formData.placeOfWork === 'Друго место' && !formData.otherWorkPlace.trim())
-      newErrors.otherWorkPlace = "Наведете го местото на работа";
+      missing.push("Место на работа (детали)");
     if (formData.agreementDurationType === 'определено времетраење' && !formData.definedDuration.trim())
-      newErrors.definedDuration = "Наведете го крајниот датум";
+      missing.push("Краен датум на договор");
     if (formData.dailyWorkTime === 'other' && !formData.otherWorkTime.trim())
-      newErrors.otherWorkTime = "Наведете го работното време";
+      missing.push("Работно време (детали)");
     if (formData.concurrentClause && !formData.concurrentClauseInput.trim())
-      newErrors.concurrentClauseInput = "Наведете ги деталите за конкурентската клаузула";
+      missing.push("Конкурентска клаузула (детали)");
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return missing;
   };
 
   const handleGenerateDocument = async () => {
-    if (!validateForm()) return;
     if (!currentUser) {
       alert("Мора да бидете најавени за да генерирате документ.");
       return;
     }
+
+    // Check for missing fields
+    const missing = checkMissingFields();
+    if (missing.length > 0) {
+      setMissingFields(missing);
+      setShowConfirmModal(true);
+      return;
+    }
+
+    // If no missing fields, generate directly
+    generateDocument();
+  };
+
+  const generateDocument = async () => {
     setIsGenerating(true);
+    setShowConfirmModal(false);
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5001/api";
       const csrfToken = await getCSRFToken();
@@ -146,6 +164,15 @@ const EmploymentAgreementPage = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleConfirmGenerate = () => {
+    generateDocument();
+  };
+
+  const handleCancelGenerate = () => {
+    setShowConfirmModal(false);
+    setMissingFields([]);
   };
 
   return (
@@ -432,6 +459,49 @@ const EmploymentAgreementPage = () => {
           </div>
         </main>
       </div>
+      
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className={styles.modalOverlay} onClick={handleCancelGenerate}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>⚠️ Некои полиња не се пополнети</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p>Следниве полиња не се пополнети:</p>
+              <ul className={styles.missingFieldsList}>
+                {missingFields.map((field, index) => (
+                  <li key={index}>• {field}</li>
+                ))}
+              </ul>
+              <p>Дали сакате да продолжите со генерирањето на документот без овие информации?</p>
+            </div>
+            <div className={styles.modalActions}>
+              <button 
+                onClick={handleCancelGenerate}
+                className={styles.cancelBtn}
+                disabled={isGenerating}
+              >
+                Назад кон формата
+              </button>
+              <button 
+                onClick={handleConfirmGenerate}
+                className={styles.confirmBtn}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <span className={styles["loading-spinner"]}></span>
+                    Генерирање...
+                  </>
+                ) : (
+                  "Продолжи како што е"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -1,4 +1,6 @@
-require('dotenv').config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
+require('dotenv').config({ path: envFile });
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');

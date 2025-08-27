@@ -8,7 +8,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    height: 100px; /* Increased to accommodate larger logo */
+    height: 60px; /* Reduced to accommodate smaller logo */
     display: flex;
     align-items: center;
     box-shadow: var(--shadow-lg);
@@ -43,7 +43,7 @@
 }
 
 .logo-image {
-    height: 86px; /* Increased by 80% from 48px (48 * 1.8 = 86.4) */
+    height: 17px; /* Reduced by 80% from 86px (86 * 0.2 = 17.2px) */
     width: auto;
     transition: all 0.3s ease;
 }
@@ -532,7 +532,7 @@
 }
 
 .logoTerminal .logo-image {
-  height: 76px; /* Increased by 80% from 42px (42 * 1.8 = 75.6) */
+  height: 15px; /* Reduced by 80% from 76px (76 * 0.2 = 15.2px) */
 }
 
 /* Desktop-specific sidebar alignment */

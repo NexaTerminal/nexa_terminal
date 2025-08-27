@@ -28,7 +28,13 @@ async function generate(req, res) {
     }
 
     // Validate work tasks array
-    if (!Array.isArray(formData.workTasks) || formData.workTasks.length === 0 || !formData.workTasks[0]) {
+    if (!Array.isArray(formData.workTasks) || formData.workTasks.length === 0) {
+      return res.status(400).json({ message: 'At least one work task is required.' });
+    }
+    
+    // Check if at least one work task has content
+    const validWorkTasks = formData.workTasks.filter(task => task && task.trim().length > 0);
+    if (validWorkTasks.length === 0) {
       return res.status(400).json({ message: 'At least one work task is required.' });
     }
 

@@ -72,7 +72,9 @@ const EmploymentAgreementPage = () => {
       newErrors.employeePIN = "Ова поле е задолжително";
     if (!formData.jobPosition.trim())
       newErrors.jobPosition = "Ова поле е задолжително";
-    if (!formData.workTasks[0] || !formData.workTasks[0].trim())
+    // Check if at least one work task has content
+    const validWorkTasks = formData.workTasks.filter(task => task && task.trim().length > 0);
+    if (validWorkTasks.length === 0)
       newErrors.workTasks = "Најмалку една работна обврска е задолжителна";
     if (!formData.netSalary.trim())
       newErrors.netSalary = "Ова поле е задолжително";
@@ -103,6 +105,13 @@ const EmploymentAgreementPage = () => {
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5001/api";
       const csrfToken = await getCSRFToken();
+      
+      // Clean work tasks array - remove empty strings
+      const cleanFormData = {
+        ...formData,
+        workTasks: formData.workTasks.filter(task => task && task.trim().length > 0)
+      };
+      
       const response = await fetch(
         `${apiUrl}/auto-documents/employment-agreement`,
         {
@@ -112,7 +121,7 @@ const EmploymentAgreementPage = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "X-CSRF-Token": csrfToken,
           },
-          body: JSON.stringify({ formData }),
+          body: JSON.stringify({ formData: cleanFormData }),
         }
       );
       if (!response.ok) {

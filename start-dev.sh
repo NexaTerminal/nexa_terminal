@@ -1,4 +1,6 @@
 #!/bin/bash
+#   Start Command: ./start-dev.shYour App: http://localhost:3000Deploy: git push origin main
+
 
 echo "🚀 Starting Nexa Development Environment..."
 echo ""

@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { ObjectId } = require('mongodb');
 const UserService = require('../services/userService');
+const emailService = require('../services/emailService');
 
 class VerificationController {
   constructor() {
@@ -42,6 +43,9 @@ class VerificationController {
     this.approveVerification = this.approveVerification.bind(this);
     this.rejectVerification = this.rejectVerification.bind(this);
     this.uploadDocument = this.uploadDocument.bind(this);
+    this.sendVerificationEmail = this.sendVerificationEmail.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
+    this.resendVerificationEmail = this.resendVerificationEmail.bind(this);
   }
 
   // Submit verification request
@@ -64,7 +68,7 @@ class VerificationController {
         });
       }
 
-      const db = req.app.locals.db;
+      const db = req.app.locals.database;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
@@ -79,6 +83,9 @@ class VerificationController {
           message: 'You already have a pending verification request' 
         });
       }
+
+      // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
+      const userId = req.user.id || req.user._id;
 
       // Create verification record
       const verificationData = {
@@ -115,7 +122,7 @@ class VerificationController {
   // Get verification status for current user
   async getVerificationStatus(req, res) {
     try {
-      const db = req.app.locals.db;
+      const db = req.app.locals.database;
       const verificationsCollection = db.collection('company_verifications');
 
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
@@ -148,7 +155,7 @@ class VerificationController {
   // Get all pending verifications (admin only)
   async getPendingVerifications(req, res) {
     try {
-      const db = req.app.locals.db;
+      const db = req.app.locals.database;
       const verificationsCollection = db.collection('company_verifications');
 
       const pendingVerifications = await verificationsCollection.aggregate([
@@ -190,7 +197,7 @@ class VerificationController {
         return res.status(400).json({ message: 'Invalid verification ID' });
       }
 
-      const db = req.app.locals.db;
+      const db = req.app.locals.database;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
@@ -243,7 +250,7 @@ class VerificationController {
         return res.status(400).json({ message: 'Invalid verification ID' });
       }
 
-      const db = req.app.locals.db;
+      const db = req.app.locals.database;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
@@ -305,6 +312,182 @@ class VerificationController {
     } catch (error) {
       console.error('Error uploading document:', error);
       res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // Send verification email
+  async sendVerificationEmail(req, res) {
+    try {
+      const { officialEmail, companyName, companyManager } = req.body;
+
+      if (!officialEmail || !companyName || !companyManager) {
+        return res.status(400).json({ 
+          message: 'Official email, company name, and company manager are required' 
+        });
+      }
+
+      const db = req.app.locals.database;
+      const userService = new UserService(db);
+      const userId = req.user.id || req.user._id;
+
+      // Generate verification token
+      const verificationToken = emailService.generateVerificationToken();
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Update user with verification token and official email
+      await userService.updateUser(userId.toString(), {
+        officialEmail: officialEmail.trim(),
+        companyManager: companyManager.trim(),
+        verificationToken,
+        verificationTokenExpiry: tokenExpiry,
+        verificationStatus: 'email_sent',
+        updatedAt: new Date()
+      });
+
+      // Send verification email
+      const baseUrl = process.env.SERVER_URL || 'http://localhost:5001';
+      await emailService.sendVerificationEmail(
+        officialEmail,
+        companyName,
+        verificationToken,
+        baseUrl
+      );
+
+      res.json({
+        success: true,
+        message: 'Verification email sent successfully',
+        sentTo: officialEmail
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      res.status(500).json({ 
+        success: false,
+        message: error.message || 'Failed to send verification email' 
+      });
+    }
+  }
+
+  // Verify email with token
+  async verifyEmail(req, res) {
+    try {
+      const { token } = req.query;
+
+      if (!token) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Verification token is required' 
+        });
+      }
+
+      const db = req.app.locals.database;
+      const userService = new UserService(db);
+      const usersCollection = db.collection('users');
+
+      // Find user with this verification token
+      const user = await usersCollection.findOne({
+        verificationToken: token,
+        verificationTokenExpiry: { $gt: new Date() }
+      });
+
+      if (!user) {
+        // Redirect to frontend with error
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        return res.redirect(`${clientUrl}/verification-result?success=false&error=invalid_token`);
+      }
+
+      // Update user verification status
+      await userService.updateUser(user._id.toString(), {
+        isVerified: true,
+        verificationStatus: 'approved',
+        verificationToken: null,
+        verificationTokenExpiry: null,
+        updatedAt: new Date()
+      });
+
+      // Send success email
+      try {
+        await emailService.sendVerificationSuccessEmail(
+          user.officialEmail,
+          user.companyInfo?.companyName || 'Your Company'
+        );
+      } catch (emailError) {
+        console.error('Failed to send success email:', emailError);
+        // Continue with verification even if success email fails
+      }
+
+      // Redirect to frontend with success - user is now verified and can access all features
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${clientUrl}/verification-result?success=true&company=${encodeURIComponent(user.companyInfo?.companyName || '')}&message=verified`);
+    } catch (error) {
+      console.error('Error verifying email:', error);
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${clientUrl}/verification-result?success=false&error=server_error`);
+    }
+  }
+
+  // Resend verification email
+  async resendVerificationEmail(req, res) {
+    try {
+      const userId = req.user.id || req.user._id;
+      const db = req.app.locals.database;
+      const userService = new UserService(db);
+      const usersCollection = db.collection('users');
+
+      // Get current user data
+      const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+      if (!user) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'User not found' 
+        });
+      }
+
+      if (!user.officialEmail || !user.companyInfo?.companyName || !user.companyManager) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Missing required information. Please update your profile first.' 
+        });
+      }
+
+      if (user.isVerified) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'User is already verified' 
+        });
+      }
+
+      // Generate new verification token
+      const verificationToken = emailService.generateVerificationToken();
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Update user with new token
+      await userService.updateUser(userId.toString(), {
+        verificationToken,
+        verificationTokenExpiry: tokenExpiry,
+        verificationStatus: 'email_sent',
+        updatedAt: new Date()
+      });
+
+      // Send verification email
+      const baseUrl = process.env.SERVER_URL || 'http://localhost:5001';
+      await emailService.sendVerificationEmail(
+        user.officialEmail,
+        user.companyInfo.companyName,
+        verificationToken,
+        baseUrl
+      );
+
+      res.json({
+        success: true,
+        message: 'Verification email resent successfully',
+        sentTo: user.officialEmail
+      });
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      res.status(500).json({ 
+        success: false,
+        message: error.message || 'Failed to resend verification email' 
+      });
     }
   }
 }

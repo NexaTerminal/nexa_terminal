@@ -5,7 +5,7 @@ import ApiService from '../services/api';
 import { clearCSRFTokenCache } from '../services/csrfService';
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Create auth context
 const AuthContext = createContext();
@@ -337,6 +337,20 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, navigate]);
 
+  // Refresh user data
+  const refreshUser = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await ApiService.request('/users/profile');
+      if (response && response.user) {
+        setCurrentUser(response.user);
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  };
+
   // Auto-logout on token expiration or error
   const handleAuthError = useCallback((error) => {
     if (error.isAuthError) {
@@ -362,6 +376,7 @@ export const AuthProvider = ({ children }) => {
     register,
     registerSimple,
     updateProfile,
+    refreshUser,
     logout,
     handleAuthError,
     setCurrentUser

@@ -19,6 +19,23 @@ const DocumentGen = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Function to get appropriate icon for each template
+  const getTemplateIcon = (templateId) => {
+    const iconMap = {
+      'annual_leave_decision': '🏖️',
+      'confirmation_of_employment': '✅',
+      'terminationAgreement': '📄',
+      'employmentAgreement': '📝',
+      'consent_for_personal_data_processing': '🔒',
+      'health_safety_policy': '🛡️',
+      'contract': '📋',
+      'invoice': '💰',
+      'receipt': '🧾',
+      'default': '📄'
+    };
+    return iconMap[templateId] || iconMap.default;
+  };
+
   // Convert documentCategoriesData array to object for backward compatibility
   const documentCategories = documentCategoriesData.reduce((acc, category) => {
     acc[category.id] = category;
@@ -326,15 +343,18 @@ const DocumentGen = () => {
               className={styles['template-card']}
               onClick={() => selectTemplate(template)}
             >
+              <div className={styles['template-icon']}>
+                {getTemplateIcon(template.id)}
+              </div>
               <h3 className={styles['template-name']}>{template.name}</h3>
               {template.description && (
                 <p className={styles['template-description']}>{template.description}</p>
               )}
-              {template.fields && template.fields.length > 0 ? (
+              {template.fields && template.fields.length > 0 && (
                 <div className={styles['template-fields']}>
                   <strong>Потребни полиња:</strong>
                   <ul>
-                    {template.fields.map((field, index) => {
+                    {template.fields.slice(0, 4).map((field, index) => {
                       // Handle both old format (string) and new format (object)
                       const fieldName = typeof field === 'string' ? field : field.name;
                       const fieldLabel = typeof field === 'string' ? (fieldLabels[field] || field) : (field.label || field.name);
@@ -343,11 +363,10 @@ const DocumentGen = () => {
                         <li key={index}>{fieldLabel}</li>
                       );
                     })}
+                    {template.fields.length > 4 && (
+                      <li>+{template.fields.length - 4} повеќе</li>
+                    )}
                   </ul>
-                </div>
-              ) : (
-                <div className={styles['template-info']}>
-                  <p>Ова е специјализиран шаблон со сопствен формулар.</p>
                 </div>
               )}
             </div>

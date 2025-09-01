@@ -7,6 +7,7 @@ function generateAnnualLeaveDecisionDoc(formData, user, company) {
   const companyNumber = company?.taxNumber || '[ЕМБС]';
   const companyManager = company?.manager || '[Управител]';
   const employeeName = formData.employeeName || '[Име на вработен]';
+  const employeePosition = formData.employeePosition || '[Работна позиција]';
   const annualLeaveYear = formData.annualLeaveYear || '[Година]';
   const annualLeaveStart = formData.annualLeaveStart ? moment(formData.annualLeaveStart).format('DD.MM.YYYY') : '[Почеток на одмор]';
   const annualLeaveEnd = formData.annualLeaveEnd ? moment(formData.annualLeaveEnd).format('DD.MM.YYYY') : '[Крај на одмор]';
@@ -37,7 +38,7 @@ function generateAnnualLeaveDecisionDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
-            new TextRun({ text: `На работникот ${employeeName}, вработен во ${companyName}, му се одобрува користење на годишен одмор за ${annualLeaveYear} година.` })
+            new TextRun({ text: `На работникот ${employeeName}, работна позиција ${employeePosition}, вработен во ${companyName}, му се одобрува користење на годишен одмор за ${annualLeaveYear} година.` })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),

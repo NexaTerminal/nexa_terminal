@@ -393,3 +393,89 @@
   background: var(--color-accent);
   transition: width 0.3s ease;
 }
+
+/* Verification Section Styles */
+.verificationSection {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.verifiedStatus,
+.unverifiedStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.verifiedStatus {
+  color: #065f46;
+  font-weight: 500;
+}
+
+.unverifiedStatus {
+  color: #7c2d12;
+  font-weight: 500;
+}
+
+.verifiedIcon {
+  font-size: 20px;
+}
+
+.unverifiedIcon {
+  font-size: 18px;
+}
+
+.verifyBtn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+
+.verifyBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.verifyBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.statusMessage {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verifiedStatus .statusMessage {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #065f46;
+}
+
+.unverifiedStatus .statusMessage {
+  background: #fef3c7;
+  border: 1px solid #fde047;
+  color: #92400e;
+}
+
+.approvedIcon {
+  font-size: 16px;
+}

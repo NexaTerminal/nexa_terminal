@@ -32,22 +32,18 @@ router.get('/dashboard', authenticateJWT, cacheMiddleware(300), async (req, res)
 // Admin analytics function
 async function getAdminAnalytics(db, userService) {
   try {
-    const socialpostsCollection = db.collection('socialposts');
-    const verificationCollection = db.collection('companyVerifications');
+    const socialpostsCollection = db.collection('socialPosts');
+    const analyticsCollection = db.collection('analytics');
     
     const [
       userStats,
       totalPosts,
-      pendingVerifications,
-      approvedVerifications,
       recentActivity,
       userGrowth,
       topCompanies
     ] = await Promise.all([
       userService.getUserStats(),
       socialpostsCollection.countDocuments(),
-      verificationCollection.countDocuments({ status: 'pending' }),
-      verificationCollection.countDocuments({ status: 'approved' }),
       getRecentActivity(db),
       getUserGrowthData(db),
       getTopCompanies(db)
@@ -57,10 +53,9 @@ async function getAdminAnalytics(db, userService) {
       overview: {
         totalUsers: userStats.totalUsers,
         totalPosts,
-        pendingVerifications,
-        approvedVerifications,
+        verifiedUsers: userStats.verifiedUsers,
         activeUsers: await getActiveUsersCount(db),
-        verificationRate: userStats.totalUsers > 0 ? ((approvedVerifications / userStats.totalUsers) * 100).toFixed(1) : 0
+        verificationRate: userStats.totalUsers > 0 ? ((userStats.verifiedUsers / userStats.totalUsers) * 100).toFixed(1) : 0
       },
       growth: userGrowth,
       activity: recentActivity,

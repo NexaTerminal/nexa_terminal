@@ -29,6 +29,12 @@
         "name": "Договор за вработување",
         "description": "Автоматизирано генерирање на договор за вработување.",
         "route": "/terminal/documents/employment/employment-agreement"
+      },
+      {
+        "id": "disciplinaryAction",
+        "name": "Дисциплинска мерка - парична казна",
+        "description": "Издавање решение за дисциплинска мерка со парична казна.",
+        "route": "/terminal/documents/employment/disciplinary-action"
       }
     ]
   },

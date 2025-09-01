@@ -31,6 +31,7 @@ const documentHeadlines = {
   annualLeaveDecision: "РЕШЕНИЕ ЗА ГОДИШЕН ОДМОР",
   confirmationOfEmployment: "ПОТВРДА ЗА ВРАБОТУВАЊЕ",
   employmentAgreement: "ДОГОВОР ЗА ВРАБОТУВАЊЕ",
+  disciplinaryAction: "РЕШЕНИЕ ЗА ДИСЦИПЛИНСКА МЕРКА",
 
   // Personal Data Protection
   consentForPersonalDataProcessing: "СОГЛАСНОСТ ЗА ОБРАБОТКА НА ЛИЧНИ ПОДАТОЦИ",
@@ -39,6 +40,16 @@ const documentHeadlines = {
 };
 
 const renderUniversalPreview = ({ formData, company, documentType }) => {
+  // Add defensive checks
+  if (!formData || typeof formData !== 'object') {
+    return (
+      <div className={styles.document}>
+        <h2 className={styles.title}>[Наслов на документ]</h2>
+        <p>Внесете податоци за да видите преглед на документот...</p>
+      </div>
+    );
+  }
+  
   const headline = documentHeadlines[documentType] || '[Наслов на документ]';
   // Define a mapping of field keys to labels for all supported fields
   const fieldLabels = {
@@ -50,6 +61,7 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
     annualLeaveStart: 'Почеток на одмор',
     annualLeaveEnd: 'Крај на одмор',
     jobPosition: 'Работна позиција',
+    employeePosition: 'Работна позиција',
     workTasks: 'Работни обврски',
     netSalary: 'Основна плата',
     placeOfWork: 'Место на работа',
@@ -61,26 +73,33 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
     otherWorkTime: 'Друго работно време',
     concurrentClause: 'Конкурентска клаузула',
     concurrentClauseInput: 'Детали за конкурентска клаузула',
+    sanctionAmount: 'Висина на казната',
+    sanctionPeriod: 'Период на казната',
+    sanctionDate: 'Датум на казната',
+    workTaskFailure: 'Работна обврска која е запостави',
+    employeeWrongDoing: 'Постапување спротивно на обврската',
+    employeeWrongdoingDate: 'Датум на постапувањето',
     // Add more fields as needed
   };
   // Define which fields to show for each document type (order matters)
   const documentFields = {
     terminationAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'endDate'],
-    annualLeaveDecision: ['employeeName', 'annualLeaveYear', 'annualLeaveStart', 'annualLeaveEnd'],
+    annualLeaveDecision: ['employeeName', 'employeePosition', 'annualLeaveYear', 'annualLeaveStart', 'annualLeaveEnd'],
     employmentAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'jobPosition', 'workTasks', 'netSalary', 'agreementDate', 'agreementDurationType', 'dailyWorkTime'],
+    disciplinaryAction: ['employeeName', 'jobPosition', 'sanctionAmount', 'sanctionPeriod', 'sanctionDate', 'workTaskFailure', 'employeeWrongDoing', 'employeeWrongdoingDate'],
     // Add more document types as needed
   };
-  const fieldsToShow = documentFields[documentType] || Object.keys(formData);
+  const fieldsToShow = documentFields[documentType] || Object.keys(formData || {});
   return (
     <div className={styles.document}>
       <h2 className={styles.title}>{headline}</h2>
-      {company.companyName && (
+      {company?.companyName && (
         <p><strong>Друштво:</strong> {company.companyName}</p>
       )}
-      {company.address && (
+      {company?.address && (
         <p><strong>Адреса:</strong> {company.address}</p>
       )}
-      {company.taxNumber && (
+      {company?.taxNumber && (
         <p><strong>ЕДБ:</strong> {company.taxNumber}</p>
       )}
       {fieldsToShow.map((field) => (
@@ -89,7 +108,7 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
             <strong>{fieldLabels[field] || field}:</strong> {
               Array.isArray(formData[field]) 
                 ? formData[field].join(', ')
-                : ['endDate', 'annualLeaveStart', 'annualLeaveEnd', 'agreementDate', 'definedDuration'].includes(field) 
+                : ['endDate', 'annualLeaveStart', 'annualLeaveEnd', 'agreementDate', 'definedDuration', 'sanctionDate', 'employeeWrongdoingDate'].includes(field) 
                   ? formatDate(formData[field]) 
                   : formData[field]
             }
@@ -108,9 +127,12 @@ const DocumentPreview = ({ formData, documentType, currentStep }) => {
     return <div className={styles.previewContainer}><p>Ве молиме најавете се за да ги видите деталите за компанијата.</p></div>;
   }
 
+  // Add default values if formData is not provided
+  const safeFormData = formData || {};
+
   return (
     <div className={styles.previewContainer}>
-      {renderUniversalPreview({ formData, company, documentType })}
+      {renderUniversalPreview({ formData: safeFormData, company, documentType })}
     </div>
   );
 };

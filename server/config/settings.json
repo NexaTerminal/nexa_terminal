@@ -26,7 +26,7 @@
         "description": "Investment tracking and management"
       },
       "companyVerification": {
-        "enabled": false,
+        "enabled": true,
         "description": "Company verification and validation"
       },
       "fileUploads": {
@@ -68,7 +68,10 @@
       "investments": true,
       "companies": false,
       "uploads": false,
-      "analytics": false
+      "analytics": false,
+      "verification": true,
+      "contact": true,
+      "admin": true
     },
     "middleware": {
       "authentication": true,
@@ -76,7 +79,7 @@
       "security": true,
       "cors": true,
       "rateLimit": true,
-      "csrf": false,
+      "csrf": true,
       "fileUpload": false,
       "analytics": false
     }
@@ -150,7 +153,10 @@
       "investments": true,
       "companies": true,
       "uploads": true,
-      "analytics": true
+      "analytics": true,
+      "verification": true,
+      "contact": true,
+      "admin": true
     },
     "middleware": {
       "authentication": true,

@@ -7,7 +7,7 @@ const { SocialPostIndexes, validateSocialPost, sanitizeSocialPost } = require('.
 class SocialPostService {
   constructor(db) {
     this.db = db;
-    this.collection = db.collection('socialposts');
+    this.collection = db.collection('socialPosts');
     this.setupIndexes();
   }
 
@@ -70,7 +70,7 @@ class SocialPostService {
         {
           $lookup: {
             from: 'users',
-            localField: 'author',
+            localField: 'userId',
             foreignField: '_id',
             as: 'author',
             pipeline: [
@@ -105,7 +105,7 @@ class SocialPostService {
     const { page = 1, limit = 20 } = options;
     return await this.getAllPosts({
       ...options,
-      filter: { author: new ObjectId(authorId) }
+      filter: { userId: new ObjectId(authorId) }
     });
   }
 
@@ -227,7 +227,7 @@ class SocialPostService {
 
   // Get post statistics
   async getPostStats(authorId = null) {
-    const matchStage = authorId ? { author: new ObjectId(authorId) } : {};
+    const matchStage = authorId ? { userId: new ObjectId(authorId) } : {};
 
     const pipeline = [
       { $match: matchStage },

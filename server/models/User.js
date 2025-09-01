@@ -5,39 +5,31 @@
 // userService.js is responsible for actual database interactions and schema enforcement.
 
 const userSchemaDefinition = {
-  username: { type: 'String', required: true, unique: true, trim: true, lowercase: true }, // Added lowercase: true
+  userName: { type: 'String', required: true, unique: true, trim: true, lowercase: true },
   password: { type: 'String', required: true },
-  email: { type: 'String', unique: true, lowercase: true, trim: true, sparse: true, required: false }, // Optional at signup
-  profileComplete: { type: 'Boolean', default: false },
   isAdmin: { type: 'Boolean', default: false },
+  isVerified: { type: 'Boolean', default: false },
+  officialEmail: { type: 'String', lowercase: true, trim: true, default: '' },
   companyInfo: {
     companyName: { type: 'String', trim: true, default: '' },
-    mission: { type: 'String', trim: true, default: '' },
+    companyAddress: { type: 'String', trim: true, default: '' },
+    companyTaxNumber: { type: 'String', trim: true, default: '' },
+    companyManager: { type: 'String', trim: true, default: '' },
+    missionStatement: { type: 'String', trim: true, default: '' },
     website: { type: 'String', trim: true, default: '' },
-    industry: { type: 'String', trim: true, default: '' },
-    companySize: { type: 'String', trim: true, default: '' }, // Added: Company size
-    role: { type: 'String', trim: true, default: '' }, // Added: User's role in company
-    description: { type: 'String', trim: true, default: '' },
-    crnNumber: { type: 'String', trim: true, default: '' }, // Company Registration Number
-    address: { type: 'String', trim: true, default: '' }, // This will store the company address
-    phone: { type: 'String', trim: true, default: '' },
-    companyPIN: { type: 'String', trim: true, default: '' }, // Added: Company PIN
-    taxNumber: { type: 'String', trim: true, default: '' }, // Added: Tax Number
-    contactEmail: { type: 'String', lowercase: true, trim: true, default: '' } // Added: Company Contact Email
+    facebook: { type: 'String', trim: true, default: '' },
+    linkedin: { type: 'String', trim: true, default: '' }
   },
-  isVerified: { type: 'Boolean', default: false },
-  profileImage: { type: 'String', default: '' },
-  googleId: { type: 'String', sparse: true },
-  role: { type: 'String', default: 'user' }, // From userService
   createdAt: { type: 'Date', default: Date.now },
-  updatedAt: { type: 'Date', default: Date.now }
+  updatedAt: { type: 'Date', default: Date.now },
+  lastLogin: { type: 'Date', default: null }
 };
 
 // Example validation function (can be expanded and used in userService)
 function validateUser(userData, isNewUser = false) {
   const errors = [];
   if (isNewUser) {
-    if (!userData.username || typeof userData.username !== 'string' || userData.username.trim().length < 3) {
+    if (!userData.userName || typeof userData.userName !== 'string' || userData.userName.trim().length < 3) {
       errors.push('Username is required and must be at least 3 characters.');
     }
     if (!userData.password || typeof userData.password !== 'string' || userData.password.length < 6) {
@@ -45,8 +37,8 @@ function validateUser(userData, isNewUser = false) {
     }
   }
 
-  if (userData.email && (typeof userData.email !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(userData.email.trim()))) {
-    errors.push('Invalid email format for user email.');
+  if (userData.officialEmail && (typeof userData.officialEmail !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(userData.officialEmail.trim()))) {
+    errors.push('Invalid email format for official email.');
   }
   
   // Validations for companyInfo fields

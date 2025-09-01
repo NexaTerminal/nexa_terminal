@@ -224,10 +224,17 @@ async function initializeServices(database) {
     const UserService = require('./services/userService');
     const SocialPostService = require('./services/socialPostService');
     const InvestmentService = require('./services/investmentService');
+    const UserAnalyticsService = require('./services/userAnalyticsService');
+    const activityLogger = require('./middleware/activityLogger');
     
     new UserService(database);
     new SocialPostService(database);
     new InvestmentService(database);
+    new UserAnalyticsService(database);
+    
+    // Initialize activity logger
+    activityLogger.initialize(database);
+    app.locals.activityLogger = activityLogger;
     
   } catch (error) {
     console.error('Error initializing services:', error);
@@ -294,6 +301,14 @@ function registerRoutes() {
     /^\/social\/posts\/[^\/]+\/comments$/,    // Comment on posts
     /^\/social\/posts\/[^\/]+$/,             // Individual post operations
     '/blogs',                   // Blog posts (JWT protected)
+    '/verification',            // Company verification (JWT protected)
+    '/verification/status',     // Verification status (JWT protected)
+    '/verification/upload',     // Document upload (JWT protected)
+    '/verification/send-verification-email', // Send verification email (JWT protected)
+    '/verification/resend-verification',    // Resend verification email (JWT protected)
+    /^\/verification\/[^\/]+\/approve$/,    // Admin approve verification (JWT protected)
+    /^\/verification\/[^\/]+\/reject$/,     // Admin reject verification (JWT protected)
+    '/verification/pending',               // Get pending verifications (JWT protected)
   ];
   
   // Apply CSRF exemptions only if CSRF is enabled
@@ -365,6 +380,19 @@ function registerRoutes() {
     }
   }
   
+  // Admin routes
+  if (settings.isRouteEnabled('admin')) {
+    try {
+      app.use('/api/admin', require('./routes/admin'));
+      
+      // Real-time admin routes
+      const { router: realtimeAdminRouter } = require('./routes/realtimeAdmin');
+      app.use('/api/realtime-admin', realtimeAdminRouter);
+    } catch (error) {
+      // Admin routes file not found - skipping
+    }
+  }
+  
   // Error handling for multer file upload errors
   app.use((err, req, res, next) => {
     if (err.name === 'MulterError') {
@@ -391,6 +419,7 @@ async function initializeServer() {
     
     // Only proceed if database connection was successful
     if (database) {
+      app.locals.database = database; // Store database connection
       require('./config/passport')(database); // Register passport strategies with db
       registerRoutes();
       app.locals.initialized = true;
@@ -410,8 +439,34 @@ async function startServer() {
     // Only start the server if initialization was successful
     if (app.locals.initialized) {
       const PORT = process.env.PORT || 5002;
-      app.listen(PORT, () => {
-        // Server started successfully
+      const http = require('http');
+      const { Server } = require('socket.io');
+      
+      const server = http.createServer(app);
+      const io = new Server(server, {
+        cors: {
+          origin: process.env.CLIENT_URL || "http://localhost:3000",
+          methods: ["GET", "POST"]
+        }
+      });
+
+      // Initialize real-time monitoring
+      const UserAnalyticsService = require('./services/userAnalyticsService');
+      const RealtimeAdminController = require('./controllers/realtimeAdminController');
+      const { setRealtimeController } = require('./routes/realtimeAdmin');
+      
+      // Get database connection (available in app.locals)
+      const database = app.locals.database;
+      if (database) {
+        const userAnalyticsService = new UserAnalyticsService(database);
+        const realtimeController = new RealtimeAdminController(io, userAnalyticsService);
+        setRealtimeController(realtimeController);
+      } else {
+        console.warn('⚠️ Real-time monitoring disabled - no database connection');
+      }
+      
+      server.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT} with Socket.io enabled`);
       });
     } else {
       // Server initialization failed

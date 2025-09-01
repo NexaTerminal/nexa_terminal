@@ -30,8 +30,8 @@ const ProfileReminderBanner = () => {
           </p>
         </div>
         <div className={styles.actions}>
-          <Link to="/terminal/complete-profile" className={styles.completeButton}>
-            Пополни профил
+          <Link to="/terminal/verification" className={styles.completeButton}>
+            Верификувај компанија
           </Link>
           <button 
             onClick={() => setIsDismissed(true)} 

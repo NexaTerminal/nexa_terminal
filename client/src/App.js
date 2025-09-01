@@ -6,7 +6,7 @@ import Login from './pages/website/Login';
 
 // Admin Pages
 import AddInvestment from './pages/terminal/admin/AddInvestment';
-import ManageUsers from './pages/terminal/admin/ManageUsers';
+import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import AddBlog from './pages/terminal/admin/AddBlog';
 import MarketingAdmin from './pages/terminal/admin/Marketing';
 
@@ -31,11 +31,14 @@ import Education from './pages/terminal/Education';
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
 import ConfirmationOfEmploymentPage from './pages/terminal/documents/employment/ConfirmationOfEmploymentPage';
 import EmploymentAgreementPage from './pages/terminal/documents/employment/EmploymentAgreementPage';
+import GeneralConditions from './pages/terminal/GeneralConditions';
+import VerificationResult from './pages/VerificationResult';
 
 // Document Pages
 // Employment
 // import AnnexEmploymentAgreement from './pages/terminal/documents/contracts/AnnexEmploymentAgreement';
-// import AnnualLeaveDecisionPage from './pages/terminal/documents/labourLaw/AnnualLeaveDecisionPage'; // Assuming this component will be created
+import AnnualLeaveDecisionPage from './pages/terminal/documents/employment/AnnualLeaveDecisionPage';
+import DisciplinaryActionPage from './pages/terminal/documents/employment/DisciplinaryActionPage';
 // import ConfirmationOfEmploymentPage from './pages/terminal/documents/labourLaw/ConfirmationOfEmploymentPage'; // Assuming this component will be created
 
 // import HealthAndSafetyPolicyPage from './pages/terminal/documents/healthAndSafety/HealthAndSafetyPolicyPage';
@@ -44,8 +47,9 @@ import ConsentForPersonalDataProcessingPage from './pages/terminal/documents/per
 // import PrivacyPolicyPage from './pages/terminal/documents/personalDataProtection/PrivacyPolicyPage';
 
 // Verification Components
-import CompanyVerification from './components/terminal/CompanyVerification';
+import CompanyVerificationSingle from './components/terminal/CompanyVerificationSingle';
 import AdminVerification from './components/terminal/AdminVerification';
+import VerificationRequired from './components/common/VerificationRequired';
 
 // Auth Components
 import PrivateRoute from './components/common/PrivateRoute';
@@ -64,37 +68,44 @@ function App() {
 
       {/* Private Terminal Routes */}
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="/terminal/complete-profile" element={<PrivateRoute><SimpleCompleteProfile /></PrivateRoute>} />
-      <Route path="/terminal/documents" element={<PrivateRoute><DocumentGen /></PrivateRoute>} />
-      <Route path="/terminal/documents/generator" element={<PrivateRoute><DocumentGeneratorPage /></PrivateRoute>} />
-      <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><DocumentTemplateGenerator /></PrivateRoute>} />
-      {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/annual-leave-decision" element={<PrivateRoute><AnnualLeaveDecisionPage /></PrivateRoute>} />
-      <Route path="/terminal/documents/labourLaw/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage /></PrivateRoute>} /> */}
+      <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
+      <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired feature="автоматизирано генерирање на документи"><DocumentGen /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired feature="генерирање на документи"><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired feature="генерирање на документи"><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
+      {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}
+      <Route path="/terminal/documents/employment/annual-leave-decision" element={<PrivateRoute><VerificationRequired feature="годишни одмори"><AnnualLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/disciplinary-action" element={<PrivateRoute><VerificationRequired feature="дисциплински мерки"><DisciplinaryActionPage /></VerificationRequired></PrivateRoute>} />
+      {/* <Route path="/terminal/documents/labourLaw/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/health-safety-policy" element={<PrivateRoute><HealthAndSafetyPolicyPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/workplace-harassment-policy" element={<PrivateRoute><WorkplaceHarassmentPolicyPage /></PrivateRoute>} /> */}
       <Route path="/terminal/documents/personal-data-protection/consent-for-personal-data-processing" element={<PrivateRoute><ConsentForPersonalDataProcessingPage /></PrivateRoute>} />
       {/* <Route path="/terminal/documents/personal-data-protection/privacy-policy" element={<PrivateRoute><PrivacyPolicyPage /></PrivateRoute>} /> */}
-      <Route path="/terminal/legal-screening" element={<PrivateRoute><LegalScreening /></PrivateRoute>} />
-      <Route path="/terminal/ai-chat" element={<PrivateRoute><AIChat /></PrivateRoute>} />
+      <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><LegalScreening /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
       <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
-      <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerification /></PrivateRoute>} />
+      <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
       <Route path="/terminal/education" element={<PrivateRoute><Education /></PrivateRoute>} />
+      
+      {/* General Conditions */}
+      <Route path="/general-conditions" element={<GeneralConditions />} />
+      
+      {/* Verification Result */}
+      <Route path="/verification-result" element={<VerificationResult />} />
 
       {/* Employment */}
-      <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><TerminationAgreementPage /></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage/></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><EmploymentAgreementPage/></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><VerificationRequired feature="договор за престанок"><TerminationAgreementPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><VerificationRequired feature="потврда за работа"><ConfirmationOfEmploymentPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><VerificationRequired feature="договор за работа"><EmploymentAgreementPage/></VerificationRequired></PrivateRoute>} />
  
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/investments/add" element={<PrivateRoute><AddInvestment /></PrivateRoute>} />
-      <Route path="/terminal/admin/users" element={<PrivateRoute><ManageUsers /></PrivateRoute>} />
+      <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/verification" element={<PrivateRoute><AdminVerification /></PrivateRoute>} />
       <Route path="/terminal/admin/marketing" element={<PrivateRoute><MarketingAdmin /></PrivateRoute>} />
     </Routes>

@@ -2,10 +2,12 @@ const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType 
 const moment = require('moment');
 
 function generateConfirmationOfEmploymentDoc(formData, user, company) {
+  // CRITICAL: Extract company data from user.companyInfo parameter
+  // Company parameter MUST come from user.companyInfo in controller
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.address || '[Адреса на компанија]';
   const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyManager = company?.role || '[Управител]';  // NOTE: Use 'role' field
   const certificateDate = formData.certificateDate ? moment(formData.certificateDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const employeeName = formData.employeeName || '[Име на вработен]';
   const employeeAddress = formData.employeeAddress || '[Адреса на вработен]';
@@ -112,7 +114,7 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
     sections: [{ children }],
   });
 
-  return { doc };
+  return doc;
 }
 
 module.exports = generateConfirmationOfEmploymentDoc; 

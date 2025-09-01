@@ -43,7 +43,7 @@
 }
 
 .logo-image {
-    height: 17px; /* Reduced by 80% from 86px (86 * 0.2 = 17.2px) */
+    height: 21px; /* Increased by 25% from 17px (17 * 1.25 = 21.25px) */
     width: auto;
     transition: all 0.3s ease;
 }
@@ -258,7 +258,7 @@
 }
 
 .profile-button:hover {
-  background: rgba(43, 51, 63, 0.1); /* Subtle hover background */
+  background: rgba(0, 0, 0, 0.05); /* Subtle hover effect like sidebar */
   color: var(--color-accent); /* Accent color on hover for text */
 }
 
@@ -335,8 +335,8 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f3f4f6; /* Very light gray on hover */
-  color: var(--color-accent-dark);
+  background-color: rgba(0, 0, 0, 0.05); /* Subtle hover effect like sidebar */
+  color: var(--color-accent);
 }
 
 .dropdown-icon {
@@ -366,7 +366,7 @@
     justify-content: space-between;
     border-radius: var(--border-radius-lg);
     padding: 1rem 1.25rem;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     box-shadow: var(--shadow-md);
@@ -406,7 +406,7 @@
 
   .mobileMenuButton {
     display: block;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--color-accent);
@@ -464,7 +464,7 @@
 
   .mobileMenuButton {
     display: block;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--color-accent);
@@ -480,7 +480,7 @@
   }
 
   .mobileMenuButton:hover {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(0, 0, 0, 0.05);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
   }
@@ -532,7 +532,7 @@
 }
 
 .logoTerminal .logo-image {
-  height: 15px; /* Reduced by 80% from 76px (76 * 0.2 = 15.2px) */
+  height: 19px; /* Increased by 25% from 15px (15 * 1.25 = 18.75px) */
 }
 
 /* Desktop-specific sidebar alignment */

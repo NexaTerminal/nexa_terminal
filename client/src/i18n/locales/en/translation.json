@@ -19,7 +19,11 @@
     "language": "Language",
     "english": "English",
     "macedonian": "Macedonian",
-    "user": "User"
+    "user": "User",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saving": "Saving..."
   },
   "home": {
     "title": "Welcome to Nexa",

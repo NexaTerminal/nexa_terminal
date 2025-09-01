@@ -39,49 +39,79 @@ class UserController {
   // Update user profile
   async updateProfile(req, res) {
     try {
-      const { companyName, industry, address, email } = req.body;
+      console.log('📝 Profile update request body:', JSON.stringify(req.body, null, 2));
+      
       const currentUser = req.user;
-
       if (!currentUser) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Prepare company info update
-      const companyInfo = {
-        companyName: companyName?.trim(),
-        industry: industry?.trim(),
-        address: address?.trim()
-      };
-
-      // Update company info in companies collection
-      const companyUpdateResult = await Company.findOneAndUpdate(
-        { _id: currentUser.companyInfo?._id },
-        { $set: companyInfo },
-        { upsert: true, new: true }
-      );
+      // Handle both old format (direct fields) and new format (nested companyInfo)
+      const { companyInfo: incomingCompanyInfo, email, companyManager, officialEmail } = req.body;
+      
+      // Prepare company info update - merge with existing data
+      let companyInfoUpdate = {};
+      
+      if (incomingCompanyInfo) {
+        // New format with nested companyInfo object
+        companyInfoUpdate = {
+          companyName: incomingCompanyInfo.companyName?.trim() || null,
+          companyAddress: incomingCompanyInfo.companyAddress?.trim() || '',
+          companyTaxNumber: incomingCompanyInfo.companyTaxNumber?.trim() || '',
+          businessActivity: incomingCompanyInfo.businessActivity?.trim() || '',
+          website: incomingCompanyInfo.website?.trim() || '',
+          industry: incomingCompanyInfo.industry?.trim() || null,
+          role: incomingCompanyInfo.role?.trim() || '',
+          description: incomingCompanyInfo.description?.trim() || '',
+          // Keep existing fields for backward compatibility
+          missionStatement: incomingCompanyInfo.missionStatement?.trim() || '',
+          facebook: incomingCompanyInfo.facebook?.trim() || '',
+          linkedin: incomingCompanyInfo.linkedin?.trim() || ''
+        };
+      } else {
+        // Old format with direct fields (backward compatibility)
+        const { companyName, industry, address } = req.body;
+        companyInfoUpdate = {
+          companyName: companyName?.trim(),
+          industry: industry?.trim(),
+          companyAddress: address?.trim() || ''
+        };
+      }
 
       // Prepare user update payload
       const userUpdatePayload = {
-        email: email?.trim(),
-        companyInfo: companyUpdateResult._id,
+        companyInfo: companyInfoUpdate,
         profileComplete: true,
         updatedAt: new Date()
       };
 
-      // Update user
-      const userUpdateResult = await User.findByIdAndUpdate(
-        currentUser._id,
-        { $set: userUpdatePayload },
-        { new: true }
-      ).populate('companyInfo');
+      // Add email fields if provided
+      if (email?.trim()) {
+        userUpdatePayload.email = email.trim();
+      }
+      if (officialEmail?.trim()) {
+        userUpdatePayload.officialEmail = officialEmail.trim();
+      }
+      if (companyManager?.trim()) {
+        userUpdatePayload.companyManager = companyManager.trim();
+      }
+
+      console.log('📝 User update payload:', JSON.stringify(userUpdatePayload, null, 2));
+
+      // Update user using UserService
+      const userService = new UserService(req.app.locals.db);
+      const userUpdateResult = await userService.updateUser(currentUser._id || currentUser.id, userUpdatePayload);
 
       if (!userUpdateResult) {
         return res.status(404).json({ message: 'User not found' });
       }
 
+      // Get updated user data
+      const updatedUser = await userService.findById(currentUser._id || currentUser.id);
+
       res.json({
         message: 'Profile updated successfully',
-        user: userUpdateResult
+        user: updatedUser
       });
 
     } catch (error) {

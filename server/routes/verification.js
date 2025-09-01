@@ -31,4 +31,9 @@ router.post('/upload', authenticateJWT, verificationController.upload.fields([
   { name: 'additionalDocuments', maxCount: 5 }
 ]), verificationController.uploadDocument);
 
+// Email verification routes
+router.post('/send-verification-email', authenticateJWT, verificationController.sendVerificationEmail);
+router.get('/verify-email', verificationController.verifyEmail);
+router.post('/resend-verification', authenticateJWT, verificationController.resendVerificationEmail);
+
 module.exports = router;

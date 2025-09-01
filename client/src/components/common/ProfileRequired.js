@@ -29,8 +29,8 @@ const ProfileRequired = ({ children, feature = "this feature" }) => {
           and contact details.
         </p>
         <div className={styles.actions}>
-          <Link to="/complete-profile" className={styles.primaryButton}>
-            Complete Profile Now
+          <Link to="/terminal/verification" className={styles.primaryButton}>
+            Complete Verification Now
           </Link>
           <Link to="/terminal" className={styles.secondaryButton}>
             Back to Dashboard

@@ -32,7 +32,7 @@ class SocialController {
       }
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Performance optimization: Use aggregation pipeline for better performance
       const aggregationPipeline = [
@@ -51,7 +51,8 @@ class SocialController {
                 $project: {
                   companyInfo: 1,
                   profileImage: 1,
-                  email: 1
+                  officialEmail: 1,
+                  userName: 1
                 }
               }
             ]
@@ -98,7 +99,7 @@ class SocialController {
 
       const db = req.app.locals.db;
       const userService = new UserService(db);
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
@@ -141,7 +142,8 @@ class SocialController {
                 $project: {
                   companyInfo: 1,
                   profileImage: 1,
-                  email: 1
+                  officialEmail: 1,
+                  userName: 1
                 }
               }
             ]
@@ -175,7 +177,7 @@ class SocialController {
       const { content, title, image } = req.body;
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Find the post
       const post = await socialPostsCollection.findOne({ _id: new ObjectId(id) });
@@ -221,7 +223,7 @@ class SocialController {
       const { id } = req.params;
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Find the post
       const post = await socialPostsCollection.findOne({ _id: new ObjectId(id) });
@@ -255,7 +257,7 @@ class SocialController {
       const userId = new ObjectId(req.user.id || req.user._id);
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Find the post
       const post = await socialPostsCollection.findOne({ _id: new ObjectId(id) });
@@ -308,7 +310,7 @@ class SocialController {
 
       const db = req.app.locals.db;
       const userService = new UserService(db);
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
@@ -324,7 +326,7 @@ class SocialController {
         content: content.trim(),
         author: {
           id: new ObjectId(userId),
-          email: user.email || user.username,
+          email: user.officialEmail || user.userName,
           profileImage: user.profileImage || ''
         },
         createdAt: new Date()
@@ -359,7 +361,7 @@ class SocialController {
       const skip = (page - 1) * limit;
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       const posts = await socialPostsCollection
         .find({ author: new ObjectId(userId) })
@@ -392,7 +394,7 @@ class SocialController {
       const { id } = req.params;
 
       const db = req.app.locals.db;
-      const socialPostsCollection = db.collection('socialposts');
+      const socialPostsCollection = db.collection('socialPosts');
 
       const aggregationPipeline = [
         { $match: { _id: new ObjectId(id) } },
@@ -407,7 +409,8 @@ class SocialController {
                 $project: {
                   companyInfo: 1,
                   profileImage: 1,
-                  email: 1
+                  officialEmail: 1,
+                  userName: 1
                 }
               }
             ]

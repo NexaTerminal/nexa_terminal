@@ -12,64 +12,52 @@ class UserService {
   // Setup database indexes for efficient querying
   async setupIndexes() {
     try {
-      // Indexes are already created in the database initialization
-      // Just create the non-unique indexes that are safe to recreate
-      await this.collection.createIndex({ 'companyInfo.companyName': 1 });
-      await this.collection.createIndex({ isVerified: 1 });
+      // Indexes are already created in the migration script
+      // These match the new simplified schema
+      await this.collection.createIndex({ userName: 1 }, { unique: true });
+      await this.collection.createIndex({ "companyInfo.companyName": "text" });
       await this.collection.createIndex({ isAdmin: 1 });
-      
+      await this.collection.createIndex({ isVerified: 1 });
     } catch (error) {
       // Silently handle index creation errors
     }
   }
 
-  // Create a new user
+  // Create a new user (updated for simplified schema)
   async createUser(userData) {
     const user = {
-      username: userData.username?.trim().toLowerCase() || '', // Ensure username is stored in lowercase
+      userName: userData.userName?.trim() || userData.username?.trim() || userData.email?.trim() || '',
       password: userData.password,
-      profileComplete: userData.profileComplete || false,
       isAdmin: userData.isAdmin || false,
+      isVerified: userData.isVerified || false,
+      officialEmail: userData.officialEmail?.trim() || userData.email?.trim() || '',
       companyInfo: {
         companyName: userData.companyInfo?.companyName?.trim() || '',
-        mission: userData.companyInfo?.mission?.trim() || '',
+        companyAddress: userData.companyInfo?.companyAddress?.trim() || userData.companyInfo?.address?.trim() || '',
+        companyTaxNumber: userData.companyInfo?.companyTaxNumber?.trim() || userData.companyInfo?.taxNumber?.trim() || '',
+        companyManager: userData.companyInfo?.companyManager?.trim() || userData.companyInfo?.manager?.trim() || '',
+        missionStatement: userData.companyInfo?.missionStatement?.trim() || userData.companyInfo?.mission?.trim() || '',
         website: userData.companyInfo?.website?.trim() || '',
-        industry: userData.companyInfo?.industry?.trim() || '',
-        companySize: userData.companyInfo?.companySize?.trim() || '', // Added
-        role: userData.companyInfo?.role?.trim() || '', // Added
-        description: userData.companyInfo?.description?.trim() || '',
-        crnNumber: userData.companyInfo?.crnNumber?.trim() || '',
-        address: userData.companyInfo?.address?.trim() || '', // This can be companyAddress
-        phone: userData.companyInfo?.phone?.trim() || '', // This can be contact phone
-        companyPIN: userData.companyInfo?.companyPIN?.trim() || '', // Added
-        taxNumber: userData.companyInfo?.taxNumber?.trim() || '', // Added
-        contactEmail: userData.companyInfo?.contactEmail?.trim() || '' // Added
+        facebook: userData.companyInfo?.facebook?.trim() || '',
+        linkedin: userData.companyInfo?.linkedin?.trim() || ''
       },
-      isVerified: userData.isVerified || false,
-      profileImage: userData.profileImage || '',
-      googleId: userData.googleId || null,
-      role: userData.role || 'user',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: userData.createdAt || new Date(),
+      updatedAt: new Date(),
+      lastLogin: userData.lastLogin || new Date()
     };
-
-    // Only add email field if it's provided and not empty
-    if (userData.email && userData.email.trim()) {
-      user.email = userData.email.toLowerCase().trim();
-    }
 
     const result = await this.collection.insertOne(user);
     return { ...user, _id: result.insertedId };
   }
 
-  // Find user by username
+  // Find user by username (updated for simplified schema)
   async findByUsername(username) {
-    return await this.collection.findOne({ username: username.trim().toLowerCase() }); // Ensure username is queried in lowercase
+    return await this.collection.findOne({ userName: username.trim() });
   }
 
-  // Find user by email
+  // Find user by email (updated for simplified schema)
   async findByEmail(email) {
-    return await this.collection.findOne({ email: email.toLowerCase().trim() });
+    return await this.collection.findOne({ officialEmail: email.toLowerCase().trim() });
   }
 
   // Find user by ID
@@ -119,7 +107,7 @@ class UserService {
     return result.value;
   }
 
-  // Get all users (for admin)
+  // Get all users (for admin) - updated for simplified schema
   async getAllUsers(limit = 50, skip = 0, filter = {}) {
     const query = {};
     
@@ -129,7 +117,8 @@ class UserService {
     
     if (filter.search) {
       query.$or = [
-        { email: { $regex: filter.search, $options: 'i' } },
+        { officialEmail: { $regex: filter.search, $options: 'i' } },
+        { userName: { $regex: filter.search, $options: 'i' } },
         { 'companyInfo.companyName': { $regex: filter.search, $options: 'i' } }
       ];
     }
@@ -166,9 +155,9 @@ class UserService {
     return result.deletedCount > 0;
   }
 
-  // Check if user exists
+  // Check if user exists - updated for simplified schema
   async userExists(email) {
-    const count = await this.collection.countDocuments({ email: email.toLowerCase().trim() });
+    const count = await this.collection.countDocuments({ officialEmail: email.toLowerCase().trim() });
     return count > 0;
   }
 
@@ -219,6 +208,26 @@ class UserService {
       isVerified: user.isVerified || false,
       createdAt: user.createdAt
     };
+  }
+
+  // Update user verification status
+  async updateVerificationStatus(userId, status, isVerified = true) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const updateData = {
+      isVerified: status === 'approved' ? isVerified : false,
+      verificationStatus: status,
+      updatedAt: new Date()
+    };
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    return result.modifiedCount > 0;
   }
 }
 

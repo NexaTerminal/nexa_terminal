@@ -60,7 +60,9 @@ class SettingsManager {
         documents: features.documentAutomation,
         social: features.socialPosts,
         blog: features.blog,
-        legal: features.legalHealthCheck
+        legal: features.legalHealthCheck,
+        admin: true, // Always enabled for admin functionality
+        verification: true // Always enabled for company verification
       },
       // Map features to collections automatically  
       database: {
@@ -115,7 +117,9 @@ class SettingsManager {
         documents: true,
         social: true,
         blog: true,  // Enable blog routes
-        legal: true
+        legal: true,
+        admin: true,  // Enable admin routes
+        verification: true  // Enable verification routes
       },
       middleware: {
         authentication: true,

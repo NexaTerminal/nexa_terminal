@@ -23,7 +23,7 @@
 }
 
 .notificationButton:hover {
-  background-color: var(--hover-bg);
+  background-color: rgba(0, 0, 0, 0.05);
   transform: scale(1.05);
 }
 
@@ -115,7 +115,7 @@
 }
 
 .markAllRead:hover {
-  background-color: var(--hover-bg);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .markAllRead:disabled {
@@ -139,7 +139,7 @@
 }
 
 .closeButton:hover {
-  background-color: var(--hover-bg);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .notificationsList {
@@ -158,7 +158,7 @@
 }
 
 .notificationItem:hover {
-  background-color: var(--hover-bg);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .notificationItem:last-child {

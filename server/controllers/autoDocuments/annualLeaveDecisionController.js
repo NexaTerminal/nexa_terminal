@@ -8,7 +8,7 @@ async function generate(req, res) {
     if (!user || !user.companyInfo) {
       return res.status(400).json({ message: 'User or company info missing.' });
     }
-    if (!formData || !formData.employeeName || !formData.annualLeaveYear || !formData.annualLeaveStart || !formData.annualLeaveEnd) {
+    if (!formData || !formData.employeeName || !formData.employeePosition || !formData.annualLeaveYear || !formData.annualLeaveStart || !formData.annualLeaveEnd) {
       return res.status(400).json({ message: 'Missing required fields.' });
     }
     const { doc } = generateAnnualLeaveDecisionDoc(formData, user, user.companyInfo);

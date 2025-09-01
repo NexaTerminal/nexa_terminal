@@ -69,7 +69,7 @@
 .dashboard-sidebar {
   width: 260px;
   min-width: 200px;
-  background-color: #fff;
+  background-color: var(--color-neutral-50);
   border-right: 1px solid #e9ecef;
   padding: 0;
   display: flex;
@@ -90,7 +90,7 @@
   width: 100%;
   margin: 0 auto;
   padding: 40px 32px 32px 32px;
-  background: #fff;
+  background: var(--color-neutral-50);
   min-height: calc(100vh - 100px);
   overflow-y: auto;
   box-sizing: border-box;
@@ -100,7 +100,7 @@
 .right-sidebar {
   width: 300px;
   min-width: 200px;
-  background: transparent;
+  background: var(--color-neutral-50);
   position: fixed;
   right: 0;
   top: 100px;

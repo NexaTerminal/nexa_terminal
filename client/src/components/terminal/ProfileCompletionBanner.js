@@ -30,8 +30,8 @@ const ProfileCompletionBanner = () => {
           </p>
         </div>
         <div className={styles.actions}>
-          <Link to="/complete-profile" className={styles.primaryButton}>
-            Complete Profile
+          <Link to="/terminal/verification" className={styles.primaryButton}>
+            Complete Verification
           </Link>
           <button className={styles.dismissButton} onClick={() => {
             // You can add dismiss functionality here if needed

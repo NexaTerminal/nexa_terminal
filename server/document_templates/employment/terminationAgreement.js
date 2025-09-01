@@ -7,6 +7,12 @@ function generateTerminationAgreementDoc(formData, user, company) {
   const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
   const companyManager = company?.manager || '[Управител]';
   const currentDate = moment().format('DD.MM.YYYY');
+  
+  // Extract form data
+  const employeeName = formData?.employeeName || '[Име на вработен]';
+  const employeePIN = formData?.employeePIN || '[ЕМБГ]';
+  const employeeAddress = formData?.employeeAddress || '[Адреса на вработен]';
+  const endDate = formData?.endDate ? moment(formData.endDate).format('DD.MM.YYYY') : currentDate;
 
   const doc = new Document({
     sections: [{

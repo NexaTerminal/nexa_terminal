@@ -19,12 +19,16 @@ const CompanyVerification = () => {
     role: '',
     address: '',
     phone: '',
-    taxNumber: ''
+    taxNumber: '',
+    companyManager: '',
+    officialEmail: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
 
   const industryOptions = [
     'Технологии', 'Финансииiii', 'Здравство', 'Образование', 'Трговија',
@@ -47,7 +51,9 @@ const CompanyVerification = () => {
         role: currentUser.companyInfo?.role || '',
         address: currentUser.companyInfo?.address || '',
         phone: currentUser.companyInfo?.phone || '',
-        taxNumber: currentUser.companyInfo?.taxNumber || ''
+        taxNumber: currentUser.companyInfo?.taxNumber || '',
+        companyManager: currentUser.companyManager || '',
+        officialEmail: currentUser.officialEmail || ''
       });
       setLoading(false);
     }
@@ -78,6 +84,8 @@ const CompanyVerification = () => {
           phone: formData.phone,
           taxNumber: formData.taxNumber
         },
+        companyManager: formData.companyManager,
+        officialEmail: formData.officialEmail,
         profileComplete: true
       };
       
@@ -99,6 +107,35 @@ const CompanyVerification = () => {
       setError(error.message || 'Настана грешка при зачувување на профилот.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendVerificationEmail = async () => {
+    if (!formData.officialEmail || !formData.companyName || !formData.companyManager) {
+      setError('Потребни се службена email адреса, име на компанија и менаџер за да се испрати верификација.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setSendingEmail(true);
+
+    try {
+      await ApiService.request('/verification/send-verification-email', {
+        method: 'POST',
+        body: JSON.stringify({
+          officialEmail: formData.officialEmail,
+          companyName: formData.companyName,
+          companyManager: formData.companyManager
+        })
+      });
+
+      setEmailSent(true);
+      setSuccess(`Верификацискиот email е испратен на ${formData.officialEmail}. Проверете го вашето сандаче и кликнете на врската за да ја потврдите email адресата.`);
+    } catch (error) {
+      setError(error.message || 'Настана грешка при испраќање на верификацискиот email.');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -151,7 +188,7 @@ const CompanyVerification = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label htmlFor="address">Адреса</label>
+                    <label htmlFor="address">Адреса *</label>
                     <input
                       type="text"
                       id="address"
@@ -159,6 +196,7 @@ const CompanyVerification = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Улица, број, град"
+                      required
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -226,7 +264,7 @@ const CompanyVerification = () => {
                 <div className={styles.section}>
                   <h3>Правни и контакт податоци</h3>
                   <div className={styles.formGroup}>
-                    <label htmlFor="taxNumber">Даночен број</label>
+                    <label htmlFor="taxNumber">Даночен број *</label>
                     <input
                       type="text"
                       id="taxNumber"
@@ -234,7 +272,35 @@ const CompanyVerification = () => {
                       value={formData.taxNumber}
                       onChange={handleInputChange}
                       placeholder="4080012345678"
+                      required
                     />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="companyManager">Менаџер/Одговорно лице *</label>
+                    <input
+                      type="text"
+                      id="companyManager"
+                      name="companyManager"
+                      value={formData.companyManager}
+                      onChange={handleInputChange}
+                      placeholder="Марко Петровски"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="officialEmail">Службена email адреса на компанијата *</label>
+                    <input
+                      type="email"
+                      id="officialEmail"
+                      name="officialEmail"
+                      value={formData.officialEmail}
+                      onChange={handleInputChange}
+                      placeholder="info@vashakompanija.mk"
+                      required
+                    />
+                    <small style={{ color: '#666', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+                      Ова е службената email адреса што ќе се користи за верификација на компанијата
+                    </small>
                   </div>
                   <div className={styles.formGroup}>
                     <label htmlFor="phone">Телефон</label>
@@ -248,6 +314,45 @@ const CompanyVerification = () => {
                     />
                   </div>
                 </div>
+                
+                {/* Verification Status Section */}
+                {formData.officialEmail && formData.companyName && formData.companyManager && (
+                  <div className={styles.section}>
+                    <h3>Email Верификација</h3>
+                    <div className={styles.verificationSection}>
+                      {currentUser?.emailVerified ? (
+                        <div className={styles.verifiedStatus}>
+                          <span className={styles.verifiedIcon}>✅</span>
+                          <span>Email адресата е верификувана</span>
+                          {currentUser?.isVerified ? (
+                            <div className={styles.statusMessage}>
+                              <span className={styles.approvedIcon}>🎉</span>
+                              Компанијата е одобрена и може да користи сите функции!
+                            </div>
+                          ) : (
+                            <div className={styles.statusMessage}>
+                              ⏳ Профилот чека одобрување од администратор
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className={styles.unverifiedStatus}>
+                          <span className={styles.unverifiedIcon}>📧</span>
+                          <span>Email адресата не е верификувана</span>
+                          <button
+                            type="button"
+                            onClick={handleSendVerificationEmail}
+                            className={styles.verifyBtn}
+                            disabled={sendingEmail || emailSent}
+                          >
+                            {sendingEmail ? 'Се испраќа...' : emailSent ? 'Email испратен ✓' : 'Испрати верификација'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className={styles.submitSection}>
                   <button type="submit" className={styles.submitBtn} disabled={saving}>
                     {saving ? 'Се зачувува...' : 'Зачувај промени'}

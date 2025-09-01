@@ -37,6 +37,8 @@
     "passport-linkedin-oauth2": "^2.0.0",
     "passport-local": "^1.0.0",
     "pizzip": "^3.2.0",
+    "resend": "^6.0.1",
+    "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

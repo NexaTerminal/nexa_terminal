@@ -5,7 +5,7 @@ const crypto = require('crypto');
 class EmailService {
   constructor() {
     this.resend = null;
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@nexaterminal.com';
+    this.fromEmail = process.env.FROM_EMAIL || 'noreply@nexa.mk';
     this.gmailTransporter = null;
   }
 

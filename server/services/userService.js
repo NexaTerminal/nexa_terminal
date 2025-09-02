@@ -277,6 +277,237 @@ class UserService {
 
     return result.modifiedCount > 0;
   }
+
+  // Password reset token management
+  async createResetToken(userId, hashedToken, expiresAt, ipAddress) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const resetToken = {
+      token: hashedToken,
+      expires: expiresAt,
+      used: false,
+      createdAt: new Date(),
+      ipAddress: ipAddress,
+      attempts: 0
+    };
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          resetToken: resetToken,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  // Find user with valid reset token
+  async findByResetToken(hashedToken) {
+    return await this.collection.findOne({
+      'resetToken.token': hashedToken,
+      'resetToken.expires': { $gt: new Date() },
+      'resetToken.used': { $ne: true }
+    });
+  }
+
+  // Mark reset token as used
+  async markResetTokenUsed(userId) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          'resetToken.used': true,
+          'resetToken.usedAt': new Date(),
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  // Update password with history tracking
+  async updatePassword(userId, hashedPassword) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Add current password to history
+    const passwordHistory = user.passwordHistory || [];
+    if (user.password) {
+      passwordHistory.push({
+        hash: user.password,
+        createdAt: new Date()
+      });
+    }
+
+    // Keep only last 5 passwords
+    const recentHistory = passwordHistory
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5);
+
+    const updateData = {
+      password: hashedPassword,
+      passwordHistory: recentHistory,
+      updatedAt: new Date(),
+      lastPasswordChange: new Date()
+    };
+
+    // Clear reset token if exists
+    if (user.resetToken) {
+      updateData['resetToken'] = null;
+    }
+
+    // Clear account lockout if exists
+    if (user.accountLockout) {
+      updateData['accountLockout'] = {
+        isLocked: false,
+        failedAttempts: 0,
+        lockoutExpires: null,
+        lastFailedAttempt: null
+      };
+    }
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  // Account lockout management
+  async incrementFailedAttempts(userId, ipAddress) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const currentAttempts = user.accountLockout?.failedAttempts || 0;
+    const newAttempts = currentAttempts + 1;
+    
+    let lockoutDuration = 0;
+    let isLocked = false;
+
+    // Progressive lockout durations
+    if (newAttempts >= 10) {
+      lockoutDuration = 24 * 60 * 60 * 1000; // 24 hours
+      isLocked = true;
+    } else if (newAttempts >= 5) {
+      lockoutDuration = 60 * 60 * 1000; // 1 hour
+      isLocked = true;
+    } else if (newAttempts >= 3) {
+      lockoutDuration = 15 * 60 * 1000; // 15 minutes
+      isLocked = true;
+    }
+
+    const updateData = {
+      'accountLockout.failedAttempts': newAttempts,
+      'accountLockout.lastFailedAttempt': new Date(),
+      'accountLockout.lastFailedIP': ipAddress,
+      updatedAt: new Date()
+    };
+
+    if (isLocked) {
+      updateData['accountLockout.isLocked'] = true;
+      updateData['accountLockout.lockoutExpires'] = new Date(Date.now() + lockoutDuration);
+    }
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    return {
+      success: result.modifiedCount > 0,
+      isLocked,
+      lockoutExpires: isLocked ? new Date(Date.now() + lockoutDuration) : null,
+      failedAttempts: newAttempts
+    };
+  }
+
+  // Reset failed attempts on successful login
+  async resetFailedAttempts(userId) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          'accountLockout.failedAttempts': 0,
+          'accountLockout.isLocked': false,
+          'accountLockout.lockoutExpires': null,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  // Check if account is locked
+  async isAccountLocked(userId) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const user = await this.findById(userId);
+    if (!user || !user.accountLockout) {
+      return false;
+    }
+
+    const { isLocked, lockoutExpires } = user.accountLockout;
+    
+    if (!isLocked) {
+      return false;
+    }
+
+    // Check if lockout has expired
+    if (lockoutExpires && new Date() > lockoutExpires) {
+      // Auto-unlock expired accounts
+      await this.resetFailedAttempts(userId);
+      return false;
+    }
+
+    return true;
+  }
+
+  // Get password history for validation
+  async getPasswordHistory(userId, limit = 5) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const history = user.passwordHistory || [];
+    return history
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, limit);
+  }
 }
 
 module.exports = UserService;

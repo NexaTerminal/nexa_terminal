@@ -8,6 +8,7 @@ const annualLeaveDecisionController = require('../controllers/autoDocuments/annu
 const confirmationOfEmploymentController = require('../controllers/autoDocuments/confirmationOfEmploymentController');
 const employmentAgreementController = require('../controllers/autoDocuments/employmentAgreementController');
 const disciplinaryActionController = require('../controllers/autoDocuments/disciplinaryActionController');
+const terminationDecisionDueToDurationController = require('../controllers/autoDocuments/terminationDecisionDueToDurationController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
@@ -27,6 +28,9 @@ router.post('/employment-agreement', authenticateJWT, requireVerifiedCompany, em
 
 // Disciplinary Action (Дисциплинска мерка)
 router.post('/disciplinary-action', authenticateJWT, requireVerifiedCompany, disciplinaryActionController);
+
+// Termination Decision Due to Duration (Одлука за престанок поради истек на времето)
+router.post('/termination-decision-due-to-duration', authenticateJWT, requireVerifiedCompany, terminationDecisionDueToDurationController);
 
 // Add more document routes here as needed
 

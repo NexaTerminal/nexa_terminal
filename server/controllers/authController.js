@@ -1,18 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const UserService = require('../services/userService');
+const PasswordResetService = require('../services/passwordResetService');
+const EmailService = require('../services/emailService');
 
 class AuthController {
   constructor() {
-    // Bind methods to preserve 'this' context
-    this.createAdmin = this.createAdmin.bind(this);
-    this.register = this.register.bind(this);
-    this.loginUsername = this.loginUsername.bind(this);
-    this.login = this.login.bind(this);
-    this.directLogin = this.directLogin.bind(this);
-    this.validateToken = this.validateToken.bind(this);
-    this.updateProfile = this.updateProfile.bind(this);
-    this.logout = this.logout.bind(this);
+    // Methods will be bound automatically when defined as arrow functions
+    // or bound when accessed through the instance
   }
 
   // Generate JWT token
@@ -433,6 +428,382 @@ class AuthController {
     } catch (error) {
       console.error('Profile update error:', error);
       res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // Forgot Password - Request password reset
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent') || '';
+
+      if (!email) {
+        return res.status(400).json({
+          message: 'Е-мејл адресата е задолжителна',
+          field: 'email'
+        });
+      }
+
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const emailService = EmailService; // Already instantiated
+      const passwordResetService = new PasswordResetService(userService, emailService);
+
+      // Normalize email
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Always return success to prevent user enumeration
+      // But only send email if user exists
+      const user = await userService.findByEmail(normalizedEmail);
+      
+      if (user) {
+        // Generate secure reset token
+        const tokenData = passwordResetService.generateResetToken();
+        
+        // Store hashed token in database
+        await userService.createResetToken(
+          user._id,
+          tokenData.hashedToken,
+          tokenData.expires,
+          ipAddress
+        );
+
+        // Generate reset URL
+        const baseUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        const resetUrl = passwordResetService.generateResetURL(
+          user,
+          tokenData.plainToken,
+          ipAddress,
+          baseUrl
+        );
+
+        // Generate email content
+        const emailHTML = passwordResetService.generateResetEmailHTML(
+          user,
+          resetUrl,
+          ipAddress,
+          userAgent,
+          tokenData.expires
+        );
+
+        // Send reset email
+        try {
+          await emailService.sendEmail(
+            normalizedEmail,
+            'Ресетирање на лозинка - Nexa Terminal',
+            emailHTML
+          );
+
+          // Log security event
+          await passwordResetService.logSecurityEvent('PASSWORD_RESET_REQUESTED', {
+            userId: user._id,
+            email: normalizedEmail,
+            ipAddress,
+            userAgent,
+            success: true
+          });
+        } catch (emailError) {
+          console.error('Failed to send reset email:', emailError);
+          
+          // Don't expose email sending failures to prevent enumeration
+          // But log the error for internal monitoring
+          await passwordResetService.logSecurityEvent('PASSWORD_RESET_EMAIL_FAILED', {
+            userId: user._id,
+            email: normalizedEmail,
+            ipAddress,
+            error: emailError.message
+          });
+        }
+      }
+
+      // Always return success to prevent user enumeration
+      res.json({
+        success: true,
+        message: 'Ако е-мејл адресата постои, ќе добиете инструкции за ресетирање на лозинката.'
+      });
+
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({
+        message: 'Серверска грешка. Ве молиме обидете се повторно.'
+      });
+    }
+  }
+
+  // Validate Reset Token - Check if reset token is valid
+  async validateResetToken(req, res) {
+    try {
+      const { token, uid } = req.query;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent') || '';
+
+      if (!token || !uid) {
+        return res.status(400).json({
+          message: 'Токенот и корисничкиот ID се задолжителни',
+          valid: false
+        });
+      }
+
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const emailService = EmailService; // Already instantiated
+      const passwordResetService = new PasswordResetService(userService, emailService);
+
+      // Validate the reset token
+      const user = await passwordResetService.validateResetToken(
+        token,
+        uid,
+        ipAddress,
+        userAgent
+      );
+
+      res.json({
+        valid: true,
+        message: 'Токенот е валиден',
+        email: user.email ? user.email.replace(/(.{2}).*(@.*)/, '$1***$2') : 'Скриена'
+      });
+
+    } catch (error) {
+      console.error('Token validation error:', error);
+      res.status(400).json({
+        valid: false,
+        message: error.message || 'Невалиден или истечен токен'
+      });
+    }
+  }
+
+  // Reset Password - Complete password reset with new password
+  async resetPassword(req, res) {
+    try {
+      const { token, uid, newPassword, confirmPassword } = req.body;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent') || '';
+
+      // Input validation
+      if (!token || !uid || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          message: 'Сите полиња се задолжителни',
+          field: 'required'
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+          message: 'Лозинките не се совпаѓаат',
+          field: 'confirmPassword'
+        });
+      }
+
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const emailService = EmailService; // Already instantiated
+      const passwordResetService = new PasswordResetService(userService, emailService);
+
+      // Validate the reset token
+      const user = await passwordResetService.validateResetToken(
+        token,
+        uid,
+        ipAddress,
+        userAgent
+      );
+
+      // Validate new password
+      const passwordValidation = passwordResetService.validatePassword(newPassword);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({
+          message: 'Лозинката не ги исполнува безбедносните барања',
+          errors: passwordValidation.errors,
+          field: 'newPassword'
+        });
+      }
+
+      // Check password history to prevent reuse
+      await passwordResetService.validatePasswordHistory(user, newPassword);
+
+      // Hash new password with increased salt rounds
+      const salt = await bcrypt.genSalt(12);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      // Update password and clear reset token
+      await userService.updatePassword(user._id, hashedPassword);
+      await userService.markResetTokenUsed(user._id);
+
+      // Send security notification email
+      if (user.email) {
+        try {
+          const notificationHTML = passwordResetService.generatePasswordChangeNotificationHTML(
+            user,
+            ipAddress,
+            userAgent,
+            new Date().toLocaleString('mk-MK')
+          );
+
+          await emailService.sendEmail(
+            user.email,
+            'Лозинката е успешно променета - Nexa Terminal',
+            notificationHTML
+          );
+        } catch (emailError) {
+          console.error('Failed to send password change notification:', emailError);
+        }
+      }
+
+      // Log successful password reset
+      await passwordResetService.logSecurityEvent('PASSWORD_RESET_COMPLETED', {
+        userId: user._id,
+        email: user.email,
+        ipAddress,
+        userAgent
+      });
+
+      res.json({
+        success: true,
+        message: 'Лозинката е успешно променета. Сега можете да се најавите со новата лозинка.'
+      });
+
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      const errorMessage = error.message.includes('лозинк') ? 
+        error.message : 
+        'Серверска грешка. Ве молиме обидете се повторно.';
+      
+      res.status(400).json({
+        message: errorMessage
+      });
+    }
+  }
+
+  // Change Password - For authenticated users
+  async changePassword(req, res) {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+      const userId = req.user.id || req.user._id;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent') || '';
+
+      // Input validation
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          message: 'Сите полиња се задолжителни',
+          field: 'required'
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+          message: 'Новите лозинки не се совпаѓаат',
+          field: 'confirmPassword'
+        });
+      }
+
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const emailService = EmailService; // Already instantiated
+      const passwordResetService = new PasswordResetService(userService, emailService);
+
+      // Get current user
+      const user = await userService.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          message: 'Корисникот не е пронајден'
+        });
+      }
+
+      // Check if account is locked
+      const isLocked = await userService.isAccountLocked(userId);
+      if (isLocked) {
+        return res.status(423).json({
+          message: 'Профилот е привремено заклучен поради безбедносни причини'
+        });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        // Increment failed attempts
+        await userService.incrementFailedAttempts(userId, ipAddress);
+        
+        // Log failed attempt
+        await passwordResetService.logSecurityEvent('PASSWORD_CHANGE_FAILED_CURRENT', {
+          userId,
+          ipAddress,
+          userAgent
+        });
+
+        return res.status(401).json({
+          message: 'Тековната лозинка е неточна',
+          field: 'currentPassword'
+        });
+      }
+
+      // Validate new password
+      const passwordValidation = passwordResetService.validatePassword(newPassword);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({
+          message: 'Новата лозинка не ги исполнува безбедносните барања',
+          errors: passwordValidation.errors,
+          field: 'newPassword'
+        });
+      }
+
+      // Check password history to prevent reuse
+      await passwordResetService.validatePasswordHistory(user, newPassword);
+
+      // Hash new password with increased salt rounds
+      const salt = await bcrypt.genSalt(12);
+      const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+      // Update password
+      await userService.updatePassword(userId, hashedNewPassword);
+
+      // Reset any failed login attempts
+      await userService.resetFailedAttempts(userId);
+
+      // Send security notification email
+      if (user.email) {
+        try {
+          const notificationHTML = passwordResetService.generatePasswordChangeNotificationHTML(
+            user,
+            ipAddress,
+            userAgent,
+            new Date().toLocaleString('mk-MK')
+          );
+
+          await emailService.sendEmail(
+            user.email,
+            'Лозинката е успешно променета - Nexa Terminal',
+            notificationHTML
+          );
+        } catch (emailError) {
+          console.error('Failed to send password change notification:', emailError);
+        }
+      }
+
+      // Log successful password change
+      await passwordResetService.logSecurityEvent('PASSWORD_CHANGED', {
+        userId,
+        email: user.email,
+        ipAddress,
+        userAgent
+      });
+
+      res.json({
+        success: true,
+        message: 'Лозинката е успешно променета'
+      });
+
+    } catch (error) {
+      console.error('Password change error:', error);
+      
+      const errorMessage = error.message.includes('лозинк') ? 
+        error.message : 
+        'Серверска грешка. Ве молиме обидете се повторно.';
+      
+      res.status(400).json({
+        message: errorMessage
+      });
     }
   }
 

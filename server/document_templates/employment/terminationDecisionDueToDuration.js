@@ -1,0 +1,174 @@
+const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, WidthType } = require('docx');
+const moment = require('moment');
+
+function generateTerminationDecisionDueToDurationDoc(userData, formData, companyData) {
+  const companyName = companyData?.companyName || '[Име на компанија]';
+  const companyAddress = companyData?.companyAddress || '[Адреса на компанија]';
+  const companyManager = userData?.companyManager || '[Управител]';
+  
+  // Extract form data
+  const employeeName = formData?.employeeName || '[Име на вработен]';
+  const jobPosition = formData?.jobPosition || '[Работна позиција]';
+  const employmentEndDate = formData?.employmentEndDate ? moment(formData.employmentEndDate).format('DD.MM.YYYY') : '[Датум на престанок]';
+  const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : '[Датум на одлука]';
+  const agreementDate = formData?.agreementDate ? moment(formData.agreementDate).format('DD.MM.YYYY') : '[Датум на договор]';
+
+  const doc = new Document({
+    sections: [{
+      children: [
+        // Header paragraph with legal basis
+        new Paragraph({
+          children: [
+            new TextRun({ 
+              text: `Врз основа на член 46, член 62 став 1 точка 1 и член 64 од Законот за работните односи, (Службен весник на Република Македонија бр. 167/15 Пречистен текст и подоцнежните измени на законот), работодавачот, ${companyName}, со седиште на ул. ${companyAddress}, претставувано од ${companyManager}, на ден ${decisionDate} година, ја донесе следната:`,
+              bold: false 
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 200 }
+        }),
+        
+        // Title - ОДЛУКА
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'ОДЛУКА', bold: true, size: 28 })
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 100 }
+        }),
+        
+        // Subtitle
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'за престанок на Договорот за вработување поради истек на времето за кое бил склучен', bold: true })
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 300 }
+        }),
+        
+        // Main content paragraph
+        new Paragraph({
+          children: [
+            new TextRun({ 
+              text: `На вработениот ${employeeName}, вработен на работна позиција ${jobPosition}, на ден ${employmentEndDate} година, му престанува работниот однос поради истек на времето на договорот за вработување.`,
+              bold: false 
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 300 }
+        }),
+        
+        // Образложение title
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Образложение', bold: true })
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 }
+        }),
+        
+        // First paragraph of explanation
+        new Paragraph({
+          children: [
+            new TextRun({ 
+              text: `${companyName}, како работодавач и ${employeeName}, како работник, на ден ${agreementDate} година, склучија Договор за вработување на определено време (во понатамошниот текст: Договорот).`,
+              bold: false 
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 200 }
+        }),
+        
+        // Second paragraph
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Согласно Договорот, е наведено дека истиот е склучен на определено времетраење.', bold: false })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 200 }
+        }),
+        
+        // Third paragraph - legal reference
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Согласно на ова, а врз основа на член 64 од Законот за работните односи со кој е предвидено дека:', bold: false })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 200 }
+        }),
+        
+        // Legal provision quote
+        new Paragraph({
+          children: [
+            new TextRun({ 
+              text: 'Договорот за вработување на определено работно време престанува да важи со изминувањето на рокот за којшто бил склучен, односно кога договорената работа е завршена или со престанувањето на причината заради којашто бил склучен.',
+              bold: false 
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 300 }
+        }),
+        
+        // Concluding paragraph
+        new Paragraph({
+          children: [
+            new TextRun({ 
+              text: `Врз основа на горенаведеното, вработениот се ослободува од обврската за извршување на работи и работни задачи во корист на работодавачот после ${employmentEndDate} година.`,
+              bold: false 
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 300 }
+        }),
+        
+        // Date
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${decisionDate} година.`, bold: false })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 400 }
+        }),
+        
+        // Signature table
+        new Table({
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [new TextRun({ text: '___________________________', bold: false })],
+                      alignment: AlignmentType.LEFT
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: companyName, bold: false })],
+                      alignment: AlignmentType.LEFT
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: companyManager, bold: false })],
+                      alignment: AlignmentType.LEFT
+                    })
+                  ],
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: '' })],
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+                })
+              ]
+            })
+          ],
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+        })
+      ]
+    }]
+  });
+  
+  return { doc };
+}
+
+module.exports = generateTerminationDecisionDueToDurationDoc;

@@ -97,17 +97,92 @@ class AuthController {
     }
   }
 
+  // Validate password strength
+  validatePassword(password) {
+    const errors = [];
+    
+    if (password.length < 6) {
+      errors.push('Лозинката мора да има најмалку 6 карактери');
+    }
+    
+    if (!/\d/.test(password)) {
+      errors.push('Лозинката мора да содржи најмалку еден број');
+    }
+    
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors.push('Лозинката мора да содржи најмалку еден специјален карактер');
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Лозинката мора да содржи најмалку една голема буква');
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      errors.push('Лозинката мора да содржи најмалку една мала буква');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  // Validate username
+  validateUsername(username) {
+    const errors = [];
+    
+    if (!username || username.length < 3) {
+      errors.push('Корисничкото име мора да има најмалку 3 карактери');
+    }
+    
+    if (username && username.length > 20) {
+      errors.push('Корисничкото име не смее да биде подолго од 20 карактери');
+    }
+    
+    if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+      errors.push('Корисничкото име може да содржи само букви, бројки и долна црта (_)');
+    }
+    
+    if (username && /^\d/.test(username)) {
+      errors.push('Корисничкото име не може да започнува со број');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
   // Register new user
   async register(req, res) {
     try {
       const { username, password } = req.body;
 
+      // Basic field validation
       if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password are required' });
+        return res.status(400).json({ 
+          message: 'Корисничкото име и лозинката се задолжителни',
+          field: !username ? 'username' : 'password'
+        });
       }
 
-      if (password.length < 6) {
-        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+      // Username validation
+      const usernameValidation = this.validateUsername(username);
+      if (!usernameValidation.isValid) {
+        return res.status(400).json({ 
+          message: usernameValidation.errors[0],
+          field: 'username'
+        });
+      }
+
+      // Password validation
+      const passwordValidation = this.validatePassword(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+          message: 'Лозинката не ги исполнува безбедносните барања: ' + passwordValidation.errors.join(', '),
+          field: 'password',
+          errors: passwordValidation.errors
+        });
       }
 
       const db = req.app.locals.db;
@@ -116,7 +191,10 @@ class AuthController {
       // Check if user already exists by username
       const existingUser = await userService.findByUsername(username);
       if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
+        return res.status(409).json({ 
+          message: 'Ова корисничко име е веќе зафатено. Ве молиме изберете друго.',
+          field: 'username'
+        });
       }
 
       // Hash password
@@ -127,6 +205,7 @@ class AuthController {
       const userData = {
         username: username.trim().toLowerCase(),
         password: hashedPassword,
+        role: 'user',
         companyInfo: {
           companyName: '',
           mission: '',
@@ -145,6 +224,8 @@ class AuthController {
         profileComplete: false,
         isVerified: false
       };
+
+      // console.log('Creating user with data:', JSON.stringify(userData, null, 2));
 
       const newUser = await userService.createUser(userData);
 
@@ -167,7 +248,10 @@ class AuthController {
       const { username, password } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password are required' });
+        return res.status(400).json({ 
+          message: 'Корисничкото име и лозинката се задолжителни',
+          field: !username ? 'username' : 'password'
+        });
       }
 
       const db = req.app.locals.db;
@@ -176,25 +260,38 @@ class AuthController {
       // Find user by username
       const user = await userService.findByUsername(username.toLowerCase());
       if (!user) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(401).json({ 
+          message: 'Корисничкото име не постои. Проверете го корисничкото име или се регистрирајте.',
+          field: 'username'
+        });
       }
 
       // Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(401).json({ 
+          message: 'Неточна лозинка. Ве молиме проверете ја лозинката и обидете се повторно.',
+          field: 'password'
+        });
       }
+
+      // Update last login
+      await userService.updateLastLogin(user._id);
 
       // Generate JWT token
       const token = this.generateToken(user);
 
       res.json({
+        success: true,
         token,
-        user: this.formatUserResponse(user)
+        user: this.formatUserResponse(user),
+        message: 'Успешна најава!'
       });
     } catch (error) {
       console.error('Username login error:', error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ 
+        message: 'Серверска грешка. Ве молиме обидете се повторно.'
+      });
     }
   }
 

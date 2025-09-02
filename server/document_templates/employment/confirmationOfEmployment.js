@@ -7,7 +7,7 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.address || '[Адреса на компанија]';
   const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-  const companyManager = company?.role || '[Управител]';  // NOTE: Use 'role' field
+  const companyManager = company?.manager || '[Управител]';  // NOTE: Updated to use 'manager' field from standardized mapping
   const certificateDate = formData.certificateDate ? moment(formData.certificateDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const employeeName = formData.employeeName || '[Име на вработен]';
   const employeeAddress = formData.employeeAddress || '[Адреса на вработен]';

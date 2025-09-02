@@ -6,15 +6,21 @@ import Footer from '../../components/common/Footer';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
-import TypewriterFeatures from '../../components/website/TypewriterFeatures'; // Import the new component
+import TypewriterFeatures from '../../components/website/TypewriterFeatures';
+import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
+import AuthMessage from '../../components/common/AuthMessage';
+import { validatePassword, validatePasswordMatch, validateUsername } from '../../utils/passwordValidation';
 
 const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPasswordStrength, setShowPasswordStrength] = useState(false);
   
   const { currentUser, login, loginWithUsername, registerSimple } = useAuth();
   const navigate = useNavigate();
@@ -36,44 +42,93 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     
     try {
       if (isLogin) {
-        // Always use loginWithUsername for login
+        // Login validation
         if (!username) {
-          // If username is empty, try to use email as username, or show error
-          // For now, let's enforce username for login as per simplified flow
-          throw new Error(t('login.usernameRequired', 'Username is required'));
+          throw new Error('Корисничкото име е задолжително');
         }
+        if (!password) {
+          throw new Error('Лозинката е задолжителна');
+        }
+        
         const result = await loginWithUsername(username, password);
         
         if (result.success) {
-          // Navigate to the previous page or terminal
-          const destination = location.state?.from?.pathname || '/terminal';
-          navigate(destination, { replace: true });
+          setSuccess('Успешна најава! Пренасочување...');
+          setTimeout(() => {
+            const destination = location.state?.from?.pathname || '/terminal';
+            navigate(destination, { replace: true });
+          }, 1000);
         } else {
-          setError(result.error || t('login.loginFailedError', 'Login failed. Please check your credentials or try again.'));
+          // Handle specific login errors
+          const errorMessage = result.error || 'Неуспешна најава';
+          if (errorMessage.includes('Invalid credentials') || errorMessage.includes('password') || errorMessage.includes('лозинка')) {
+            setError('Неточна лозинка. Ве молиме проверете ја лозинката и обидете се повторно.');
+          } else if (errorMessage.includes('User not found') || errorMessage.includes('username') || errorMessage.includes('корисник')) {
+            setError('Корисничкото име не постои. Проверете го корисничкото име или се регистрирајте.');
+          } else {
+            setError(errorMessage);
+          }
         }
       } else {
-        // Simplified registration with just username and password
-        if (!username) {
-          throw new Error(t('login.usernameRequired', 'Username is required'));
+        // Registration validation
+        const usernameValidation = validateUsername(username);
+        if (!usernameValidation.isValid) {
+          throw new Error(usernameValidation.errors[0]);
         }
-        if (username.length < 3) {
-          throw new Error(t('login.usernameMinLength', 'Username must be at least 3 characters'));
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+          throw new Error('Лозинката не ги исполнува безбедносните барања');
+        }
+
+        const passwordMatch = validatePasswordMatch(password, confirmPassword);
+        if (!passwordMatch.isValid) {
+          throw new Error(passwordMatch.error);
         }
         
         const result = await registerSimple(username, password);
         if (result.success) {
-          // Navigate directly to terminal after successful registration
-          navigate('/terminal');
+          setSuccess('Успешна регистрација! Добредојдовте во Nexa Terminal!');
+          setTimeout(() => {
+            navigate('/terminal');
+          }, 1500);
+        } else {
+          // Handle specific registration errors
+          const errorMessage = result.error || 'Неуспешна регистрација';
+          if (errorMessage.includes('already exists') || errorMessage.includes('постои') || errorMessage.includes('taken')) {
+            setError('Ова корисничко име е веќе зафатено. Ве молиме изберете друго.');
+          } else {
+            setError(errorMessage);
+          }
         }
       }
     } catch (error) {
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle form mode switching
+  const switchMode = () => {
+    setIsLogin(!isLogin);
+    setError('');
+    setSuccess('');
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPasswordStrength(false);
+  };
+
+  // Handle password input focus for registration
+  const handlePasswordFocus = () => {
+    if (!isLogin) {
+      setShowPasswordStrength(true);
     }
   };
 
@@ -162,18 +217,25 @@ const Login = () => {
             <h1>{isLogin ? t('') : t('login.createAccount')}</h1>
             
             <div className={styles.loginCard}>
-  
               
-              {error && <div className={styles.errorMessage}>{error}</div>}
+              {/* Enhanced error and success messages */}
+              <AuthMessage 
+                type="error"
+                message={error}
+                onClose={() => setError('')}
+              />
+              
+              <AuthMessage 
+                type="success"
+                message={success}
+                onClose={() => setSuccess('')}
+              />
               
               <form className={styles.loginForm} onSubmit={handleSubmit}>
-                {/* Username field - shown for signup or optionally for login */}
+                {/* Username field */}
                 <div className={styles.formGroup}>
                   <label htmlFor="username" className={styles.formLabel}>
-                    {isLogin 
-                      ? t('login.username', 'Username') // Changed label for login
-                      : t('login.username', 'Username')
-                    }
+                    Корисничко име
                   </label>
                   <input
                     type="text"
@@ -181,34 +243,84 @@ const Login = () => {
                     className={styles.formInput}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    required // Username is now always required for both login and signup
+                    required
                     placeholder={
                       isLogin
-                        ? t('login.usernameRequiredPlaceholder', 'Enter your username') // Changed placeholder
-                        : t('login.usernameChoosePlaceholder', 'Choose a username')
+                        ? 'Внесете го вашето корисничко име'
+                        : 'Изберете корисничко име'
                     }
                   />
                 </div>
 
+                {/* Password field */}
                 <div className={styles.formGroup}>
-                  <label htmlFor="password" className={styles.formLabel}>{t('login.password', 'Password')}</label>
+                  <label htmlFor="password" className={styles.formLabel}>
+                    Лозинка
+                  </label>
                   <input
                     type="password"
                     id="password"
                     className={styles.formInput}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onFocus={handlePasswordFocus}
                     required
-                    placeholder={t('login.passwordPlaceholder', 'Enter your password')}
+                    placeholder={isLogin ? 'Внесете ја вашата лозинка' : 'Создајте безбедна лозинка'}
                   />
+                  
+                  {/* Password strength indicator for registration */}
+                  {!isLogin && showPasswordStrength && (
+                    <PasswordStrengthIndicator 
+                      password={password}
+                      showRequirements={true}
+                    />
+                  )}
                 </div>
+
+                {/* Confirm password field for registration only */}
+                {!isLogin && (
+                  <div className={styles.formGroup}>
+                    <label htmlFor="confirmPassword" className={styles.formLabel}>
+                      Потврдете ја лозинката
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      className={styles.formInput}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      placeholder="Повторете ја лозинката"
+                    />
+                    
+                    {/* Password match indicator */}
+                    {confirmPassword && (
+                      <div className={`${styles.passwordMatch} ${
+                        password === confirmPassword ? styles.match : styles.noMatch
+                      }`}>
+                        {password === confirmPassword ? (
+                          <span style={{color: 'var(--color-success)'}}>✓ Лозинките се совпаѓаат</span>
+                        ) : (
+                          <span style={{color: 'var(--color-error)'}}>✗ Лозинките не се совпаѓаат</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <button 
                   type="submit" 
                   className={styles.submitButton}
                   disabled={loading}
                 >
-                  {loading ? t('login.processing') : isLogin ? t('login.signIn') : t('login.signUp')}
+                  {loading ? (
+                    <>
+                      <span className={styles.loadingSpinner}></span>
+                      {isLogin ? 'Се најавувате...' : 'Се регистрирате...'}
+                    </>
+                  ) : (
+                    isLogin ? 'Најава' : 'Регистрација'
+                  )}
                 </button>
               </form>
               
@@ -238,22 +350,24 @@ const Login = () => {
                 <p>
                   {isLogin ? (
                     <>
-                      {t('login.dontHaveAccount')}{' '}
+                      Немате профил?{' '}
                       <button 
-                        onClick={() => setIsLogin(false)}
+                        onClick={switchMode}
                         className={styles.toggleButton}
+                        type="button"
                       >
-                        {t('login.signUp')}
+                        Регистрирајте се
                       </button>
                     </>
                   ) : (
                     <>
-                      {t('login.alreadyHaveAccount')}{' '}
+                      Веќе имате профил?{' '}
                       <button 
-                        onClick={() => setIsLogin(true)}
+                        onClick={switchMode}
                         className={styles.toggleButton}
+                        type="button"
                       >
-                        {t('login.signIn')}
+                        Најавете се
                       </button>
                     </>
                   )}

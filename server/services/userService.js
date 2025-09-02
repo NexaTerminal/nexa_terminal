@@ -6,18 +6,36 @@ class UserService {
   constructor(db) {
     this.db = db;
     this.collection = db.collection('users');
-    this.setupIndexes();
+    // this.setupIndexes(); // Indexes managed in server.js
+  }
+
+  // Debug method to check indexes and fix userName_1 issue
+  async debugIndexes() {
+    try {
+      const indexes = await this.collection.indexes();
+      console.log('UserService sees indexes:', JSON.stringify(indexes, null, 2));
+      
+      // Force drop the problematic userName_1 index if it exists
+      const hasUserNameIndex = indexes.some(idx => idx.name === 'userName_1');
+      if (hasUserNameIndex) {
+        console.log('🔧 Force dropping userName_1 index...');
+        try {
+          await this.collection.dropIndex('userName_1');
+          console.log('✅ Successfully dropped userName_1 index');
+        } catch (error) {
+          console.log('❌ Failed to drop userName_1:', error.message);
+        }
+      }
+    } catch (error) {
+      console.log('Error checking indexes:', error.message);
+    }
   }
 
   // Setup database indexes for efficient querying
   async setupIndexes() {
     try {
-      // Indexes are already created in the migration script
-      // These match the new simplified schema
-      await this.collection.createIndex({ userName: 1 }, { unique: true });
-      await this.collection.createIndex({ "companyInfo.companyName": "text" });
-      await this.collection.createIndex({ isAdmin: 1 });
-      await this.collection.createIndex({ isVerified: 1 });
+      // Skip index creation - indexes are managed manually
+      console.log('Index creation skipped - managed manually');
     } catch (error) {
       // Silently handle index creation errors
     }
@@ -26,25 +44,39 @@ class UserService {
   // Create a new user (updated for simplified schema)
   async createUser(userData) {
     const user = {
-      userName: userData.userName?.trim() || userData.username?.trim() || userData.email?.trim() || '',
+      username: userData.username?.trim() || '',
       password: userData.password,
       isAdmin: userData.isAdmin || false,
       isVerified: userData.isVerified || false,
-      officialEmail: userData.officialEmail?.trim() || userData.email?.trim() || '',
-      companyInfo: {
-        companyName: userData.companyInfo?.companyName?.trim() || '',
-        companyAddress: userData.companyInfo?.companyAddress?.trim() || userData.companyInfo?.address?.trim() || '',
-        companyTaxNumber: userData.companyInfo?.companyTaxNumber?.trim() || userData.companyInfo?.taxNumber?.trim() || '',
-        companyManager: userData.companyInfo?.companyManager?.trim() || userData.companyInfo?.manager?.trim() || '',
-        missionStatement: userData.companyInfo?.missionStatement?.trim() || userData.companyInfo?.mission?.trim() || '',
-        website: userData.companyInfo?.website?.trim() || '',
-        facebook: userData.companyInfo?.facebook?.trim() || '',
-        linkedin: userData.companyInfo?.linkedin?.trim() || ''
+      role: userData.role || 'user',
+      profileComplete: userData.profileComplete || false,
+      companyInfo: userData.companyInfo || {
+        companyName: '',
+        mission: '',
+        website: '',
+        industry: '',
+        companySize: '',
+        role: '',
+        description: '',
+        crnNumber: '',
+        address: '',
+        phone: '',
+        companyPIN: '',
+        taxNumber: '',
+        contactEmail: ''
       },
       createdAt: userData.createdAt || new Date(),
       updatedAt: new Date(),
       lastLogin: userData.lastLogin || new Date()
     };
+
+    // Only add email field if it exists and is not empty
+    const email = userData.email?.trim();
+    if (email && email.length > 0) {
+      user.email = email;
+    }
+
+    // console.log('UserService creating user:', JSON.stringify(user, null, 2));
 
     const result = await this.collection.insertOne(user);
     return { ...user, _id: result.insertedId };
@@ -52,12 +84,13 @@ class UserService {
 
   // Find user by username (updated for simplified schema)
   async findByUsername(username) {
-    return await this.collection.findOne({ userName: username.trim() });
+    return await this.collection.findOne({ username: username.trim() });
   }
 
-  // Find user by email (updated for simplified schema)
+  // Find user by email (updated for simplified schema)  
   async findByEmail(email) {
-    return await this.collection.findOne({ officialEmail: email.toLowerCase().trim() });
+    if (!email) return null;
+    return await this.collection.findOne({ email: email.toLowerCase().trim() });
   }
 
   // Find user by ID
@@ -107,6 +140,20 @@ class UserService {
     return result.value;
   }
 
+  // Update user's last login time
+  async updateLastLogin(userId) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { lastLogin: new Date(), updatedAt: new Date() } }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
   // Get all users (for admin) - updated for simplified schema
   async getAllUsers(limit = 50, skip = 0, filter = {}) {
     const query = {};
@@ -117,8 +164,8 @@ class UserService {
     
     if (filter.search) {
       query.$or = [
-        { officialEmail: { $regex: filter.search, $options: 'i' } },
-        { userName: { $regex: filter.search, $options: 'i' } },
+        { email: { $regex: filter.search, $options: 'i' } },
+        { username: { $regex: filter.search, $options: 'i' } },
         { 'companyInfo.companyName': { $regex: filter.search, $options: 'i' } }
       ];
     }
@@ -157,7 +204,8 @@ class UserService {
 
   // Check if user exists - updated for simplified schema
   async userExists(email) {
-    const count = await this.collection.countDocuments({ officialEmail: email.toLowerCase().trim() });
+    if (!email) return false;
+    const count = await this.collection.countDocuments({ email: email.toLowerCase().trim() });
     return count > 0;
   }
 

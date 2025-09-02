@@ -74,7 +74,7 @@ const validateConfirmationOfEmployment = (formData, user, company) => {
     if (!company.taxNumber || company.taxNumber.trim() === '') {
       missing.push('Даночен број на компанијата');
     }
-    if (!company.role || company.role.trim() === '') {
+    if (!company.manager || company.manager.trim() === '') {
       missing.push('Управител на компанијата');
     }
   }

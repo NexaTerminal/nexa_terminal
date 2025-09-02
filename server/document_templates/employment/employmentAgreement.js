@@ -2,7 +2,7 @@ const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType,
 const moment = require('moment');
 
 function generateEmploymentAgreementDoc(formData, user, company) {
-  // Company data with defaults
+  // Company data with defaults - using the standardized field mapping
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.address || '[Адреса на компанија]';
   const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';

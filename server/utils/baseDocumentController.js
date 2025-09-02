@@ -19,19 +19,34 @@ const createDocumentController = (config) => {
       const { formData } = req.body;
       const user = req.user;
       
-      // Extract company information from user object
-      const company = user.companyInfo || {};
+      // Extract and normalize company information from user object
+      const companyInfo = user.companyInfo || {};
+      
+      // Map company fields to standardized format for templates
+      const company = {
+        companyName: companyInfo.companyName || '',
+        address: companyInfo.address || companyInfo.companyAddress || '',
+        taxNumber: companyInfo.taxNumber || companyInfo.companyTaxNumber || '',
+        manager: user.companyManager || companyInfo.manager || companyInfo.role || '',
+        // Keep original fields for backward compatibility
+        role: user.companyManager || companyInfo.manager || companyInfo.role || ''
+      };
       
       // Log user and company data for debugging
       console.log(`[${documentName}] User ID: ${user._id || user.id}`);
       console.log(`[${documentName}] User email: ${user.email}`);
       console.log(`[${documentName}] Company info available:`, !!user.companyInfo);
       
+      console.log(`[${documentName}] Mapped company data:`);
+      console.log(`[${documentName}] Company name: "${company.companyName}"`);
+      console.log(`[${documentName}] Company address: "${company.address}"`);
+      console.log(`[${documentName}] Company tax number: "${company.taxNumber}"`);
+      console.log(`[${documentName}] Company manager: "${company.manager}"`);
+      
+      // Log original data structure for debugging
       if (user.companyInfo) {
-        console.log(`[${documentName}] Company name: ${user.companyInfo.companyName}`);
-        console.log(`[${documentName}] Company address: ${user.companyInfo.address}`);
-        console.log(`[${documentName}] Company tax number: ${user.companyInfo.taxNumber}`);
-        console.log(`[${documentName}] Company manager: ${user.companyInfo.role}`);
+        console.log(`[${documentName}] Original companyInfo fields:`, Object.keys(user.companyInfo));
+        console.log(`[${documentName}] Original companyManager field:`, user.companyManager);
       } else {
         console.log(`[${documentName}] No company info found in user object`);
       }

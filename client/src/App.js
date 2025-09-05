@@ -31,6 +31,11 @@ import Education from './pages/terminal/Education';
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
 import ConfirmationOfEmploymentPage from './pages/terminal/documents/employment/ConfirmationOfEmploymentPage';
 import EmploymentAgreementPage from './pages/terminal/documents/employment/EmploymentAgreementPage';
+import TerminationDecisionDueToDurationPage from './pages/terminal/documents/employment/TerminationDecisionDueToDurationPage';
+import TerminationWarningPage from './pages/terminal/documents/employment/TerminationWarningPage';
+import EmploymentAnnexPage from './pages/terminal/documents/employment/EmploymentAnnexPage';
+import WarningLetterPage from './pages/terminal/documents/employment/WarningLetterPage';
+import RentAgreementPage from './pages/terminal/documents/contracts/RentAgreementPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -101,6 +106,13 @@ function App() {
       <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><VerificationRequired feature="договор за престанок"><TerminationAgreementPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><VerificationRequired feature="потврда за работа"><ConfirmationOfEmploymentPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><VerificationRequired feature="договор за работа"><EmploymentAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-decision-due-to-duration" element={<PrivateRoute><VerificationRequired feature="одлука за престанок"><TerminationDecisionDueToDurationPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-warning" element={<PrivateRoute><VerificationRequired feature="предупредување за откажување"><TerminationWarningPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employment-annex" element={<PrivateRoute><VerificationRequired feature="анекс на договор"><EmploymentAnnexPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/warning-letter" element={<PrivateRoute><VerificationRequired feature="опомена до вработен"><WarningLetterPage/></VerificationRequired></PrivateRoute>} />
+
+      {/* Contracts */}
+      <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
  
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

@@ -14,11 +14,16 @@ const FormField = ({
   arrayMethods = null, // For array fields: { onAdd, onRemove }
   formData = {} // Need access to all form data for conditional logic
 }) => {
-  const { name, type, label, placeholder, required, options, rows, condition, conditional, maxLength, pattern, inputMode } = field;
+  const { name, type, label, placeholder, required, options, rows, condition, conditional, showWhen, maxLength, pattern, inputMode } = field;
 
-  // Check if field should be shown based on condition (use either condition or conditional)
+  // Check if field should be shown based on condition (use either condition, conditional, or showWhen)
   const conditionToCheck = condition || conditional;
   if (conditionToCheck && !evaluateCondition(conditionToCheck, formData)) {
+    return null;
+  }
+  
+  // Check showWhen condition (function-based condition)
+  if (showWhen && !showWhen(formData)) {
     return null;
   }
 
@@ -79,6 +84,7 @@ const FormField = ({
             onChange={(e) => handleChange(e.target.value)}
             disabled={disabled}
           >
+            {!required && <option value="">Изберете...</option>}
             {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -98,6 +104,35 @@ const FormField = ({
               disabled={disabled}
             />
             <label htmlFor={name}>{label}</label>
+          </div>
+        );
+
+      case 'radio':
+        return (
+          <div className={styles['radio-group']}>
+            {options?.map((option) => (
+              <div key={option.value} className={styles['radio-option']}>
+                <input
+                  type="radio"
+                  id={`${name}_${option.value}`}
+                  name={name}
+                  value={option.value}
+                  checked={value === option.value}
+                  onChange={(e) => handleChange(e.target.value)}
+                  disabled={disabled}
+                />
+                <label htmlFor={`${name}_${option.value}`} className={styles['radio-label']}>
+                  <div className={styles['radio-content']}>
+                    <strong>{option.label}</strong>
+                    {option.description && (
+                      <div className={styles['radio-description']}>
+                        {option.description}
+                      </div>
+                    )}
+                  </div>
+                </label>
+              </div>
+            ))}
           </div>
         );
 
@@ -253,6 +288,18 @@ const evaluateCondition = (condition, formData) => {
   
   const { field, operator = '===', value } = condition;
   const fieldValue = formData[field];
+
+  // Debug logging for rent agreement conditional fields
+  if (field === 'otherPartyType') {
+    console.log('🔍 Evaluating condition for otherParty fields:', {
+      field,
+      operator,
+      value,
+      fieldValue,
+      formData: formData,
+      result: fieldValue === value
+    });
+  }
 
   switch (operator) {
     case '===':

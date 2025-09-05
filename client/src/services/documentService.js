@@ -34,9 +34,24 @@ class DocumentService {
       }
 
       const blob = await response.blob();
+      
+      // Check for warnings in response headers
+      const warningsHeader = response.headers.get('X-Generation-Warnings');
+      let warnings = [];
+      if (warningsHeader) {
+        try {
+          warnings = JSON.parse(warningsHeader);
+          if (warnings.length > 0) {
+            this.showWarningMessage(`Документот е генериран со предупредувања: ${warnings.slice(0, 3).join(', ')}${warnings.length > 3 ? '...' : ''}`);
+          }
+        } catch (e) {
+          console.warn('Could not parse warnings from response headers');
+        }
+      }
+      
       this.downloadFile(blob, `${fileName}.docx`);
       
-      onSuccess();
+      onSuccess({ warnings });
     } catch (error) {
       onError(error);
       this.showErrorMessage(error.message);
@@ -161,6 +176,13 @@ class DocumentService {
    */
   showErrorMessage(message) {
     alert(`Неуспешно генерирање на документот: ${message}`);
+  }
+
+  /**
+   * Show user-friendly warning message
+   */
+  showWarningMessage(message) {
+    alert(`⚠️ Предупредување: ${message}`);
   }
 
   /**

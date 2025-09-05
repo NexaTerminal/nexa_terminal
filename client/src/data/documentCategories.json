@@ -35,6 +35,30 @@
         "name": "Дисциплинска мерка - парична казна",
         "description": "Издавање решение за дисциплинска мерка со парична казна.",
         "route": "/terminal/documents/employment/disciplinary-action"
+      },
+      {
+        "id": "terminationDecisionDueToDuration",
+        "name": "Одлука за престанок поради истек на времето",
+        "description": "Издавање одлука за престанок на работен однос поради истек на времето за кое бил склучен договорот.",
+        "route": "/terminal/documents/employment/termination-decision-due-to-duration"
+      },
+      {
+        "id": "terminationWarning",
+        "name": "Предупредување пред откажување на договор за вработување",
+        "description": "Издавање предупредување за работник пред откажување на работниот однос поради повреда на работните обврски.",
+        "route": "/terminal/documents/employment/termination-warning"
+      },
+      {
+        "id": "employmentAnnex",
+        "name": "Анекс на договор за вработување",
+        "description": "Измена на постоечки договор за вработување - промена на плата, позиција, времетраење или други услови.",
+        "route": "/terminal/documents/employment/employment-annex"
+      },
+      {
+        "id": "warningLetter",
+        "name": "⚠️ Опомена до вработен",
+        "description": "Издавање опомена до работник поради прекршување на работни обврски без изрекување дисциплинска мерка.",
+        "route": "/terminal/documents/employment/warning-letter"
       }
     ]
   },
@@ -72,7 +96,12 @@
     "color": "#dc2626",
     "description": "Различни видови договори за деловни потреби.",
     "templates": [
-
+      {
+        "id": "rentAgreement",
+        "name": "Договор за закуп на недвижен имот",
+        "description": "Детален договор за изнајмување на недвижен имот со сите потребни услови и обврски.",
+        "route": "/terminal/documents/contracts/rent-agreement"
+      }
     ]
   },
 

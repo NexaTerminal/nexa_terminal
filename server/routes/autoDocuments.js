@@ -9,6 +9,10 @@ const confirmationOfEmploymentController = require('../controllers/autoDocuments
 const employmentAgreementController = require('../controllers/autoDocuments/employmentAgreementController');
 const disciplinaryActionController = require('../controllers/autoDocuments/disciplinaryActionController');
 const terminationDecisionDueToDurationController = require('../controllers/autoDocuments/terminationDecisionDueToDurationController');
+const terminationWarningController = require('../controllers/autoDocuments/terminationWarningController');
+const employmentAnnexController = require('../controllers/autoDocuments/employmentAnnexController');
+const warningLetterController = require('../controllers/autoDocuments/warningLetterController');
+const rentAgreementController = require('../controllers/autoDocuments/rentAgreementController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
@@ -31,6 +35,19 @@ router.post('/disciplinary-action', authenticateJWT, requireVerifiedCompany, dis
 
 // Termination Decision Due to Duration (Одлука за престанок поради истек на времето)
 router.post('/termination-decision-due-to-duration', authenticateJWT, requireVerifiedCompany, terminationDecisionDueToDurationController);
+
+// Termination Warning (Предупредување пред откажување на договор за вработување)
+router.post('/termination-warning', authenticateJWT, requireVerifiedCompany, terminationWarningController);
+
+// Employment Annex (Анекс на договор за вработување)
+router.post('/employment-annex', authenticateJWT, requireVerifiedCompany, employmentAnnexController);
+
+// Warning Letter to Employee (Опомена до вработен)
+router.post('/warning-letter', authenticateJWT, requireVerifiedCompany, warningLetterController);
+
+// Contracts
+// Rent Agreement (Договор за закуп на недвижен имот)
+router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, rentAgreementController);
 
 // Add more document routes here as needed
 

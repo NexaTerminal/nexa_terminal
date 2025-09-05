@@ -28,13 +28,20 @@ function getDocumentHeadline(documentType) {
 const documentHeadlines = {
   // Employment
   terminationAgreement: "СПОГОДБА ЗА ПРЕСТАНОК НА РАБОТЕН ОДНОС",
+  terminationDecisionDueToDuration: "ОДЛУКА за престанок на Договорот за вработување поради истек на времето за кое бил склучен",
   annualLeaveDecision: "РЕШЕНИЕ ЗА ГОДИШЕН ОДМОР",
   confirmationOfEmployment: "ПОТВРДА ЗА ВРАБОТУВАЊЕ",
   employmentAgreement: "ДОГОВОР ЗА ВРАБОТУВАЊЕ",
   disciplinaryAction: "РЕШЕНИЕ ЗА ДИСЦИПЛИНСКА МЕРКА",
+  terminationWarning: "ПРЕДУПРЕДУВАЊЕ пред откажување на договор за вработување",
+  employmentAnnex: "АНЕКС кон договор за вработување",
+  warningLetter: "ОПОМЕНА до вработен",
 
   // Personal Data Protection
   consentForPersonalDataProcessing: "СОГЛАСНОСТ ЗА ОБРАБОТКА НА ЛИЧНИ ПОДАТОЦИ",
+
+  // Contracts
+  rentAgreement: "ДОГОВОР ЗА ЗАКУП НА НЕДВИЖЕН ИМОТ",
 
   // ...add more as needed
 };
@@ -53,6 +60,7 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
   const headline = documentHeadlines[documentType] || '[Наслов на документ]';
   // Define a mapping of field keys to labels for all supported fields
   const fieldLabels = {
+    // Employment fields
     employeeName: 'Име и презиме',
     employeePIN: 'ЕМБГ',
     employeeAddress: 'Адреса',
@@ -77,16 +85,53 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
     sanctionPeriod: 'Период на казната',
     sanctionDate: 'Датум на казната',
     workTaskFailure: 'Работна обврска која е запостави',
-    employeeWrongDoing: 'Постапување спротивно на обврската',
+    employeeWrongDoing: 'Што направил работникот погрешно',
     employeeWrongdoingDate: 'Датум на постапувањето',
+    employmentEndDate: 'Датум на престанок на работниот однос',
+    decisionDate: 'Датум на одлуката',
+    fixingDeadline: 'Рок за исправка',
+    warningDate: 'Датум на опомената',
+    rulesNotRespected: 'Правила кои не се почитуваат',
+    articleNumber: 'Член од договорот за вработување',
+    
+    // Rent Agreement fields
+    contractDate: 'Датум на договор',
+    contractTown: 'Место на склучување',
+    userRole: 'Ваша улога',
+    otherPartyType: 'Тип на другата страна',
+    otherPartyName: 'Име на физичкото лице',
+    otherPartyAddress: 'Адреса на физичкото лице',
+    otherPartyPIN: 'ЕМБГ',
+    otherPartyCompanyName: 'Име на компанијата',
+    otherPartyCompanyAddress: 'Адреса на компанијата',
+    otherPartyCompanyManager: 'Управител на компанијата',
+    otherPartyCompanyTaxNumber: 'Даночен број на компанијата',
+    propertyAddress: 'Адреса на недвижноста',
+    cadastralParcelNumber: 'Катастарска парцела',
+    cadastralMunicipality: 'Катастарска општина',
+    propertySheetNumber: 'Имотен лист',
+    propertySize: 'Површина (м²)',
+    propertyType: 'Тип на објект',
+    rentAmount: 'Месечна закупнина (EUR)',
+    rentPaymentDeadline: 'Рок за плаќање',
+    durationType: 'Времетраење',
+    durationValue: 'Период',
+    endDate: 'Краен датум',
+    bankAccount: 'Жиро сметка',
+    bankName: 'Банка',
+    
     // Add more fields as needed
   };
   // Define which fields to show for each document type (order matters)
   const documentFields = {
     terminationAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'endDate'],
+    terminationDecisionDueToDuration: ['employeeName', 'jobPosition', 'employmentEndDate', 'decisionDate', 'agreementDate'],
     annualLeaveDecision: ['employeeName', 'employeePosition', 'annualLeaveYear', 'annualLeaveStart', 'annualLeaveEnd'],
     employmentAgreement: ['employeeName', 'employeePIN', 'employeeAddress', 'jobPosition', 'workTasks', 'netSalary', 'agreementDate', 'agreementDurationType', 'dailyWorkTime'],
     disciplinaryAction: ['employeeName', 'jobPosition', 'sanctionAmount', 'sanctionPeriod', 'sanctionDate', 'workTaskFailure', 'employeeWrongDoing', 'employeeWrongdoingDate'],
+    terminationWarning: ['employeeName', 'jobPosition', 'decisionDate', 'workTaskFailure', 'employeeWrongDoing', 'fixingDeadline'],
+    warningLetter: ['employeeName', 'warningDate', 'employeeWrongDoing', 'rulesNotRespected', 'articleNumber'],
+    rentAgreement: ['contractDate', 'contractTown', 'userRole', 'otherPartyType', 'otherPartyName', 'otherPartyCompanyName', 'propertyAddress', 'propertyType', 'propertySize', 'rentAmount', 'rentPaymentDeadline', 'durationType', 'durationValue', 'endDate'],
     // Add more document types as needed
   };
   const fieldsToShow = documentFields[documentType] || Object.keys(formData || {});
@@ -108,7 +153,7 @@ const renderUniversalPreview = ({ formData, company, documentType }) => {
             <strong>{fieldLabels[field] || field}:</strong> {
               Array.isArray(formData[field]) 
                 ? formData[field].join(', ')
-                : ['endDate', 'annualLeaveStart', 'annualLeaveEnd', 'agreementDate', 'definedDuration', 'sanctionDate', 'employeeWrongdoingDate'].includes(field) 
+                : ['endDate', 'annualLeaveStart', 'annualLeaveEnd', 'agreementDate', 'definedDuration', 'sanctionDate', 'employeeWrongdoingDate', 'employmentEndDate', 'decisionDate', 'fixingDeadline', 'warningDate', 'contractDate'].includes(field) 
                   ? formatDate(formData[field]) 
                   : formData[field]
             }

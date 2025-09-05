@@ -44,7 +44,7 @@ class AuthController {
   }
 
   // Create admin user
-  async createAdmin(req, res) {
+  createAdmin = async (req, res) => {
     try {
       const { email, password, secretKey } = req.body;
       const db = req.app.locals.db;
@@ -149,7 +149,7 @@ class AuthController {
   }
 
   // Register new user
-  async register(req, res) {
+  register = async (req, res) => {
     try {
       const { username, password } = req.body;
 
@@ -238,7 +238,7 @@ class AuthController {
   }
 
   // Login with username/password
-  async loginUsername(req, res) {
+  loginUsername = async (req, res) => {
     try {
       const { username, password } = req.body;
       
@@ -318,7 +318,7 @@ class AuthController {
   }
 
   // Direct login for testing
-  async directLogin(req, res) {
+  directLogin = async (req, res) => {
     try {
       const { email, password } = req.body;
       
@@ -361,12 +361,12 @@ class AuthController {
   }
 
   // Validate token
-  validateToken(req, res) {
+  validateToken = (req, res) => {
     res.json({ valid: true, user: req.user });
   }
 
   // Update user profile
-  async updateProfile(req, res) {
+  updateProfile = async (req, res) => {
     try {
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
@@ -432,7 +432,7 @@ class AuthController {
   }
 
   // Forgot Password - Request password reset
-  async forgotPassword(req, res) {
+  forgotPassword = async (req, res) => {
     try {
       const { email } = req.body;
       const ipAddress = req.ip || req.connection.remoteAddress;
@@ -532,7 +532,7 @@ class AuthController {
   }
 
   // Validate Reset Token - Check if reset token is valid
-  async validateResetToken(req, res) {
+  validateResetToken = async (req, res) => {
     try {
       const { token, uid } = req.query;
       const ipAddress = req.ip || req.connection.remoteAddress;
@@ -574,7 +574,7 @@ class AuthController {
   }
 
   // Reset Password - Complete password reset with new password
-  async resetPassword(req, res) {
+  resetPassword = async (req, res) => {
     try {
       const { token, uid, newPassword, confirmPassword } = req.body;
       const ipAddress = req.ip || req.connection.remoteAddress;
@@ -676,7 +676,7 @@ class AuthController {
   }
 
   // Change Password - For authenticated users
-  async changePassword(req, res) {
+  changePassword = async (req, res) => {
     try {
       const { currentPassword, newPassword, confirmPassword } = req.body;
       const userId = req.user.id || req.user._id;
@@ -808,7 +808,7 @@ class AuthController {
   }
 
   // Logout
-  logout(req, res) {
+  logout = (req, res) => {
     try {
       // Since we're using JWTs, we don't need to do any server-side cleanup
       // The client will remove the token

@@ -94,7 +94,8 @@ const createDocumentController = (config) => {
 
       // Generate document using the template function
       console.log(`[${documentName}] Generating document...`);
-      const doc = templateFunction(processedData, user, company);
+      const result = templateFunction(processedData, user, company);
+      const doc = result.doc || result;
       
       if (!doc) {
         throw new Error('Template function returned null or undefined');

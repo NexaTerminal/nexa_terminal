@@ -26,28 +26,32 @@ export const annualLeaveDecisionConfig = {
       type: 'text',
       label: 'Име и презиме на вработениот',
       placeholder: 'пр. Марко Петровски',
-      required: true
+      required: true,
+      helpText: 'Внесете го целосното име и презиме на вработениот на кој му се одобрува годишниот одмор како што е наведено во личните документи.'
     },
     employeePosition: {
       name: 'employeePosition',
       type: 'text',
       label: 'Работна позиција',
       placeholder: 'пр. Софтверски инженер',
-      required: true
+      required: true,
+      helpText: 'Наведете ја работната позиција (назив на работно место) на вработениот според договорот за вработување и систематизацијата на работни места.'
     },
     annualLeaveStart: {
       name: 'annualLeaveStart',
       type: 'date',
       label: 'Почетен датум на годишниот одмор',
       placeholder: '',
-      required: true
+      required: true,
+      helpText: 'Изберете го датумот кога почнува годишниот одмор. Овој датум треба да се согласи со вработениот и да овозможи нормално функционирање на работата.'
     },
     annualLeaveEnd: {
       name: 'annualLeaveEnd',
       type: 'date',
       label: 'Краен датум на годишниот одмор',
       placeholder: '',
-      required: true
+      required: true,
+      helpText: 'Изберете го датумот кога завршува годишниот одмор. Овој датум треба да е по почетниот датум. Вработениот на овој датум повратно се враќа на работа.'
     },
     annualLeaveYear: {
       name: 'annualLeaveYear',
@@ -56,7 +60,8 @@ export const annualLeaveDecisionConfig = {
       placeholder: 'пр. 2024',
       required: true,
       min: 2020,
-      max: 2030
+      max: 2030,
+      helpText: 'Наведете ја годината за која се користи годишниот одмор. Обично е тековната година или претходната година ако се користи неискористен одмор.'
     }
   },
 

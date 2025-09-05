@@ -50,7 +50,8 @@ export const rentAgreementConfig = {
       name: 'contractDate',
       type: 'date',
       label: 'Датум на склучување на договор',
-      required: true
+      required: true,
+      helpText: 'Внесете го датумот кога се склучува договорот за закуп. Овој датум ќе се појави во договорот.'
     },
     contractTown: {
       name: 'contractTown',
@@ -68,7 +69,8 @@ export const rentAgreementConfig = {
         { value: 'Струмица', label: 'Струмица' },
         { value: 'Тетово', label: 'Тетово' }
       ],
-      required: true
+      required: true,
+      helpText: 'Изберете го градот каде што се склучува договорот. Ова е важно за правна надлежност во случај на спор.'
     },
 
     // Step 2: Parties - New Logic
@@ -80,7 +82,8 @@ export const rentAgreementConfig = {
         { value: 'landlord', label: 'Закуподавач (издавате под закуп)' },
         { value: 'tenant', label: 'Закупец (земате под закуп)' }
       ],
-      required: true
+      required: true,
+      helpText: 'Изберете дали вашата компанија ја издава недвижноста (закуподавач) или ја зема под закуп (закупец).'
     },
     otherPartyType: {
       name: 'otherPartyType',
@@ -90,7 +93,8 @@ export const rentAgreementConfig = {
         { value: 'individual', label: 'Физичко лице' },
         { value: 'company', label: 'Правно лице (компанија)' }
       ],
-      required: true
+      required: true,
+      helpText: 'Определете дали другата страна во договорот е физичко лице (поединец) или правно лице (компанија).'
     },
     otherPartyName: {
       name: 'otherPartyName',
@@ -102,7 +106,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'individual'
-      }
+      },
+      helpText: 'Внесете го целосното име и презиме на физичкото лице со кое склучувате договор.'
     },
     otherPartyAddress: {
       name: 'otherPartyAddress',
@@ -114,7 +119,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'individual'
-      }
+      },
+      helpText: 'Внесете ја адресата на живеење на физичкото лице (улица, број, град).'
     },
     otherPartyPIN: {
       name: 'otherPartyPIN',
@@ -129,7 +135,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'individual'
-      }
+      },
+      helpText: 'Внесете го ЕМБГ (Единствен матичен број на граѓанин) од 13 цифри на физичкото лице.'
     },
     // Company party fields
     otherPartyCompanyName: {
@@ -142,7 +149,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'company'
-      }
+      },
+      helpText: 'Внесете го целосното име на компанијата како што е регистрирано во Централниот регистар.'
     },
     otherPartyCompanyAddress: {
       name: 'otherPartyCompanyAddress',
@@ -154,7 +162,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'company'
-      }
+      },
+      helpText: 'Внесете ја адресата на седиштето на компанијата како што е регистрирана.'
     },
     otherPartyCompanyManager: {
       name: 'otherPartyCompanyManager',
@@ -166,7 +175,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'company'
-      }
+      },
+      helpText: 'Внесете го името на управителот или овластеното лице за застапување.'
     },
     otherPartyCompanyTaxNumber: {
       name: 'otherPartyCompanyTaxNumber',
@@ -178,7 +188,8 @@ export const rentAgreementConfig = {
         field: 'otherPartyType',
         operator: '===',
         value: 'company'
-      }
+      },
+      helpText: 'Внесете го даночниот број на компанијата (обично почнува со 4030).'
     },
 
     // Step 3: Property Details
@@ -187,35 +198,40 @@ export const rentAgreementConfig = {
       type: 'text',
       label: 'Адреса на недвижноста',
       placeholder: 'пр. ул. Македонска бр. 123, Скопје',
-      required: true
+      required: true,
+      helpText: 'Внесете ја целосната адреса на недвижноста која се издава под закуп (улица, број, град).'
     },
     cadastralParcelNumber: {
       name: 'cadastralParcelNumber',
       type: 'text',
       label: 'Број на катастарска парцела',
       placeholder: 'пр. 1234.5',
-      required: true
+      required: true,
+      helpText: 'Ова информација може да се најде во имотниот лист на недвижноста.'
     },
     cadastralMunicipality: {
       name: 'cadastralMunicipality',
       type: 'text',
       label: 'Катастарска општина',
       placeholder: 'пр. Карпош',
-      required: true
+      required: true,
+      helpText: 'Изберете ја катастарската општина каде се наоѓа недвижноста (во имотниот лист).'
     },
     propertySheetNumber: {
       name: 'propertySheetNumber',
       type: 'text',
       label: 'Број на имотен лист',
       placeholder: 'пр. 12345',
-      required: true
+      required: true,
+      helpText: 'Внесете го бројот на имотниот лист кој потврдува сопственост на недвижноста.'
     },
     propertySize: {
       name: 'propertySize',
       type: 'number',
       label: 'Површина (м2)',
       placeholder: 'пр. 85',
-      required: true
+      required: true,
+      helpText: 'Внесете ја површината на недвижноста во квадратни метри како што е наведено во имотниот лист.'
     },
     propertyType: {
       name: 'propertyType',
@@ -281,7 +297,8 @@ export const rentAgreementConfig = {
       type: 'number',
       label: 'Месечна закупнина (EUR)',
       placeholder: 'пр. 300',
-      required: true
+      required: true,
+      helpText: 'Внесете го износот на месечната закупнина во евра. Овој износ ќе се плаќа редовно месечно.'
     },
     includesVAT: {
       name: 'includesVAT',
@@ -300,7 +317,8 @@ export const rentAgreementConfig = {
         { value: 'до последниот ден во месецот', label: 'До последниот ден во месецот' },
         { value: 'во рок од 15 дена по истекот на месецот', label: 'Во рок од 15 дена по истекот на месецот' }
       ],
-      required: true
+      required: true,
+      helpText: 'Изберете до кога во месецот закупецот треба да ја плати месечната закупнина.'
     },
     requiresDeposit: {
       name: 'requiresDeposit',
@@ -343,7 +361,8 @@ export const rentAgreementConfig = {
         { value: 'определено', label: 'Определено време' },
         { value: 'неопределено', label: 'Неопределено време' }
       ],
-      required: true
+      required: true,
+      helpText: 'Определено време = договорот важи до одреден датум. Неопределено = договорот важи се доколку не се откаже.'
     },
     durationValue: {
       name: 'durationValue',
@@ -375,14 +394,16 @@ export const rentAgreementConfig = {
       type: 'text',
       label: 'Број на жиро сметка',
       placeholder: 'пр. 200-0123456789-12',
-      required: true
+      required: true,
+      helpText: 'Внесете го бројот на сметката каде закупецот ќе ја плаќа месечната закупнина.'
     },
     bankName: {
       name: 'bankName',
       type: 'text',
       label: 'Име на банка',
       placeholder: 'пр. Комерцијална банка АД',
-      required: true
+      required: true,
+      helpText: 'Внесете го целосното име на банката каде е отворена сметката.'
     },
     requiresInsurance: {
       name: 'requiresInsurance',

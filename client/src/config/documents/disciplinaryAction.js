@@ -39,14 +39,16 @@ export const disciplinaryActionConfig = {
       type: 'text',
       label: 'Име и презиме на работникот',
       placeholder: 'пр. Марко Петровски',
-      required: true
+      required: true,
+      helpText: 'Внесете го целосното име и презиме на работникот на кој му се изрекува дисциплинската мерка како што е наведено во личните документи и договорот за вработување.'
     },
     jobPosition: {
       name: 'jobPosition',
       type: 'text',
       label: 'Работна позиција',
       placeholder: 'пр. Софтверски инженер',
-      required: true
+      required: true,
+      helpText: 'Наведете ја точната работна позиција (назив на работно место) на работникот според договорот за вработување.'
     },
 
     // Step 2: Sanction Details
@@ -60,7 +62,8 @@ export const disciplinaryActionConfig = {
         { value: '5', label: '5%' },
         { value: '10', label: '10%' },
         { value: '15', label: '15%' }
-      ]
+      ],
+      helpText: 'Изберете ја висината на казната како процент од месечната нето плата на работникот. Овој износ ќе биде одбиен од платата за одреден период.'
     },
     sanctionPeriod: {
       name: 'sanctionPeriod',
@@ -75,14 +78,16 @@ export const disciplinaryActionConfig = {
         { value: '4', label: '4 месеци' },
         { value: '5', label: '5 месеци' },
         { value: '6', label: '6 месеци' }
-      ]
+      ],
+      helpText: 'Изберете за колку месеци ќе трае дисциплинската мерка и одбивањето од платата. Периодот зависи од тежината на прекршокот.'
     },
     sanctionDate: {
       name: 'sanctionDate',
       type: 'date',
       label: 'Датум на изрекување на казната',
       placeholder: '',
-      required: false // Will default to current date if not provided
+      required: false, // Will default to current date if not provided
+      helpText: 'Изберете го датумот кога се донесува решението за дисциплинска мерка. Ако не се внесе, автоматски ќе се користи денешниот датум.'
     },
 
     // Step 3: Violation Details
@@ -92,7 +97,8 @@ export const disciplinaryActionConfig = {
       label: 'Работна обврска која работникот ја запоставил',
       placeholder: 'пр. Навремено доаѓање на работно место',
       rows: 3,
-      required: true
+      required: true,
+      helpText: 'Опишете ја конкретната работна обврска што работникот не ја исполнил во соодветност со договорот, правилниците за работа или подзаконските акти.'
     },
     employeeWrongDoing: {
       name: 'employeeWrongDoing',
@@ -100,14 +106,16 @@ export const disciplinaryActionConfig = {
       label: 'Постапување на работникот спротивно на обврската',
       placeholder: 'пр. Доцнење на работа без оправдана причина',
       rows: 3,
-      required: true
+      required: true,
+      helpText: 'Опишете го конкретното постапување на работникот што го довело до повреда на работната обврска. Бидете прецизни и објективни во описот.'
     },
     employeeWrongdoingDate: {
       name: 'employeeWrongdoingDate',
       type: 'date',
       label: 'Датум на постапувањето спротивно на обврската',
       placeholder: '',
-      required: true
+      required: true,
+      helpText: 'Изберете го точниот датум кога се случил прекршокот или неисполнувањето на работната обврска. Овој датум е важен за утврдување на временската рамка на прекршокот.'
     }
   },
 

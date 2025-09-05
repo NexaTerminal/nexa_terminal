@@ -14,7 +14,7 @@ const FormField = ({
   arrayMethods = null, // For array fields: { onAdd, onRemove }
   formData = {} // Need access to all form data for conditional logic
 }) => {
-  const { name, type, label, placeholder, required, options, rows, condition, conditional, showWhen, maxLength, pattern, inputMode } = field;
+  const { name, type, label, placeholder, required, options, rows, condition, conditional, showWhen, maxLength, pattern, inputMode, helpText } = field;
 
   // Check if field should be shown based on condition (use either condition, conditional, or showWhen)
   const conditionToCheck = condition || conditional;
@@ -168,6 +168,11 @@ const FormField = ({
     <div className={styles['form-group']}>
       <label htmlFor={name}>
         {label} {required && '*'}
+        {helpText && (
+          <span className={styles['help-tooltip']} data-tooltip={helpText}>
+            ❓
+          </span>
+        )}
       </label>
       {renderField()}
       {error && <span className={styles['error-message']}>{error}</span>}

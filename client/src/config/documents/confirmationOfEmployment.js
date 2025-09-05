@@ -26,7 +26,8 @@ export const confirmationOfEmploymentConfig = {
       type: 'text',
       label: 'Име и презиме на вработениот',
       placeholder: 'пр. Марко Петровски',
-      required: true
+      required: true,
+      helpText: 'Внесете го целосното име и презиме на вработениот за кого се издава потврдата за вработеност како што е наведено во личните документи.'
     },
     employeePIN: {
       name: 'employeePIN',
@@ -36,21 +37,24 @@ export const confirmationOfEmploymentConfig = {
       required: true,
       maxLength: 13,
       pattern: /^\d{13}$/,
-      inputMode: 'numeric'
+      inputMode: 'numeric',
+      helpText: 'Внесете го ЕМБГ (Единствен матичен број на граѓанин) од точно 13 цифри на вработениот како што е наведен во личната карта.'
     },
     employeeAddress: {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на вработениот',
       placeholder: 'пр. ул. Македонија бр. 123, Скопје',
-      required: true
+      required: true,
+      helpText: 'Внесете ја адресата на постојано живеење на вработениот (улица, број, град) како што е регистрирана во работните документи.'
     },
     jobPosition: {
       name: 'jobPosition',
       type: 'text',
       label: 'Работна позиција',
       placeholder: 'пр. Софтверски инженер',
-      required: true
+      required: true,
+      helpText: 'Наведете ја точната работна позиција (назив на работно место) на вработениот според договорот за вработување и систематизацијата.'
     },
     agreementDurationType: {
       name: 'agreementDurationType',
@@ -61,7 +65,8 @@ export const confirmationOfEmploymentConfig = {
         { value: '', label: 'Изберете тип на договор' },
         { value: 'неопределено време', label: 'Неопределено време' },
         { value: 'определено време', label: 'Определено време' }
-      ]
+      ],
+      helpText: 'Изберете го типот на договор кој се однесува на вработениот. Неопределено време = договор без краен датум. Определено време = договор со краен датум.'
     },
     definedDuration: {
       name: 'definedDuration',
@@ -72,7 +77,8 @@ export const confirmationOfEmploymentConfig = {
       conditional: {
         field: 'agreementDurationType',
         value: 'определено време'
-      }
+      },
+      helpText: 'Изберете го датумот кога завршува договорот ако сте избрале определено времетраење. Овој податок ќе биде наведен во потврдата за вработеност.'
     }
   },
 

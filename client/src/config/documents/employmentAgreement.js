@@ -45,14 +45,16 @@ export const employmentAgreementConfig = {
       type: 'text',
       label: 'Име и презиме на работникот',
       placeholder: 'пр. Марко Петровски',
-      required: true
+      required: true,
+      helpText: 'Внесете го целосното име и презиме на работникот како што е наведено во личната карта или пасошот.'
     },
     employeeAddress: {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на седиште на работникот',
       placeholder: 'пр. ул. Македонија бр. 123, Скопје',
-      required: true
+      required: true,
+      helpText: 'Внесете ја адресата на постојано живеење на работникот (улица, број, град) како што е регистрирана.'
     },
     employeePIN: {
       name: 'employeePIN',
@@ -62,14 +64,16 @@ export const employmentAgreementConfig = {
       required: true,
       maxLength: 13,
       pattern: /^\d{13}$/,
-      inputMode: 'numeric'
+      inputMode: 'numeric',
+      helpText: 'Внесете го ЕМБГ (Единствен матичен број на граѓанин) од точно 13 цифри како што е наведен во личната карта.'
     },
     jobPosition: {
       name: 'jobPosition',
       type: 'text',
       label: 'Назив на работна позиција',
       placeholder: 'пр. Софтверски инженер',
-      required: true
+      required: true,
+      helpText: 'Внесете го точниот назив на работната позиција на која ќе биде вработен работникот според систематизацијата на работни места.'
     },
 
     // Step 2: Work Tasks
@@ -78,7 +82,8 @@ export const employmentAgreementConfig = {
       type: 'array',
       label: 'Работни обврски',
       placeholder: 'Работна обврска',
-      required: true
+      required: true,
+      helpText: 'Наведете ги основните задачи и одговорности на работникот. Можете да додадете повеќе ставки кликајќи на \"Додај ставка\".'
     },
 
     // Step 3: Salary and Date
@@ -87,13 +92,15 @@ export const employmentAgreementConfig = {
       type: 'number',
       label: 'Основна плата',
       placeholder: 'пр. 25000',
-      required: true
+      required: true,
+      helpText: 'Внесете ја основната месечна плата во македонски денари. Ова е бруто платата пред одбивање на даноците и придонесите.'
     },
     agreementDate: {
       name: 'agreementDate',
       type: 'date',
       label: 'Датум на склучување на договор за вработување',
-      required: true
+      required: true,
+      helpText: 'Изберете го датумот кога се потпишува договорот за вработување. Овој датум ќе биде наведен во договорот и обично е денот кога почнува работата.'
     },
 
     // Step 4: Working Conditions
@@ -105,7 +112,8 @@ export const employmentAgreementConfig = {
         { value: 'просториите на седиштето на работодавачот', label: 'Седиштето на работодавачот' },
         { value: 'Друго место', label: 'Друго место' }
       ],
-      required: false
+      required: false,
+      helpText: 'Изберете каде ќе ја врши работата работникот. Ако изберете \"Друго место\", ке мора да ја наведете локацијата.'
     },
     otherWorkPlace: {
       name: 'otherWorkPlace',
@@ -117,7 +125,8 @@ export const employmentAgreementConfig = {
         field: 'placeOfWork',
         operator: '===',
         value: 'Друго место'
-      }
+      },
+      helpText: 'Внесете ја точната адреса каде ќе ја врши работата работникот ако не е во седиштето на компанијата.'
     },
     agreementDurationType: {
       name: 'agreementDurationType',
@@ -127,7 +136,8 @@ export const employmentAgreementConfig = {
         { value: 'неопределено времетраење.', label: 'Неопределено времетрање' },
         { value: 'определено времетраење', label: 'Определено времетрање' }
       ],
-      required: false
+      required: false,
+      helpText: 'Неопределено = договорот важи се доколку едната страна не го откаже. Определено = договорот важи до одреден датум.'
     },
     definedDuration: {
       name: 'definedDuration',
@@ -138,7 +148,8 @@ export const employmentAgreementConfig = {
         field: 'agreementDurationType',
         operator: '===',
         value: 'определено времетраење'
-      }
+      },
+      helpText: 'Изберете го датумот кога завршува договорот за вработување ако сте избрале определено времетраење. По овој датум договорот автоматски завршува.'
     },
     dailyWorkTime: {
       name: 'dailyWorkTime',

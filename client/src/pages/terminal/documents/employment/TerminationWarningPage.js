@@ -59,11 +59,8 @@ const TerminationWarningPage = () => {
 
         {currentStepData.id === 3 && (
           <div className={styles['help-section']}>
-            <p className={styles['help-text']}>
-              <strong>Законски рок:</strong> Согласно Законот за работни односи, рокот за исправка обично изнесува 15-30 дена.
-            </p>
-            <div className={styles['warning-box']}>
-              <p><strong>Внимание:</strong> Рокот за исправка мора да биде разумен и доволен за работникот да го исправи своето однесување.</p>
+            <div className={styles['info-box']}>
+              <p><strong>Совет:</strong> Рокот за исправка обично изнесува 15-30 дена - внесете конкретен датум.</p>
             </div>
           </div>
         )}

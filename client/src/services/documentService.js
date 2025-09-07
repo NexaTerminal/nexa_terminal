@@ -3,6 +3,8 @@
  * Centralized service for all document generation API calls
  */
 
+import { makeAuthenticatedRequest } from './csrfService';
+
 class DocumentService {
   constructor() {
     this.baseUrl = process.env.REACT_APP_API_URL || process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
@@ -59,18 +61,13 @@ class DocumentService {
   }
 
   /**
-   * Make authenticated API request
+   * Make authenticated API request with CSRF protection
    */
   async makeRequest(endpoint, formData) {
     const fullUrl = `${this.baseUrl}/auto-documents/${endpoint}`;
     
-    return await fetch(fullUrl, {
+    return await makeAuthenticatedRequest(fullUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      credentials: 'include',
       body: JSON.stringify({ formData })
     });
   }

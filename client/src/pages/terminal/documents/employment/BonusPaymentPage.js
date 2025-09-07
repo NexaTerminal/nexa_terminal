@@ -1,15 +1,15 @@
 import React from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField, { ConditionalField } from '../../../../components/forms/FormField';
-import { disciplinaryActionConfig, getStepFields } from '../../../../config/documents/disciplinaryAction';
+import { bonusPaymentConfig, getStepFields } from '../../../../config/documents/bonusPayment';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
- * Disciplinary Action Page
+ * Bonus Payment Page
  * Uses the reusable base components and configuration-driven approach
- * This page generates disciplinary action decision documents
+ * This page generates decisions for employee bonus payments
  */
-const DisciplinaryActionPage = () => {
+const BonusPaymentPage = () => {
   
   /**
    * Custom step content renderer
@@ -17,14 +17,33 @@ const DisciplinaryActionPage = () => {
    */
   const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
     const stepFields = getStepFields(currentStep);
-    const stepConfig = disciplinaryActionConfig.steps.find(s => s.id === currentStep);
+    const stepConfig = bonusPaymentConfig.steps.find(s => s.id === currentStep);
 
     return (
       <div className={styles['form-section']}>
         <h3>{stepConfig.title}</h3>
         {stepConfig.description && <p>{stepConfig.description}</p>}
         
-        {/* Add warning for sanction limits on step 2 */}
+        {/* Add informational note for step 1 */}
+        {currentStep === 1 && (
+          <div className={styles['info-box']} style={{ 
+            backgroundColor: '#e8f4fd', 
+            border: '1px solid #bee5eb', 
+            borderRadius: '6px', 
+            padding: '12px', 
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}>
+            <strong>ℹ️ Информации:</strong>
+            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+              <li>Внесете ги основните податоци за работникот</li>
+              <li>Сите полиња се опционални - можете да ги пополните директно во .docx документот</li>
+              <li>Ако не внесете датум, автоматски ќе се користи денешниот датум</li>
+            </ul>
+          </div>
+        )}
+        
+        {/* Add informational note for step 2 */}
         {currentStep === 2 && (
           <div className={styles['info-box']} style={{ 
             backgroundColor: '#fff3cd', 
@@ -34,10 +53,12 @@ const DisciplinaryActionPage = () => {
             marginBottom: '20px',
             fontSize: '14px'
           }}>
-            <strong>📋 Законски ограничења:</strong>
+            <strong>💰 Напомена:</strong>
             <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-              <li>Максимална висина на казна: <strong>15%</strong> од нето плата</li>
-              <li>Максимален период: <strong>6 месеци</strong></li>
+              <li>Внесете го нето износот на бонусот во македонски денари</li>
+              <li>Можете да користите запирки, точки или празни места за разделување</li>
+              <li>Опишете ја конкретната причина за доделување на бонусот</li>
+              <li>Документот се базира на член 105 од Законот за работните односи</li>
             </ul>
           </div>
         )}
@@ -77,12 +98,12 @@ const DisciplinaryActionPage = () => {
 
   return (
     <BaseDocumentPage 
-      config={disciplinaryActionConfig}
+      config={bonusPaymentConfig}
       renderStepContent={renderStepContent}
-      title="Дисциплинска мерка - парична казна"
-      description="Пополнете ги потребните податоци за издавање решение за дисциплинска мерка"
+      title="Одлука за бонус плаќање"
+      description="Пополнете ги потребните податоци за издавање одлука за исплата на работна успешност (бонус) до вработен"
     />
   );
 };
 
-export default DisciplinaryActionPage;
+export default BonusPaymentPage;

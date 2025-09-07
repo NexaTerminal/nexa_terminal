@@ -715,6 +715,57 @@
   font-style: italic;
 }
 
+/* Selected article information display */
+.selected-article-info {
+  background: var(--section-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  box-shadow: 0 1px 3px var(--shadow-light);
+}
+
+.article-header {
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.article-details h4 {
+  margin: 8px 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.article-details p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Document preview note styles */
+.document-preview-note {
+  background: var(--bg-tertiary);
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-top: 16px;
+}
+
+.document-preview-note p {
+  margin: 4px 0;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+}
+
+.document-preview-note p[style*="italic"] {
+  background: var(--input-bg);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
 /* ========================================
    FORM ACTIONS & NAVIGATION
    ======================================== */
@@ -1484,4 +1535,84 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* ========================================
+   LIVE PREVIEW SYSTEM STYLES
+   ======================================== */
+
+/* Highlighted user input in live preview */
+.highlightedInput {
+  color: #000;
+  font-weight: 700;
+  font-size: 1em;
+}
+
+
+/* Grayed out text for non-filled parts */
+.greyedText {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Company info section in live preview */
+.companyInfo {
+  margin: 1.5rem 0;
+  padding: 0;
+}
+
+.companyInfo p {
+  margin: 0.5rem 0;
+  font-size: 0.9em;
+}
+
+/* Sentence preview container */
+.sentencePreview {
+  margin-top: 2rem;
+  line-height: 1.8;
+}
+
+.previewSentence {
+  margin: 1.2rem 0;
+  font-size: 1.05em;
+  text-align: justify;
+  padding: 0;
+}
+
+
+/* Dark theme support for live preview */
+.dark-theme .highlightedInput {
+  color: #fff;
+  font-weight: 700;
+}
+
+.dark-theme .greyedText {
+  color: #9ca3af;
+}
+
+/* Responsive design for live preview */
+@media (max-width: 768px) {
+  .sentencePreview {
+    margin-top: 1rem;
+  }
+  
+  .previewSentence {
+    padding: 0;
+    font-size: 1em;
+    line-height: 1.6;
+  }
+  
+  .highlightedInput {
+    font-size: 0.9em;
+  }
+  
+  .companyInfo {
+    padding: 0;
+    margin: 1rem 0;
+  }
+}
+
+/* Focus states for accessibility */
+.previewSentence:focus-within {
+  outline: none;
 }

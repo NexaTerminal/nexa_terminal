@@ -19,22 +19,6 @@ const DocumentGen = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to get appropriate icon for each template
-  const getTemplateIcon = (templateId) => {
-    const iconMap = {
-      'annual_leave_decision': '🏖️',
-      'confirmation_of_employment': '✅',
-      'terminationAgreement': '📄',
-      'employmentAgreement': '📝',
-      'consent_for_personal_data_processing': '🔒',
-      'health_safety_policy': '🛡️',
-      'contract': '📋',
-      'invoice': '💰',
-      'receipt': '🧾',
-      'default': '📄'
-    };
-    return iconMap[templateId] || iconMap.default;
-  };
 
   // Convert documentCategoriesData array to object for backward compatibility
   const documentCategories = documentCategoriesData.reduce((acc, category) => {
@@ -344,7 +328,7 @@ const DocumentGen = () => {
               onClick={() => selectTemplate(template)}
             >
               <div className={styles['template-icon']}>
-                {getTemplateIcon(template.id)}
+                {template.icon || '📄'}
               </div>
               <h3 className={styles['template-name']}>{template.name}</h3>
               {template.description && (

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# ⏺ Kill Bash(Kill shell: bd7afa)
+#   ⎿  Shell bd7afa killed
+
+# ⏺ Kill Bash(Kill shell: 8b75f8)
+#   ⎿  Shell 8b75f8 killed
+
+# ⏺ Bash(kill -9 72423 72422 72392 72391 72369 71983 71981 71951 71950 71928)
+
 echo "🛑 Stopping Nexa Development Environment..."
 
 # Kill processes using the ports

@@ -174,6 +174,78 @@ When encountering "Внатрешна грешка на серверот" (Inter
 - Frontend Pages: `client/src/pages/terminal/documents/[category]/`
 - Styling: Use only `DocumentGeneration.module.css`
 
+## Live Preview System (MANDATORY)
+
+The Nexa Terminal system includes a comprehensive real-time live preview that shows users exactly how their input will appear in the final Macedonian legal documents. Every new document type MUST include proper live preview integration.
+
+**System Architecture:**
+- **DocumentPreview.js**: Main component handling live preview rendering
+- **documentSentences object**: Contains authentic Macedonian sentence templates for each document type
+- **getFieldValue function**: Handles field formatting and value conversion
+- **Real-time highlighting**: Bold black text for user inputs, gray text for placeholders
+
+**Implementation Requirements for New Documents:**
+
+**1. Document Sentences Template (MANDATORY):**
+```javascript
+documentType: {
+  title: "MACEDONIAN DOCUMENT TITLE IN CYRILLIC",
+  sentences: [
+    {
+      text: "Macedonian sentence with {fieldName} placeholders using actual legal language.",
+      fields: ['fieldName', 'anotherField']
+    },
+    // Multiple sentences covering ALL document fields across all steps
+  ]
+}
+```
+
+**2. Field Value Formatting (MANDATORY):**
+```javascript
+// Add to getFieldValue function for custom field handling
+if (fieldName === 'customField') {
+  return value === 'option1' ? 'Macedonian text' : 'Alternative text';
+}
+```
+
+**3. Date Field Registration (MANDATORY):**
+- Add all date fields to the date formatting array
+- Ensures DD.MM.YYYY Macedonian standard formatting
+
+**Live Preview Standards:**
+- **Complete Coverage**: ALL form fields must appear in live preview sentences
+- **Multi-Step Support**: Preview updates across ALL form steps in real-time
+- **Authentic Language**: Use exact legal language from actual document templates
+- **Smart Formatting**: Convert dropdown values to readable Macedonian text
+- **Array Handling**: Join multiple values with proper separators
+- **Boolean Logic**: Convert true/false to meaningful Macedonian descriptions
+
+**Field Type Handling:**
+- **Text Fields**: Display as entered by user
+- **Dropdown Fields**: Convert internal values to readable Macedonian labels
+- **Date Fields**: Format as DD.MM.YYYY automatically
+- **Boolean Fields**: Show meaningful Macedonian descriptions (not true/false)
+- **Array Fields**: Join multiple values with commas
+- **Conditional Fields**: Only show when conditions are met
+
+**Visual Standards:**
+- **User Input**: Bold black text (`font-weight: 700`, `color: #000`)
+- **Placeholder Text**: Medium gray (`color: #6b7280`)
+- **No Backgrounds**: Clean text-only highlighting
+- **Sentence Structure**: Use authentic legal document sentence patterns
+
+**Integration Checklist for New Documents:**
+1. ✅ Add document to `documentSentences` object with authentic Macedonian sentences
+2. ✅ Include ALL form fields in sentence templates across all steps
+3. ✅ Add custom field formatting in `getFieldValue` function
+4. ✅ Register date fields in date formatting array
+5. ✅ Test multi-step form progression with live preview updates
+6. ✅ Verify dropdown values convert to readable Macedonian text
+7. ✅ Ensure boolean fields show meaningful descriptions
+8. ✅ Test array fields display properly formatted lists
+9. ✅ Validate conditional fields appear/disappear correctly
+10. ✅ Confirm visual styling matches system standards
+
 **Testing Checklist:**
 1. ✅ Template function executes without errors
 2. ✅ DOCX document generates successfully
@@ -188,6 +260,13 @@ When encountering "Внатрешна грешка на серверот" (Inter
 11. ✅ Tooltips contain legally compliant explanations referencing relevant laws when available
 12. ✅ All helpText follows the formal information standard and provides practical guidance
 13. ✅ Legal requirements from .md documentation are properly incorporated into input explanations
+14. ✅ **Live Preview System**: Document appears in `documentSentences` with authentic Macedonian legal sentences
+15. ✅ **Multi-Step Live Preview**: All form fields across ALL steps appear in real-time preview
+16. ✅ **Field Highlighting**: User inputs show as bold black text, placeholders as gray text
+17. ✅ **Field Formatting**: Dropdown values convert to readable Macedonian, dates format as DD.MM.YYYY
+18. ✅ **Array and Boolean Fields**: Multiple values join correctly, booleans show meaningful descriptions
+19. ✅ **Conditional Fields**: Live preview updates correctly when form conditions change
+20. ✅ **Visual Standards**: Clean text-only highlighting without backgrounds or borders
 
 When implementing new document types, you will create the complete MERN stack implementation while maintaining perfect consistency with existing patterns. Every new document must integrate seamlessly with the current system architecture and business rules.
 

@@ -1,10 +1,10 @@
 const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, WidthType } = require('docx');
 const moment = require('moment');
 
-function generateTerminationDecisionDueToDurationDoc(userData, formData, companyData) {
-  const companyName = companyData?.companyName || '[Име на компанија]';
-  const companyAddress = companyData?.companyAddress || '[Адреса на компанија]';
-  const companyManager = userData?.companyManager || '[Управител]';
+function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
+  const companyName = company?.companyName || '[Име на компанија]';
+  const companyAddress = company?.address || '[Адреса на компанија]';
+  const companyManager = company?.manager || '[Управител]';
   
   // Extract form data
   const employeeName = formData?.employeeName || '[Име на вработен]';

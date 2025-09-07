@@ -13,6 +13,12 @@ const terminationWarningController = require('../controllers/autoDocuments/termi
 const employmentAnnexController = require('../controllers/autoDocuments/employmentAnnexController');
 const warningLetterController = require('../controllers/autoDocuments/warningLetterController');
 const rentAgreementController = require('../controllers/autoDocuments/rentAgreementController');
+const terminationPersonalReasonsController = require('../controllers/autoDocuments/terminationPersonalReasonsController');
+const terminationDueToFaultController = require('../controllers/autoDocuments/terminationDueToFaultController');
+const terminationByEmployeeRequestController = require('../controllers/autoDocuments/terminationByEmployeeRequestController');
+const bonusPaymentController = require('../controllers/autoDocuments/bonusPaymentController');
+const employeeDamagesStatementController = require('../controllers/autoDocuments/employeeDamagesStatementController');
+const terminationDueToAgeLimitController = require('../controllers/autoDocuments/terminationDueToAgeLimitController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
@@ -44,6 +50,24 @@ router.post('/employment-annex', authenticateJWT, requireVerifiedCompany, employ
 
 // Warning Letter to Employee (Опомена до вработен)
 router.post('/warning-letter', authenticateJWT, requireVerifiedCompany, warningLetterController);
+
+// Termination Decision Due to Personal Reasons (Одлука за престанок поради лични причини)
+router.post('/termination-personal-reasons', authenticateJWT, requireVerifiedCompany, terminationPersonalReasonsController);
+
+// Termination Decision Due to Fault by Employee (Одлука за престанок поради вина на работникот)
+router.post('/termination-due-to-fault', authenticateJWT, requireVerifiedCompany, terminationDueToFaultController);
+
+// Termination by Employee Request (Решение за престанок по барање на работникот)
+router.post('/termination-by-employee-request', authenticateJWT, requireVerifiedCompany, terminationByEmployeeRequestController);
+
+// Bonus Payment Decision (Одлука за бонус плаќање)
+router.post('/bonus-payment', authenticateJWT, requireVerifiedCompany, bonusPaymentController);
+
+// Employee Damages Statement (Изјава за согласност за намалување на плата поради предизвикана штета)
+router.post('/employee-damages-statement', authenticateJWT, requireVerifiedCompany, employeeDamagesStatementController);
+
+// Termination Due to Age Limit (Решение за престанок поради возраст)
+router.post('/termination-due-to-age-limit', authenticateJWT, requireVerifiedCompany, terminationDueToAgeLimitController);
 
 // Contracts
 // Rent Agreement (Договор за закуп на недвижен имот)

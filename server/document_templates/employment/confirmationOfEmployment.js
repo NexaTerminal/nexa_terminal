@@ -5,9 +5,9 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
   // CRITICAL: Extract company data from user.companyInfo parameter
   // Company parameter MUST come from user.companyInfo in controller
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-  const companyManager = company?.manager || '[Управител]';  // NOTE: Updated to use 'manager' field from standardized mapping
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';  // NOTE: Updated to use 'manager' field from standardized mapping
   const certificateDate = formData.certificateDate ? moment(formData.certificateDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const employeeName = formData.employeeName || '[Име на вработен]';
   const employeeAddress = formData.employeeAddress || '[Адреса на вработен]';
@@ -87,26 +87,27 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
       alignment: AlignmentType.RIGHT,
     }),
     new Paragraph({ text: "" }),
-    new Table({
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [new Paragraph({ text: "" })],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({ text: "_________________________", alignment: AlignmentType.RIGHT }),
-                new Paragraph({ text: `${companyName} ${companyManager}`, alignment: AlignmentType.RIGHT }),
-              ],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-          ],
-        }),
+    // Signature
+    new Paragraph({
+      children: [
+        new TextRun({ text: "___________________________" }),
       ],
-      width: { size: 100, type: 'pct' },
-      borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: companyName }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: companyManager }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 300 }
     })
   );
 

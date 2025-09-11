@@ -4,9 +4,9 @@ const moment = require('moment');
 function generateWarningLetterDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Employee and warning data
   const employeeName = formData?.employeeName || '[Име на работник]';

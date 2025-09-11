@@ -9,9 +9,9 @@ const moment = require('moment');
 function generateTerminationDueToAgeLimitDoc(formData, user, company) {
   // Extract company information with fallbacks
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Extract form data with fallbacks
   const employeeName = formData?.employeeName || '[Име на работник]';
@@ -193,40 +193,27 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
           spacing: { after: 600 }
         }),
 
-        // Signature section
-        new Table({
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({ 
-                      text: '___________________________', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: companyName, 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: companyManager, 
-                      alignment: AlignmentType.LEFT 
-                    })
-                  ],
-                  width: { size: 100, type: WidthType.PERCENTAGE },
-                  borders: { 
-                    top: { style: 'none' }, 
-                    bottom: { style: 'none' }, 
-                    left: { style: 'none' }, 
-                    right: { style: 'none' } 
-                  }
-                })
-              ]
-            })
+        // Signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
           ],
-          width: { size: 100, type: WidthType.PERCENTAGE }
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyManager }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         })
       ]
     }]

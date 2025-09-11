@@ -19,6 +19,9 @@ const terminationByEmployeeRequestController = require('../controllers/autoDocum
 const bonusPaymentController = require('../controllers/autoDocuments/bonusPaymentController');
 const employeeDamagesStatementController = require('../controllers/autoDocuments/employeeDamagesStatementController');
 const terminationDueToAgeLimitController = require('../controllers/autoDocuments/terminationDueToAgeLimitController');
+const organizationActController = require('../controllers/autoDocuments/organizationActController');
+const mandatoryBonusController = require('../controllers/autoDocuments/mandatoryBonusController');
+const ndaController = require('../controllers/autoDocuments/ndaController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
@@ -69,9 +72,18 @@ router.post('/employee-damages-statement', authenticateJWT, requireVerifiedCompa
 // Termination Due to Age Limit (Решение за престанок поради возраст)
 router.post('/termination-due-to-age-limit', authenticateJWT, requireVerifiedCompany, terminationDueToAgeLimitController);
 
+// Organization Act (Акт за систематизација на работните места)
+router.post('/organization-act', authenticateJWT, requireVerifiedCompany, organizationActController);
+
+// Mandatory Bonus - Multi Document (Задолжителен бонус - Мултидокумент)
+router.post('/mandatory-bonus', authenticateJWT, requireVerifiedCompany, mandatoryBonusController);
+
 // Contracts
 // Rent Agreement (Договор за закуп на недвижен имот)
 router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, rentAgreementController);
+
+// NDA (Договор за доверливост на информации)
+router.post('/nda', authenticateJWT, requireVerifiedCompany, ndaController);
 
 // Add more document routes here as needed
 

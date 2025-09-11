@@ -3,9 +3,9 @@ const moment = require('moment');
 
 function generateAnnualLeaveDecisionDoc(formData, user, company) {
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   const employeeName = formData.employeeName || '[Име на вработен]';
   const employeePosition = formData.employeePosition || '[Работна позиција]';
   const annualLeaveYear = formData.annualLeaveYear || '[Година]';

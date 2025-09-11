@@ -4,9 +4,9 @@ const moment = require('moment');
 function generateRentAgreementDoc(formData, user, company) {
   // Company data (if landlord is company) - using the standardized field mapping
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyTaxNumber = company?.taxNumber || '[Даночен број]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyTaxNumber = company?.companyTaxNumber || company?.taxNumber || '[Даночен број]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Contract data with defaults
   const contractDate = formData?.contractDate ? moment(formData.contractDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
@@ -499,66 +499,50 @@ function generateRentAgreementDoc(formData, user, company) {
     }),
     new Paragraph({ text: "" }),
     
-    // Signatures table
-    new Table({
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "ЗАКУПОДАВАЧ", bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({ text: "" }),
-                new Paragraph({ text: "" }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "_____________________" }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: landlordName }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "ЗАКУПЕЦ", bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({ text: "" }),
-                new Paragraph({ text: "" }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "_____________________" }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: tenantName }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-          ],
-        }),
+    // Landlord signature
+    new Paragraph({
+      children: [
+        new TextRun({ text: "ЗАКУПОДАВАЧ:" }),
       ],
-      width: { size: 100, type: 'pct' },
-      borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 200 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "___________________________" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: landlordName }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 400 }
+    }),
+
+    // Tenant signature
+    new Paragraph({
+      children: [
+        new TextRun({ text: "ЗАКУПЕЦ:" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 200 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "___________________________" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: tenantName }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 300 }
     })
   );
 

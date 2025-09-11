@@ -244,7 +244,7 @@ class AuthController {
       
       if (!username || !password) {
         return res.status(400).json({ 
-          message: 'Корисничкото име и лозинката се задолжителни',
+          message: 'Корисничкото име/даночен број и лозинката се задолжителни',
           field: !username ? 'username' : 'password'
         });
       }
@@ -252,11 +252,11 @@ class AuthController {
       const db = req.app.locals.db;
       const userService = new UserService(db);
       
-      // Find user by username
-      const user = await userService.findByUsername(username.toLowerCase());
+      // Find user by username or tax number
+      const user = await userService.findByUsernameOrTaxNumber(username);
       if (!user) {
         return res.status(401).json({ 
-          message: 'Корисничкото име не постои. Проверете го корисничкото име или се регистрирајте.',
+          message: 'Корисничкото име или даночен број не постои. Проверете ги податоците или се регистрирајте.',
           field: 'username'
         });
       }
@@ -561,7 +561,7 @@ class AuthController {
       res.json({
         valid: true,
         message: 'Токенот е валиден',
-        email: user.email ? user.email.replace(/(.{2}).*(@.*)/, '$1***$2') : 'Скриена'
+        email: (user.email || user.officialEmail) ? (user.email || user.officialEmail).replace(/(.{2}).*(@.*)/, '$1***$2') : 'Скриена'
       });
 
     } catch (error) {
@@ -627,10 +627,18 @@ class AuthController {
 
       // Update password and clear reset token
       await userService.updatePassword(user._id, hashedPassword);
-      await userService.markResetTokenUsed(user._id);
+      
+      // Try to mark reset token as used, but don't fail the whole operation if it fails
+      try {
+        await userService.markResetTokenUsed(user._id);
+      } catch (tokenError) {
+        console.error('Failed to mark reset token as used:', tokenError);
+        // Continue with success response since password was changed
+      }
 
       // Send security notification email
-      if (user.email) {
+      const userEmail = user.email || user.officialEmail;
+      if (userEmail) {
         try {
           const notificationHTML = passwordResetService.generatePasswordChangeNotificationHTML(
             user,
@@ -640,7 +648,7 @@ class AuthController {
           );
 
           await emailService.sendEmail(
-            user.email,
+            userEmail,
             'Лозинката е успешно променета - Nexa Terminal',
             notificationHTML
           );
@@ -652,7 +660,7 @@ class AuthController {
       // Log successful password reset
       await passwordResetService.logSecurityEvent('PASSWORD_RESET_COMPLETED', {
         userId: user._id,
-        email: user.email,
+        email: userEmail,
         ipAddress,
         userAgent
       });
@@ -772,7 +780,7 @@ class AuthController {
           );
 
           await emailService.sendEmail(
-            user.email,
+            userEmail,
             'Лозинката е успешно променета - Nexa Terminal',
             notificationHTML
           );

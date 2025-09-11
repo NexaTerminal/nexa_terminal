@@ -1,8 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-// Only Login page (now the main public page)
+// Public pages
 import Login from './pages/website/Login';
+import ForgotPassword from './pages/website/ForgotPassword';
+import ResetPassword from './pages/website/ResetPassword';
 
 // Admin Pages
 import AddInvestment from './pages/terminal/admin/AddInvestment';
@@ -41,7 +43,10 @@ import TerminationByEmployeeRequestPage from './pages/terminal/documents/employm
 import BonusPaymentPage from './pages/terminal/documents/employment/BonusPaymentPage';
 import EmployeeDamagesStatementPage from './pages/terminal/documents/employment/EmployeeDamagesStatementPage';
 import TerminationDueToAgeLimitPage from './pages/terminal/documents/employment/TerminationDueToAgeLimitPage';
+import OrganizationActPage from './pages/terminal/documents/employment/OrganizationActPage';
+import MandatoryBonusPage from './pages/terminal/documents/employment/MandatoryBonusPage';
 import RentAgreementPage from './pages/terminal/documents/contracts/RentAgreementPage';
+import NdaPage from './pages/terminal/documents/contracts/NdaPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -71,9 +76,11 @@ import './styles/global.css';
 function App() {
   return (
     <Routes>
-      {/* Public Routes - Only Login */}
+      {/* Public Routes */}
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       {/* <Route path="/complete-profile" element={<CompleteProfile />} /> */}
       <Route path="/auth/success" element={<AuthCallback />} />
 
@@ -122,9 +129,12 @@ function App() {
       <Route path="/terminal/documents/employment/bonus-payment" element={<PrivateRoute><VerificationRequired feature="одлука за бонус плаќање"><BonusPaymentPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/employee-damages-statement" element={<PrivateRoute><VerificationRequired feature="изјава за согласност за намалување на плата"><EmployeeDamagesStatementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/termination-due-to-age-limit" element={<PrivateRoute><VerificationRequired feature="решение за престанок поради возраст"><TerminationDueToAgeLimitPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/organization-act" element={<PrivateRoute><VerificationRequired feature="акт за систематизација"><OrganizationActPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/mandatory-bonus" element={<PrivateRoute><VerificationRequired feature="регрес за годишен одмор"><MandatoryBonusPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Contracts */}
       <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired feature="договор за доверливост"><NdaPage/></VerificationRequired></PrivateRoute>} />
  
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

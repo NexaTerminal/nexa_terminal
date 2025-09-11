@@ -9,9 +9,9 @@ const moment = require('moment');
 function generateBonusPaymentDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Employee and bonus data
   const employeeName = formData?.employeeName || '[Име на работник]';
@@ -118,66 +118,57 @@ function generateBonusPaymentDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),
         
-        // Signature table
-        new Table({
-          width: {
-            size: 100,
-            type: WidthType.PERCENTAGE,
-          },
-          borders: {
-            top: { style: BorderStyle.NONE },
-            bottom: { style: BorderStyle.NONE },
-            left: { style: BorderStyle.NONE },
-            right: { style: BorderStyle.NONE },
-            insideHorizontal: { style: BorderStyle.NONE },
-            insideVertical: { style: BorderStyle.NONE },
-          },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: '___________________________' })
-                      ],
-                      alignment: AlignmentType.LEFT
-                    }),
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: employeeName })
-                      ],
-                      alignment: AlignmentType.LEFT
-                    })
-                  ],
-                  width: {
-                    size: 50,
-                    type: WidthType.PERCENTAGE,
-                  },
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: '_________________________' })
-                      ],
-                      alignment: AlignmentType.RIGHT
-                    }),
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: `${companyName}, ${companyManager}` })
-                      ],
-                      alignment: AlignmentType.RIGHT
-                    })
-                  ],
-                  width: {
-                    size: 50,
-                    type: WidthType.PERCENTAGE,
-                  },
-                })
-              ]
-            })
-          ]
+        // Employee signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работникот:" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: employeeName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 400 }
+        }),
+
+        // Employer signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работодавачот:" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyManager }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         })
       ]
     }]

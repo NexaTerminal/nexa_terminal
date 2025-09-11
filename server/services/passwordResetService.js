@@ -18,8 +18,8 @@ class PasswordResetService {
       .update(resetToken)
       .digest('hex');
     
-    // Token expires in 15 minutes for security
-    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    // Token expires in 30 minutes for security
+    const expires = new Date(Date.now() + 30 * 60 * 1000);
     
     return {
       plainToken: resetToken,     // Send to user via email
@@ -30,6 +30,10 @@ class PasswordResetService {
 
   // Validate password against history to prevent reuse
   async validatePasswordHistory(user, newPassword) {
+    // TEMPORARILY DISABLED: Password history validation
+    // This allows users to reuse their previous passwords during transition period
+    
+    /*
     const passwordHistory = user.passwordHistory || [];
     
     // Check against last 5 passwords
@@ -52,6 +56,7 @@ class PasswordResetService {
         throw new Error('Новата лозинка мора да биде различна од тековната');
       }
     }
+    */
   }
 
   // Enhanced password validation
@@ -150,11 +155,19 @@ class PasswordResetService {
         throw new Error('Токенот за ресетирање на лозинка е истечен');
       }
       
-      // Increment validation attempts (security measure)
-      await this.incrementTokenAttempts(user._id);
-      
+      // Token is valid - no need to increment attempts on successful validation
       return user;
     } catch (error) {
+      // Only increment attempts on actual validation failures
+      if (userId) {
+        try {
+          await this.incrementTokenAttempts(userId);
+        } catch (incrementError) {
+          // If increment fails, log but don't override the original error
+          console.error('Failed to increment token attempts:', incrementError);
+        }
+      }
+      
       // Log security event for monitoring
       await this.logSecurityEvent('RESET_TOKEN_VALIDATION_FAILED', {
         userId,

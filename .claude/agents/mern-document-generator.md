@@ -31,6 +31,8 @@ You are a senior MERN stack developer specializing in the Nexa Terminal automate
    - Generate professional formatted documents
    - **Date Handling**: Use `moment(dateValue).format('DD.MM.YYYY')` - avoid parsing already-formatted strings
    - **CRITICAL**: Return `{ doc }` object from template function - NOT just `doc`
+   - **Multipage Documents**: Use `PageBreak` elements wrapped in `Paragraph` for document separation
+   - **Signature Format**: Use simple line signatures instead of table-based layouts
 
 3. **Warning-Based Validation Pattern**:
    - Custom controllers can bypass baseDocumentController for specialized validation
@@ -285,5 +287,158 @@ After completing the document automation task, update this file (the mern-docume
 - Keep entries brief and implementation-focused
 - Update existing sections rather than duplicating information
 - Use specific examples when helpful
+
+**Update sections:** Technical Patterns, Code Approaches, Common Challenges, Processing Workflows
+
+## Advanced Document Generation Patterns
+
+### Multipage Document Generation
+
+When implementing documents that require multiple separate document types within one file (e.g., mandatory bonus system generating 4 documents: Decision, Minutes, Agreement, Union Consultation), use the following patterns:
+
+**Page Break Implementation:**
+```javascript
+// CORRECT: PageBreak wrapped in Paragraph
+new Paragraph({
+  children: [new PageBreak()],
+}),
+
+// INCORRECT: Standalone PageBreak (causes document corruption)
+new PageBreak(),
+```
+
+**Multipage Document Structure:**
+```javascript
+const children = [
+  // ===== DOCUMENT 1: Main Decision =====
+  // ... document 1 content paragraphs ...
+  
+  // Page break between documents
+  new Paragraph({
+    children: [new PageBreak()],
+  }),
+  
+  // ===== DOCUMENT 2: Supporting Minutes =====  
+  // ... document 2 content paragraphs ...
+  
+  // Continue pattern for additional documents
+];
+```
+
+**Business Logic Integration:**
+- Parse dropdown values with pipe delimiter (e.g., "UnionName|UnionAddress")
+- Use consistent field naming across all sub-documents
+- Implement proper spacing between document sections (`spacing: { after: 400-500 }`)
+- Include clear document headings with emojis for visual separation in live preview
+
+**Live Preview for Multipage Documents:**
+```javascript
+mandatoryBonus: {
+  title: "РЕГРЕС ЗА ГОДИШЕН ОДМОР - МУЛТИДОКУМЕНТ",
+  sentences: [
+    {
+      text: "🗂️ Документ 1: ОДЛУКА за исплата на регресот за годишен одмор",
+      fields: []
+    },
+    // Include representative sentences from each sub-document
+  ]
+}
+```
+
+### Simple Line Signature Format
+
+**PREFERRED: Simple Line Signatures**
+Replace table-based signatures with clean, professional line format:
+
+```javascript
+// For single signature
+new Paragraph({
+  children: [
+    new TextRun({ text: "___________________________" }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 0 }  // No space between line and name
+}),
+new Paragraph({
+  children: [
+    new TextRun({ text: companyName }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 0 }
+}),
+new Paragraph({
+  children: [
+    new TextRun({ text: companyManager }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 300 }
+}),
+```
+
+**For Multiple Signatures (e.g., Agreement Documents):**
+```javascript
+// Employer signature section
+new Paragraph({
+  children: [
+    new TextRun({ text: "За работодавачот:" }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 200 }
+}),
+new Paragraph({
+  children: [
+    new TextRun({ text: "___________________________" }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 0 }
+}),
+new Paragraph({
+  children: [
+    new TextRun({ text: companyName }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 0 }
+}),
+new Paragraph({
+  children: [
+    new TextRun({ text: companyManager }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 400 }  // Space before next signature section
+}),
+
+// Employee representative signature section
+new Paragraph({
+  children: [
+    new TextRun({ text: "За претставникот:" }),
+  ],
+  alignment: AlignmentType.LEFT,
+  spacing: { after: 200 }
+}),
+// ... repeat pattern
+```
+
+**AVOID: Table-Based Signatures**
+```javascript
+// DON'T USE: Complex table layouts for signatures
+new Table({
+  rows: [
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [/* signature content */]
+        })
+      ]
+    })
+  ]
+})
+```
+
+**Signature Formatting Standards:**
+- Use LEFT alignment for all signature elements
+- No spacing between signature line and names (`spacing: { after: 0 }`)
+- Consistent line length: "___________________________" (27 underscores)
+- Professional spacing between signature sections (400 units)
+- Clear role labels ("За работодавачот:", "За претставникот:")
 
 **Update sections:** Technical Patterns, Code Approaches, Common Challenges, Processing Workflows

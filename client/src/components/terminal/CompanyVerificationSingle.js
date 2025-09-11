@@ -20,6 +20,17 @@ const CompanyVerificationSingle = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Credentials update state
+  const [credentialsData, setCredentialsData] = useState({
+    currentPassword: '',
+    newUsername: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [updatingCredentials, setUpdatingCredentials] = useState(false);
+  const [credentialsError, setCredentialsError] = useState('');
+  const [credentialsSuccess, setCredentialsSuccess] = useState('');
+
   // Form data for all required fields
   const [formData, setFormData] = useState({
     // Required fields
@@ -28,12 +39,21 @@ const CompanyVerificationSingle = () => {
     taxNumber: '',
     companyManager: '',
     officialEmail: '',
-    // Optional fields
+    // Optional fields - comprehensive company info
     businessActivity: '',
     website: '',
     industry: '',
     role: '',
-    description: ''
+    description: '',
+    contactEmail: '',
+    phone: '',
+    companySize: '',
+    facebook: '',
+    linkedin: '',
+    missionStatement: '',
+    crnNumber: '',
+    companyPIN: '',
+    companyLogo: ''
   });
 
   // Pre-fill form with existing user data and refresh user context
@@ -57,13 +77,22 @@ const CompanyVerificationSingle = () => {
         companyName: user.companyInfo?.companyName || '',
         address: user.companyInfo?.companyAddress || user.companyInfo?.address || '',
         taxNumber: user.companyInfo?.companyTaxNumber || user.companyInfo?.taxNumber || '',
-        companyManager: user.companyManager || '',
+        companyManager: user.companyInfo?.companyManager || user.companyManager || '',
         officialEmail: user.officialEmail || user.email || '',
         businessActivity: user.companyInfo?.businessActivity || '',
         website: user.companyInfo?.website || '',
         industry: user.companyInfo?.industry || '',
         role: user.companyInfo?.role || '',
-        description: user.companyInfo?.description || ''
+        description: user.companyInfo?.description || '',
+        contactEmail: user.companyInfo?.contactEmail || '',
+        phone: user.companyInfo?.phone || '',
+        companySize: user.companyInfo?.companySize || '',
+        facebook: user.companyInfo?.facebook || '',
+        linkedin: user.companyInfo?.linkedin || '',
+        missionStatement: user.companyInfo?.missionStatement || '',
+        crnNumber: user.companyInfo?.crnNumber || '',
+        companyPIN: user.companyInfo?.companyPIN || '',
+        companyLogo: user.companyInfo?.companyLogo || ''
       }));
 
       // Check if email has been sent before
@@ -76,6 +105,13 @@ const CompanyVerificationSingle = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
     setError('');
     setSuccess('');
+  };
+
+  const handleCredentialsChange = (e) => {
+    const { name, value } = e.target;
+    setCredentialsData(prev => ({ ...prev, [name]: value }));
+    setCredentialsError('');
+    setCredentialsSuccess('');
   };
 
   const validateForm = () => {
@@ -112,23 +148,32 @@ const CompanyVerificationSingle = () => {
             companyName: formData.companyName,
             companyAddress: formData.address,
             companyTaxNumber: formData.taxNumber,
+            companyManager: formData.companyManager,
             businessActivity: formData.businessActivity,
             website: formData.website,
             industry: formData.industry,
             role: formData.role,
-            description: formData.description
+            description: formData.description,
+            contactEmail: formData.contactEmail,
+            phone: formData.phone,
+            companySize: formData.companySize,
+            facebook: formData.facebook,
+            linkedin: formData.linkedin,
+            missionStatement: formData.missionStatement,
+            crnNumber: formData.crnNumber,
+            companyPIN: formData.companyPIN,
+            companyLogo: formData.companyLogo
           },
-          companyManager: formData.companyManager,
           officialEmail: formData.officialEmail,
           profileComplete: true
         })
       });
 
       await refreshUser(); // Refresh user data
-      setSuccess('Профилот е успешно ажуриран!');
+      setSuccess(user?.isVerified ? 'Профилот на компанијата е успешно ажуриран!' : 'Профилот е успешно ажуриран!');
       
-      // Automatically send verification email after successful profile save
-      if (formData.officialEmail?.trim()) {
+      // Only send verification email for unverified users
+      if (!user?.isVerified && formData.officialEmail?.trim()) {
         await sendVerificationEmailAutomatically();
       }
     } catch (error) {
@@ -207,6 +252,70 @@ const CompanyVerificationSingle = () => {
     await handleSendVerificationEmail();
   };
 
+  const handleCredentialsSubmit = async (e) => {
+    e.preventDefault();
+    setCredentialsError('');
+    setCredentialsSuccess('');
+    
+    // Validation
+    if (!credentialsData.currentPassword) {
+      setCredentialsError('Тековната лозинка е задолжителна.');
+      return;
+    }
+    
+    if (!credentialsData.newUsername && !credentialsData.newPassword) {
+      setCredentialsError('Внесете ново корисничко име или нова лозинка.');
+      return;
+    }
+    
+    if (credentialsData.newPassword !== credentialsData.confirmPassword) {
+      setCredentialsError('Новата лозинка и потврдата не се совпаѓаат.');
+      return;
+    }
+    
+    if (credentialsData.newPassword && credentialsData.newPassword.length < 6) {
+      setCredentialsError('Лозинката мора да има најмалку 6 карактери.');
+      return;
+    }
+    
+    setUpdatingCredentials(true);
+    try {
+      const updateData = {
+        currentPassword: credentialsData.currentPassword
+      };
+      
+      if (credentialsData.newUsername?.trim()) {
+        updateData.username = credentialsData.newUsername.trim();
+      }
+      
+      if (credentialsData.newPassword?.trim()) {
+        updateData.password = credentialsData.newPassword.trim();
+      }
+      
+      await ApiService.request('/users/credentials', {
+        method: 'PUT',
+        body: JSON.stringify(updateData),
+      });
+      
+      setCredentialsSuccess('Корисничките податоци се успешно ажурирани!');
+      setCredentialsData({
+        currentPassword: '',
+        newUsername: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      // Refresh user data
+      await refreshUser();
+      
+      setTimeout(() => setCredentialsSuccess(''), 3000);
+    } catch (error) {
+      setCredentialsError(error.message || 'Настана грешка при ажурирање на корисничките податоци.');
+    } finally {
+      setUpdatingCredentials(false);
+    }
+  };
+
   return (
     <div>
       <Header isTerminal={true} />
@@ -225,8 +334,8 @@ const CompanyVerificationSingle = () => {
                   ← Назад кон Dashboard
                 </button>
               </div>
-              <h2>Верификација на компанија</h2>
-              <p>Внесете ги информациите за вашата компанија и потврдете го email-от за верификација</p>
+              <h2>{user?.isVerified ? 'Ажурирање на профил на компанија' : 'Верификација на компанија'}</h2>
+              <p>{user?.isVerified ? 'Ажурирајте ги информациите за вашата верификувана компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
         
         {user?.isVerified && (
           <div className={styles.verificationStatus}>
@@ -270,6 +379,360 @@ const CompanyVerificationSingle = () => {
       {success && (
         <div className={styles.success}>
           {success}
+        </div>
+      )}
+
+      {/* Comprehensive form for verified users to update company info */}
+      {user?.isVerified && (
+        <div className={styles.form}>
+          <div className={styles.section}>
+            <h3>Основни информации на компанијата</h3>
+            
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="companyName">Име на компанија *</label>
+                <input
+                  type="text"
+                  id="companyName"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  placeholder="Внесете го името на компанијата"
+                  required
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="companyManager">Управител/Одговорно лице *</label>
+                <input
+                  type="text"
+                  id="companyManager"
+                  name="companyManager"
+                  value={formData.companyManager}
+                  onChange={handleInputChange}
+                  placeholder="Име и презиме на управителот"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="address">Адреса на компанија *</label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Улица, број, град"
+                  required
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="taxNumber">Даночен број (не може да се менува)</label>
+                <input
+                  type="text"
+                  id="taxNumber"
+                  name="taxNumber"
+                  value={formData.taxNumber}
+                  readOnly
+                  disabled
+                  className={styles.readOnlyField}
+                  title="Даночниот број не може да се менува по верификацијата согласно македонското право"
+                />
+                <small className={styles.legalNotice}>
+                  ⚖️ Даночниот број не може да се менува согласно Законот за трговски друштва
+                </small>
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="businessActivity">Дејност на компанијата</label>
+                <input
+                  type="text"
+                  id="businessActivity"
+                  name="businessActivity"
+                  value={formData.businessActivity}
+                  onChange={handleInputChange}
+                  placeholder="Опишете ја дејноста"
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="industry">Индустрија</label>
+                <input
+                  type="text"
+                  id="industry"
+                  name="industry"
+                  value={formData.industry}
+                  onChange={handleInputChange}
+                  placeholder="Индустријски сектор"
+                />
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="companySize">Големина на компанија</label>
+                <select
+                  id="companySize"
+                  name="companySize"
+                  value={formData.companySize}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Изберете големина</option>
+                  <option value="1-10">1-10 вработени</option>
+                  <option value="11-50">11-50 вработени</option>
+                  <option value="51-200">51-200 вработени</option>
+                  <option value="201-1000">201-1000 вработени</option>
+                  <option value="1000+">Повеќе од 1000 вработени</option>
+                </select>
+              </div>
+
+              <div className={styles.field}>
+                <label htmlFor="crnNumber">ЕДБ број</label>
+                <input
+                  type="text"
+                  id="crnNumber"
+                  name="crnNumber"
+                  value={formData.crnNumber}
+                  onChange={handleInputChange}
+                  placeholder="Единствен број во Централниот регистар"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h3>Контакт информации</h3>
+            
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="officialEmail">Службена email адреса *</label>
+                <input
+                  type="email"
+                  id="officialEmail"
+                  name="officialEmail"
+                  value={formData.officialEmail}
+                  onChange={handleInputChange}
+                  placeholder="company@example.com"
+                  required
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="contactEmail">Контакт email (дополнителна)</label>
+                <input
+                  type="email"
+                  id="contactEmail"
+                  name="contactEmail"
+                  value={formData.contactEmail}
+                  onChange={handleInputChange}
+                  placeholder="info@example.com"
+                />
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="phone">Телефон</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="+389 XX XXX XXX"
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="website">Веб-страница</label>
+                <input
+                  type="url"
+                  id="website"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h3>Опис и мисија</h3>
+            
+            <div className={styles.field}>
+              <label htmlFor="description">Опис на компанијата</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Краток опис на дејностите и активностите на компанијата"
+                rows={4}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="missionStatement">Мисија на компанијата</label>
+              <textarea
+                id="missionStatement"
+                name="missionStatement"
+                value={formData.missionStatement}
+                onChange={handleInputChange}
+                placeholder="Мисијата и визијата на компанијата"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h3>Социјални мрежи</h3>
+            
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="facebook">Facebook профил</label>
+                <input
+                  type="url"
+                  id="facebook"
+                  name="facebook"
+                  value={formData.facebook}
+                  onChange={handleInputChange}
+                  placeholder="https://facebook.com/company"
+                />
+              </div>
+              
+              <div className={styles.field}>
+                <label htmlFor="linkedin">LinkedIn профил</label>
+                <input
+                  type="url"
+                  id="linkedin"
+                  name="linkedin"
+                  value={formData.linkedin}
+                  onChange={handleInputChange}
+                  placeholder="https://linkedin.com/company/company"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Credentials Update Section */}
+          <div className={styles.section}>
+            <h3>🔐 Промена на корисничко име и лозинка</h3>
+            <p className={styles.sectionDescription}>
+              Ажурирајте ги вашите кориснички права за пријавување
+            </p>
+
+            {credentialsError && (
+              <div className={styles.errorMessage}>
+                <span className={styles.errorIcon}>❌</span>
+                {credentialsError}
+              </div>
+            )}
+
+            {credentialsSuccess && (
+              <div className={styles.successMessage}>
+                <span className={styles.successIcon}>✅</span>
+                {credentialsSuccess}
+              </div>
+            )}
+
+            <div className={styles.credentialsForm}>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="currentPassword">Моментална лозинка *</label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={credentialsData.currentPassword}
+                    onChange={handleCredentialsChange}
+                    placeholder="Внесете ја моменталната лозинка"
+                    required
+                  />
+                  <small className={styles.fieldHint}>
+                    Потребно е за потврда на идентитетот
+                  </small>
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="newUsername">Ново корисничко име</label>
+                  <input
+                    type="text"
+                    id="newUsername"
+                    name="newUsername"
+                    value={credentialsData.newUsername}
+                    onChange={handleCredentialsChange}
+                    placeholder="Оставете празно за да не се менува"
+                  />
+                  <small className={styles.fieldHint}>
+                    Тековно корисничко име: <strong>{user?.username}</strong>
+                  </small>
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="newPassword">Нова лозинка</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={credentialsData.newPassword}
+                    onChange={handleCredentialsChange}
+                    placeholder="Оставете празно за да не се менува"
+                  />
+                  <small className={styles.fieldHint}>
+                    Минимум 6 карактери
+                  </small>
+                </div>
+                
+                <div className={styles.field}>
+                  <label htmlFor="confirmPassword">Потврдете ја новата лозинка</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={credentialsData.confirmPassword}
+                    onChange={handleCredentialsChange}
+                    placeholder="Повторете ја новата лозинка"
+                  />
+                  <small className={styles.fieldHint}>
+                    Лозинките мора да се совпаѓаат
+                  </small>
+                </div>
+              </div>
+
+              <div className={styles.credentialsActions}>
+                <button
+                  type="button"
+                  onClick={handleCredentialsSubmit}
+                  disabled={updatingCredentials}
+                  className={styles.credentialsButton}
+                >
+                  {updatingCredentials ? 'Ажурира...' : '🔐 Ажурирај корисни податоци'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              onClick={handleSaveProfile}
+              disabled={loading}
+              className={styles.saveButton}
+            >
+              {loading ? 'Ажурира...' : 'Ажурирај профил'}
+            </button>
+          </div>
         </div>
       )}
 

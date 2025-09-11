@@ -58,6 +58,8 @@ class UserController {
           companyName: incomingCompanyInfo.companyName?.trim() || null,
           companyAddress: incomingCompanyInfo.companyAddress?.trim() || '',
           companyTaxNumber: incomingCompanyInfo.companyTaxNumber?.trim() || '',
+          companyManager: incomingCompanyInfo.companyManager?.trim() || '', // NOW in companyInfo
+          companyLogo: incomingCompanyInfo.companyLogo?.trim() || '', // Company logo in companyInfo
           businessActivity: incomingCompanyInfo.businessActivity?.trim() || '',
           website: incomingCompanyInfo.website?.trim() || '',
           industry: incomingCompanyInfo.industry?.trim() || null,
@@ -92,9 +94,7 @@ class UserController {
       if (officialEmail?.trim()) {
         userUpdatePayload.officialEmail = officialEmail.trim();
       }
-      if (companyManager?.trim()) {
-        userUpdatePayload.companyManager = companyManager.trim();
-      }
+      // NOTE: companyManager is now handled within companyInfo object above
 
       console.log('📝 User update payload:', JSON.stringify(userUpdatePayload, null, 2));
 
@@ -173,19 +173,24 @@ class UserController {
       // Prepare comprehensive data for User.companyInfo
       const userCompanyInfoUpdate = {
         companyName: companyName || '',
-        address: address || '',
-        taxNumber: taxNumber || '',
+        companyAddress: address || '', // Use companyAddress consistently
+        companyTaxNumber: taxNumber || '', // Use companyTaxNumber consistently
+        companyManager: req.body.companyManager || req.body.manager || '', // Company manager in companyInfo
+        companyLogo: logoUrl || '', // Company logo in companyInfo
+        businessActivity: industry || '',
+        industry: req.body.industry || '',
+        companySize: companySize || '',
         contactEmail: contactEmail || '',
-        website: website || '',
-        mission: mission || '',
-        logoUrl: logoUrl || '',
-        role: role || '',
-        description: description || '',
-        crnNumber: crnNumber || '',
         phone: phone || '',
-        companyPIN: companyPIN || '',
-        industry: industry || '',
-        companySize: companySize || ''
+        website: website || '',
+        facebook: req.body.facebook || '',
+        linkedin: req.body.linkedin || '',
+        description: description || '',
+        mission: mission || '',
+        missionStatement: req.body.missionStatement || '',
+        role: role || '',
+        crnNumber: crnNumber || '',
+        companyPIN: companyPIN || ''
       };
 
       // Get current user to see existing data

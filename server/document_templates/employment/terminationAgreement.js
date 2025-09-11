@@ -3,9 +3,9 @@ const moment = require('moment');
 
 function generateTerminationAgreementDoc(formData, user, company) {
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   const currentDate = moment().format('DD.MM.YYYY');
   
   // Extract form data
@@ -199,37 +199,50 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({ text: '' }),
-        new Table({
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph({ text: 'Работодавач', alignment: AlignmentType.CENTER })],
-                  verticalAlign: 'center',
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                }),
-                new TableCell({
-                  children: [new Paragraph({ text: 'Работник (потпис, цело име и презиме, своерачно датум)', alignment: AlignmentType.CENTER })],
-                  verticalAlign: 'center',
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                })
-              ]
-            }),
-            new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph({ text: '________________', alignment: AlignmentType.CENTER })], borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } } }),
-                new TableCell({ children: [new Paragraph({ text: '________________', alignment: AlignmentType.CENTER })], borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } } })
-              ]
-            }),
-            new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph({ text: `${companyName}`, alignment: AlignmentType.CENTER })], borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } } }),
-                new TableCell({ children: [new Paragraph({ text: `${employeeName}`, alignment: AlignmentType.CENTER })], borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } } })
-              ]
-            })
+        // Employer signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работодавачот:" }),
           ],
-          width: { size: 100, type: 'pct' },
-          borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 400 }
+        }),
+
+        // Employee signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работникот:" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: employeeName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         })
       ]
     }]

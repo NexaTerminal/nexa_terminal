@@ -9,9 +9,9 @@ const moment = require('moment');
 function generateTerminationPersonalReasonsDoc(formData, user, company) {
   // Extract company information with fallbacks
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Extract form data with fallbacks
   const employeeName = formData?.employeeName || '[Име на работник]';
@@ -248,75 +248,57 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
           spacing: { after: 400 }
         }),
 
-        // Signature section
-        new Table({
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({ 
-                      text: 'РАБОТОДАВАЧ:', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: companyName, 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 200 }
-                    }),
-                    new Paragraph({ 
-                      text: '________________________', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: companyManager, 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: '(потпис и печат)', 
-                      alignment: AlignmentType.LEFT 
-                    })
-                  ],
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({ 
-                      text: 'РАБОТНИК:', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: employeeName, 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 200 }
-                    }),
-                    new Paragraph({ 
-                      text: '________________________', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: `${employeeName}`, 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: `(потпис - примено на ${currentDate})`, 
-                      alignment: AlignmentType.LEFT 
-                    })
-                  ],
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                })
-              ]
-            })
+        // Employer signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работодавачот:" }),
           ],
-          width: { size: 100, type: WidthType.PERCENTAGE }
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyManager }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 400 }
+        }),
+
+        // Employee signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работникот:" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: employeeName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         }),
 
         // Administrative note

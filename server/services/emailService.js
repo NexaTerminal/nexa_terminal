@@ -431,6 +431,61 @@ class EmailService {
     </html>
     `;
   }
+
+  /**
+   * Generic method to send any email (for password reset, etc.)
+   * @param {string} to - Recipient email address
+   * @param {string} subject - Email subject
+   * @param {string} html - Email HTML content
+   */
+  async sendEmail(to, subject, html) {
+    try {
+      const resendClient = this.getResendClient();
+      
+      if (!resendClient) {
+        // Development mode without API key - simulate email sending
+        console.log('📧 [DEV MODE] Email would be sent:');
+        console.log(`To: ${to}`);
+        console.log(`Subject: ${subject}`);
+        console.log(`HTML: ${html.substring(0, 200)}...`);
+        return { success: true, mockSent: true };
+      }
+
+      const emailData = {
+        from: this.fromEmail,
+        to: [to],
+        subject: subject,
+        html: html
+      };
+
+      const result = await resendClient.emails.send(emailData);
+      console.log('Email sent successfully via Resend:', result);
+      
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Error sending email via Resend:', error);
+      
+      // Try Gmail fallback
+      const gmailTransporter = this.getGmailTransporter();
+      if (gmailTransporter) {
+        try {
+          const gmailResult = await gmailTransporter.sendMail({
+            from: 'terminalnexa@gmail.com',
+            to: to,
+            subject: subject,
+            html: html
+          });
+          
+          console.log('Email sent successfully via Gmail:', gmailResult);
+          return { success: true, data: gmailResult };
+        } catch (gmailError) {
+          console.error('Gmail fallback also failed:', gmailError);
+        }
+      }
+      
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 module.exports = new EmailService();

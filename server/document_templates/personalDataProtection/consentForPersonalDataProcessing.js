@@ -11,9 +11,9 @@ function generateConsentForPersonalDataProcessingDoc(formData, user, company) {
 
     // Get data with fallbacks
     const companyName = company?.companyName || '[Име на компанија]';
-    const companyAddress = company?.address || '[Адреса на компанија]';
-    const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-    const companyManager = company?.manager || '[Управител]';
+    const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+    const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
+    const companyManager = company?.companyManager || company?.manager || '[Управител]';
     const currentDate = moment().format('DD.MM.YYYY');
 
     // Create the simplest possible document with minimal formatting

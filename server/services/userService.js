@@ -90,7 +90,51 @@ class UserService {
   // Find user by email (updated for simplified schema)  
   async findByEmail(email) {
     if (!email) return null;
-    return await this.collection.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+    // Check both email and officialEmail fields
+    return await this.collection.findOne({ 
+      $or: [
+        { email: normalizedEmail },
+        { officialEmail: normalizedEmail }
+      ]
+    });
+  }
+
+  // Find user by tax number
+  async findByTaxNumber(taxNumber) {
+    if (!taxNumber) return null;
+    // Look in companyInfo.companyTaxNumber or legacy companyInfo.taxNumber
+    return await this.collection.findOne({ 
+      $or: [
+        { 'companyInfo.companyTaxNumber': taxNumber.toString().trim() },
+        { 'companyInfo.taxNumber': taxNumber.toString().trim() }
+      ]
+    });
+  }
+
+  // Find user by username or tax number
+  async findByUsernameOrTaxNumber(identifier) {
+    if (!identifier) return null;
+    
+    const trimmedIdentifier = identifier.toString().trim();
+    
+    // Check if identifier looks like a tax number (digits only)
+    const isNumericOnly = /^\d+$/.test(trimmedIdentifier);
+    
+    if (isNumericOnly) {
+      // Try tax number first if it's numeric
+      const userByTax = await this.findByTaxNumber(trimmedIdentifier);
+      if (userByTax) return userByTax;
+      
+      // Still check username in case user has numeric username
+      const userByUsername = await this.findByUsername(trimmedIdentifier);
+      if (userByUsername) return userByUsername;
+    } else {
+      // For non-numeric identifiers, only check username
+      return await this.findByUsername(trimmedIdentifier);
+    }
+    
+    return null;
   }
 
   // Find user by ID
@@ -321,13 +365,17 @@ class UserService {
       throw new Error('Invalid user ID');
     }
 
+    // Instead of trying to modify a potentially null resetToken field,
+    // we'll remove it entirely once used
     const result = await this.collection.updateOne(
       { _id: new ObjectId(userId) },
       { 
-        $set: { 
-          'resetToken.used': true,
-          'resetToken.usedAt': new Date(),
-          updatedAt: new Date()
+        $unset: { 
+          resetToken: ""
+        },
+        $set: {
+          updatedAt: new Date(),
+          lastPasswordResetUsed: new Date()
         }
       }
     );

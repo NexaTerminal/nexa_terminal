@@ -34,9 +34,9 @@ const ARTICLE_82_CASES = {
 function generateTerminationDueToFaultDoc(formData, user, company) {
   // Extract company information
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyTaxNumber = company?.taxNumber || '[ЕМБС на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyTaxNumber = company?.companyTaxNumber || company?.taxNumber || '[Даночен број на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Extract basic employee information (all optional)
   const employeeName = formData?.employeeName || '[Име и презиме на работникот]';
@@ -274,45 +274,57 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
           spacing: { after: 400 }
         }),
 
-        // Signature table
-        new Table({
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({ 
-                      text: '___________________________', 
-                      alignment: AlignmentType.LEFT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: employeeName, 
-                      alignment: AlignmentType.LEFT
-                    })
-                  ],
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({ 
-                      text: '_________________________', 
-                      alignment: AlignmentType.RIGHT,
-                      spacing: { after: 100 }
-                    }),
-                    new Paragraph({ 
-                      text: `${companyName}, ${companyManager}`, 
-                      alignment: AlignmentType.RIGHT
-                    })
-                  ],
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-                })
-              ]
-            })
+        // Employee signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работникот:" }),
           ],
-          width: { size: 100, type: WidthType.PERCENTAGE }
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: employeeName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 400 }
+        }),
+
+        // Employer signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работодавачот:" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyManager }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         })
       ]
     }]

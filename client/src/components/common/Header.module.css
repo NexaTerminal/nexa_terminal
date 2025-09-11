@@ -46,6 +46,7 @@
     height: 21px; /* Increased by 25% from 17px (17 * 1.25 = 21.25px) */
     width: auto;
     transition: all 0.3s ease;
+    margin-left: -2.5rem;
 }
 
 .logo:hover .logo-image {

@@ -49,7 +49,7 @@ const Login = () => {
       if (isLogin) {
         // Login validation
         if (!username) {
-          throw new Error('Корисничкото име е задолжително');
+          throw new Error('Корисничкото име или даночен број е задолжително');
         }
         if (!password) {
           throw new Error('Лозинката е задолжителна');
@@ -69,7 +69,7 @@ const Login = () => {
           if (errorMessage.includes('Invalid credentials') || errorMessage.includes('password') || errorMessage.includes('лозинка')) {
             setError('Неточна лозинка. Ве молиме проверете ја лозинката и обидете се повторно.');
           } else if (errorMessage.includes('User not found') || errorMessage.includes('username') || errorMessage.includes('корисник')) {
-            setError('Корисничкото име не постои. Проверете го корисничкото име или се регистрирајте.');
+            setError('Корисничкото име или даночен број не постои. Проверете ги податоците или се регистрирајте.');
           } else {
             setError(errorMessage);
           }
@@ -235,7 +235,7 @@ const Login = () => {
                 {/* Username field */}
                 <div className={styles.formGroup}>
                   <label htmlFor="username" className={styles.formLabel}>
-                    Корисничко име
+                    {isLogin ? 'Корисничко име или даночен број' : 'Корисничко име'}
                   </label>
                   <input
                     type="text"
@@ -246,7 +246,7 @@ const Login = () => {
                     required
                     placeholder={
                       isLogin
-                        ? 'Внесете го вашето корисничко име'
+                        ? 'Корисничко име или даночен број'
                         : 'Изберете корисничко име'
                     }
                   />
@@ -305,6 +305,15 @@ const Login = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Forgot Password Link (only shown during login) */}
+                {isLogin && (
+                  <div className={styles.forgotPasswordContainer}>
+                    <Link to="/forgot-password" className={styles.forgotPasswordLink}>
+                      Заборавена лозинка?
+                    </Link>
                   </div>
                 )}
                 

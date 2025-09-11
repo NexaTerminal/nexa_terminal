@@ -4,7 +4,7 @@ const moment = require('moment');
 function generateEmployeeDamagesStatementDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
   
   // Employee and statement data
   const employeeName = formData?.employeeName || '[Име на работник]';
@@ -80,48 +80,20 @@ function generateEmployeeDamagesStatementDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),
-        new Table({
-          width: {
-            size: 100,
-            type: WidthType.PERCENTAGE,
-          },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  width: {
-                    size: 50,
-                    type: WidthType.PERCENTAGE,
-                  },
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: '___________________________' })
-                      ],
-                      alignment: AlignmentType.LEFT
-                    }),
-                    new Paragraph({
-                      children: [
-                        new TextRun({ text: `${employeeName}` })
-                      ],
-                      alignment: AlignmentType.LEFT
-                    })
-                  ],
-                  borders: {}
-                }),
-                new TableCell({
-                  width: {
-                    size: 50,
-                    type: WidthType.PERCENTAGE,
-                  },
-                  children: [
-                    new Paragraph({ text: '' })
-                  ],
-                  borders: {}
-                })
-              ]
-            })
-          ]
+        // Employee signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: employeeName }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 300 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),

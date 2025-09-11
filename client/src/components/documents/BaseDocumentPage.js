@@ -14,7 +14,8 @@ import styles from '../../styles/terminal/documents/DocumentGeneration.module.cs
  */
 const BaseDocumentPage = ({ 
   config,
-  renderStepContent, 
+  renderStepContent,
+  customPreviewComponent,
   title = "Генерирање на документ",
   description = "Пополнете ги потребните податоци за генерирање на документот"
 }) => {
@@ -122,11 +123,18 @@ const BaseDocumentPage = ({
 
             {/* Preview Section */}
             <div className={styles.previewSection}>
-              <DocumentPreview 
-                formData={previewData}
-                documentType={config.documentType}
-                currentStep={currentStep}
-              />
+              {customPreviewComponent ? 
+                customPreviewComponent({
+                  formData,
+                  currentStep,
+                  onChange: handleInputChange
+                }) :
+                <DocumentPreview 
+                  formData={previewData}
+                  documentType={config.documentType}
+                  currentStep={currentStep}
+                />
+              }
             </div>
           </div>
         </main>

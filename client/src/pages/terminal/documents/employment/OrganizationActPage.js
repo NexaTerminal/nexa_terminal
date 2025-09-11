@@ -1125,7 +1125,7 @@ const InteractiveOrgTreeBuilder = ({ positions, onChange, isGenerating }) => {
               className={`${styles['action-btn']} ${styles['delete-btn']}`}
               onClick={(e) => {
                 e.stopPropagation();
-                if (confirm('Delete this position and all its children?')) {
+                if (window.confirm('Delete this position and all its children?')) {
                   deletePosition(node.id);
                 }
               }}

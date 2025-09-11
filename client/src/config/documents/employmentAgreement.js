@@ -15,25 +15,25 @@ export const employmentAgreementConfig = {
       id: 1,
       title: 'Основни податоци',
       description: 'Информации за работникот',
-      requiredFields: ['employeeName', 'employeeAddress', 'employeePIN', 'jobPosition']
+      requiredFields: [] // All fields are optional
     },
     {
       id: 2,
       title: 'Работни обврски',
       description: 'Задачи и одговорности',
-      requiredFields: ['workTasks']
+      requiredFields: [] // All fields are optional
     },
     {
       id: 3,
       title: 'Плата и датум',
       description: 'Финансиски информации',
-      requiredFields: ['netSalary', 'agreementDate']
+      requiredFields: [] // All fields are optional
     },
     {
       id: 4,
       title: 'Работни услови',
       description: 'Услови на вработување',
-      requiredFields: [] // Optional fields only
+      requiredFields: [] // All fields are optional
     }
   ],
 
@@ -45,7 +45,7 @@ export const employmentAgreementConfig = {
       type: 'text',
       label: 'Име и презиме на работникот',
       placeholder: 'пр. Марко Петровски',
-      required: true,
+      required: false,
       helpText: 'Внесете го целосното име и презиме на работникот како што е наведено во личната карта или пасошот.'
     },
     employeeAddress: {
@@ -53,7 +53,7 @@ export const employmentAgreementConfig = {
       type: 'text',
       label: 'Адреса на седиште на работникот',
       placeholder: 'пр. ул. Македонија бр. 123, Скопје',
-      required: true,
+      required: false,
       helpText: 'Внесете ја адресата на постојано живеење на работникот (улица, број, град) како што е регистрирана.'
     },
     employeePIN: {
@@ -61,7 +61,7 @@ export const employmentAgreementConfig = {
       type: 'text',
       label: 'ЕМБГ на работникот',
       placeholder: 'пр. 1234567890123',
-      required: true,
+      required: false,
       maxLength: 13,
       pattern: /^\d{13}$/,
       inputMode: 'numeric',
@@ -69,11 +69,15 @@ export const employmentAgreementConfig = {
     },
     jobPosition: {
       name: 'jobPosition',
-      type: 'text',
+      type: 'searchable-select',
       label: 'Назив на работна позиција',
-      placeholder: 'пр. Софтверски инженер',
-      required: true,
-      helpText: 'Внесете го точниот назив на работната позиција на која ќе биде вработен работникот според систематизацијата на работни места.'
+      placeholder: 'пр. Софтверски инженер или пребарајте од листата',
+      required: false,
+      searchable: true,
+      allowCustom: true,
+      dataSource: 'jobs',
+      displayField: 'jobPosition',
+      helpText: 'Внесете го точниот назив на работната позиција на која ќе биде вработен работникот според систематизацијата на работни места. Можете да пребарувате од листата или да внесете сопствена позиција.'
     },
 
     // Step 2: Work Tasks
@@ -82,8 +86,10 @@ export const employmentAgreementConfig = {
       type: 'array',
       label: 'Работни обврски',
       placeholder: 'Работна обврска',
-      required: true,
-      helpText: 'Наведете ги основните задачи и одговорности на работникот. Можете да додадете повеќе ставки кликајќи на \"Додај ставка\".'
+      required: false,
+      autoFillSource: 'jobPosition',
+      autoFillField: 'jobTasks',
+      helpText: 'Наведете ги основните задачи и одговорности на работникот. Ако сте избрале позиција од листата, автоматски ќе се пополнат типичните задачи. Можете да ги изменувате, бришете или додавате нови.'
     },
 
     // Step 3: Salary and Date
@@ -92,15 +98,37 @@ export const employmentAgreementConfig = {
       type: 'number',
       label: 'Основна плата',
       placeholder: 'пр. 25000',
-      required: true,
+      required: false,
       helpText: 'Внесете ја основната месечна плата во македонски денари. Ова е бруто платата пред одбивање на даноците и придонесите.'
     },
     agreementDate: {
       name: 'agreementDate',
       type: 'date',
       label: 'Датум на склучување на договор за вработување',
-      required: true,
+      required: false,
       helpText: 'Изберете го датумот кога се потпишува договорот за вработување. Овој датум ќе биде наведен во договорот и обично е денот кога почнува работата.'
+    },
+
+    // Additional fields for job position auto-fill
+    education: {
+      name: 'education',
+      type: 'text',
+      label: 'Потребно образование',
+      placeholder: 'пр. Економски факултет',
+      required: false,
+      autoFillSource: 'jobPosition',
+      autoFillField: 'education',
+      helpText: 'Образованието потребно за оваа позиција. Ќе се пополни автоматски ако изберете позиција од листата.'
+    },
+    certification: {
+      name: 'certification',
+      type: 'text',
+      label: 'Потребни сертификати/лиценци',
+      placeholder: 'пр. Сертификат за...',
+      required: false,
+      autoFillSource: 'jobPosition',
+      autoFillField: 'certification',
+      helpText: 'Сертификатите или лиценците потребни за оваа позиција. Ќе се пополни автоматски ако изберете позиција од листата.'
     },
 
     // Step 4: Working Conditions
@@ -203,6 +231,8 @@ export const employmentAgreementConfig = {
     employeePIN: '',
     jobPosition: '',
     workTasks: [''],
+    education: '',
+    certification: '',
     netSalary: '',
     placeOfWork: 'просториите на седиштето на работодавачот',
     otherWorkPlace: '',
@@ -216,43 +246,9 @@ export const employmentAgreementConfig = {
     acceptTerms: false
   },
 
-  // Validation rules
+  // Validation rules - All fields are optional
   validationRules: [
-    // Required fields
-    { field: 'employeeName', type: VALIDATION_TYPES.REQUIRED, label: 'Име и презиме на работникот' },
-    { field: 'employeeAddress', type: VALIDATION_TYPES.REQUIRED, label: 'Адреса на работникот' },
-    { field: 'employeePIN', type: VALIDATION_TYPES.REQUIRED, label: 'ЕМБГ на работникот' },
-    { field: 'employeePIN', type: VALIDATION_TYPES.PIN, label: 'ЕМБГ на работникот' },
-    { field: 'jobPosition', type: VALIDATION_TYPES.REQUIRED, label: 'Работна позиција' },
-    { field: 'workTasks', type: VALIDATION_TYPES.ARRAY, label: 'Работни обврски' },
-    { field: 'netSalary', type: VALIDATION_TYPES.REQUIRED, label: 'Основна плата' },
-    { field: 'agreementDate', type: VALIDATION_TYPES.REQUIRED, label: 'Датум на договор' },
-
-    // Conditional fields
-    {
-      field: 'otherWorkPlace',
-      type: VALIDATION_TYPES.CONDITIONAL,
-      label: 'Место на работа (детали)',
-      condition: { field: 'placeOfWork', operator: '===', value: 'Друго место' }
-    },
-    {
-      field: 'definedDuration',
-      type: VALIDATION_TYPES.CONDITIONAL,
-      label: 'Краен датум на договор',
-      condition: { field: 'agreementDurationType', operator: '===', value: 'определено времетраење' }
-    },
-    {
-      field: 'otherWorkTime',
-      type: VALIDATION_TYPES.CONDITIONAL,
-      label: 'Работно време (детали)',
-      condition: { field: 'dailyWorkTime', operator: '===', value: 'other' }
-    },
-    {
-      field: 'concurrentClauseInput',
-      type: VALIDATION_TYPES.CONDITIONAL,
-      label: 'Конкурентска клаузула (детали)',
-      condition: { field: 'concurrentClause', operator: 'truthy' }
-    }
+    // No validation rules - all fields are optional per user request
   ]
 };
 
@@ -260,7 +256,7 @@ export const employmentAgreementConfig = {
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
     1: ['employeeName', 'employeeAddress', 'employeePIN', 'jobPosition'],
-    2: ['workTasks'],
+    2: ['workTasks', 'education', 'certification'],
     3: ['netSalary', 'agreementDate'],
     4: ['placeOfWork', 'otherWorkPlace', 'agreementDurationType', 'definedDuration', 'dailyWorkTime', 'otherWorkTime', 'concurrentClause', 'concurrentClauseInput']
   };

@@ -3,11 +3,11 @@
   font-size: 1.6rem; /* Slightly larger for impact */
   font-weight: 500; /* Medium weight */
   color: #2c3e50; /* Darker, more professional color */
-  text-align: center;
+  text-align: left;
   min-height: 2.5em; /* To prevent layout shift, accommodate longer strings */
   line-height: 1.25; /* Ensure multi-line features look good if they wrap */
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   /* padding: 0 10px; Add some horizontal padding */
   font-family: 'Roboto', sans-serif; /* Example of a clean font */

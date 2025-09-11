@@ -4,9 +4,9 @@ const moment = require('moment');
 function generateEmploymentAgreementDoc(formData, user, company) {
   // Company data with defaults - using the standardized field mapping
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyAddress = company?.address || '[Адреса на компанија]';
-  const companyNumber = company?.taxNumber || '[ЕМБС/Единствен број на компанија]';
-  const companyManager = company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
   
   // Employee data with defaults
   const employeeName = formData?.employeeName || '[Име на вработен]';
@@ -158,16 +158,19 @@ function generateEmploymentAgreementDoc(formData, user, company) {
   ];
 
   // Add work tasks
-  if (workTasks && Array.isArray(workTasks)) {
-    workTasks.forEach(task => {
+  if (workTasks && Array.isArray(workTasks) && workTasks.length > 0) {
+    workTasks.forEach((task, index) => {
       // More defensive check for task content
       const taskStr = task && task.toString ? task.toString() : String(task || '');
       if (taskStr && taskStr.trim && taskStr.trim().length > 0) {
+        // Determine punctuation: semicolon for all except the last one which gets a period
+        const punctuation = index === workTasks.length - 1 ? '.' : ';';
+        
         children.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `- ${taskStr.trim()}`,
+                text: `- ${taskStr.trim()}${punctuation}`,
               }),
             ],
             alignment: AlignmentType.JUSTIFIED,
@@ -739,70 +742,57 @@ function generateEmploymentAgreementDoc(formData, user, company) {
     new Paragraph({ text: "" }),
     new Paragraph({ text: "" }),
     
-    // Signatures
-    new Table({
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "ЗА РАБОТОДАВАЧОТ", bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({ text: "" }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "_________________________" }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: companyName, bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: `Управител ${companyManager}`, bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "РАБОТНИК", bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({ text: "" }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: "_________________________" }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: employeeName, bold: true }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
-            }),
-          ],
-        }),
+    // Employer signature
+    new Paragraph({
+      children: [
+        new TextRun({ text: "За работодавачот:" }),
       ],
-      width: { size: 100, type: 'pct' },
-      borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } }
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 200 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "___________________________" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: companyName }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: companyManager }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 400 }
+    }),
+
+    // Employee signature
+    new Paragraph({
+      children: [
+        new TextRun({ text: "За работникот:" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 200 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "___________________________" }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 0 }
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: employeeName }),
+      ],
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 300 }
     })
   );
 

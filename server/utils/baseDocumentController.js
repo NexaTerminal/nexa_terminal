@@ -25,11 +25,16 @@ const createDocumentController = (config) => {
       // Map company fields to standardized format for templates
       const company = {
         companyName: companyInfo.companyName || '',
-        address: companyInfo.address || companyInfo.companyAddress || '',
-        taxNumber: companyInfo.taxNumber || companyInfo.companyTaxNumber || '',
-        manager: user.companyManager || companyInfo.manager || companyInfo.role || '',
+        // Use new structure with fallbacks for backward compatibility
+        companyAddress: companyInfo.companyAddress || companyInfo.address || '',
+        address: companyInfo.companyAddress || companyInfo.address || '',
+        companyTaxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
+        taxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
+        companyManager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
+        manager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
+        companyLogo: companyInfo.companyLogo || '',
         // Keep original fields for backward compatibility
-        role: user.companyManager || companyInfo.manager || companyInfo.role || ''
+        role: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || ''
       };
       
       // Log user and company data for debugging
@@ -39,21 +44,23 @@ const createDocumentController = (config) => {
       
       console.log(`[${documentName}] Mapped company data:`);
       console.log(`[${documentName}] Company name: "${company.companyName}"`);
-      console.log(`[${documentName}] Company address: "${company.address}"`);
-      console.log(`[${documentName}] Company tax number: "${company.taxNumber}"`);
-      console.log(`[${documentName}] Company manager: "${company.manager}"`);
+      console.log(`[${documentName}] Company address: "${company.companyAddress}"`);
+      console.log(`[${documentName}] Company tax number: "${company.companyTaxNumber}"`);
+      console.log(`[${documentName}] Company manager: "${company.companyManager}"`);
+      console.log(`[${documentName}] Company logo: "${company.companyLogo}"`);
       
       // Log original data structure for debugging
       if (user.companyInfo) {
-        console.log(`[${documentName}] Original companyInfo fields:`, Object.keys(user.companyInfo));
-        console.log(`[${documentName}] Original companyManager field:`, user.companyManager);
+        console.log(`[${documentName}] CompanyInfo fields:`, Object.keys(user.companyInfo));
+        console.log(`[${documentName}] CompanyInfo manager:`, user.companyInfo.companyManager);
+        console.log(`[${documentName}] Legacy companyManager field:`, user.companyManager);
       } else {
         console.log(`[${documentName}] No company info found in user object`);
       }
 
       // Log request for debugging
       console.log(`[${documentName}] Processing request for user: ${user.email}`);
-      console.log(`[${documentName}] Form data keys: ${Object.keys(formData).join(', ')}`);
+      console.log(`[${documentName}] Form data keys: ${formData ? Object.keys(formData).join(', ') : 'No form data'}`);
 
       // Validate request data
       if (!formData || typeof formData !== 'object') {

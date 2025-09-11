@@ -15,25 +15,7 @@ const REQUIRED_FIELDS = [];
  * Ultra-simplified validation function - all fields optional
  * Users can complete document manually in .docx file
  */
-const validateTerminationDueToFault = (formData, user, company) => {
-  const warnings = [];
-
-  // Only EMBG validation if provided
-  if (formData.employeePIN && !validators.pin(formData.employeePIN)) {
-    warnings.push('ЕМБГ треба да содржи точно 13 цифри доколку го внесувате');
-  }
-
-  return {
-    isValid: true, // Always allow document generation - even completely empty
-    missing: [],
-    errors: {},
-    warnings,
-    message: warnings.length > 0 ? 
-      `Препораки: ${warnings.join(' ')}` : 
-      null
-  };
-};
-
+const validateFunction = null;
 /**
  * Ultra-simplified preprocessing for termination document
  * Handles article case parsing and basic data cleanup
@@ -74,7 +56,7 @@ const terminationDueToFaultController = createDocumentController({
   templateFunction: generateTerminationDueToFaultDoc,
   requiredFields: REQUIRED_FIELDS, // Empty array - all fields optional
   documentName: 'одлука-за-престанок-поради-вина',
-  validateFunction: validateTerminationDueToFault,
+  validateFunction: null,
   preprocessFunction: preprocessTerminationDueToFaultData
 });
 

@@ -22,6 +22,8 @@ const terminationDueToAgeLimitController = require('../controllers/autoDocuments
 const organizationActController = require('../controllers/autoDocuments/organizationActController');
 const mandatoryBonusController = require('../controllers/autoDocuments/mandatoryBonusController');
 const ndaController = require('../controllers/autoDocuments/ndaController');
+const vehicleSalePurchaseAgreementController = require('../controllers/autoDocuments/vehicleSalePurchaseAgreementController');
+const personalDataRulebookController = require('../controllers/autoDocuments/personalDataRulebookController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
@@ -84,6 +86,13 @@ router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, rentAgre
 
 // NDA (Договор за доверливост на информации)
 router.post('/nda', authenticateJWT, requireVerifiedCompany, ndaController);
+
+// Vehicle Sale-Purchase Agreement (Договор за продажба-купување на возило)
+router.post('/vehicle-sale-purchase-agreement', authenticateJWT, requireVerifiedCompany, vehicleSalePurchaseAgreementController);
+
+// Rulebooks
+// Personal Data Rulebook (Правилник за заштита на личните податоци)
+router.post('/personal-data-rulebook', authenticateJWT, requireVerifiedCompany, personalDataRulebookController);
 
 // Add more document routes here as needed
 

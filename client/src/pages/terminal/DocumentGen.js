@@ -224,7 +224,7 @@ const DocumentGen = () => {
     return (
       <div className={styles['categories-container']}>
         <div className={styles['document-header']}>
-          <h1>Генератор на документи</h1>
+          <h1>Автоматизирани документи</h1>
           <p>Изберете категорија за да започнете</p>
         </div>
         <div className={styles['search-bar-container']}>

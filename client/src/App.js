@@ -47,6 +47,8 @@ import OrganizationActPage from './pages/terminal/documents/employment/Organizat
 import MandatoryBonusPage from './pages/terminal/documents/employment/MandatoryBonusPage';
 import RentAgreementPage from './pages/terminal/documents/contracts/RentAgreementPage';
 import NdaPage from './pages/terminal/documents/contracts/NdaPage';
+import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
+import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -135,6 +137,10 @@ function App() {
       {/* Contracts */}
       <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired feature="договор за доверливост"><NdaPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired feature="договор за возила"><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
+
+      {/* Rulebooks */}
+      <Route path="/terminal/documents/rulebooks/personal-data-rulebook" element={<PrivateRoute><VerificationRequired feature="правилник за податоци"><PersonalDataRulebookPage/></VerificationRequired></PrivateRoute>} />
  
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

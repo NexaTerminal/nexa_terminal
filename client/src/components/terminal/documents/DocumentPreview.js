@@ -49,6 +49,12 @@ const documentHeadlines = {
   nda: "ДОГОВОР ЗА ДОВЕРЛИВОСТ НА ИНФОРМАЦИИ",
   employeeDamagesStatement: "ИЗЈАВА ЗА СОГЛАСНОСТ ЗА НАМАЛУВАЊЕ НА ПЛАТА ПОРАДИ ПРЕДИЗВИКАНА ШТЕТА",
   terminationDueToAgeLimit: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВОЗРАСНА ГРАНИЦА",
+  
+  // Obligations  
+  vehicleSalePurchaseAgreement: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
+
+  // Rulebooks
+  personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
 
   // ...add more as needed
 };
@@ -534,6 +540,72 @@ const documentSentences = {
         fields: ['additionalTerms']
       }
     ]
+  },
+  vehicleSalePurchaseAgreement: {
+    title: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
+    sentences: [
+      {
+        text: "Склучен на ден {contractDate} година во {placeOfSigning}, помеѓу продавачот и купувачот.",
+        fields: ['contractDate', 'placeOfSigning']
+      },
+      {
+        text: "Вашата компанија {companyName} во овој договор е {userRole} на возилото.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "Другата договорна страна е {otherPartyType}: {otherPartyName} {otherPartyCompanyName} со адреса {otherPartyAddress}.",
+        fields: ['otherPartyType', 'otherPartyName', 'otherPartyCompanyName', 'otherPartyAddress']
+      },
+      {
+        text: "Идентификација на другата страна: ЕМБГ {otherPartyPIN}, ЕДБ {otherPartyTaxNumber}, управител {otherPartyManager}.",
+        fields: ['otherPartyPIN', 'otherPartyTaxNumber', 'otherPartyManager']
+      },
+      {
+        text: "Предмет на договорот е {vehicleType} марка {vehicleBrand} {commercialBrand} со број на шасија {chassisNumber}.",
+        fields: ['vehicleType', 'vehicleBrand', 'commercialBrand', 'chassisNumber']
+      },
+      {
+        text: "Возилото е произведено во {productionYear} година со регистарски таблички {registrationNumber}.",
+        fields: ['productionYear', 'registrationNumber']
+      },
+      {
+        text: "Договорената цена за возилото изнесува {price} денари, со начин на плаќање {paymentMethod} {paymentDate}.",
+        fields: ['price', 'paymentMethod', 'paymentDate']
+      },
+      {
+        text: "За спорови надлежен е Основен граѓански суд {competentCourt}.",
+        fields: ['competentCourt']
+      }
+    ]
+  },
+  personalDataRulebook: {
+    title: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
+    sentences: [
+      {
+        text: "Правилникот за заштита на деловна тајна на {companyName} стапува на сила на {effectiveDate} година според член 35 од Законот за работни односи.",
+        fields: ['companyName', 'effectiveDate']
+      },
+      {
+        text: "Заштитениот производ/услуга {productNameProtected} се смета за деловна тајна и подлежи на строга доверливост.",
+        fields: ['productNameProtected']
+      },
+      {
+        text: "Периодот на доверливост по престанок на работниот однос изнесува {confidentialityPeriod} години за заштита на деловните тајни и know-how.",
+        fields: ['confidentialityPeriod']
+      },
+      {
+        text: "Под деловна тајна се подразбираат сите внатрешни и надворешни документи, спецификации, финансиски информации, податоци за клиенти и соработници на компанијата.",
+        fields: []
+      },
+      {
+        text: "Вработените и раководните лица се должни да обезбедат највисок степен на доверливост на деловните тајни без да овозможат пристап на неовластени лица.",
+        fields: []
+      },
+      {
+        text: "При повреда на доверливоста, вработените одговараат материјално за целокупната штета причинета на компанијата.",
+        fields: []
+      }
+    ]
   }
 };
 
@@ -571,7 +643,7 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employeeWrongdoingDate', 'decisionDate', 'contractDate', 'employmentStartDate',
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline', 
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
-         'contractStartDate', 'documentDate', 'violationDate'].includes(fieldName)) {
+         'contractStartDate', 'documentDate', 'violationDate', 'paymentDate'].includes(fieldName)) {
       return formatDate(value);
     }
     
@@ -592,13 +664,26 @@ const renderLivePreview = ({ formData, company, documentType }) => {
              value === 'определено време' ? 'определено времетраење' : value;
     }
     
-    // Handle rent agreement specific fields
+    // Handle rent agreement and vehicle agreement specific fields
     if (fieldName === 'userRole') {
-      return value === 'landlord' ? 'закуподавач' : value === 'tenant' ? 'закупец' : value;
+      if (value === 'landlord') return 'закуподавач';
+      if (value === 'tenant') return 'закупец';
+      if (value === 'seller') return 'продавач';
+      if (value === 'buyer') return 'купувач';
+      return value;
     }
     
     if (fieldName === 'otherPartyType') {
-      return value === 'individual' ? 'физичко лице' : value === 'company' ? 'правно лице (компанија)' : value;
+      if (value === 'individual' || value === 'natural') return 'физичко лице';
+      if (value === 'company') return 'правно лице (компанија)';
+      return value;
+    }
+    
+    // Handle vehicle agreement specific fields
+    if (fieldName === 'paymentMethod') {
+      if (value === 'notary_day') return 'на денот на заверката кај нотар';
+      if (value === 'custom_date') return 'на определен датум';
+      return value;
     }
     
     if (fieldName === 'includesVAT') {

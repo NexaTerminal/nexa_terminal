@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from '../../../styles/terminal/admin/AddBlog.module.css';
 import Header from '../../../components/common/Header';
@@ -10,18 +10,27 @@ import ProfileRequired from '../../../components/common/ProfileRequired';
 const AddBlog = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
-  
+  const [searchParams] = useSearchParams();
+
   const isTerminal = true;
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     excerpt: '',
-    category: 'general',
+    category: 'legal',
     language: 'mk',
     featuredImage: '',
     status: 'published',
     tags: ''
   });
+
+  // Set category from URL parameter
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && ['legal', 'entrepreneurship', 'investments', 'news', 'marketing'].includes(categoryParam)) {
+      setFormData(prev => ({ ...prev, category: categoryParam }));
+    }
+  }, [searchParams]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -61,11 +70,11 @@ const AddBlog = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || 'Грешка при додавање на блог постот.');
+        throw new Error(errorText || 'Грешка при додавање на објавата.');
       }
 
       const result = await response.json();
-      setSuccess('Blog created successfully!');
+      setSuccess('Објавата беше успешно додадена!');
       setFormData({
         title: '',
         content: '',
@@ -85,12 +94,11 @@ const AddBlog = () => {
   };
 
   const categories = [
-    { value: 'general', label: 'Општо' },
-    { value: 'business', label: 'Бизнис' },
-    { value: 'technology', label: 'Технологија' },
-    { value: 'economy', label: 'Економија' },
     { value: 'legal', label: 'Правни прашања' },
-    { value: 'finance', label: 'Финансии' }
+    { value: 'entrepreneurship', label: 'Претприемништво' },
+    { value: 'investments', label: 'Инвестиции' },
+    { value: 'news', label: 'Вести' },
+    { value: 'marketing', label: 'Маркетинг' }
   ];
 
   const languages = [
@@ -113,7 +121,7 @@ const AddBlog = () => {
           
           <main className={styles["dashboard-main"]}>
             <div className={styles.container}>
-              <h1>Додади нов блог пост</h1>
+              <h1>Додади нова објава</h1>
 
               {error && <div className={styles.error}>{error}</div>}
               {success && <div className={styles.success}>{success}</div>}
@@ -129,7 +137,7 @@ const AddBlog = () => {
                     onChange={handleInputChange}
                     required
                     className={styles.input}
-                    placeholder="Внесете наслов на блог постот"
+                    placeholder="Внесете наслов на објавата"
                   />
                 </div>
 
@@ -143,7 +151,7 @@ const AddBlog = () => {
                     required
                     className={styles.textarea}
                     rows={8}
-                    placeholder="Внесете содржина на блог постот"
+                    placeholder="Внесете содржина на објавата"
                   />
                 </div>
 
@@ -156,7 +164,7 @@ const AddBlog = () => {
                     onChange={handleInputChange}
                     className={styles.textarea}
                     rows={3}
-                    placeholder="Краток опис на блог постот (опционално)"
+                    placeholder="Краток опис на објавата (опционално)"
                   />
                 </div>
 
@@ -247,7 +255,7 @@ const AddBlog = () => {
                     className={styles.submitButton}
                     disabled={loading}
                   >
-                    {loading ? 'Се додава...' : 'Додади блог пост'}
+                    {loading ? 'Се додава...' : 'Додади објава'}
                   </button>
                   <button
                     type="button"

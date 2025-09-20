@@ -1,7 +1,8 @@
 /* Social Feed Styles */
 .socialFeed {
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
+  margin-left: 4px;
   padding: 20px;
 }
 
@@ -858,4 +859,230 @@
   color: #888;
   margin-top: 4px;
   margin-bottom: 0;
+}
+
+/* New Blog Card Styles */
+.blogCard {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 220px;
+}
+
+.blogCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.blogCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+.blogCardLayout {
+  display: flex;
+  height: 100%;
+}
+
+.blogImageContainer {
+  flex: 0 0 30%;
+  width: 30%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blogFeaturedImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blogCard:hover .blogFeaturedImage {
+  transform: scale(1.05);
+}
+
+.blogImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #6c757d;
+  font-size: 3rem;
+}
+
+.blogCardContent {
+  flex: 1;
+  width: 70%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.blogMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.blogCategory {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 3px 8px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.blogDate {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.blogCardTitle {
+  color: #1a202c;
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  transition: color 0.3s ease;
+  flex-grow: 1;
+}
+
+.blogCard:hover .blogCardTitle {
+  color: #2563eb;
+}
+
+.blogCardExcerpt {
+  color: #4a5568;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  flex-grow: 1;
+}
+
+.blogTags {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.blogTag {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.blogStats {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.blogStatsLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.blogTypeIcon {
+  font-size: 14px;
+}
+
+.blogTypeLabel {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.blogAuthor {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.blogStatsRight {
+  display: flex;
+  gap: 10px;
+}
+
+.blogViews,
+.blogLikes {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.blogReadMore {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.blogReadMore span {
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.blogCard:hover .blogReadMore span {
+  color: #1d4ed8;
+}
+
+/* Responsive Design for Blog Cards */
+@media (max-width: 768px) {
+  .blogCard {
+    margin-bottom: 16px;
+    height: auto;
+  }
+
+  .blogCardLayout {
+    flex-direction: column;
+  }
+
+  .blogImageContainer {
+    width: 100%;
+    height: 160px;
+  }
+
+  .blogCardContent {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .blogCardTitle {
+    font-size: 1.1rem;
+  }
+
+  .blogCardExcerpt {
+    font-size: 13px;
+  }
+
+  .blogStats {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .blogStatsRight {
+    gap: 12px;
+  }
 }

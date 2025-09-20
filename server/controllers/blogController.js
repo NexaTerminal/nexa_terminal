@@ -30,6 +30,8 @@ class BlogController {
     // Bind methods to preserve 'this' context
     this.getAllBlogs = this.getAllBlogs.bind(this);
     this.getBlogById = this.getBlogById.bind(this);
+    this.getPublicBlogs = this.getPublicBlogs.bind(this);
+    this.getPublicBlogById = this.getPublicBlogById.bind(this);
     this.createBlog = this.createBlog.bind(this);
     this.updateBlog = this.updateBlog.bind(this);
     this.deleteBlog = this.deleteBlog.bind(this);
@@ -38,8 +40,71 @@ class BlogController {
     this.getTags = this.getTags.bind(this);
   }
 
+  // Helper method to format content into proper paragraphs
+  formatContentToParagraphs(content) {
+    if (!content) return '';
+
+    // If already has HTML tags, return as is
+    if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>')) {
+      return content;
+    }
+
+    // First, normalize line endings to \n
+    content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Split content by double line breaks first (explicit paragraph separators)
+    let paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
+
+    // If we found double line breaks, use those as paragraph separators
+    if (paragraphs.length > 1) {
+      // For each paragraph, replace single line breaks with spaces (within paragraph)
+      paragraphs = paragraphs.map(p =>
+        p.replace(/\n/g, ' ')
+         .replace(/\s+/g, ' ')
+         .trim()
+      ).filter(p => p);
+    } else {
+      // If no double line breaks, check for single line breaks
+      const singleBreakParagraphs = content.split(/\n/).filter(p => p.trim());
+
+      if (singleBreakParagraphs.length > 1) {
+        // Use single line breaks as paragraph separators
+        paragraphs = singleBreakParagraphs.map(p => p.trim()).filter(p => p);
+      } else {
+        // No line breaks at all - split by sentences for very long content
+        if (content.length > 500) {
+          const sentences = content.split(/(?<=[.!?])\s+(?=[А-ЯЀЁЂЃЄЅІЇЈЉЊЋЌЎЏA-Z])/);
+
+          paragraphs = [];
+          let currentParagraph = [];
+          const sentencesPerParagraph = Math.max(2, Math.ceil(sentences.length / 4));
+
+          sentences.forEach((sentence, index) => {
+            currentParagraph.push(sentence.trim());
+
+            if (currentParagraph.length >= sentencesPerParagraph || index === sentences.length - 1) {
+              const paragraphText = currentParagraph.join(' ').trim();
+              if (paragraphText) {
+                paragraphs.push(paragraphText);
+              }
+              currentParagraph = [];
+            }
+          });
+        } else {
+          // Short content without line breaks - keep as single paragraph
+          paragraphs = [content.trim()];
+        }
+      }
+    }
+
+    // Wrap each paragraph in <p> tags and preserve spacing
+    return paragraphs
+      .map(p => `<p>${p.trim()}</p>`)
+      .join('\n\n');
+  }
+
   // Get all blogs with filtering and pagination
-  getAllBlogs: async (req, res) => {
+  async getAllBlogs(req, res) {
     try {
       const { page = 1, limit = 10, category, tag, search, language } = req.query;
 
@@ -65,27 +130,33 @@ class BlogController {
         query.language = language;
       }
 
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
       // Execute query with pagination
-      const totalBlogs = await Blog.countDocuments(query);
-      const blogs = await Blog.find(query)
+      const totalBlogs = await blogsCollection.countDocuments(query);
+      const blogs = await blogsCollection.find(query)
         .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
+        .skip((page - 1) * parseInt(limit))
         .limit(parseInt(limit))
-        .populate('author', 'username email profileImage');
+        .toArray();
 
       // Transform blogs for response
       const transformedBlogs = blogs.map(blog => ({
         id: blog._id,
         title: blog.title,
         content: blog.content,
+        excerpt: blog.excerpt,
         category: blog.category,
-        tags: blog.tags,
-        language: blog.language,
-        author: blog.author,
+        tags: blog.tags || [],
+        language: blog.contentLanguage || blog.language || 'en',
+        featuredImage: blog.featuredImage,
+        author: blog.author || { name: 'Unknown Author' },
         createdAt: blog.createdAt,
         updatedAt: blog.updatedAt,
-        featured: blog.featured,
-        status: blog.status
+        status: blog.status || 'published',
+        views: blog.views || 0,
+        likes: blog.likes || 0
       }));
 
       res.json({
@@ -94,7 +165,7 @@ class BlogController {
           page: parseInt(page),
           limit: parseInt(limit),
           total: totalBlogs,
-          pages: Math.ceil(totalBlogs / limit)
+          pages: Math.ceil(totalBlogs / parseInt(limit))
         }
       });
 
@@ -102,7 +173,7 @@ class BlogController {
       console.error('Error fetching blogs:', error);
       res.status(500).json({ message: 'Error fetching blogs' });
     }
-  },
+  }
 
   // Get single blog post by ID
   async getBlogById(req, res) {
@@ -179,10 +250,12 @@ class BlogController {
       const userId = req.user.id || req.user._id;
 
       // Create blog object - use contentLanguage instead of language to avoid MongoDB text index conflicts
+      const formattedContent = this.formatContentToParagraphs(content);
+
       const newBlog = {
         _id: uuidv4(),
         title: title.trim(),
-        content,
+        content: formattedContent,
         excerpt: excerpt || content.substring(0, 200) + '...',
         category,
         tags: tags || [],
@@ -202,30 +275,7 @@ class BlogController {
       // Insert blog
       await blogsCollection.insertOne(newBlog);
 
-      // Create social post for the blog
-      try {
-        const socialPostsCollection = db.collection('socialPosts');
-        const socialPost = {
-          _id: uuidv4(),
-          content: `Нов блог: ${newBlog.title}`,
-          postType: 'admin_blog',
-          blogId: newBlog._id,
-          author: {
-            _id: userId,
-            email: req.user.email,
-            username: req.user.username,
-            companyInfo: req.user.companyInfo
-          },
-          createdAt: new Date(),
-          comments: [],
-          likes: []
-        };
-        
-        await socialPostsCollection.insertOne(socialPost);
-      } catch (socialError) {
-        console.error('Error creating social post for blog:', socialError);
-        // Don't fail the blog creation if social post fails
-      }
+      // Note: No longer creating social posts since all content is now in blogs collection
 
       res.status(201).json({
         message: 'Blog post created successfully',
@@ -353,6 +403,144 @@ class BlogController {
       res.json(tags);
     } catch (error) {
       console.error('Error fetching tags:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // PUBLIC METHODS - No authentication required for external Next.js apps
+
+  // Get all published blogs (public access)
+  async getPublicBlogs(req, res) {
+    try {
+      const { page = 1, limit = 10, category, tag, search, language } = req.query;
+
+      // Build query - only published posts
+      let query = { status: 'published' };
+
+      if (category) {
+        query.category = category;
+      }
+
+      if (tag) {
+        query.tags = { $in: [tag] };
+      }
+
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+          { excerpt: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      if (language) {
+        query.contentLanguage = language;
+      }
+
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
+      // Execute query with pagination
+      const totalBlogs = await blogsCollection.countDocuments(query);
+      const blogs = await blogsCollection.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .toArray();
+
+      // Transform blogs for public response (remove sensitive data)
+      const transformedBlogs = blogs.map(blog => ({
+        id: blog._id,
+        title: blog.title,
+        content: blog.content,
+        excerpt: blog.excerpt,
+        category: blog.category,
+        tags: blog.tags,
+        language: blog.contentLanguage,
+        featuredImage: blog.featuredImage,
+        author: blog.author ? {
+          name: blog.author.name || 'Unknown Author'
+        } : { name: 'Unknown Author' },
+        createdAt: blog.createdAt,
+        updatedAt: blog.updatedAt,
+        views: blog.views || 0,
+        likes: blog.likes || 0
+      }));
+
+      // Set CORS headers for cross-domain access
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+      res.json({
+        blogs: transformedBlogs,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: totalBlogs,
+          pages: Math.ceil(totalBlogs / parseInt(limit))
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching public blogs:', error);
+      res.status(500).json({ message: 'Error fetching blogs' });
+    }
+  }
+
+  // Get single published blog post by ID (public access)
+  async getPublicBlogById(req, res) {
+    try {
+      const { id } = req.params;
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
+      const blog = await blogsCollection.findOne({
+        _id: id,
+        status: 'published'
+      });
+
+      if (!blog) {
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+
+      // Transform for public response (remove sensitive data)
+      const transformedBlog = {
+        id: blog._id,
+        title: blog.title,
+        content: blog.content,
+        excerpt: blog.excerpt,
+        category: blog.category,
+        tags: blog.tags || [],
+        language: blog.contentLanguage || blog.language || 'en',
+        featuredImage: blog.featuredImage || null,
+        author: blog.author ? {
+          name: blog.author.name || 'Unknown Author'
+        } : { name: 'Unknown Author' },
+        createdAt: blog.createdAt,
+        updatedAt: blog.updatedAt || blog.createdAt,
+        views: blog.views || 0,
+        likes: blog.likes || 0
+      };
+
+      // Optional: Increment view count
+      try {
+        await blogsCollection.updateOne(
+          { _id: id },
+          { $inc: { views: 1 } }
+        );
+      } catch (viewError) {
+        console.warn('Could not increment view count:', viewError);
+      }
+
+      // Set CORS headers for cross-domain access
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+      res.json(transformedBlog);
+    } catch (error) {
+      console.error('Error fetching public blog:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }

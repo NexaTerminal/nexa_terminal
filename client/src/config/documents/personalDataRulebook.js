@@ -1,6 +1,6 @@
 export const personalDataRulebookConfig = {
-  documentType: 'personalDataRulebook',
-  apiEndpoint: 'personal-data-rulebook',
+  documentType: 'businessSecretRulebook',
+  apiEndpoint: 'business-secret-rulebook',
   fileName: null, // Will be auto-generated
 
   // Multi-step form configuration

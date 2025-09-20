@@ -43,10 +43,14 @@ const documentHeadlines = {
 
   // Personal Data Protection
   consentForPersonalDataProcessing: "СОГЛАСНОСТ ЗА ОБРАБОТКА НА ЛИЧНИ ПОДАТОЦИ",
+  politicsForDataProtection: "ПОЛИТИКА ЗА ЗАШТИТА НА ЛИЧНИ ПОДАТОЦИ",
+  gdprCompanyPolitics: "ПОЛИТИКА ЗА АДМИНИСТРИРАЊЕ СО ПРАВАТА НА СУБЈЕКТИТЕ НА ПЕРСОНАЛНИ ПОДАТОЦИ",
+  procedureForEstimation: "ПРОЦЕДУРА ЗА ПРОЦЕНКА НА ВЛИЈАНИЕТО ВРЗ ЗАШТИТАТА НА ЛИЧНИТЕ ПОДАТОЦИ И УПРАВУВАЊЕ СО РИЗИК",
 
   // Contracts
   rentAgreement: "ДОГОВОР ЗА ЗАКУП НА НЕДВИЖЕН ИМОТ",
   nda: "ДОГОВОР ЗА ДОВЕРЛИВОСТ НА ИНФОРМАЦИИ",
+  mediationAgreement: "ДОГОВОР ЗА ПОСРЕДУВАЊЕ",
   employeeDamagesStatement: "ИЗЈАВА ЗА СОГЛАСНОСТ ЗА НАМАЛУВАЊЕ НА ПЛАТА ПОРАДИ ПРЕДИЗВИКАНА ШТЕТА",
   terminationDueToAgeLimit: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВОЗРАСНА ГРАНИЦА",
   
@@ -342,6 +346,31 @@ const documentSentences = {
       }
     ]
   },
+  politicsForDataProtection: {
+    title: "ПОЛИТИКА ЗА ЗАШТИТА НА ЛИЧНИ ПОДАТОЦИ",
+    sentences: [
+      {
+        text: "Компанијата {companyName} усвојува политика за заштита на лични податоци која влегува во сила на {effectiveDate}.",
+        fields: ['companyName', 'effectiveDate']
+      },
+      {
+        text: "Политиката се однесува на {dataGroups} категории на лични податоци кои се обработуваат во рамки на деловната активност.",
+        fields: ['dataGroups']
+      },
+      {
+        text: "Обработката се врши согласно GDPR и македонската регулатива за заштита на лични податоци.",
+        fields: []
+      },
+      {
+        text: "Субјектите на податоци имаат право на пристап, исправка, бришење и преносливост на своите лични податоци.",
+        fields: []
+      },
+      {
+        text: "За контакт во врска со заштитата на лични податоци: {companyName} на {companyAddress}.",
+        fields: ['companyName', 'companyAddress']
+      }
+    ]
+  },
   terminationDueToFault: {
     title: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВИНА НА РАБОТНИКОТ",
     sentences: [
@@ -606,6 +635,229 @@ const documentSentences = {
         fields: []
       }
     ]
+  },
+  mediationAgreement: {
+    title: "ДОГОВОР ЗА ПОСРЕДУВАЊЕ (чл. 869-882 ЗОО)",
+    sentences: [
+      {
+        text: "На ден {agreementDate} година се склучи следниот договор за посредување помеѓу посредникот и налогодавецот согласно членови 869-882 од Законот за облигациони односи.",
+        fields: ['agreementDate']
+      },
+      {
+        text: "Ваша улога во договорот: {userRole} според член 869 од ЗОО.",
+        fields: ['userRole']
+      },
+      {
+        text: "Посредник: {mediatorName} со седиште на {mediatorAddress}, ЕДБ број {mediatorTaxNumber}, претставуван од {mediatorManager}.",
+        fields: ['mediatorName', 'mediatorAddress', 'mediatorTaxNumber', 'mediatorManager']
+      },
+      {
+        text: "Контакт информации на посредникот: телефон {mediatorPhone}, е-пошта {mediatorEmail}.",
+        fields: ['mediatorPhone', 'mediatorEmail']
+      },
+      {
+        text: "Налогодавец: {clientName} со адреса {clientAddress}, идентификација {clientPin} {clientTaxNumber}.",
+        fields: ['clientName', 'clientAddress', 'clientPin', 'clientTaxNumber']
+      },
+      {
+        text: "Управител на налогодавецот: {clientManager}, контакт {clientPhone}, е-пошта {clientEmail}.",
+        fields: ['clientManager', 'clientPhone', 'clientEmail']
+      },
+      {
+        text: "Договорот е склучен за времетраење од {agreementDuration} на територија {territoryScope}.",
+        fields: ['agreementDuration', 'territoryScope']
+      },
+      {
+        text: "Тип на посредување: {typeOfMediation} за склучување на {specificContractType} согласно член 870 од ЗОО.",
+        fields: ['typeOfMediation', 'specificContractType']
+      },
+      {
+        text: "Очекувана вредност на договорот: {targetContractValueRange}.",
+        fields: ['targetContractValueRange']
+      },
+      {
+        text: "Стапка на комисија: {commissionRate}% пресметана како {commissionCalculation}.",
+        fields: ['commissionRate', 'commissionCalculation']
+      },
+      {
+        text: "Фиксен износ на комисија: {fixedCommissionAmount} денари (кога е применливо).",
+        fields: ['fixedCommissionAmount']
+      },
+      {
+        text: "Минимална комисија: {minimumCommission} денари, максимална комисија: {maximumCommission} денари.",
+        fields: ['minimumCommission', 'maximumCommission']
+      },
+      {
+        text: "Време на плаќање на комисијата: {paymentTiming} согласно член 878-879 од ЗОО.",
+        fields: ['paymentTiming']
+      },
+      {
+        text: "Надоместување на трошоци: {costReimbursement} вклучувајќи патувања {travelCostsIncluded}, реклами {advertisementCostsIncluded}, правни консултации {legalConsultationCostsIncluded}.",
+        fields: ['costReimbursement', 'travelCostsIncluded', 'advertisementCostsIncluded', 'legalConsultationCostsIncluded']
+      },
+      {
+        text: "Период на доверливост: {confidentialityPeriod} по престанокот на договорот согласно член 876 од ЗОО.",
+        fields: ['confidentialityPeriod']
+      },
+      {
+        text: "Водење дневник на посредување: {mediatorDiaryRequired} (законски задолжително според член 877).",
+        fields: ['mediatorDiaryRequired']
+      },
+      {
+        text: "Писмено овластување за примање исполнување: {writtenAuthorizationForPerformance} согласно член 871 од ЗОО.",
+        fields: ['writtenAuthorizationForPerformance']
+      },
+      {
+        text: "Ексклузивно посредување: {exclusiveMediation}, двојно застапување: {dualRepresentationAllowed} (член 881 од ЗОО).",
+        fields: ['exclusiveMediation', 'dualRepresentationAllowed']
+      },
+      {
+        text: "Отказен рок за престанок на налогот: {earlyTerminationNoticePeriod} согласно член 872 од ЗОО.",
+        fields: ['earlyTerminationNoticePeriod']
+      },
+      {
+        text: "Решавање на спорови: {disputeResolution} согласно македонското законодавство.",
+        fields: ['disputeResolution']
+      },
+      {
+        text: "Правни обврски: Посредникот се обврзува на грижа на добар деловен човек (член 874), водење дневник (член 877), и доверливост (член 876).",
+        fields: []
+      },
+      {
+        text: "Права на налогодавецот: Право на отповик на налогот во секое време (член 872) и нема обврска да склучи договор (член 873).",
+        fields: []
+      },
+      {
+        text: "Губење право на надоместок: Кога посредникот работи против интересите на налогодавецот (член 882).",
+        fields: []
+      }
+    ]
+  },
+  gdprCompanyPolitics: {
+    title: "ПОЛИТИКА ЗА АДМИНИСТРИРАЊЕ СО ПРАВАТА НА СУБЈЕКТИТЕ НА ПЕРСОНАЛНИ ПОДАТОЦИ",
+    sentences: [
+      {
+        text: "📋 ОСНОВИ НА ОБРАБОТКА: Врз основа на Законот за заштита на личните податоци, {companyName} со седиште на {companyAddress} и ЕДБ {companyTaxNumber} на датум {adoptionDate} ја усвои следната политика.",
+        fields: ['companyName', 'companyAddress', 'companyTaxNumber', 'adoptionDate']
+      },
+      {
+        text: "🏢 ДЕЛОВНА АКТИВНОСТ: Компанијата се занимава со {primaryBusinessActivity} и извршува {dataProcessingComplexity} на обработка на персонални податоци.",
+        fields: ['primaryBusinessActivity', 'dataProcessingComplexity']
+      },
+      {
+        text: "🔐 СПЕЦИЈАЛНИ ПОДАТОЦИ: {processesSpecialCategories|Обработува специјални категории персонални податоци|Не обработува специјални категории персонални податоци} {sensitiveDataProcessing}.",
+        fields: ['processesSpecialCategories', 'sensitiveDataProcessing']
+      },
+      {
+        text: "🤖 АВТОМАТИЗИРАНИ ОДЛУКИ: {usesAutomatedDecisionMaking|Користи автоматизирано донесување одлуки|Не користи автоматизирано донесување одлуки} {automatedDecisionTypes}.",
+        fields: ['usesAutomatedDecisionMaking', 'automatedDecisionTypes']
+      },
+      {
+        text: "📢 ДИРЕКТЕН МАРКЕТИНГ: {performsDirectMarketing|Извршува директни маркетиншки активности|Не извршува директни маркетиншки активности} преку каналите {marketingChannels}.",
+        fields: ['performsDirectMarketing', 'marketingChannels']
+      },
+      {
+        text: "🌍 МЕЃУНАРОДНИ ТРАНСФЕРИ: {hasInternationalTransfers|Извршува меѓународни трансфери на податоци|Не извршува меѓународни трансфери на податоци}.",
+        fields: ['hasInternationalTransfers']
+      },
+      {
+        text: "📊 ТИПОВИ ПОДАТОЦИ И ПРАВА: Обработуваме следните категории персонални податоци: {personalDataCategories}.",
+        fields: ['personalDataCategories']
+      },
+      {
+        text: "↔️ ПОРТАБИЛНОСТ НА ПОДАТОЦИ: {dataPortabilityApplicable|Правото на портабилност е применливо|Правото на портабилност не е применливо} за нашите процеси на обработка.",
+        fields: ['dataPortabilityApplicable']
+      },
+      {
+        text: "🤝 СПОДЕЛУВАЊЕ СО ТРЕТИ СТРАНИ: {sharesDataWithThirdParties|Споделуваме податоци со трети страни|Не споделуваме податоци со трети страни} {typicalDataRecipients}.",
+        fields: ['sharesDataWithThirdParties', 'typicalDataRecipients']
+      },
+      {
+        text: "📝 НАЧИНИ НА ПОДНЕСУВАЊЕ: Субјектите можат да поднесуваат барања преку: {allowEmailSubmission|е-пошта|} {allowPostalSubmission|пошта|} {allowInPersonSubmission|лично посетување|} {allowOnlinePortalSubmission|онлајн портал|}.",
+        fields: ['allowEmailSubmission', 'allowPostalSubmission', 'allowInPersonSubmission', 'allowOnlinePortalSubmission']
+      },
+      {
+        text: "🆔 ВЕРИФИКАЦИЈА НА ИДЕНТИТЕТ: Применуваме {identityVerificationLevel} за потврдување на идентитетот на субјектите пред обработка на барањата.",
+        fields: ['identityVerificationLevel']
+      },
+      {
+        text: "⏱️ ВРЕМЕ ЗА ОДГОВОР: Стандардното време за одговор на барањата изнесува {standardResponseTime} {complexRequestExtension|со можност за продолжување за комплексни барања|без можност за продолжување}.",
+        fields: ['standardResponseTime', 'complexRequestExtension']
+      },
+      {
+        text: "👤 ОФИЦЕР ЗА ЗАШТИТА НА ЛИЧНИ ПОДАТОЦИ: {hasDedicatedDPO|Имаме назначено ОФЗЛП|Немаме назначено ОФЗЛП} {companyDPO} ({dpoIsInternal|интерен вработен|надворешен консултант}) со контакт {companyDPOemail} и телефон {companyDPOphone}.",
+        fields: ['hasDedicatedDPO', 'companyDPO', 'dpoIsInternal', 'companyDPOemail', 'companyDPOphone']
+      },
+      {
+        text: "🏢 ОДГОВОРНОСТ И КОНТАКТ: За управување со барањата одговара {responsibleDepartment}, контакт е-пошта: {companyEmail}, достапни во работно време {businessHours}.",
+        fields: ['responsibleDepartment', 'companyEmail', 'businessHours']
+      },
+      {
+        text: "🌐 ЈАЗИЦИ ЗА КОМУНИКАЦИЈА: Комуницираме на следните јазици: {preferredContactLanguages}.",
+        fields: ['preferredContactLanguages']
+      },
+      {
+        text: "📋 ЦЕНТРАЛИЗИРАН РЕГИСТАР: {usesCentralizedRegistry|Користиме централизиран регистар|Не користиме централизиран регистар} за следење на сите барања од субјектите.",
+        fields: ['usesCentralizedRegistry']
+      },
+      {
+        text: "🎓 ЕДУКАЦИЈА НА ПЕРСОНАЛ: Спроведуваме {staffTrainingLevel} за сите вработени за правилно постапување со барањата на субјектите.",
+        fields: ['staffTrainingLevel']
+      },
+      {
+        text: "🔄 АЖУРИРАЊЕ НА ПОЛИТИКАТА: Политиката се ажурира {policyUpdateFrequency} за да се обезбеди усогласеност со актуелните законски барања.",
+        fields: ['policyUpdateFrequency']
+      },
+      {
+        text: "✅ МОНИТОРИНГ НА УСОГЛАСЕНОСТА: Спроведуваме {complianceMonitoring} за следење на ефикасноста на политиката и процедурите.",
+        fields: ['complianceMonitoring']
+      }
+    ]
+  },
+  procedureForEstimation: {
+    title: "ПРОЦЕДУРА ЗА ПРОЦЕНКА НА ВЛИЈАНИЕТО ВРЗ ЗАШТИТАТА НА ЛИЧНИТЕ ПОДАТОЦИ И УПРАВУВАЊЕ СО РИЗИК",
+    sentences: [
+      {
+        text: "📊 ОСНОВИ НА ПРОЦЕДУРАТА: Врз основа на Законот за заштита на личните податоци, {companyName} со седиште на {companyAddress} и ЕДБ {companyTaxNumber} на ден {dpiaDate} ја донесе следната процедура.",
+        fields: ['companyName', 'companyAddress', 'companyTaxNumber', 'dpiaDate']
+      },
+      {
+        text: "🎯 ТИП НА ПРОЦЕНКА: Оваа процедура се применува за {assessmentType} според критериумите предвидени во законската регулатива.",
+        fields: ['assessmentType']
+      },
+      {
+        text: "📝 ЦЕЛ НА ОБРАБОТКАТА: {processingPurpose} за категориите субјекти: {dataSubjects}.",
+        fields: ['processingPurpose', 'dataSubjects']
+      },
+      {
+        text: "🔐 КАТЕГОРИИ ПОДАТОЦИ: Се обработуваат следните категории лични податоци: {dataCategories}.",
+        fields: ['dataCategories']
+      },
+      {
+        text: "⚠️ РИЗИК ПРОЦЕНКА: Веројатност за појава ({probability}) х Ниво на влијание ({impactLevel}) = {riskLevel} ризик.",
+        fields: ['probability', 'impactLevel', 'riskLevel']
+      },
+      {
+        text: "🛡️ ТЕХНИЧКИ МЕРКИ: Имплементирани се следните технички мерки: {technicalMeasures}.",
+        fields: ['technicalMeasures']
+      },
+      {
+        text: "📋 ОРГАНИЗАЦИСКИ МЕРКИ: Применувани се следните организациски мерки: {organizationalMeasures}.",
+        fields: ['organizationalMeasures']
+      },
+      {
+        text: "👤 ОДГОВОРНО ЛИЦЕ: {responsiblePerson} е одговорен за спроведување на процедурата и редовно преиспитување {reviewFrequency}.",
+        fields: ['responsiblePerson', 'reviewFrequency']
+      },
+      {
+        text: "⏰ ВРЕМЕНСКА РАМКА: Мерките за ублажување ќе се имплементираат во рок од {implementationTimeline}.",
+        fields: ['implementationTimeline']
+      },
+      {
+        text: "🏛️ КОНСУЛТАЦИЈА СО АЗЛП: {consultationRequired|Потребна е консултација со Агенцијата за заштита на личните податоци|Не е потребна консултација со АЗЛП}.",
+        fields: ['consultationRequired']
+      }
+    ]
   }
 };
 
@@ -634,17 +886,62 @@ const renderLivePreview = ({ formData, company, documentType }) => {
   const getFieldValue = (fieldName) => {
     if (fieldName === 'companyName') return company?.companyName || '[Име на компанија]';
     if (fieldName === 'companyAddress') return company?.address || '[Адреса на компанија]';
-    
+    if (fieldName === 'companyTaxNumber') return company?.taxNumber || '[ЕДБ]';
+
     const value = formData[fieldName];
     if (!value || value === '') return `[${fieldName}]`;
-    
+
     // Format dates
-    if (['agreementDate', 'annualLeaveStart', 'annualLeaveEnd', 'sanctionDate', 
+    if (['agreementDate', 'annualLeaveStart', 'annualLeaveEnd', 'sanctionDate',
          'employeeWrongdoingDate', 'decisionDate', 'contractDate', 'employmentStartDate',
-         'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline', 
+         'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
-         'contractStartDate', 'documentDate', 'violationDate', 'paymentDate'].includes(fieldName)) {
+         'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate'].includes(fieldName)) {
       return formatDate(value);
+    }
+
+    // Handle GDPR Company Politics specific boolean fields
+    if (fieldName === 'processesSpecialCategories') {
+      return value ? 'Обработува специјални категории персонални податоци' : 'Не обработува специјални категории персонални податоци';
+    }
+    if (fieldName === 'usesAutomatedDecisionMaking') {
+      return value ? 'Користи автоматизирано донесување одлуки' : 'Не користи автоматизирано донесување одлуки';
+    }
+    if (fieldName === 'performsDirectMarketing') {
+      return value ? 'Извршува директни маркетиншки активности' : 'Не извршува директни маркетиншки активности';
+    }
+    if (fieldName === 'hasInternationalTransfers') {
+      return value ? 'Извршува меѓународни трансфери на податоци' : 'Не извршува меѓународни трансфери на податоци';
+    }
+    if (fieldName === 'dataPortabilityApplicable') {
+      return value ? 'Правото на портабилност е применливо' : 'Правото на портабилност не е применливо';
+    }
+    if (fieldName === 'sharesDataWithThirdParties') {
+      return value ? 'Споделуваме податоци со трети страни' : 'Не споделуваме податоци со трети страни';
+    }
+    if (fieldName === 'allowEmailSubmission') {
+      return value ? 'е-пошта' : '';
+    }
+    if (fieldName === 'allowPostalSubmission') {
+      return value ? 'пошта' : '';
+    }
+    if (fieldName === 'allowInPersonSubmission') {
+      return value ? 'лично посетување' : '';
+    }
+    if (fieldName === 'allowOnlinePortalSubmission') {
+      return value ? 'онлајн портал' : '';
+    }
+    if (fieldName === 'complexRequestExtension') {
+      return value ? 'со можност за продолжување за комплексни барања' : 'без можност за продолжување';
+    }
+    if (fieldName === 'hasDedicatedDPO') {
+      return value ? 'Имаме назначено ОФЗЛП' : 'Немаме назначено ОФЗЛП';
+    }
+    if (fieldName === 'dpoIsInternal') {
+      return value ? 'интерен вработен' : 'надворешен консултант';
+    }
+    if (fieldName === 'usesCentralizedRegistry') {
+      return value ? 'Користиме централизиран регистар' : 'Не користиме централизиран регистар';
     }
     
     // Format special fields
@@ -705,6 +1002,100 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     if (fieldName === 'hasAnnualIncrease') {
       return value === true ? 'со годишно зголемување' : value === false ? 'без годишно зголемување' : '';
     }
+
+    // Handle GDPR Company Politics boolean fields
+    if (fieldName === 'allowEmailSubmission') {
+      return value === true ? 'дозволено' : 'не е дозволено';
+    }
+
+    if (fieldName === 'allowPostalSubmission') {
+      return value === true ? 'дозволено' : 'не е дозволено';
+    }
+
+    if (fieldName === 'allowInPersonSubmission') {
+      return value === true ? 'дозволено' : 'не е дозволено';
+    }
+
+    if (fieldName === 'allowOnlinePortalSubmission') {
+      return value === true ? 'дозволено' : 'не е дозволено';
+    }
+
+    if (fieldName === 'usesCentralizedRegistry') {
+      return value === true ? 'се користи' : 'не се користи';
+    }
+
+    // Handle dataGroups field for politics document
+    if (fieldName === 'dataGroups') {
+      if (Array.isArray(value) && value.length > 0) {
+        return `${value.length} избрани категории: ${value.map(group => group.type).join(', ')}`;
+      }
+      return 'не се избрани категории на податоци';
+    }
+
+    // GDPR Company Politics specific field formatting
+    if (fieldName === 'primaryBusinessActivity') {
+      return value || '[Основна деловна активност]';
+    }
+
+    if (fieldName === 'dataProcessingComplexity') {
+      return value || '[Сложеност на обработка]';
+    }
+
+    if (fieldName === 'personalDataCategories') {
+      if (Array.isArray(value) && value.length > 0) {
+        return value.join(', ');
+      }
+      return '[Категории персонални податоци]';
+    }
+
+    // Format checkbox fields to readable text
+    if (fieldName === 'allowEmailSubmission') {
+      return value === true ? '✓ е-пошта' : value === false ? '✗ е-пошта' : '[е-пошта]';
+    }
+
+    if (fieldName === 'allowPostalSubmission') {
+      return value === true ? '✓ пошта' : value === false ? '✗ пошта' : '[пошта]';
+    }
+
+    if (fieldName === 'allowInPersonSubmission') {
+      return value === true ? '✓ лично' : value === false ? '✗ лично' : '[лично]';
+    }
+
+    if (fieldName === 'allowOnlinePortalSubmission') {
+      return value === true ? '✓ онлајн портал' : value === false ? '✗ онлајн портал' : '[онлајн портал]';
+    }
+
+    if (fieldName === 'usesCentralizedRegistry') {
+      return value === true ? 'се користи' : value === false ? 'не се користи' : '[централизиран регистар]';
+    }
+
+    if (fieldName === 'identityVerificationLevel') {
+      return value || '[Ниво на верификација]';
+    }
+
+    if (fieldName === 'standardResponseTime') {
+      return value || '[Време за одговор]';
+    }
+
+    if (fieldName === 'responsibleDepartment') {
+      return value || '[Одговорен оддел]';
+    }
+
+    if (fieldName === 'businessHours') {
+      return value || '[Работно време]';
+    }
+
+    if (fieldName === 'staffTrainingLevel') {
+      return value || '[Ниво на обука]';
+    }
+
+    if (fieldName === 'policyUpdateFrequency') {
+      return value || '[Честота на ажурирање]';
+    }
+
+    if (fieldName === 'complianceMonitoring') {
+      return value || '[Мониторинг на усогласеност]';
+    }
     
     if (fieldName === 'durationType') {
       return value === 'определено' ? 'определено' : value === 'неопределено' ? 'неопределено' : value;
@@ -712,16 +1103,282 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     
     // Handle NDA specific fields
     if (fieldName === 'agreementType') {
-      return value === 'bilateral' ? 'двострана доверливост' : 
+      return value === 'bilateral' ? 'двострана доверливост' :
              value === 'unilateral' ? 'еднострана доверливост' : value;
     }
-    
+
     if (fieldName === 'secondPartyTaxNumber') {
       return value ? `со ЕДБ ${value}` : '';
     }
-    
+
     if (fieldName === 'contactEmail') {
       return value ? `е-маил: ${value}` : '';
+    }
+
+    // Handle mediation agreement specific fields
+    if (fieldName === 'userRole') {
+      if (value === 'mediator') return 'Посредник';
+      if (value === 'client') return 'Налогодавец';
+      return value;
+    }
+
+    if (fieldName === 'clientType' || fieldName === 'clientTypeForMediator') {
+      if (value === 'natural') return 'физичко лице';
+      if (value === 'legal') return 'правно лице';
+      return value;
+    }
+
+    // Enhanced mediation agreement field handling
+    if (fieldName === 'typeOfMediation') {
+      const types = {
+        'real_estate': 'Недвижен имот',
+        'vehicle_sales': 'Продажба на возила',
+        'business_contracts': 'Деловни договори',
+        'employment': 'Работни места',
+        'insurance': 'Осигурување',
+        'loans': 'Кредити',
+        'services': 'Услуги',
+        'other': 'Друго'
+      };
+      return types[value] || value;
+    }
+
+    if (fieldName === 'specificContractType') {
+      const contractTypes = {
+        'sale_purchase': 'договор за купопродажба',
+        'lease_rent': 'договор за закуп',
+        'service_agreement': 'договор за услуги',
+        'employment_contract': 'договор за вработување',
+        'loan_agreement': 'договор за заем',
+        'insurance_policy': 'полиса за осигурување',
+        'franchise': 'договор за франшиза',
+        'partnership': 'договор за партнерство',
+        'other': 'друг тип договор'
+      };
+      return contractTypes[value] || value;
+    }
+
+    if (fieldName === 'commissionCalculation') {
+      const calculations = {
+        'percentage': 'Процент од вредноста',
+        'fixed_amount': 'Фиксен износ',
+        'hybrid': 'Хибридно (процент + фиксен)',
+        'graduated': 'Градуирана стапка',
+        'minimum_guarantee': 'Минимум гаранција'
+      };
+      return calculations[value] || value;
+    }
+
+    if (fieldName === 'paymentTiming') {
+      const timings = {
+        'contract_signing': 'При потпишување на договорот',
+        'deal_completion': 'При завршување на работата',
+        'monthly_installments': 'Месечни ратни отплати',
+        'upfront_partial': 'Аванс + остаток',
+        'success_only': 'Само при успех'
+      };
+      return timings[value] || value;
+    }
+
+    if (fieldName === 'targetContractValueRange') {
+      const ranges = {
+        'under_50k': 'под 50.000 денари',
+        '50k_200k': '50.000 - 200.000 денари',
+        '200k_500k': '200.000 - 500.000 денари',
+        '500k_1m': '500.000 - 1.000.000 денари',
+        '1m_5m': '1.000.000 - 5.000.000 денари',
+        'over_5m': 'над 5.000.000 денари',
+        'unlimited': 'неограничено'
+      };
+      return ranges[value] || value;
+    }
+
+    if (fieldName === 'confidentialityPeriod') {
+      const periods = {
+        '1_year': '1 година',
+        '2_years': '2 години',
+        '3_years': '3 години',
+        '5_years': '5 години',
+        '10_years': '10 години',
+        'indefinite': 'неопределено'
+      };
+      return periods[value] || value;
+    }
+
+    if (fieldName === 'earlyTerminationNoticePeriod') {
+      const periods = {
+        'immediate': 'Без известување',
+        '7_days': '7 дена',
+        '15_days': '15 дена',
+        '30_days': '30 дена',
+        '60_days': '60 дена',
+        '90_days': '90 дена'
+      };
+      return periods[value] || value;
+    }
+
+    if (fieldName === 'disputeResolution') {
+      const methods = {
+        'skopje_court': 'Суд во Скопје',
+        'local_court': 'Месно надлежен суд',
+        'arbitration': 'Арбитража',
+        'mediation_first': 'Медијација па суд',
+        'negotiation': 'Преговори'
+      };
+      return methods[value] || value;
+    }
+
+    // Boolean field formatting for mediation agreement
+    if (fieldName === 'costReimbursement') {
+      return value === true ? 'се надоместуваат' : value === false ? 'не се надоместуваат' : '';
+    }
+
+    if (fieldName === 'travelCostsIncluded') {
+      return value === true ? 'вклучени' : value === false ? 'исклучени' : '';
+    }
+
+    if (fieldName === 'advertisementCostsIncluded') {
+      return value === true ? 'вклучени' : value === false ? 'исклучени' : '';
+    }
+
+    if (fieldName === 'legalConsultationCostsIncluded') {
+      return value === true ? 'вклучени' : value === false ? 'исклучени' : '';
+    }
+
+    if (fieldName === 'mediatorDiaryRequired') {
+      return value === true ? 'ДА' : value === false ? 'НЕ' : 'ДА';
+    }
+
+    if (fieldName === 'writtenAuthorizationForPerformance') {
+      return value === true ? 'потребно' : value === false ? 'не е потребно' : '';
+    }
+
+    if (fieldName === 'exclusiveMediation') {
+      return value === true ? 'ексклузивно' : value === false ? 'неексклузивно' : '';
+    }
+
+    if (fieldName === 'dualRepresentationAllowed') {
+      return value === true ? 'дозволено' : value === false ? 'забрането' : '';
+    }
+
+    // Set dynamic field values based on user role
+    if (fieldName === 'mediatorName') {
+      if (formData.userRole === 'mediator') {
+        return company?.companyName || '[Име на посредник]';
+      }
+      return formData.mediatorCompanyName || '[Име на посредник]';
+    }
+
+    if (fieldName === 'mediatorAddress') {
+      if (formData.userRole === 'mediator') {
+        return company?.address || '[Адреса на посредник]';
+      }
+      return formData.mediatorCompanyAddress || '[Адреса на посредник]';
+    }
+
+    if (fieldName === 'mediatorTaxNumber') {
+      if (formData.userRole === 'mediator') {
+        return company?.taxNumber || '[ЕДБ на посредник]';
+      }
+      return formData.mediatorCompanyTaxNumber || '[ЕДБ на посредник]';
+    }
+
+    if (fieldName === 'mediatorManager') {
+      if (formData.userRole === 'mediator') {
+        return company?.manager || '[Управител на посредник]';
+      }
+      return formData.mediatorCompanyManager || '[Управител на посредник]';
+    }
+
+    if (fieldName === 'mediatorPhone') {
+      if (formData.userRole === 'mediator') {
+        return formData.mediatorPhone || '[Телефон на посредник]';
+      }
+      return formData.mediatorCompanyPhone || '[Телефон на посредник]';
+    }
+
+    if (fieldName === 'mediatorEmail') {
+      if (formData.userRole === 'mediator') {
+        return formData.mediatorEmail || '[Е-пошта на посредник]';
+      }
+      return formData.mediatorCompanyEmail || '[Е-пошта на посредник]';
+    }
+
+    if (fieldName === 'clientName') {
+      if (formData.userRole === 'client') {
+        return company?.companyName || '[Име на налогодавец]';
+      } else if (formData.userRole === 'mediator') {
+        if (formData.clientTypeForMediator === 'natural') {
+          return formData.naturalClientName || '[Име на налогодавец]';
+        } else if (formData.clientTypeForMediator === 'legal') {
+          return formData.legalClientName || '[Име на налогодавец]';
+        }
+      }
+      return '[Име на налогодавец]';
+    }
+
+    if (fieldName === 'clientAddress') {
+      if (formData.userRole === 'client') {
+        return company?.address || '[Адреса на налогодавец]';
+      } else if (formData.userRole === 'mediator') {
+        if (formData.clientTypeForMediator === 'natural') {
+          return formData.naturalClientAddress || '[Адреса на налогодавец]';
+        } else if (formData.clientTypeForMediator === 'legal') {
+          return formData.legalClientAddress || '[Адреса на налогодавец]';
+        }
+      }
+      return '[Адреса на налогодавец]';
+    }
+
+    if (fieldName === 'clientPin') {
+      if (formData.userRole === 'mediator' && formData.clientTypeForMediator === 'natural') {
+        return formData.naturalClientPin || '[ЕМБГ]';
+      }
+      return formData.clientPin || '[ЕМБГ]';
+    }
+
+    if (fieldName === 'clientTaxNumber') {
+      if (formData.userRole === 'client') {
+        return company?.taxNumber || '[ЕДБ на налогодавец]';
+      } else if (formData.userRole === 'mediator' && formData.clientTypeForMediator === 'legal') {
+        return formData.legalClientTaxNumber || '[ЕДБ на налогодавец]';
+      }
+      return '[ЕДБ на налогодавец]';
+    }
+
+    if (fieldName === 'clientManager') {
+      if (formData.userRole === 'client') {
+        return company?.manager || '[Управител на налогодавец]';
+      } else if (formData.userRole === 'mediator' && formData.clientTypeForMediator === 'legal') {
+        return formData.legalClientManager || '[Управител на налогодавец]';
+      }
+      return '[Управител на налогодавец]';
+    }
+
+    if (fieldName === 'clientPhone') {
+      if (formData.userRole === 'client') {
+        return formData.clientPhone || '[Телефон на налогодавец]';
+      } else if (formData.userRole === 'mediator') {
+        if (formData.clientTypeForMediator === 'natural') {
+          return formData.naturalClientPhone || '[Телефон на налогодавец]';
+        } else if (formData.clientTypeForMediator === 'legal') {
+          return formData.legalClientPhone || '[Телефон на налогодавец]';
+        }
+      }
+      return '[Телефон на налогодавец]';
+    }
+
+    if (fieldName === 'clientEmail') {
+      if (formData.userRole === 'client') {
+        return formData.clientEmail || '[Е-пошта на налогодавец]';
+      } else if (formData.userRole === 'mediator') {
+        if (formData.clientTypeForMediator === 'natural') {
+          return formData.naturalClientEmail || '[Е-пошта на налогодавец]';
+        } else if (formData.clientTypeForMediator === 'legal') {
+          return formData.legalClientEmail || '[Е-пошта на налогодавец]';
+        }
+      }
+      return '[Е-пошта на налогодавец]';
     }
     
     // Handle mandatory bonus specific fields
@@ -806,7 +1463,119 @@ const renderLivePreview = ({ formData, company, documentType }) => {
       };
       return value.map(type => evidenceLabels[type] || type).join(', ');
     }
-    
+
+    // Procedure for Estimation field formatting
+    if (fieldName === 'assessmentType') {
+      const assessmentTypes = {
+        'systematic_evaluation': 'Систематска и обемна евалуација (профилирање)',
+        'special_categories': 'Обработка на посебни категории на лични податоци',
+        'systematic_monitoring': 'Систематско набљудување на јавно достапна област',
+        'new_technologies': 'Користење на нови технологии',
+        'data_combination': 'Комбинирање на податоци',
+        'location_tracking': 'Следење на локација или однесување',
+        'health_risk': 'Обработка која претставува висок ризик по здравјето',
+        'unique_identification': 'Обработка за цел на единствена идентификација'
+      };
+      return assessmentTypes[value] || value;
+    }
+
+    if (fieldName === 'dataSubjects' && Array.isArray(value)) {
+      const dataSubjectLabels = {
+        'employees': 'Вработени',
+        'candidates': 'Кандидати за работа',
+        'customers': 'Купувачи/клиенти',
+        'suppliers': 'Добавувачи',
+        'visitors': 'Посетители',
+        'contractors': 'Изведувачи'
+      };
+      return value.map(subject => dataSubjectLabels[subject] || subject).join(', ');
+    }
+
+    if (fieldName === 'dataCategories' && Array.isArray(value)) {
+      const dataCategoryLabels = {
+        'basic_data': 'Основни податоци (име, адреса)',
+        'contact_info': 'Контакт информации',
+        'financial_data': 'Финансиски податоци',
+        'health_data': 'Здравствени податоци',
+        'biometric_data': 'Биометриски податоци',
+        'location_data': 'Податоци за локација',
+        'special_categories': 'Посебни категории податоци'
+      };
+      return value.map(category => dataCategoryLabels[category] || category).join(', ');
+    }
+
+    if (fieldName === 'threats' && Array.isArray(value)) {
+      const threatLabels = {
+        'unauthorized_access': 'Неовластен пристап',
+        'data_loss': 'Губење на податоци',
+        'data_alteration': 'Измена на податоци',
+        'technical_failure': 'Технички дефекти',
+        'cyber_attacks': 'Кибер напади',
+        'human_error': 'Човечка грешка'
+      };
+      return value.map(threat => threatLabels[threat] || threat).join(', ');
+    }
+
+    if (fieldName === 'technicalMeasures' && Array.isArray(value)) {
+      const technicalMeasureLabels = {
+        'encryption': 'Енкрипција на податоци',
+        'access_control': 'Контрола на пристап',
+        'backup_systems': 'Системи за резервни копии',
+        'monitoring': 'Континуирано следење',
+        'firewalls': 'Firewall системи',
+        'antivirus': 'Антивирус заштита'
+      };
+      return value.map(measure => technicalMeasureLabels[measure] || measure).join(', ');
+    }
+
+    if (fieldName === 'organizationalMeasures' && Array.isArray(value)) {
+      const organizationalMeasureLabels = {
+        'staff_training': 'Обука на персоналот',
+        'policies': 'Политики и процедури',
+        'regular_audits': 'Редовни ревизии',
+        'incident_response': 'План за одговор на инциденти',
+        'data_minimization': 'Минимизирање на податоци',
+        'retention_policy': 'Политика за чување'
+      };
+      return value.map(measure => organizationalMeasureLabels[measure] || measure).join(', ');
+    }
+
+    if (fieldName === 'reviewFrequency') {
+      const frequencyLabels = {
+        'quarterly': 'квартално',
+        'semi_annual': 'полугодишно',
+        'annual': 'годишно'
+      };
+      return frequencyLabels[value] || value;
+    }
+
+    if (fieldName === 'implementationTimeline') {
+      const timelineLabels = {
+        '1_month': '1 месец',
+        '3_months': '3 месеци',
+        '6_months': '6 месеци',
+        '1_year': '1 година'
+      };
+      return timelineLabels[value] || value;
+    }
+
+    if (fieldName === 'consultationRequired') {
+      return value === 'yes' ? 'Потребна е консултација со Агенцијата за заштита на личните податоци' : 'Не е потребна консултација со АЗЛП';
+    }
+
+    // Risk level calculation for live preview
+    if (fieldName === 'riskLevel') {
+      const probability = formData.probability;
+      const impact = formData.impactLevel;
+      if (probability && impact) {
+        const riskValue = parseInt(probability) * parseInt(impact);
+        if (riskValue <= 2) return 'незначителен ризик';
+        if (riskValue <= 4) return 'ризик';
+        return 'висок ризик';
+      }
+      return 'се определува во текот на процесот';
+    }
+
     return String(value || '');
   };
   

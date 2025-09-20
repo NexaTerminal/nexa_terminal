@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+// import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import Header from '../../components/common/Header';
@@ -132,11 +132,10 @@ const BlogDetail = () => {
 
   return (
     <div>
+      {/* Helmet SEO component temporarily disabled for deployment
       <Helmet>
         <title>{blog ? `${blog.title} - Nexa Terminal` : 'Блог - Nexa Terminal'}</title>
         <meta name="description" content={createMetaDescription(blog)} />
-
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
         <meta property="og:url" content={getCurrentUrl()} />
         <meta property="og:title" content={blog ? `${blog.title} - Nexa Terminal` : 'Блог - Nexa Terminal'} />
@@ -146,32 +145,16 @@ const BlogDetail = () => {
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="Nexa Terminal" />
         <meta property="og:locale" content={blog?.contentLanguage === 'mk' ? 'mk_MK' : 'en_US'} />
-
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={getCurrentUrl()} />
         <meta name="twitter:title" content={blog ? `${blog.title} - Nexa Terminal` : 'Блог - Nexa Terminal'} />
         <meta name="twitter:description" content={createMetaDescription(blog)} />
         <meta name="twitter:image" content={getImageUrl(blog)} />
-
-        {/* Article specific */}
-        {blog && (
-          <>
-            <meta property="article:published_time" content={blog.createdAt} />
-            <meta property="article:modified_time" content={blog.updatedAt || blog.createdAt} />
-            <meta property="article:author" content={blog.author?.name || 'Nexa Terminal'} />
-            <meta property="article:section" content={blog.category || 'Бизнис'} />
-            {blog.tags && Array.isArray(blog.tags) && blog.tags.map((tag, index) => (
-              <meta key={index} property="article:tag" content={tag} />
-            ))}
-          </>
-        )}
-
-        {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="author" content={blog?.author?.name || 'Nexa Terminal'} />
         <link rel="canonical" content={getCurrentUrl()} />
       </Helmet>
+      */}
 
       <Header isTerminal={true} />
       <div className={styles.layout}>

@@ -353,7 +353,7 @@ export const AuthProvider = ({ children }) => {
 
   // Auto-logout on token expiration or error
   const handleAuthError = useCallback((error) => {
-    if (error.isAuthError) {
+    if (error && error.isAuthError) {
       localStorage.removeItem('token');
       setToken(null);
       setCurrentUser(null);

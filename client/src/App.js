@@ -47,6 +47,7 @@ import OrganizationActPage from './pages/terminal/documents/employment/Organizat
 import MandatoryBonusPage from './pages/terminal/documents/employment/MandatoryBonusPage';
 import RentAgreementPage from './pages/terminal/documents/contracts/RentAgreementPage';
 import NdaPage from './pages/terminal/documents/contracts/NdaPage';
+import MediationAgreementPage from './pages/terminal/documents/contracts/MediationAgreementPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
@@ -62,6 +63,9 @@ import DisciplinaryActionPage from './pages/terminal/documents/employment/Discip
 // import HealthAndSafetyPolicyPage from './pages/terminal/documents/healthAndSafety/HealthAndSafetyPolicyPage';
 // import WorkplaceHarassmentPolicyPage from './pages/terminal/documents/healthAndSafety/WorkplaceHarassmentPolicyPage';
 import ConsentForPersonalDataProcessingPage from './pages/terminal/documents/personalDataProtection/ConsentForPersonalDataProcessingPage';
+import PoliticsForDataProtectionPage from './pages/terminal/documents/personalDataProtection/PoliticsForDataProtectionPage';
+import ProcedureForEstimationPage from './pages/terminal/documents/personalDataProtection/ProcedureForEstimationPage';
+// import GdprCompanyPoliticsPage from './pages/terminal/documents/personalDataProtection/GdprCompanyPoliticsPage';
 // import PrivacyPolicyPage from './pages/terminal/documents/personalDataProtection/PrivacyPolicyPage';
 
 // Verification Components
@@ -99,6 +103,9 @@ function App() {
       {/* <Route path="/terminal/documents/health-safety/health-safety-policy" element={<PrivateRoute><HealthAndSafetyPolicyPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/workplace-harassment-policy" element={<PrivateRoute><WorkplaceHarassmentPolicyPage /></PrivateRoute>} /> */}
       <Route path="/terminal/documents/personal-data-protection/consent-for-personal-data-processing" element={<PrivateRoute><ConsentForPersonalDataProcessingPage /></PrivateRoute>} />
+      <Route path="/terminal/documents/personal-data-protection/politics-for-data-protection" element={<PrivateRoute><PoliticsForDataProtectionPage /></PrivateRoute>} />
+      <Route path="/terminal/documents/personal-data-protection/procedure-for-estimation" element={<PrivateRoute><ProcedureForEstimationPage /></PrivateRoute>} />
+      {/* <Route path="/terminal/documents/personal-data-protection/gdpr-company-politics" element={<PrivateRoute><GdprCompanyPoliticsPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/personal-data-protection/privacy-policy" element={<PrivateRoute><PrivacyPolicyPage /></PrivateRoute>} /> */}
       <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><LegalScreening /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
@@ -137,6 +144,7 @@ function App() {
       {/* Contracts */}
       <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired feature="договор за доверливост"><NdaPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/mediation-agreement" element={<PrivateRoute><VerificationRequired feature="договор за посредување"><MediationAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired feature="договор за возила"><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Rulebooks */}

@@ -154,11 +154,6 @@ const BlogCard = ({ blog, formatDate }) => {
 
           {/* Blog Content - Right Half */}
           <div className={styles.blogCardContent}>
-            {/* Category and Meta Info */}
-            <div className={styles.blogMeta}>
-              <span className={styles.blogCategory}>{blog.category}</span>
-              <span className={styles.blogDate}>{formatDate(blog.createdAt)}</span>
-            </div>
 
             {/* Blog Title */}
             <h3 className={styles.blogCardTitle}>{blog.title}</h3>

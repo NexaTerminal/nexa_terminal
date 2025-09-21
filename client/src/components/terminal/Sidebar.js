@@ -22,7 +22,6 @@ const Sidebar = () => {
 
   const adminMenuItems = [
     { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️' },
-    { path: '/terminal/admin/investments/add', label: 'dashboard.addInvestment', icon: '➕' },
     { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
     { path: '/terminal/admin/verification', label: 'Verification Management', icon: '✅' },
     { path: '/terminal/admin/marketing', label: 'Маркетинг', icon: '📢' }

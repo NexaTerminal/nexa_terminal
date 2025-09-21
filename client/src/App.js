@@ -9,7 +9,6 @@ import ResetPassword from './pages/website/ResetPassword';
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import AddBlog from './pages/terminal/admin/AddBlog';
-import MarketingAdmin from './pages/terminal/admin/Marketing';
 
 // Terminal Pages
 import Dashboard from './pages/terminal/Dashboard';
@@ -153,7 +152,6 @@ function App() {
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/verification" element={<PrivateRoute><AdminVerification /></PrivateRoute>} />
-      <Route path="/terminal/admin/marketing" element={<PrivateRoute><MarketingAdmin /></PrivateRoute>} />
     </Routes>
   );
 }

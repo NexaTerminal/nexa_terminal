@@ -213,16 +213,6 @@ const BlogDetail = () => {
                 </div>
               </div>
 
-              <footer className={styles.blogFooter}>
-                <div className={styles.blogStats}>
-                  {blog.likes !== undefined && (
-                    <span className={styles.blogLikes}>👍 {blog.likes} допаѓања</span>
-                  )}
-                  <span className={styles.blogLanguage}>
-                    Јазик: {blog.contentLanguage === 'mk' ? 'Македонски' : 'English'}
-                  </span>
-                </div>
-              </footer>
             </article>
           </div>
         </main>

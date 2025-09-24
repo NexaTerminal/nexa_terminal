@@ -17,26 +17,53 @@ const terminationPersonalReasonsController = require('../controllers/autoDocumen
 const terminationDueToFaultController = require('../controllers/autoDocuments/terminationDueToFaultController');
 const terminationByEmployeeRequestController = require('../controllers/autoDocuments/terminationByEmployeeRequestController');
 const bonusPaymentController = require('../controllers/autoDocuments/bonusPaymentController');
+const bonusDecisionController = require('../controllers/autoDocuments/bonusDecisionController');
 const employeeDamagesStatementController = require('../controllers/autoDocuments/employeeDamagesStatementController');
 const terminationDueToAgeLimitController = require('../controllers/autoDocuments/terminationDueToAgeLimitController');
 const organizationActController = require('../controllers/autoDocuments/organizationActController');
 const mandatoryBonusController = require('../controllers/autoDocuments/mandatoryBonusController');
 const ndaController = require('../controllers/autoDocuments/ndaController');
+const mediationAgreementController = require('../controllers/autoDocuments/mediationAgreementController');
 const vehicleSalePurchaseAgreementController = require('../controllers/autoDocuments/vehicleSalePurchaseAgreementController');
+const debtAssumptionAgreementController = require('../controllers/autoDocuments/debtAssumptionAgreementController');
 const personalDataRulebookController = require('../controllers/autoDocuments/personalDataRulebookController');
+const politicsForDataProtectionController = require('../controllers/autoDocuments/politicsForDataProtectionController');
+const procedureForEstimationController = require('../controllers/autoDocuments/procedureForEstimationController');
+const unpaidLeaveDecisionController = require('../controllers/autoDocuments/unpaidLeaveDecisionController');
+const annualLeaveBonusDecisionController = require('../controllers/autoDocuments/annualLeaveBonusDecisionController');
+const deathCompensationDecisionController = require('../controllers/autoDocuments/deathCompensationDecisionController');
+// const gdprCompanyPoliticsController = require('../controllers/autoDocuments/gdprCompanyPoliticsController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
 
+// Politics for Data Protection (Политика за заштита на лични податоци)
+router.post('/politics-for-data-protection', authenticateJWT, requireVerifiedCompany, politicsForDataProtectionController);
+
+// Procedure for Estimation (Процедура за проценка на влијанието врз заштитата на личните податоци)
+router.post('/procedure-for-estimation', authenticateJWT, requireVerifiedCompany, procedureForEstimationController);
+
+// GDPR Company Politics (Политика за администрирање со правата на субјектите на персонални податоци)
+// router.post('/gdpr-company-politics', authenticateJWT, requireVerifiedCompany, gdprCompanyPoliticsController);
+
 // Employment
 // Confirmation of Employment (Потврда за вработување)
 router.post('/confirmation-of-employment', authenticateJWT, requireVerifiedCompany, confirmationOfEmploymentController);
+
+// Death Compensation Decision (Одлука за исплата на надомест во случај на смрт на член на семејно домаќинство)
+router.post('/death-compensation-decision', authenticateJWT, requireVerifiedCompany, deathCompensationDecisionController);
 
 // Termination Agreement (Спогодба за престанок на работен однос)
 router.post('/termination-agreement', authenticateJWT, requireVerifiedCompany, terminationAgreementController);
 
 // Annual Leave Decision (Решение за годишен одмор)
 router.post('/annual-leave-decision', authenticateJWT, requireVerifiedCompany, annualLeaveDecisionController);
+
+// Unpaid Leave Decision (Одлука за неплатено отсуство)
+router.post('/unpaid-leave-decision', authenticateJWT, requireVerifiedCompany, unpaidLeaveDecisionController);
+
+// Annual Leave Bonus Decision (Одлука за исплата на регрес за годишен одмор)
+router.post('/annual-leave-bonus', authenticateJWT, requireVerifiedCompany, annualLeaveBonusDecisionController);
 
 // Employment Agreement (Договор за вработување)
 router.post('/employment-agreement', authenticateJWT, requireVerifiedCompany, employmentAgreementController);
@@ -68,6 +95,9 @@ router.post('/termination-by-employee-request', authenticateJWT, requireVerified
 // Bonus Payment Decision (Одлука за бонус плаќање)
 router.post('/bonus-payment', authenticateJWT, requireVerifiedCompany, bonusPaymentController);
 
+// Bonus Decision (Одлука за бонус)
+router.post('/bonus-decision', authenticateJWT, requireVerifiedCompany, bonusDecisionController);
+
 // Employee Damages Statement (Изјава за согласност за намалување на плата поради предизвикана штета)
 router.post('/employee-damages-statement', authenticateJWT, requireVerifiedCompany, employeeDamagesStatementController);
 
@@ -87,12 +117,18 @@ router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, rentAgre
 // NDA (Договор за доверливост на информации)
 router.post('/nda', authenticateJWT, requireVerifiedCompany, ndaController);
 
+// Mediation Agreement (Договор за посредување)
+router.post('/mediation-agreement', authenticateJWT, requireVerifiedCompany, mediationAgreementController);
+
 // Vehicle Sale-Purchase Agreement (Договор за продажба-купување на возило)
 router.post('/vehicle-sale-purchase-agreement', authenticateJWT, requireVerifiedCompany, vehicleSalePurchaseAgreementController);
 
+// Debt Assumption Agreement (Договор за преземање на долг)
+router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompany, debtAssumptionAgreementController);
+
 // Rulebooks
-// Personal Data Rulebook (Правилник за заштита на личните податоци)
-router.post('/personal-data-rulebook', authenticateJWT, requireVerifiedCompany, personalDataRulebookController);
+// Business Secret Rulebook (Правилник за заштита на деловна тајна)
+router.post('/business-secret-rulebook', authenticateJWT, requireVerifiedCompany, personalDataRulebookController);
 
 // Add more document routes here as needed
 

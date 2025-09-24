@@ -26,16 +26,34 @@ const DocumentGen = () => {
     return acc;
   }, {});
 
-  // Filter categories and templates based on search term
-  const filteredCategories = searchTerm 
-    ? documentCategoriesData.map(category => ({
-        ...category,
-        templates: category.templates.filter(template => 
-          template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          template.description.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      })).filter(category => category.templates.length > 0)
-    : documentCategoriesData;
+  // Get all documents across all categories for search
+  const getAllDocuments = () => {
+    const allDocuments = [];
+    documentCategoriesData.forEach(category => {
+      category.templates.forEach(template => {
+        allDocuments.push({
+          ...template,
+          categoryId: category.id,
+          categoryTitle: category.title,
+          categoryIcon: category.icon,
+          categoryColor: category.color
+        });
+      });
+    });
+    return allDocuments;
+  };
+
+  // Filter documents globally by search term
+  const getFilteredDocuments = () => {
+    if (!searchTerm) return [];
+
+    const allDocuments = getAllDocuments();
+    return allDocuments.filter(document =>
+      document.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (document.description && document.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      document.categoryTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -216,46 +234,85 @@ const DocumentGen = () => {
   };
 
   const renderCategories = () => {
-    const filteredCategories = documentCategoriesData.filter(category => 
-      category.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredDocuments = getFilteredDocuments();
+    const showSearchResults = searchTerm && filteredDocuments.length > 0;
+    const showCategories = !searchTerm;
 
     return (
       <div className={styles['categories-container']}>
         <div className={styles['document-header']}>
           <h1>Автоматизирани документи</h1>
-          <p>Изберете категорија за да започнете</p>
+          <p>{showSearchResults ? 'Резултати од пребарување' : 'Изберете категорија за да започнете'}</p>
         </div>
         <div className={styles['search-bar-container']}>
-          <input 
+          <input
             type="text"
-            placeholder="Пребарај категории..."
+            placeholder="Пребарај документи..."
             className={styles['search-input']}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
-        <div className={styles['categories-grid']}>
-          {filteredCategories.map((category) => (
-            <div
-              key={category.id}
-              className={styles['category-card']}
-              onClick={() => selectCategory(category.id)}
-              style={{ borderColor: category.color }}
-            >
-              <div className={styles['category-icon']} style={{ color: category.color }}>
-                {category.icon}
-              </div>
-              <h3 className={styles['category-title']}>{category.title}</h3>
-              <p className={styles['category-description']}>{category.description}</p>
-              <div className={styles['template-count']}>
-                {category.templates.length} шаблони
-              </div>
+
+        {showSearchResults && (
+          <div className={styles['search-results']}>
+            <div className={styles['search-results-header']}>
+              <h2>Најдени {filteredDocuments.length} документи</h2>
             </div>
-          ))}
-        </div>
+            <div className={styles['templates-grid']}>
+              {filteredDocuments.map((document) => (
+                <div
+                  key={`${document.categoryId}-${document.id}`}
+                  className={styles['template-card']}
+                  onClick={() => selectTemplate(document)}
+                  style={{ borderLeft: `4px solid ${document.categoryColor}` }}
+                >
+                  <div className={styles['template-header']}>
+                    <div className={styles['template-icon']}>
+                      {document.icon || '📄'}
+                    </div>
+                    <div className={styles['category-badge']} style={{ backgroundColor: document.categoryColor }}>
+                      {document.categoryIcon} {document.categoryTitle}
+                    </div>
+                  </div>
+                  <h3 className={styles['template-name']}>{document.name}</h3>
+                  {document.description && (
+                    <p className={styles['template-description']}>{document.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {showCategories && (
+          <div className={styles['categories-grid']}>
+            {documentCategoriesData.map((category) => (
+              <div
+                key={category.id}
+                className={styles['category-card']}
+                onClick={() => selectCategory(category.id)}
+                style={{ borderColor: category.color }}
+              >
+                <div className={styles['category-icon']} style={{ color: category.color }}>
+                  {category.icon}
+                </div>
+                <h3 className={styles['category-title']}>{category.title}</h3>
+                <p className={styles['category-description']}>{category.description}</p>
+                <div className={styles['template-count']}>
+                  {category.templates.length} шаблони
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {searchTerm && filteredDocuments.length === 0 && (
+          <div className={styles['no-results']}>
+            <h3>Нема резултати</h3>
+            <p>Не се најдени документи што одговараат на вашето пребарување "{searchTerm}"</p>
+          </div>
+        )}
       </div>
     );
   };

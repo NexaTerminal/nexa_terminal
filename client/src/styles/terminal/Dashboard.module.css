@@ -89,7 +89,8 @@
   min-width: 0; /* Allow full compression on mobile */
   width: 100%;
   margin: 0 auto;
-  padding: 40px 32px 32px 32px;
+  padding: 10px 32px 32px 32px;
+  padding-right: 82px;
   background: var(--color-neutral-50);
   min-height: calc(100vh - 100px);
   overflow-y: auto;

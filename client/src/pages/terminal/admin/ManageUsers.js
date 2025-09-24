@@ -129,54 +129,61 @@ const ManageUsers = () => {
   return (
     <ProfileRequired>
       <div className={styles.container}>
-      <h1>Управување со корисници</h1>
+        <div className={styles.header}>
+          <h1>Управување со корисници</h1>
+        </div>
 
-      {error && <div className={styles.error}>{error}</div>}
-      {success && <div className={styles.success}>{success}</div>}
+        {error && <div className={styles.error}>{error}</div>}
+        {success && <div className={styles.success}>{success}</div>}
 
-      <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Име и Презиме</th>
-              <th>Е-пошта</th>
-              <th>Улога</th>
-              <th>Статус</th>
-              <th>Акции</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user._id}>
-                <td>{user.companyInfo?.companyName || user.email}</td>
-                <td>{user.email}</td>
-                <td>
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                    className={styles.select}
-                  >
-                    <option value="user">Корисник</option>
-                    <option value="admin">Администратор</option>
-                  </select>
-                </td>
-                <td>
-                  <span className={`${styles.status} ${styles[user.isActive ? 'active' : 'inactive']}`}>
-                    {user.isActive ? 'Активен' : 'Неактивен'}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    onClick={() => handleStatusChange(user._id, !user.isActive)}
-                    className={`${styles.actionButton} ${user.isActive ? styles.deactivate : styles.activate}`}
-                  >
-                    {user.isActive ? 'Деактивирај' : 'Активирај'}
-                  </button>
-                </td>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Име и Презиме</th>
+                <th>Е-пошта</th>
+                <th>Улога</th>
+                <th>Статус</th>
+                <th>Акции</th>
               </tr>
-            ))}
-          </tbody>
-        </table>        </div>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user._id}>
+                  <td className={styles.userCell}>
+                    {user.companyInfo?.companyName || user.email}
+                  </td>
+                  <td className={styles.emailCell}>
+                    {user.email}
+                  </td>
+                  <td>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                      className={styles.select}
+                    >
+                      <option value="user">Корисник</option>
+                      <option value="admin">Администратор</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span className={`${styles.status} ${styles[user.isActive ? 'active' : 'inactive']}`}>
+                      {user.isActive ? 'Активен' : 'Неактивен'}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleStatusChange(user._id, !user.isActive)}
+                      className={`${styles.actionButton} ${user.isActive ? styles.deactivate : styles.activate}`}
+                    >
+                      {user.isActive ? 'Деактивирај' : 'Активирај'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ProfileRequired>
   );

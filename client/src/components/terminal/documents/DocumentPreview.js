@@ -40,6 +40,9 @@ const documentHeadlines = {
   terminationDueToFault: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВИНА НА РАБОТНИКОТ",
   terminationByEmployeeRequest: "РЕШЕНИЕ ЗА ПРЕСТАНОК НА РАБОТЕН ОДНОС",
   bonusPayment: "ОДЛУКА ЗА ИСПЛАТА НА РАБОТНА УСПЕШНОСТ - БОНУС",
+  bonusDecision: "ОДЛУКА ЗА ДОДЕЛУВАЊЕ БОНУС",
+  deathCompensationDecision: "ОДЛУКА ЗА ИСПЛАТА НА НАДОМЕСТ ВО СЛУЧАЈ НА СМРТ НА ЧЛЕН НА СЕМЕЈНО ДОМАЌИНСТВО",
+  unpaidLeaveDecision: "ОДЛУКА ЗА НЕПЛАТЕНО ОТСУСТВО",
 
   // Personal Data Protection
   consentForPersonalDataProcessing: "СОГЛАСНОСТ ЗА ОБРАБОТКА НА ЛИЧНИ ПОДАТОЦИ",
@@ -54,8 +57,9 @@ const documentHeadlines = {
   employeeDamagesStatement: "ИЗЈАВА ЗА СОГЛАСНОСТ ЗА НАМАЛУВАЊЕ НА ПЛАТА ПОРАДИ ПРЕДИЗВИКАНА ШТЕТА",
   terminationDueToAgeLimit: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВОЗРАСНА ГРАНИЦА",
   
-  // Obligations  
+  // Obligations
   vehicleSalePurchaseAgreement: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
+  debtAssumptionAgreement: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
 
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
@@ -133,6 +137,27 @@ const documentSentences = {
       {
         text: "Годишниот одмор ќе трае од {annualLeaveStart} до {annualLeaveEnd} година за {annualLeaveYear} година.",
         fields: ['annualLeaveStart', 'annualLeaveEnd', 'annualLeaveYear']
+      }
+    ]
+  },
+  unpaidLeaveDecision: {
+    title: "ОДЛУКА ЗА НЕПЛАТЕНО ОТСУСТВО",
+    sentences: [
+      {
+        text: "На работникот {employeeName} му се одобрува неплатено отсуство од работа во траење од {unpaidLeaveDuration} месеци.",
+        fields: ['employeeName', 'unpaidLeaveDuration']
+      },
+      {
+        text: "Неплатеното отсуство почнува од {startingDate} година и работникот се враќа на работа на {startingWorkDate} година.",
+        fields: ['startingDate', 'startingWorkDate']
+      },
+      {
+        text: "За време на неплатеното отсуство на работникот нема да му се исплатува надомест на плата и придонеси.",
+        fields: []
+      },
+      {
+        text: "За време на неплатеното отсуство на работникот му мируваат правата и обврските од работен однос.",
+        fields: []
       }
     ]
   },
@@ -480,6 +505,39 @@ const documentSentences = {
       },
       {
         text: "Против оваа одлука работникот има право на приговор во рок од 8 дена од денот на приемот.",
+        fields: []
+      }
+    ]
+  },
+  bonusDecision: {
+    title: "ОДЛУКА ЗА ДОДЕЛУВАЊЕ БОНУС",
+    sentences: [
+      {
+        text: "Врз основа на член 105 од Законот за работните односи, [компанија], со седиште на ул. [адреса], со ЕМБС [број], претставувано од Управителот [управител], на ден [датум], ја донесе следната ОДЛУКА за доделување бонус.",
+        fields: []
+      },
+      {
+        text: "Член 1: Со оваа одлука, на работникот {employeeName}, вработен во [компанија], на работното место: {employeeWorkPosition}, му се доделува бонус за {bonusType} во износ од {bonusAmount} денари како нето износ.",
+        fields: ['employeeName', 'employeeWorkPosition', 'bonusType', 'bonusAmount']
+      },
+      {
+        text: "Член 2: Оваа одлука влегува во сила на ден {effectiveDate} и се однесува на периодот: {bonusPeriod}.",
+        fields: ['effectiveDate', 'bonusPeriod']
+      },
+      {
+        text: "Член 3: Критериумите за доделување на бонусот се: {criteria}.",
+        fields: ['criteria']
+      },
+      {
+        text: "Образложение: Правото на бонус на работникот му се определува земајќи го предвид неговиот домаќински однос, придонесот во квалитетот и обемот на извршената работа, како и во согласност со индивидуалниот придонес на работникот за деловниот успех на работодавачот.",
+        fields: []
+      },
+      {
+        text: "Конкретно, бонусот се доделува заради: {bonusReason}.",
+        fields: ['bonusReason']
+      },
+      {
+        text: "Следствено на погоре наведеното, работодавачот одлучи како во диспозитивот на оваа Одлука.",
         fields: []
       }
     ]
@@ -858,6 +916,110 @@ const documentSentences = {
         fields: ['consultationRequired']
       }
     ]
+  },
+  debtAssumptionAgreement: {
+    title: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
+    sentences: [
+      {
+        text: "📋 ОСНОВНИ ПОДАТОЦИ: Договорот е склучен на {contractDate} година, во {contractTown}.",
+        fields: ['contractDate', 'contractTown']
+      },
+      {
+        text: "🏢 ВАШАТА УЛОГА: Вашата компанија {companyName} во овој договор е {userRole|creditor:ДОВЕРИТЕЛ|debtor:ПРВИЧЕН ДОЛЖНИК|third_party:ПРЕЗЕМАЧ НА ДОЛГ}.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "👤 ДОВЕРИТЕЛ: {userRole|creditor:Вашата компанија|originalCreditorName} {originalCreditorCompanyName} со адреса {originalCreditorAddress} {originalCreditorCompanyAddress}.",
+        fields: ['userRole', 'originalCreditorName', 'originalCreditorCompanyName', 'originalCreditorAddress', 'originalCreditorCompanyAddress']
+      },
+      {
+        text: "🔢 ЕМБГ/ДАНОЧЕН БРОЈ НА ДОВЕРИТЕЛ: {originalCreditorPIN} {originalCreditorCompanyTaxNumber}, управител: {originalCreditorCompanyManager}.",
+        fields: ['originalCreditorPIN', 'originalCreditorCompanyTaxNumber', 'originalCreditorCompanyManager']
+      },
+      {
+        text: "💼 ПРВИЧЕН ДОЛЖНИК: {userRole|debtor:Вашата компанија|originalDebtorName} {originalDebtorCompanyName} со адреса {originalDebtorAddress} {originalDebtorCompanyAddress}.",
+        fields: ['userRole', 'originalDebtorName', 'originalDebtorCompanyName', 'originalDebtorAddress', 'originalDebtorCompanyAddress']
+      },
+      {
+        text: "🔢 ЕМБГ/ДАНОЧЕН БРОЈ НА ПРВИЧЕН ДОЛЖНИК: {originalDebtorPIN} {originalDebtorCompanyTaxNumber}, управител: {originalDebtorCompanyManager}.",
+        fields: ['originalDebtorPIN', 'originalDebtorCompanyTaxNumber', 'originalDebtorCompanyManager']
+      },
+      {
+        text: "🤝 ПРЕЗЕМАЧ НА ДОЛГ: {userRole|third_party:Вашата компанија|assumingPartyName} {assumingPartyCompanyName} {otherPartyType|individual:физичко лице|company:правно лице}.",
+        fields: ['userRole', 'assumingPartyName', 'assumingPartyCompanyName', 'otherPartyType']
+      },
+      {
+        text: "🏠 АДРЕСА НА ПРЕЗЕМАЧ: {assumingPartyAddress} {assumingPartyCompanyAddress}, ЕМБГ/даночен број: {assumingPartyPIN} {assumingPartyCompanyTaxNumber}.",
+        fields: ['assumingPartyAddress', 'assumingPartyCompanyAddress', 'assumingPartyPIN', 'assumingPartyCompanyTaxNumber']
+      },
+      {
+        text: "💰 ИЗНОС НА ДОЛГОТ: {debtAmount} {debtCurrency|МКД:денари|EUR:евра|USD:долари} што се презема од првичниот должник.",
+        fields: ['debtAmount', 'debtCurrency']
+      },
+      {
+        text: "📝 ОПИС НА ДОЛГОТ: {debtDescription}.",
+        fields: ['debtDescription']
+      },
+      {
+        text: "📄 ПРВИЧЕН ДОГОВОР: Број {originalContractNumber}, датум {originalContractDate}, доспевање на {dueDate}.",
+        fields: ['originalContractNumber', 'originalContractDate', 'dueDate']
+      },
+      {
+        text: "⚖️ ТИП НА ПРЕЗЕМАЊЕ: {assumptionType|full:Целосно преземање на долгот|partial:Делумно преземање на долгот}.",
+        fields: ['assumptionType']
+      },
+      {
+        text: "🔓 СТАТУС НА ПРВИЧЕН ДОЛЖНИК: {releaseOriginalDebtor|true:Се ослободува од обврската|false:Останува солидарно одговорен}.",
+        fields: ['releaseOriginalDebtor']
+      },
+      {
+        text: "📋 ДОПОЛНИТЕЛНИ УСЛОВИ: {additionalConditions}.",
+        fields: ['additionalConditions']
+      }
+    ]
+  },
+  annualLeaveBonusDecision: {
+    title: "ОДЛУКА ЗА ИСПЛАТА НА РЕГРЕС ЗА ГОДИШЕН ОДМОР",
+    sentences: [
+      {
+        text: "На вработените им се исплаќа регрес за користење годишен одмор за {annualLeaveYear} година, во висина од {bonusAmount} денари.",
+        fields: ['annualLeaveYear', 'bonusAmount']
+      },
+      {
+        text: "Регресот за годишен одмор ќе се исплати {paymentDate} година.",
+        fields: ['paymentDate']
+      },
+      {
+        text: "Право на регрес за годишен одмор имаат работниците кои се стекнале со право на користење годишен одмор и кои ќе се стекнат со тоа право во текот на {annualLeaveYear} година.",
+        fields: ['annualLeaveYear']
+      },
+      {
+        text: "Средствата за исплата на регресот ќе се обезбедат од тековното работење.",
+        fields: []
+      }
+    ]
+  },
+
+  deathCompensationDecision: {
+    title: "ОДЛУКА ЗА ИСПЛАТА НА НАДОМЕСТ ВО СЛУЧАЈ НА СМРТ НА ЧЛЕН НА СЕМЕЈНО ДОМАЌИНСТВО",
+    sentences: [
+      {
+        text: "На работникот {employeeName} му се исплаќа надомест во случај на смрт на член на семејно домаќинство – {familyMember}.",
+        fields: ['employeeName', 'familyMember']
+      },
+      {
+        text: "Износот на надомест изнесува {compensationAmount} денари, што претставува две месечни просечни нето плати исплатени во Република Македонија во последните три месеци.",
+        fields: ['compensationAmount']
+      },
+      {
+        text: "Одлуката е донесена на {decisionDate} година, а надоместот ќе се исплати на {paymentDate} година.",
+        fields: ['decisionDate', 'paymentDate']
+      },
+      {
+        text: "Надоместот се исплаќа врз основа на член 35 од Општиот колективен договор за приватниот сектор од областа на стопанството.",
+        fields: []
+      }
+    ]
   }
 };
 
@@ -896,8 +1058,44 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employeeWrongdoingDate', 'decisionDate', 'contractDate', 'employmentStartDate',
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
-         'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate'].includes(fieldName)) {
+         'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate'].includes(fieldName)) {
       return formatDate(value);
+    }
+
+    // Format currency amounts (Macedonia format: 1.000,00 денари)
+    if (['bonusAmount', 'netSalary', 'damageAmount', 'compensationAmount'].includes(fieldName)) {
+      if (!value || isNaN(value)) return value || '';
+      return `${parseInt(value).toLocaleString('mk-MK')},00`;
+    }
+
+    // Handle bonus type field for bonus decision
+    if (fieldName === 'bonusType') {
+      const typeMapping = {
+        'работна успешност': 'работна успешност',
+        'квалитет на работа': 'квалитет на работа',
+        'навремено завршување проект': 'навремено завршување проект',
+        'надминување на цели': 'надминување на продажни/производни цели',
+        'иновации и подобрувања': 'иновации и подобрувања во работата',
+        'лојалност и посветеност': 'лојалност и посветеност кон компанијата',
+        'професионален развој': 'професионален развој и стекнување сертификати',
+        'тимска работа': 'исклучителна тимска работа и соработка',
+        'друго': 'друг тип на бонус'
+      };
+      return typeMapping[value] || value || '[Тип на бонус]';
+    }
+
+    // Handle family member field for death compensation decision
+    if (fieldName === 'familyMember') {
+      const familyMapping = {
+        'сопруг': 'сопруг',
+        'сопруга': 'сопруга',
+        'син': 'син',
+        'ќерка': 'ќерка',
+        'татко': 'татко',
+        'мајка': 'мајка'
+      };
+      return familyMapping[value] || value || '[Член на семејно домаќинство]';
     }
 
     // Handle GDPR Company Politics specific boolean fields

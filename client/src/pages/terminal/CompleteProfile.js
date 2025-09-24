@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -13,13 +13,57 @@ const CompleteProfile = () => {
     companyName: '',
     industry: '',
     companySize: '',
-    role: ''
+    role: '',
+    // Marketplace service category (optional)
+    serviceCategory: '',
+    serviceDescription: '',
+    servesRemote: false
   });
+  const [serviceCategories, setServiceCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { currentUser, updateProfile } = useAuth();
+  const { currentUser, updateProfile, token } = useAuth();
   const navigate = useNavigate();
+
+  // Load service categories
+  useEffect(() => {
+    const loadServiceCategories = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/marketplace/categories`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            credentials: 'include'
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          setServiceCategories(result.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading service categories:', error);
+        // Set fallback categories if API fails
+        setServiceCategories([
+          { value: 'legal', label: 'Legal Services', icon: '⚖️' },
+          { value: 'accounting', label: 'Accounting & Finance', icon: '💰' },
+          { value: 'marketing', label: 'Marketing & Advertising', icon: '📈' },
+          { value: 'it', label: 'IT & Technology', icon: '💻' },
+          { value: 'consulting', label: 'Business Consulting', icon: '📊' },
+          { value: 'realestate', label: 'Real Estate', icon: '🏢' },
+          { value: 'cybersecurity', label: 'Cybersecurity', icon: '🔒' }
+        ]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadServiceCategories();
+  }, [token]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -45,8 +89,8 @@ const CompleteProfile = () => {
         throw new Error(t('profile.industryRequired', 'Please select an industry'));
       }
 
-      // Submit profile data (simplified without fullName)
-      await updateProfile({
+      // Submit profile data with optional service category
+      const profileData = {
         email: formData.email.trim(),
         companyInfo: {
           companyName: formData.companyName.trim(),
@@ -55,7 +99,18 @@ const CompleteProfile = () => {
           role: formData.role
         },
         profileComplete: true
-      });
+      };
+
+      // Add marketplace info if service category is selected
+      if (formData.serviceCategory) {
+        profileData.marketplaceInfo = {
+          serviceCategory: formData.serviceCategory,
+          serviceDescription: formData.serviceDescription?.trim() || '',
+          servesRemote: formData.servesRemote
+        };
+      }
+
+      await updateProfile(profileData);
 
       // Navigate to terminal/dashboard
       navigate('/terminal', { replace: true });
@@ -73,11 +128,8 @@ const CompleteProfile = () => {
 
   return (
     <div className={styles.completeProfileContainer}>
-      <Header isTerminal={true} />
-      <div className={styles.contentWrapper}>
-        <Sidebar />
-        <main className={styles.mainContent}>
-          <div className={styles.formWrapper}>
+      <Header isTerminal={false} />
+      <div className={styles.formWrapper}>
             <div className={styles.header}>
               <h1 className={styles.title}>
                 {t('profile.completeTitle', 'Complete Your Profile')}
@@ -190,6 +242,70 @@ const CompleteProfile = () => {
                 </div>
               </div>
 
+              {/* Optional Marketplace Section */}
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>
+                  {t('profile.marketplaceInfo', 'Service Provider Information')}
+                  <span className={styles.optional}>{t('profile.optional', '(Optional)')}</span>
+                </h2>
+                <p className={styles.sectionDescription}>
+                  {t('profile.marketplaceDescription', 'Want to offer services to other businesses? Select your primary service category to join our marketplace.')}
+                </p>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="serviceCategory" className={styles.formLabel}>
+                    {t('profile.serviceCategory', 'Primary Service Category')}
+                  </label>
+                  {isLoadingCategories ? (
+                    <div className={styles.loadingText}>Loading categories...</div>
+                  ) : (
+                    <select
+                      id="serviceCategory"
+                      className={styles.formInput}
+                      value={formData.serviceCategory}
+                      onChange={(e) => handleInputChange('serviceCategory', e.target.value)}
+                    >
+                      <option value="">{t('profile.selectServiceCategory', 'Select a service category (optional)')}</option>
+                      {serviceCategories.map(category => (
+                        <option key={category.value} value={category.value}>
+                          {category.icon} {category.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {formData.serviceCategory && (
+                  <>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="serviceDescription" className={styles.formLabel}>
+                        {t('profile.serviceDescription', 'Service Description')}
+                      </label>
+                      <textarea
+                        id="serviceDescription"
+                        className={styles.formTextarea}
+                        value={formData.serviceDescription}
+                        onChange={(e) => handleInputChange('serviceDescription', e.target.value)}
+                        placeholder={t('profile.serviceDescriptionPlaceholder', 'Briefly describe the services you offer...')}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={formData.servesRemote}
+                          onChange={(e) => handleInputChange('servesRemote', e.target.checked)}
+                          className={styles.checkbox}
+                        />
+                        {t('profile.servesRemote', 'I can provide services remotely')}
+                      </label>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className={styles.formActions}>
                 <button 
                   type="button" 
@@ -213,8 +329,6 @@ const CompleteProfile = () => {
               </div>
             </form>
           </div>
-        </main>
-      </div>
     </div>
   );
 };

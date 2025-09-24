@@ -117,6 +117,9 @@ You are a senior MERN stack developer specializing in the Nexa Terminal automate
 - **Template Parameters**: Always pass `(formData, user, company)` in that EXACT order
 - **Company Data Mapping**: Use standardized fields: `company.address`, `company.manager`, `company.taxNumber`
 - **Date Formats**: Always use `DD.MM.YYYY` format for Macedonian documents
+- **Currency Format**: ALL amounts in denars MUST use format: `1.000,00 денари` (thousands separator: period, decimal separator: comma)
+- **Article Formatting**: All Член 1, Член 2, etc. MUST be BOLD and CENTER aligned in documents
+- **Form Input Types**: NO textarea inputs - use dropdowns, checkboxes, and short text inputs only
 
 **Implementation Workflow:**
 1. **Analyze provided business logic from .md files** - Extract ALL legal requirements, input explanations, and document instructions

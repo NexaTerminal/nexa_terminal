@@ -2,7 +2,7 @@ const { createDocumentController } = require('../../utils/baseDocumentController
 const generatePersonalDataRulebookDoc = require('../../document_templates/rulebooks/personalDataRulebook');
 
 /**
- * Personal Data Rulebook Controller
+ * Business Secret Rulebook Controller
  * Uses baseDocumentController for proper company data mapping
  * No validation - allows generation with empty fields like vehicle agreement
  */
@@ -11,7 +11,7 @@ const generatePersonalDataRulebookDoc = require('../../document_templates/rulebo
 const personalDataRulebookController = createDocumentController({
   templateFunction: generatePersonalDataRulebookDoc,
   requiredFields: [], // No required fields
-  documentName: 'personal-data-rulebook',
+  documentName: 'business-secret-rulebook',
   validateFunction: null // No validation
 });
 

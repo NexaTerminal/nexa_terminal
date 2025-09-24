@@ -226,16 +226,23 @@ async function initializeServices(database) {
     const InvestmentService = require('./services/investmentService');
     const UserAnalyticsService = require('./services/userAnalyticsService');
     const activityLogger = require('./middleware/activityLogger');
-    
+
     new UserService(database);
     new SocialPostService(database);
     new InvestmentService(database);
     new UserAnalyticsService(database);
-    
+
+    // Initialize marketplace database if feature is enabled
+    if (settings.isFeatureEnabled('marketplace')) {
+      console.log('🏪 Initializing marketplace database...');
+      const { initializeMarketplaceDatabase } = require('./config/marketplaceIndexes');
+      await initializeMarketplaceDatabase(database);
+    }
+
     // Initialize activity logger
     activityLogger.initialize(database);
     app.locals.activityLogger = activityLogger;
-    
+
   } catch (error) {
     console.error('Error initializing services:', error);
     // Don't exit, just log the error as services might still work
@@ -309,6 +316,8 @@ function registerRoutes() {
     /^\/verification\/[^\/]+\/approve$/,    // Admin approve verification (JWT protected)
     /^\/verification\/[^\/]+\/reject$/,     // Admin reject verification (JWT protected)
     '/verification/pending',               // Get pending verifications (JWT protected)
+    '/marketplace',                        // Marketplace endpoints (JWT protected)
+    /^\/marketplace\/.*$/,                 // All marketplace sub-routes (JWT protected)
   ];
   
   // Apply CSRF exemptions only if CSRF is enabled
@@ -338,7 +347,16 @@ function registerRoutes() {
   if (settings.isRouteEnabled('verification')) {
     app.use('/api/verification', require('./routes/verification'));
   }
-  
+
+  // Marketplace routes
+  if (settings.isRouteEnabled('marketplace')) {
+    try {
+      app.use('/api/marketplace', require('./routes/marketplace'));
+    } catch (error) {
+      console.log('⚠️  Marketplace routes not found - will be created in next phase');
+    }
+  }
+
   // Conditional feature routes (disabled by default in current settings)
   if (settings.isRouteEnabled('blog')) {
     try {

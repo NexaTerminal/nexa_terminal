@@ -9,6 +9,18 @@ import styles from '../../styles/terminal/UnifiedVerification.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 import ApiService from '../../services/api';
 
+// Marketplace service categories
+const SERVICE_CATEGORIES = [
+  { value: '', label: 'Изберете категорија на услуга', disabled: true },
+  { value: 'legal', label: 'Правни услуги' },
+  { value: 'accounting', label: 'Сметководство' },
+  { value: 'marketing', label: 'Маркетинг' },
+  { value: 'insurance', label: 'Осигурување' },
+  { value: 'realestate', label: 'Агенти за недвижен имот' },
+  { value: 'itsupport', label: 'ИТ поддршка' },
+  { value: 'other', label: 'Друго' }
+];
+
 const CompanyVerificationSingle = () => {
   const { t } = useTranslation();
   const { currentUser: user, refreshUser } = useAuth();
@@ -39,6 +51,9 @@ const CompanyVerificationSingle = () => {
     taxNumber: '',
     companyManager: '',
     officialEmail: '',
+    // Marketplace service category selection
+    serviceCategory: '',
+    serviceDescription: '',
     // Optional fields - comprehensive company info
     businessActivity: '',
     website: '',
@@ -92,7 +107,9 @@ const CompanyVerificationSingle = () => {
         missionStatement: user.companyInfo?.missionStatement || '',
         crnNumber: user.companyInfo?.crnNumber || '',
         companyPIN: user.companyInfo?.companyPIN || '',
-        companyLogo: user.companyInfo?.companyLogo || ''
+        companyLogo: user.companyInfo?.companyLogo || '',
+        serviceCategory: user.marketplaceInfo?.serviceCategory || '',
+        serviceDescription: user.marketplaceInfo?.description || ''
       }));
 
       // Check if email has been sent before
@@ -164,6 +181,10 @@ const CompanyVerificationSingle = () => {
             companyPIN: formData.companyPIN,
             companyLogo: formData.companyLogo
           },
+          marketplaceInfo: formData.serviceCategory ? {
+            serviceCategory: formData.serviceCategory,
+            description: formData.serviceDescription
+          } : undefined,
           officialEmail: formData.officialEmail,
           profileComplete: true
         })
@@ -564,6 +585,55 @@ const CompanyVerificationSingle = () => {
           </div>
 
           <div className={styles.section}>
+            <h3>🏪 Marketplace услуги</h3>
+            <p className={styles.sectionDescription}>
+              Управувајте со вашето присуство во Nexa Marketplace
+            </p>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label htmlFor="serviceCategory">Категорија на услуга</label>
+                <select
+                  id="serviceCategory"
+                  name="serviceCategory"
+                  value={formData.serviceCategory}
+                  onChange={handleInputChange}
+                >
+                  {SERVICE_CATEGORIES.map(category => (
+                    <option
+                      key={category.value}
+                      value={category.value}
+                      disabled={category.disabled}
+                    >
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                <small className={styles.fieldHint}>
+                  Изберете ја категоријата која најдобро ја опишува вашата услуга
+                </small>
+              </div>
+            </div>
+
+            {formData.serviceCategory && (
+              <div className={styles.field}>
+                <label htmlFor="serviceDescription">Опис на услугата</label>
+                <textarea
+                  id="serviceDescription"
+                  name="serviceDescription"
+                  value={formData.serviceDescription}
+                  onChange={handleInputChange}
+                  placeholder="Опишете ги услугите што ги нудите..."
+                  rows={3}
+                />
+                <small className={styles.fieldHint}>
+                  Овој опис ќе биде видлив на другите корисници во Marketplace
+                </small>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.section}>
             <h3>Опис и мисија</h3>
             
             <div className={styles.field}>
@@ -809,6 +879,55 @@ const CompanyVerificationSingle = () => {
               required
             />
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <h3>🏪 Marketplace услуги (опционално)</h3>
+          <p className={styles.sectionDescription}>
+            Изберете категорија на услуга која ја нудите за да бидете вклучени во Nexa Marketplace
+          </p>
+
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label htmlFor="serviceCategory">Категорија на услуга</label>
+              <select
+                id="serviceCategory"
+                name="serviceCategory"
+                value={formData.serviceCategory}
+                onChange={handleInputChange}
+              >
+                {SERVICE_CATEGORIES.map(category => (
+                  <option
+                    key={category.value}
+                    value={category.value}
+                    disabled={category.disabled}
+                  >
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+              <small className={styles.fieldHint}>
+                Изберете ја категоријата која најдобро ја опишува вашата услуга
+              </small>
+            </div>
+          </div>
+
+          {formData.serviceCategory && (
+            <div className={styles.field}>
+              <label htmlFor="serviceDescription">Опис на услугата</label>
+              <textarea
+                id="serviceDescription"
+                name="serviceDescription"
+                value={formData.serviceDescription}
+                onChange={handleInputChange}
+                placeholder="Опишете ги услугите што ги нудите..."
+                rows={3}
+              />
+              <small className={styles.fieldHint}>
+                Овој опис ќе биде видлив на другите корисници во Marketplace
+              </small>
+            </div>
+          )}
         </div>
 
         <div className={styles.section}>

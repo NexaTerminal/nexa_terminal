@@ -4,6 +4,8 @@ const fs = require('fs').promises;
 const { ObjectId } = require('mongodb');
 const UserService = require('../services/userService');
 const emailService = require('../services/emailService');
+const MarketplaceService = require('../services/marketplaceService');
+const settingsManager = require('../config/settingsManager');
 
 class VerificationController {
   constructor() {
@@ -233,7 +235,46 @@ class VerificationController {
         'approved'
       );
 
-      res.json({ message: 'Verification approved successfully' });
+      // Auto-create service provider if user has marketplace info
+      let serviceProviderCreated = false;
+      if (settingsManager.isFeatureEnabled('marketplace')) {
+        try {
+          const marketplaceService = new MarketplaceService(req.app.locals.database);
+
+          // Get the updated user to check for marketplace info
+          const updatedUser = await userService.findById(verification.userId.toString());
+
+          if (updatedUser && updatedUser.marketplaceInfo?.serviceCategory) {
+            // Check if service provider already exists
+            const existingProvider = await marketplaceService.getProviderByUserId(updatedUser._id);
+
+            if (!existingProvider) {
+              await marketplaceService.createServiceProviderFromUser(
+                updatedUser._id,
+                updatedUser.marketplaceInfo.serviceCategory,
+                {
+                  description: updatedUser.marketplaceInfo.serviceDescription,
+                  servesRemote: updatedUser.marketplaceInfo.servesRemote,
+                  phone: updatedUser.phone,
+                  website: updatedUser.website
+                }
+              );
+              serviceProviderCreated = true;
+            }
+          }
+        } catch (marketplaceError) {
+          console.error('Error creating service provider during verification:', marketplaceError);
+          // Don't fail the verification approval if marketplace creation fails
+        }
+      }
+
+      const response = { message: 'Verification approved successfully' };
+      if (serviceProviderCreated) {
+        response.message = 'Verification approved and service provider profile created';
+        response.serviceProviderCreated = true;
+      }
+
+      res.json(response);
     } catch (error) {
       console.error('Error approving verification:', error);
       res.status(500).json({ message: 'Server error' });

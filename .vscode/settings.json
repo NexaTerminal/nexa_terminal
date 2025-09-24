@@ -1,0 +1,11 @@
+{
+  "nexa.features": {
+    "authentication": true,
+    "documentAutomation": true,
+    "profileCompletion": true,
+    "socialPosts": true,
+    "legalHealthCheck": true,
+    "blog": true,
+    "marketplace": true
+  }
+}

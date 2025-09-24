@@ -20,7 +20,8 @@ class SettingsManager {
           profileCompletion: true,
           socialPosts: true,
           legalHealthCheck: true,
-          blog: true
+          blog: true,
+          marketplace: true
         };
         return;
       }
@@ -61,6 +62,7 @@ class SettingsManager {
         social: features.socialPosts,
         blog: features.blog,
         legal: features.legalHealthCheck,
+        marketplace: features.marketplace,
         admin: true, // Always enabled for admin functionality
         verification: true // Always enabled for company verification
       },
@@ -73,7 +75,11 @@ class SettingsManager {
           templates: features.documentAutomation,
           social_posts: features.socialPosts,
           blogs: features.blog,
-          legal_checks: features.legalHealthCheck
+          legal_checks: features.legalHealthCheck,
+          service_providers: features.marketplace,
+          service_requests: features.marketplace,
+          provider_offers: features.marketplace,
+          service_categories: features.marketplace
         }
       },
       // Use middleware settings from VS Code
@@ -98,7 +104,8 @@ class SettingsManager {
         profileCompletion: true,
         socialPosts: true,
         legalHealthCheck: true,
-        blog: true  // Enable blogs for online version
+        blog: true,  // Enable blogs for online version
+        marketplace: true
       },
       database: {
         collections: {
@@ -108,7 +115,11 @@ class SettingsManager {
           templates: true,
           social_posts: true,
           blogs: true,  // Enable blogs collection
-          legal_checks: true
+          legal_checks: true,
+          service_providers: true,
+          service_requests: true,
+          provider_offers: true,
+          service_categories: true
         }
       },
       routes: {
@@ -118,6 +129,7 @@ class SettingsManager {
         social: true,
         blog: true,  // Enable blog routes
         legal: true,
+        marketplace: true,
         admin: true,  // Enable admin routes
         verification: true  // Enable verification routes
       },

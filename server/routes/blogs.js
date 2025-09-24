@@ -3,11 +3,19 @@ const router = express.Router();
 const { authenticateJWT, isAdmin } = require('../middleware/auth');
 const blogController = require('../controllers/blogController');
 
-// Get all blog posts
-router.get('/', blogController.getAllBlogs);
+// PUBLIC ROUTES - No authentication required for external access
+// Get all published blog posts (public)
+router.get('/public', blogController.getPublicBlogs);
 
-// Get single blog post by ID
-router.get('/:id', blogController.getBlogById);
+// Get single published blog post by ID (public)
+router.get('/public/:id', blogController.getPublicBlogById);
+
+// AUTHENTICATED ROUTES
+// Get all blog posts (authenticated users can view)
+router.get('/', authenticateJWT, blogController.getAllBlogs);
+
+// Get single blog post by ID (authenticated users can view)
+router.get('/:id', authenticateJWT, blogController.getBlogById);
 
 // Create new blog post (admin only)
 router.post('/', authenticateJWT, isAdmin, blogController.upload.single('image'), blogController.createBlog);

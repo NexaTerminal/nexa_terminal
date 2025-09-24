@@ -25,4 +25,50 @@ router.get('/export/users', adminController.exportUserData);
 // Bulk Operations
 router.post('/bulk-action', adminController.bulkUserAction);
 
+// Marketplace Management (Service Providers)
+router.get('/marketplace/providers', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').getServiceProviders(req, res, next);
+});
+
+router.post('/marketplace/providers', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').createServiceProvider(req, res, next);
+});
+
+router.get('/marketplace/providers/:id', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').getServiceProviderById(req, res, next);
+});
+
+router.put('/marketplace/providers/:id', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').updateServiceProvider(req, res, next);
+});
+
+router.patch('/marketplace/providers/:id/status', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').updateProviderStatus(req, res, next);
+});
+
+router.delete('/marketplace/providers/:id', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').deleteServiceProvider(req, res, next);
+});
+
+router.get('/marketplace/categories', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').getServiceCategories(req, res, next);
+});
+
+router.post('/marketplace/categories', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').createServiceCategory(req, res, next);
+});
+
+router.get('/marketplace/analytics', (req, res, next) => {
+  // Delegate to marketplace controller
+  require('../controllers/marketplaceController').getMarketplaceAnalytics(req, res, next);
+});
+
 module.exports = router;

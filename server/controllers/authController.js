@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const UserService = require('../services/userService');
 const PasswordResetService = require('../services/passwordResetService');
 const EmailService = require('../services/emailService');
+const MarketplaceService = require('../services/marketplaceService');
+const settingsManager = require('../config/settingsManager');
 
 class AuthController {
   constructor() {
@@ -361,8 +363,46 @@ class AuthController {
   }
 
   // Validate token
-  validateToken = (req, res) => {
-    res.json({ valid: true, user: req.user });
+  validateToken = async (req, res) => {
+    try {
+      // Get user ID from JWT payload
+      const userId = req.user.id || req.user._id;
+
+      // Get database connection
+      const db = req.app.locals.db || req.app.locals.database;
+      if (!db) {
+        return res.status(500).json({ valid: false, message: 'Database connection not available' });
+      }
+
+      // Fetch complete user data from database
+      const userService = new UserService(db);
+      const fullUser = await userService.findById(userId);
+
+      if (!fullUser) {
+        return res.status(404).json({ valid: false, message: 'User not found' });
+      }
+
+      // Return complete user data including companyInfo
+      res.json({
+        valid: true,
+        user: {
+          id: fullUser._id,
+          username: fullUser.username,
+          email: fullUser.email,
+          role: fullUser.role,
+          isAdmin: fullUser.isAdmin,
+          isVerified: fullUser.isVerified,
+          profileComplete: fullUser.profileComplete,
+          companyInfo: fullUser.companyInfo,
+          companyManager: fullUser.companyManager,
+          officialEmail: fullUser.officialEmail,
+          verificationStatus: fullUser.verificationStatus
+        }
+      });
+    } catch (error) {
+      console.error('Token validation error:', error);
+      res.status(500).json({ valid: false, message: 'Server error' });
+    }
   }
 
   // Update user profile
@@ -371,9 +411,10 @@ class AuthController {
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
       
-      const { 
-        email, 
+      const {
+        email,
         companyInfo,
+        marketplaceInfo,
         profileComplete
       } = req.body;
 
@@ -418,13 +459,62 @@ class AuthController {
 
       if (typeof profileComplete === 'boolean') updateData.profileComplete = profileComplete;
 
+      // Handle marketplace info if provided
+      if (marketplaceInfo && settingsManager.isFeatureEnabled('marketplace')) {
+        // Store marketplace info in user profile for later processing
+        updateData.marketplaceInfo = {
+          serviceCategory: marketplaceInfo.serviceCategory?.trim(),
+          serviceDescription: marketplaceInfo.serviceDescription?.trim() || '',
+          servesRemote: marketplaceInfo.servesRemote || false
+        };
+      }
+
       // Update user
       const updatedUser = await userService.updateUser(currentUser._id, updateData);
 
-      res.json({
+      // Auto-create service provider if user is verified and has marketplace info
+      let serviceProviderCreated = false;
+      if (
+        updatedUser.isVerified &&
+        updatedUser.marketplaceInfo?.serviceCategory &&
+        settingsManager.isFeatureEnabled('marketplace')
+      ) {
+        try {
+          const marketplaceService = new MarketplaceService(db);
+
+          // Check if service provider already exists
+          const existingProvider = await marketplaceService.getProviderByUserId(updatedUser._id);
+
+          if (!existingProvider) {
+            await marketplaceService.createServiceProviderFromUser(
+              updatedUser._id,
+              updatedUser.marketplaceInfo.serviceCategory,
+              {
+                description: updatedUser.marketplaceInfo.serviceDescription,
+                servesRemote: updatedUser.marketplaceInfo.servesRemote,
+                phone: updatedUser.phone,
+                website: updatedUser.website
+              }
+            );
+            serviceProviderCreated = true;
+          }
+        } catch (marketplaceError) {
+          console.error('Error creating service provider:', marketplaceError);
+          // Don't fail the profile update if marketplace creation fails
+        }
+      }
+
+      const response = {
         message: 'Profile updated successfully',
         user: this.formatUserResponse(updatedUser)
-      });
+      };
+
+      if (serviceProviderCreated) {
+        response.message = 'Profile updated successfully and service provider profile created';
+        response.serviceProviderCreated = true;
+      }
+
+      res.json(response);
     } catch (error) {
       console.error('Profile update error:', error);
       res.status(500).json({ message: 'Server error' });

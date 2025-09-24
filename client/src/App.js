@@ -8,6 +8,7 @@ import ResetPassword from './pages/website/ResetPassword';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
+import ManageServiceProviders from './pages/terminal/admin/ManageServiceProviders';
 import AddBlog from './pages/terminal/admin/AddBlog';
 
 // Terminal Pages
@@ -39,6 +40,8 @@ import WarningLetterPage from './pages/terminal/documents/employment/WarningLett
 import TerminationDueToFaultPage from './pages/terminal/documents/employment/TerminationDueToFaultPage';
 import TerminationByEmployeeRequestPage from './pages/terminal/documents/employment/TerminationByEmployeeRequestPage';
 import BonusPaymentPage from './pages/terminal/documents/employment/BonusPaymentPage';
+import BonusDecisionPage from './pages/terminal/documents/employment/BonusDecisionPage';
+import AnnualLeaveBonusDecisionPage from './pages/terminal/documents/employment/AnnualLeaveBonusDecisionPage';
 import EmployeeDamagesStatementPage from './pages/terminal/documents/employment/EmployeeDamagesStatementPage';
 import TerminationDueToAgeLimitPage from './pages/terminal/documents/employment/TerminationDueToAgeLimitPage';
 import OrganizationActPage from './pages/terminal/documents/employment/OrganizationActPage';
@@ -46,6 +49,7 @@ import MandatoryBonusPage from './pages/terminal/documents/employment/MandatoryB
 import RentAgreementPage from './pages/terminal/documents/contracts/RentAgreementPage';
 import NdaPage from './pages/terminal/documents/contracts/NdaPage';
 import MediationAgreementPage from './pages/terminal/documents/contracts/MediationAgreementPage';
+import DebtAssumptionAgreementPage from './pages/terminal/documents/contracts/DebtAssumptionAgreementPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
@@ -55,6 +59,7 @@ import VerificationResult from './pages/VerificationResult';
 // Employment
 // import AnnexEmploymentAgreement from './pages/terminal/documents/contracts/AnnexEmploymentAgreement';
 import AnnualLeaveDecisionPage from './pages/terminal/documents/employment/AnnualLeaveDecisionPage';
+import UnpaidLeaveDecisionPage from './pages/terminal/documents/employment/UnpaidLeaveDecisionPage';
 import DisciplinaryActionPage from './pages/terminal/documents/employment/DisciplinaryActionPage';
 // import ConfirmationOfEmploymentPage from './pages/terminal/documents/labourLaw/ConfirmationOfEmploymentPage'; // Assuming this component will be created
 
@@ -96,6 +101,7 @@ function App() {
       <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired feature="генерирање на документи"><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}
       <Route path="/terminal/documents/employment/annual-leave-decision" element={<PrivateRoute><VerificationRequired feature="годишни одмори"><AnnualLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/unpaid-leave-decision" element={<PrivateRoute><VerificationRequired feature="неплатени отсуства"><UnpaidLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/disciplinary-action" element={<PrivateRoute><VerificationRequired feature="дисциплински мерки"><DisciplinaryActionPage /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/labourLaw/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/health-safety-policy" element={<PrivateRoute><HealthAndSafetyPolicyPage /></PrivateRoute>} /> */}
@@ -134,6 +140,8 @@ function App() {
       <Route path="/terminal/documents/employment/termination-due-to-fault" element={<PrivateRoute><VerificationRequired feature="одлука за престанок поради вина"><TerminationDueToFaultPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/termination-by-employee-request" element={<PrivateRoute><VerificationRequired feature="решение за престанок по барање"><TerminationByEmployeeRequestPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/bonus-payment" element={<PrivateRoute><VerificationRequired feature="одлука за бонус плаќање"><BonusPaymentPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/bonus-decision" element={<PrivateRoute><VerificationRequired feature="одлука за бонус"><BonusDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/annual-leave-bonus-decision" element={<PrivateRoute><VerificationRequired feature="одлука за регрес за годишен одмор"><AnnualLeaveBonusDecisionPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/employee-damages-statement" element={<PrivateRoute><VerificationRequired feature="изјава за согласност за намалување на плата"><EmployeeDamagesStatementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/termination-due-to-age-limit" element={<PrivateRoute><VerificationRequired feature="решение за престанок поради возраст"><TerminationDueToAgeLimitPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/organization-act" element={<PrivateRoute><VerificationRequired feature="акт за систематизација"><OrganizationActPage/></VerificationRequired></PrivateRoute>} />
@@ -143,6 +151,7 @@ function App() {
       <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired feature="договор за доверливост"><NdaPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/mediation-agreement" element={<PrivateRoute><VerificationRequired feature="договор за посредување"><MediationAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/debt-assumption-agreement" element={<PrivateRoute><VerificationRequired feature="договор за преземање на долг"><DebtAssumptionAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired feature="договор за возила"><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Rulebooks */}
@@ -151,6 +160,7 @@ function App() {
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
+      <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/verification" element={<PrivateRoute><AdminVerification /></PrivateRoute>} />
     </Routes>
   );

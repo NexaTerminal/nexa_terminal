@@ -9,6 +9,7 @@ import ResetPassword from './pages/website/ResetPassword';
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import ManageServiceProviders from './pages/terminal/admin/ManageServiceProviders';
+import ManageOfferRequests from './pages/terminal/admin/ManageOfferRequests';
 import AddBlog from './pages/terminal/admin/AddBlog';
 
 // Terminal Pages
@@ -21,6 +22,7 @@ import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
 import Contact from './pages/terminal/Contact';
+import Disclaimer from './pages/terminal/Disclaimer';
 import EditProfile from './pages/terminal/EditProfile';
 import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
@@ -73,7 +75,6 @@ import ProcedureForEstimationPage from './pages/terminal/documents/personalDataP
 
 // Verification Components
 import CompanyVerificationSingle from './components/terminal/CompanyVerificationSingle';
-import AdminVerification from './components/terminal/AdminVerification';
 import VerificationRequired from './components/common/VerificationRequired';
 
 // Auth Components
@@ -117,6 +118,7 @@ function App() {
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
+      <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
@@ -161,7 +163,7 @@ function App() {
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
-      <Route path="/terminal/admin/verification" element={<PrivateRoute><AdminVerification /></PrivateRoute>} />
+      <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />
     </Routes>
   );
 }

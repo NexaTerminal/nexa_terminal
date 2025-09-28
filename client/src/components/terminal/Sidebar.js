@@ -24,7 +24,7 @@ const Sidebar = () => {
     { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️' },
     { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪' },
-    { path: '/terminal/admin/verification', label: 'Verification Management', icon: '✅' }
+    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝' },
   ];
 
   const toggleSidebar = () => {

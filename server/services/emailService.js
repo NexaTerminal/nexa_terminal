@@ -486,6 +486,175 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  // ==================== OFFER REQUEST EMAIL METHODS ====================
+
+  /**
+   * Send admin notification about new offer request
+   */
+  async sendOfferRequestToAdmin(request, user) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+      const template = emailTemplates.adminNewRequestNotification(request, user);
+
+      const adminEmail = process.env.ADMIN_EMAIL || 'terminalnexa@gmail.com';
+
+      return await this.sendEmail(adminEmail, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending admin notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send interest invitation to provider
+   */
+  async sendInterestInvitationToProvider(request, tokenData) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+      const template = emailTemplates.providerInterestInvitation(
+        request,
+        tokenData.provider,
+        tokenData.interestToken
+      );
+
+      return await this.sendEmail(tokenData.provider.email, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending provider invitation:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send confirmation to provider after expressing interest
+   */
+  async sendInterestConfirmationToProvider(provider, interestData, request) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+      const template = emailTemplates.providerInterestConfirmation(provider, interestData, request);
+
+      return await this.sendEmail(provider.email, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending provider confirmation:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send client notification about provider interest
+   */
+  async sendProviderInterestToClient(client, request, provider, interestData) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+      const template = emailTemplates.clientProviderInterestNotification(
+        client,
+        request,
+        provider,
+        interestData
+      );
+
+      return await this.sendEmail(client.email, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending client notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send request rejection notification to client
+   */
+  async sendRequestRejectionNotification(request, client, reason) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+      const template = emailTemplates.requestRejectionNotification(request, client, reason);
+
+      return await this.sendEmail(client.email, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending rejection notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send bulk interest invitations to multiple providers
+   */
+  async sendBulkInterestInvitations(request, providers, tokens) {
+    try {
+      const results = [];
+
+      for (let i = 0; i < providers.length; i++) {
+        const provider = providers[i];
+        const tokenData = tokens[i];
+
+        try {
+          const result = await this.sendInterestInvitationToProvider(request, tokenData);
+          results.push({
+            provider: provider.email,
+            success: result.success,
+            error: result.error
+          });
+        } catch (error) {
+          console.error(`Error sending invitation to ${provider.email}:`, error);
+          results.push({
+            provider: provider.email,
+            success: false,
+            error: error.message
+          });
+        }
+
+        // Add small delay between emails to avoid rate limiting
+        if (i < providers.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.length - successCount;
+
+      console.log(`Bulk invitation results: ${successCount} sent, ${failureCount} failed`);
+
+      return {
+        success: true,
+        totalSent: successCount,
+        totalFailed: failureCount,
+        results: results
+      };
+
+    } catch (error) {
+      console.error('Error sending bulk invitations:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Test email template rendering (development helper)
+   */
+  async testEmailTemplate(templateName, testData) {
+    try {
+      const emailTemplates = require('../templates/offerRequestEmails');
+
+      if (!emailTemplates[templateName]) {
+        throw new Error(`Template "${templateName}" not found`);
+      }
+
+      const template = emailTemplates[templateName](testData);
+
+      // In development, log the template instead of sending
+      console.log('📧 Email Template Test:');
+      console.log('Subject:', template.subject);
+      console.log('HTML Preview:', template.html.substring(0, 500) + '...');
+
+      return {
+        success: true,
+        template: template,
+        preview: template.html.substring(0, 500)
+      };
+
+    } catch (error) {
+      console.error('Error testing email template:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 module.exports = new EmailService();

@@ -130,7 +130,10 @@ const ManageUsers = () => {
     <ProfileRequired>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>Управување со корисници</h1>
+          <div>
+            <h1>Управување со корисници</h1>
+            <p>Управувајте со корисничките акаунти, улоги и статус во системот</p>
+          </div>
         </div>
 
         {error && <div className={styles.error}>{error}</div>}
@@ -151,7 +154,10 @@ const ManageUsers = () => {
               {users.map(user => (
                 <tr key={user._id}>
                   <td className={styles.userCell}>
-                    {user.companyInfo?.companyName || user.email}
+                    <strong>{user.companyInfo?.companyName || 'Нема информации за компанија'}</strong>
+                    {user.companyInfo?.companyName && (
+                      <small>Контакт: {user.email}</small>
+                    )}
                   </td>
                   <td className={styles.emailCell}>
                     {user.email}
@@ -167,7 +173,7 @@ const ManageUsers = () => {
                     </select>
                   </td>
                   <td>
-                    <span className={`${styles.status} ${styles[user.isActive ? 'active' : 'inactive']}`}>
+                    <span className={`${styles.status} ${user.isActive ? styles.active : styles.inactive}`}>
                       {user.isActive ? 'Активен' : 'Неактивен'}
                     </span>
                   </td>

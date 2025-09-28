@@ -7,12 +7,35 @@ import Header from '../../../components/common/Header';
 const ManageServiceProviders = () => {
   const { token } = useAuth();
   const [providers, setProviders] = useState([]);
-  const [categories, setCategories] = useState([]);
+  // Fixed service categories matching the backend schemas
+  const serviceCategories = [
+    { value: 'legal', label: 'Правни услуги' },
+    { value: 'accounting', label: 'Сметководство' },
+    { value: 'marketing', label: 'Маркетинг' },
+    { value: 'realestate', label: 'Недвижности' },
+    { value: 'itsupport', label: 'ИТ поддршка' },
+    { value: 'insurance', label: 'Осигурување' },
+    { value: 'other', label: 'Друго' }
+  ];
+
+  // Macedonian towns/cities for dropdown
+  const macedonianTowns = [
+    'Скопје', 'Битола', 'Куманово', 'Прилеп', 'Тетово', 'Велес', 'Штип',
+    'Охрид', 'Гостивар', 'Струмица', 'Радовиш', 'Кавадарци', 'Кочани',
+    'Свети Николе', 'Гевгелија', 'Дебар', 'Кичево', 'Виница', 'Неготино',
+    'Берово', 'Делчево', 'Пехчево', 'Македонски Брод', 'Ресен', 'Крива Паланка',
+    'Богданци', 'Демир Хисар', 'Македонска Каменица', 'Валандово', 'Кратово',
+    'Росоман', 'Вевчани', 'Струга', 'Дојран', 'Старо Нагоричане', 'Конче',
+    'Пробиштип', 'Крушево', 'Демир Капија'
+  ].sort();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProvider, setEditingProvider] = useState(null);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkJsonData, setBulkJsonData] = useState('');
+  const [jsonValidation, setJsonValidation] = useState({ isValid: true, message: '', count: 0 });
   const [filters, setFilters] = useState({
     active: '',
     category: '',
@@ -25,97 +48,95 @@ const ManageServiceProviders = () => {
     email: '',
     phone: '',
     website: '',
-    serviceCategories: [],
+    serviceCategory: '',
     specializations: [],
     description: '',
-    location: {
-      city: '',
-      region: '',
-      country: 'Macedonia',
-      servesRemote: false,
-      serviceAreas: []
-    },
+    location: '',
+    servesRemote: false,
     businessInfo: {
       registrationNumber: '',
       taxNumber: '',
-      yearsInBusiness: 0,
-      teamSize: '1',
       languagesSupported: ['mk', 'en']
-    },
-    contactPreferences: {
-      preferredContactMethod: 'email',
-      responseTimeCommitment: '48h',
-      workingHours: {
-        timezone: 'Europe/Skopje',
-        availability: 'business_hours'
-      }
     }
   });
 
   useEffect(() => {
     fetchProviders();
-    fetchCategories();
+    // No need to fetch categories - using fixed list
   }, [filters]);
 
+  // Helper function to build correct API URLs
+  const buildApiUrl = (endpoint) => {
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+    console.log('[API URL Builder] Environment REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('[API URL Builder] Base URL:', baseUrl);
+
+    // If baseUrl already ends with /api, don't add it again
+    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+    const fullUrl = `${cleanBaseUrl}${endpoint}`;
+    console.log('[API URL Builder] Final URL:', fullUrl);
+    return fullUrl;
+  };
+
   const fetchProviders = async () => {
+    console.log('🔄 [fetchProviders] Starting to fetch service providers...');
+    console.log('[fetchProviders] Current filters:', filters);
+    console.log('[fetchProviders] Auth token available:', !!token);
+
     try {
       const queryParams = new URLSearchParams();
-      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.active) queryParams.append('active', filters.active);
       if (filters.category) queryParams.append('category', filters.category);
       if (filters.search) queryParams.append('search', filters.search);
 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/providers?${queryParams}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          credentials: 'include'
-        }
-      );
+      console.log('[fetchProviders] Query params:', queryParams.toString());
+
+      const apiUrl = buildApiUrl(`/marketplace/providers?${queryParams}`);
+      console.log('[fetchProviders] Making request to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+
+      console.log('[fetchProviders] Response status:', response.status);
+      console.log('[fetchProviders] Response ok:', response.ok);
 
       if (!response.ok) {
         throw new Error('Неуспешно вчитување на провајдери');
       }
 
       const result = await response.json();
-      setProviders(result.data?.providers || []);
+      console.log('[fetchProviders] Response data:', result);
+      console.log('[fetchProviders] Providers array:', result.data?.providers);
+      console.log('[fetchProviders] Number of providers:', result.data?.providers?.length || 0);
+
+      const providersArray = result.data?.providers || [];
+      setProviders(providersArray);
+      console.log('[fetchProviders] ✅ Successfully set providers state with', providersArray.length, 'providers');
+
     } catch (err) {
+      console.error('[fetchProviders] ❌ Error occurred:', err);
+      console.error('[fetchProviders] Error message:', err.message);
       setError(err.message);
     } finally {
       setLoading(false);
+      console.log('[fetchProviders] Loading set to false');
     }
   };
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/categories`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          credentials: 'include'
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Неуспешно вчитување на категории');
-      }
-
-      const result = await response.json();
-      setCategories(result.data || []);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  };
+  // Removed fetchCategories - using fixed service categories list
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       // Get CSRF token
-      const csrfResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/csrf-token`, {
+      const csrfUrl = buildApiUrl('/csrf-token');
+      console.log('[API Call] Fetching CSRF token from:', csrfUrl);
+      const csrfResponse = await fetch(csrfUrl, {
         method: 'GET',
         credentials: 'include'
       });
@@ -126,9 +147,11 @@ const ManageServiceProviders = () => {
 
       const { csrfToken } = await csrfResponse.json();
 
-      const url = editingProvider
-        ? `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/providers/${editingProvider._id}`
-        : `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/providers`;
+      const endpoint = editingProvider
+        ? `/marketplace/providers/${editingProvider._id}`
+        : '/marketplace/providers';
+      const url = buildApiUrl(endpoint);
+      console.log('[handleSubmit] API URL:', url);
 
       const method = editingProvider ? 'PUT' : 'POST';
 
@@ -165,10 +188,12 @@ const ManageServiceProviders = () => {
     }
   };
 
-  const handleStatusChange = async (providerId, newStatus) => {
+  const handleStatusChange = async (providerId, isActive) => {
     try {
       // Get CSRF token
-      const csrfResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/csrf-token`, {
+      const csrfUrl = buildApiUrl('/csrf-token');
+      console.log('[API Call] Fetching CSRF token from:', csrfUrl);
+      const csrfResponse = await fetch(csrfUrl, {
         method: 'GET',
         credentials: 'include'
       });
@@ -179,8 +204,9 @@ const ManageServiceProviders = () => {
 
       const { csrfToken } = await csrfResponse.json();
 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/providers/${providerId}/status`,
+      const statusUrl = buildApiUrl(`/marketplace/providers/${providerId}/status`);
+      console.log('[handleStatusChange] Status change URL:', statusUrl);
+      const response = await fetch(statusUrl,
         {
           method: 'PATCH',
           headers: {
@@ -189,7 +215,7 @@ const ManageServiceProviders = () => {
             Authorization: `Bearer ${token}`
           },
           credentials: 'include',
-          body: JSON.stringify({ status: newStatus })
+          body: JSON.stringify({ isActive })
         }
       );
 
@@ -197,7 +223,7 @@ const ManageServiceProviders = () => {
         throw new Error('Неуспешна промена на статус');
       }
 
-      setSuccess(`Статусот е променет на ${newStatus}.`);
+      setSuccess(`Провајдерот е успешно ${isActive ? 'активиран' : 'деактивиран'}.`);
       fetchProviders();
 
       setTimeout(() => {
@@ -218,7 +244,9 @@ const ManageServiceProviders = () => {
 
     try {
       // Get CSRF token
-      const csrfResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/csrf-token`, {
+      const csrfUrl = buildApiUrl('/csrf-token');
+      console.log('[API Call] Fetching CSRF token from:', csrfUrl);
+      const csrfResponse = await fetch(csrfUrl, {
         method: 'GET',
         credentials: 'include'
       });
@@ -229,8 +257,9 @@ const ManageServiceProviders = () => {
 
       const { csrfToken } = await csrfResponse.json();
 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/admin/marketplace/providers/${providerId}`,
+      const deleteUrl = buildApiUrl(`/marketplace/providers/${providerId}`);
+      console.log('[handleDelete] Delete URL:', deleteUrl);
+      const response = await fetch(deleteUrl,
         {
           method: 'DELETE',
           headers: {
@@ -266,30 +295,15 @@ const ManageServiceProviders = () => {
       email: provider.email || '',
       phone: provider.phone || '',
       website: provider.website || '',
-      serviceCategories: provider.serviceCategories || [],
+      serviceCategory: provider.serviceCategory || '',
       specializations: provider.specializations || [],
       description: provider.description || '',
-      location: {
-        city: provider.location?.city || '',
-        region: provider.location?.region || '',
-        country: provider.location?.country || 'Macedonia',
-        servesRemote: provider.location?.servesRemote || false,
-        serviceAreas: provider.location?.serviceAreas || []
-      },
+      location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || ''),
+      servesRemote: provider.servesRemote || false,
       businessInfo: {
         registrationNumber: provider.businessInfo?.registrationNumber || '',
         taxNumber: provider.businessInfo?.taxNumber || '',
-        yearsInBusiness: provider.businessInfo?.yearsInBusiness || 0,
-        teamSize: provider.businessInfo?.teamSize || '1',
         languagesSupported: provider.businessInfo?.languagesSupported || ['mk', 'en']
-      },
-      contactPreferences: {
-        preferredContactMethod: provider.contactPreferences?.preferredContactMethod || 'email',
-        responseTimeCommitment: provider.contactPreferences?.responseTimeCommitment || '48h',
-        workingHours: {
-          timezone: provider.contactPreferences?.workingHours?.timezone || 'Europe/Skopje',
-          availability: provider.contactPreferences?.workingHours?.availability || 'business_hours'
-        }
       }
     });
     setShowAddForm(true);
@@ -301,52 +315,245 @@ const ManageServiceProviders = () => {
       email: '',
       phone: '',
       website: '',
-      serviceCategories: [],
+      serviceCategory: '',
       specializations: [],
       description: '',
-      location: {
-        city: '',
-        region: '',
-        country: 'Macedonia',
-        servesRemote: false,
-        serviceAreas: []
-      },
+      location: '',
+      servesRemote: false,
       businessInfo: {
         registrationNumber: '',
         taxNumber: '',
-        yearsInBusiness: 0,
-        teamSize: '1',
         languagesSupported: ['mk', 'en']
-      },
-      contactPreferences: {
-        preferredContactMethod: 'email',
-        responseTimeCommitment: '48h',
-        workingHours: {
-          timezone: 'Europe/Skopje',
-          availability: 'business_hours'
-        }
       }
     });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return '#22c55e';
-      case 'pending': return '#f59e0b';
-      case 'rejected': return '#ef4444';
-      case 'suspended': return '#6b7280';
-      default: return '#6b7280';
+  // Real-time JSON validation function
+  const validateJsonFormat = (jsonString) => {
+    // Ensure jsonString is a string
+    const str = typeof jsonString === 'string' ? jsonString : String(jsonString || '');
+
+    if (!str.trim()) {
+      setJsonValidation({ isValid: true, message: '', count: 0 });
+      return;
+    }
+
+    try {
+      const trimmedData = str.trim();
+
+      // Check if it starts with [ (array format - preferred)
+      if (trimmedData.startsWith('[') && trimmedData.endsWith(']')) {
+        const parsed = JSON.parse(trimmedData);
+        if (Array.isArray(parsed)) {
+          if (parsed.length === 0) {
+            setJsonValidation({
+              isValid: false,
+              message: '⚠️ Низата е празна. Додајте најмалку еден провајдер.',
+              count: 0
+            });
+          } else {
+            setJsonValidation({
+              isValid: true,
+              message: `✅ Валиден формат. Ќе се увезат ${parsed.length} провајдер${parsed.length > 1 ? 'и' : ''}.`,
+              count: parsed.length
+            });
+          }
+        } else {
+          setJsonValidation({
+            isValid: false,
+            message: '❌ Не е валидна низа. Користете [{...}, {...}] формат.',
+            count: 0
+          });
+        }
+      }
+      // Check if it's a single object (allowed but not preferred)
+      else if (trimmedData.startsWith('{') && trimmedData.endsWith('}')) {
+        JSON.parse(trimmedData); // Just validate it's valid JSON
+        setJsonValidation({
+          isValid: true,
+          message: '⚠️ Еден провајдер. Препорачуваме низа формат: [{...}]',
+          count: 1
+        });
+      }
+      // Invalid format
+      else {
+        setJsonValidation({
+          isValid: false,
+          message: '❌ JSON мора да започнува со [ за низа или { за објект.',
+          count: 0
+        });
+      }
+    } catch (error) {
+      setJsonValidation({
+        isValid: false,
+        message: `❌ JSON синтакс грешка: ${error.message}`,
+        count: 0
+      });
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'approved': return 'Одобрен';
-      case 'pending': return 'Чека одобрување';
-      case 'rejected': return 'Одбиен';
-      case 'suspended': return 'Суспендиран';
-      default: return status;
+  // Handle textarea change with validation
+  const handleBulkJsonChange = (e) => {
+    const value = e.target.value;
+    setBulkJsonData(value);
+    validateJsonFormat(value);
+  };
+
+  const handleBulkImport = async () => {
+    setError('');
+    setSuccess('');
+
+    const jsonStr = typeof bulkJsonData === 'string' ? bulkJsonData : String(bulkJsonData || '');
+    if (!jsonStr.trim()) {
+      setError('Внесете JSON податоци за провајдерите.');
+      return;
     }
+
+    // Check frontend validation first
+    if (!jsonValidation.isValid) {
+      setError('Поправете го JSON форматот пред да продолжите.');
+      return;
+    }
+
+    try {
+      // Parse JSON data - support both single object and array
+      let providersData;
+      const trimmedData = jsonStr.trim();
+
+      if (trimmedData.startsWith('[')) {
+        // Array of providers
+        providersData = JSON.parse(trimmedData);
+      } else if (trimmedData.startsWith('{')) {
+        // Single provider object
+        providersData = [JSON.parse(trimmedData)];
+      } else {
+        throw new Error('JSON format should be either single object {} or array []');
+      }
+
+      if (!Array.isArray(providersData)) {
+        providersData = [providersData];
+      }
+
+      console.log('[Bulk Import] Parsed providers data:', providersData);
+
+      // Process each provider and fill missing fields
+      const processedProviders = providersData.map(provider => {
+        // Extract fields from the provided data, handling both new and old formats
+        const processedProvider = {
+          name: provider.name || '',
+          email: provider.email || '',
+          phone: provider.phone || '',
+          website: provider.website || '',
+          serviceCategory: provider.serviceCategory || '',
+          specializations: provider.specializations || {},
+          description: provider.description || '',
+          location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || ''),
+          businessInfo: {
+            registrationNumber: provider.businessInfo?.registrationNumber || '',
+            taxNumber: provider.businessInfo?.taxNumber || '',
+            languagesSupported: provider.businessInfo?.languagesSupported || ['mk', 'en']
+          }
+        };
+
+        return processedProvider;
+      });
+
+      console.log('[Bulk Import] Processed providers:', processedProviders);
+
+      // Get CSRF token
+      const csrfUrl = buildApiUrl('/csrf-token');
+      console.log('[Bulk Import] Fetching CSRF token from:', csrfUrl);
+      const csrfResponse = await fetch(csrfUrl, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!csrfResponse.ok) {
+        throw new Error('Неуспешно земање на CSRF токен');
+      }
+
+      const { csrfToken } = await csrfResponse.json();
+
+      // Send bulk create request
+      let successCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      // Add delay between requests to avoid rate limiting
+      const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      for (let i = 0; i < processedProviders.length; i++) {
+        try {
+          const url = buildApiUrl('/marketplace/providers');
+          console.log(`[Bulk Import] Creating provider ${i + 1}/${processedProviders.length}:`, processedProviders[i]);
+
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken,
+              Authorization: `Bearer ${token}`
+            },
+            credentials: 'include',
+            body: JSON.stringify(processedProviders[i])
+          });
+
+          // Add 100ms delay between requests to stay within rate limits
+          if (i < processedProviders.length - 1) {
+            await delay(100);
+          }
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+            const errorData = await response.json();
+            errors.push(`Провајдер ${i + 1}: ${errorData.message || 'Непозната грешка'}`);
+          }
+        } catch (err) {
+          errorCount++;
+          errors.push(`Провајдер ${i + 1}: ${err.message}`);
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && errorCount === 0) {
+        setSuccess(`Успешно се додадени ${successCount} провајдери.`);
+      } else if (successCount > 0 && errorCount > 0) {
+        setSuccess(`Додадени ${successCount} провајдери. ${errorCount} грешки.`);
+        if (errors.length > 0) {
+          setError(errors.slice(0, 3).join('; ') + (errors.length > 3 ? '...' : ''));
+        }
+      } else {
+        setError(`Неуспешно додавање. Грешки: ${errors.slice(0, 3).join('; ')}`);
+      }
+
+      if (successCount > 0) {
+        setBulkJsonData('');
+        setShowBulkImport(false);
+        fetchProviders();
+      }
+
+      setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 5000);
+
+    } catch (err) {
+      console.error('[Bulk Import] JSON parsing error:', err);
+      setError(`Грешка при парсирање на JSON: ${err.message}`);
+      setTimeout(() => {
+        setError('');
+      }, 3000);
+    }
+  };
+
+  const getStatusColor = (isActive) => {
+    return isActive ? '#22c55e' : '#ef4444';
+  };
+
+  const getStatusText = (isActive) => {
+    return isActive ? 'Активен' : 'Неактивен';
   };
 
   if (loading) {
@@ -365,16 +572,28 @@ const ManageServiceProviders = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1>Провајдери на услуги</h1>
-          <button
-            className={styles.addButton}
-            onClick={() => {
-              setShowAddForm(true);
-              setEditingProvider(null);
-              resetForm();
-            }}
-          >
-            + Додај провајдер
-          </button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              className={styles.addButton}
+              onClick={() => {
+                setShowAddForm(true);
+                setEditingProvider(null);
+                resetForm();
+              }}
+            >
+              + Додај провајдер
+            </button>
+            <button
+              className={styles.addButton}
+              style={{ background: 'var(--color-info, #3B82F6)' }}
+              onClick={() => {
+                setShowBulkImport(true);
+                setBulkJsonData('');
+              }}
+            >
+              📋 Bulk Import
+            </button>
+          </div>
         </div>
 
         {error && <div className={styles.error}>{error}</div>}
@@ -383,14 +602,12 @@ const ManageServiceProviders = () => {
         {/* Filters */}
         <div className={styles.filters}>
           <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            value={filters.active}
+            onChange={(e) => setFilters({ ...filters, active: e.target.value })}
           >
             <option value="">Сите статуси</option>
-            <option value="pending">Чека одобрување</option>
-            <option value="approved">Одобрени</option>
-            <option value="rejected">Одбиени</option>
-            <option value="suspended">Суспендирани</option>
+            <option value="true">Активни</option>
+            <option value="false">Неактивни</option>
           </select>
 
           <select
@@ -398,9 +615,9 @@ const ManageServiceProviders = () => {
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
           >
             <option value="">Сите категории</option>
-            {categories.map(cat => (
-              <option key={cat._id} value={cat.name}>
-                {cat.displayName?.mk || cat.name}
+            {serviceCategories.map(cat => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
               </option>
             ))}
           </select>
@@ -475,31 +692,20 @@ const ManageServiceProviders = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Категории на услуги *</label>
-                  <div className={styles.checkboxGroup}>
-                    {categories.map(cat => (
-                      <label key={cat._id} className={styles.checkbox}>
-                        <input
-                          type="checkbox"
-                          checked={formData.serviceCategories.includes(cat.name)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                serviceCategories: [...formData.serviceCategories, cat.name]
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                serviceCategories: formData.serviceCategories.filter(c => c !== cat.name)
-                              });
-                            }
-                          }}
-                        />
-                        {cat.displayName?.mk || cat.name}
-                      </label>
+                  <label>Категорија на услуга *</label>
+                  <select
+                    className={styles.formSelect}
+                    value={formData.serviceCategory}
+                    onChange={(e) => setFormData({ ...formData, serviceCategory: e.target.value })}
+                    required
+                  >
+                    <option value="">Избери категорија</option>
+                    {serviceCategories.map(cat => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -514,27 +720,23 @@ const ManageServiceProviders = () => {
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label>Град *</label>
-                    <input
-                      type="text"
-                      value={formData.location.city}
+                    <select
+                      value={formData.location}
                       onChange={(e) => setFormData({
                         ...formData,
-                        location: { ...formData.location, city: e.target.value }
+                        location: e.target.value
                       })}
                       required
-                    />
+                    >
+                      <option value="">Изберете град</option>
+                      {macedonianTowns.map(town => (
+                        <option key={town} value={town}>{town}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Регион</label>
-                    <input
-                      type="text"
-                      value={formData.location.region}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        location: { ...formData.location, region: e.target.value }
-                      })}
-                    />
+                    {/* Region removed - using town dropdown instead */}
                   </div>
                 </div>
 
@@ -542,10 +744,10 @@ const ManageServiceProviders = () => {
                   <label className={styles.checkbox}>
                     <input
                       type="checkbox"
-                      checked={formData.location.servesRemote}
+                      checked={formData.servesRemote}
                       onChange={(e) => setFormData({
                         ...formData,
-                        location: { ...formData.location, servesRemote: e.target.checked }
+                        servesRemote: e.target.checked
                       })}
                     />
                     Работи на далечина
@@ -573,87 +775,235 @@ const ManageServiceProviders = () => {
           </div>
         )}
 
-        {/* Providers List */}
-        <div className={styles.providersGrid}>
+        {/* Bulk Import Modal */}
+        {showBulkImport && (
+          <div className={styles.modal}>
+            <div className={styles.modalContent}>
+              <div className={styles.modalHeader}>
+                <h2>Bulk Import на провајдери</h2>
+                <button
+                  className={styles.closeButton}
+                  onClick={() => {
+                    setShowBulkImport(false);
+                    setBulkJsonData('');
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div className={styles.form}>
+                {/* Instructions Section */}
+                <div style={{
+                  background: 'var(--color-neutral-50, #FAFAFA)',
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  border: '1px solid var(--color-border, #E5E5E5)'
+                }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-text-dark, #262626)', fontSize: '1rem' }}>
+                    📝 Инструкции за употреба:
+                  </h4>
+                  <ol style={{ margin: '0 0 0.5rem 0', paddingLeft: '1.2rem', color: 'var(--color-text-primary, #404040)', lineHeight: '1.6' }}>
+                    <li><strong>За еден провајдер:</strong> Внесете JSON објект <code>{`{ ... }`}</code></li>
+                    <li><strong>За повеќе провајдери:</strong> Внесете низа од JSON објекти <code>{`[{ ... }, { ... }]`}</code></li>
+                    <li><strong>Задолжителни полиња:</strong> <code>name</code> и <code>email</code></li>
+                    <li><strong>Категории:</strong> legal, accounting, financial, consulting, technical, marketing, design, other</li>
+                    <li><strong>Градови:</strong> Скопје, Битола, Куманово, Прилеп, Тетово, Велес, Штип, Охрид, Гостивар, Струмица</li>
+                  </ol>
+                </div>
+
+                {/* Example Section */}
+                <div style={{
+                  background: 'var(--color-info-bg, #eff6ff)',
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  border: '1px solid var(--color-info-border, #bfdbfe)'
+                }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-info-dark, #1e40af)', fontSize: '1rem' }}>
+                    💡 Пример за копирање:
+                  </h4>
+                  <pre style={{
+                    background: 'var(--color-surface, #ffffff)',
+                    padding: '0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    fontFamily: 'monospace',
+                    overflow: 'auto',
+                    border: '1px solid var(--color-border, #E5E5E5)',
+                    margin: '0',
+                    lineHeight: '1.4'
+                  }}>
+{`[
+  {
+    "name": "Правна канцеларија Македонија",
+    "email": "info@pravna.mk",
+    "phone": "02/123-456",
+    "website": "https://pravna.mk",
+    "serviceCategory": "legal",
+    "description": "Правни услуги за компании",
+    "location": "Скопје"
+  },
+  {
+    "name": "Сметководствени услуги",
+    "email": "contact@accounting.mk",
+    "serviceCategory": "accounting",
+    "location": { "city": "Битола" }
+  }
+]`}
+                  </pre>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>JSON податоци за провајдери</label>
+                  <textarea
+                    value={bulkJsonData}
+                    onChange={handleBulkJsonChange}
+                    rows={12}
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      width: '100%',
+                      padding: '1rem',
+                      border: `1px solid ${jsonValidation.isValid ? 'var(--color-border, #E5E5E5)' : 'var(--color-danger, #ef4444)'}`,
+                      borderRadius: 'var(--border-radius-md, 8px)',
+                      resize: 'vertical',
+                      backgroundColor: jsonValidation.isValid ? 'var(--color-surface, #ffffff)' : 'var(--color-error-bg, #fef2f2)'
+                    }}
+                    placeholder={`Пример за еден провајдер:
+{
+  "name": "Име на компанијата",
+  "email": "email@example.com",
+  "phone": "070123456",
+  "website": "https://example.com",
+  "serviceCategory": "legal",
+  "description": "Опис на услугите",
+  "location": "Скопје"
+}
+
+Или за повеќе провајдери во низа: [{ ... }, { ... }]`}
+                  />
+
+                  {/* JSON Validation Feedback */}
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                    {bulkJsonData.trim() && !jsonValidation.isValid && (
+                      <div style={{ color: 'var(--color-danger, #ef4444)', fontWeight: '500' }}>
+                        ❌ {jsonValidation.message}
+                      </div>
+                    )}
+                    {bulkJsonData.trim() && jsonValidation.isValid && jsonValidation.count > 0 && (
+                      <div style={{ color: 'var(--color-success, #22c55e)', fontWeight: '500' }}>
+                        ✅ Валиден JSON формат - {jsonValidation.count} провајдер{jsonValidation.count !== 1 ? 'и' : ''}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={styles.submitButton}
+                    onClick={handleBulkImport}
+                    disabled={!(String(bulkJsonData || '')).trim() || !jsonValidation.isValid}
+                    style={{
+                      opacity: (!(String(bulkJsonData || '')).trim() || !jsonValidation.isValid) ? 0.6 : 1,
+                      cursor: (!(String(bulkJsonData || '')).trim() || !jsonValidation.isValid) ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    🚀 Import провајдери
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={() => {
+                      setShowBulkImport(false);
+                      setBulkJsonData('');
+                    }}
+                  >
+                    Откажи
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Providers Table */}
+        <div className={styles.providersTableContainer}>
           {providers.length === 0 ? (
             <div className={styles.noProviders}>
               Нема пронајдени провајдери.
             </div>
           ) : (
-            providers.map(provider => (
-              <div key={provider._id} className={styles.providerCard}>
-                <div className={styles.providerHeader}>
-                  <h3>{provider.name}</h3>
-                  <span
-                    className={styles.statusBadge}
-                    style={{ backgroundColor: getStatusColor(provider.status) }}
-                  >
-                    {getStatusText(provider.status)}
-                  </span>
-                </div>
-
-                <div className={styles.providerInfo}>
-                  <p><strong>Email:</strong> {provider.email}</p>
-                  <p><strong>Телефон:</strong> {provider.phone || 'Не е внесен'}</p>
-                  <p><strong>Локација:</strong> {provider.location?.city}, {provider.location?.region}</p>
-                  <p><strong>Категории:</strong> {provider.serviceCategories?.join(', ')}</p>
-                  {provider.description && (
-                    <p><strong>Опис:</strong> {provider.description}</p>
-                  )}
-                </div>
-
-                <div className={styles.providerActions}>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => handleEdit(provider)}
-                  >
-                    Ажурирај
-                  </button>
-
-                  {provider.status === 'pending' && (
-                    <>
-                      <button
-                        className={styles.approveButton}
-                        onClick={() => handleStatusChange(provider._id, 'approved')}
+            <table className={styles.providersTable}>
+              <thead>
+                <tr>
+                  <th>Име</th>
+                  <th>Email</th>
+                  <th>Телефон</th>
+                  <th>Град</th>
+                  <th>Категорија</th>
+                  <th>Опис</th>
+                  <th>Статус</th>
+                  <th>Акции</th>
+                </tr>
+              </thead>
+              <tbody>
+                {providers.map(provider => (
+                  <tr key={provider._id} className={styles.providerRow}>
+                    <td className={styles.providerName}>{provider.name}</td>
+                    <td>{provider.email}</td>
+                    <td>{provider.phone || 'Не е внесен'}</td>
+                    <td>{typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || 'Не е внесено')}</td>
+                    <td>{serviceCategories.find(cat => cat.value === provider.serviceCategory)?.label || provider.serviceCategory}</td>
+                    <td className={styles.providerDescription}>
+                      {provider.description || 'Нема опис'}
+                    </td>
+                    <td>
+                      <span
+                        className={styles.statusBadge}
+                        style={{ backgroundColor: getStatusColor(provider.isActive) }}
                       >
-                        Одобри
-                      </button>
+                        {getStatusText(provider.isActive)}
+                      </span>
+                    </td>
+                    <td className={styles.providerActions}>
                       <button
-                        className={styles.rejectButton}
-                        onClick={() => handleStatusChange(provider._id, 'rejected')}
+                        className={styles.actionButton}
+                        onClick={() => handleEdit(provider)}
+                        title="Ажурирај"
                       >
-                        Одбиј
+                        ✎
                       </button>
-                    </>
-                  )}
-
-                  {provider.status === 'approved' && (
-                    <button
-                      className={styles.suspendButton}
-                      onClick={() => handleStatusChange(provider._id, 'suspended')}
-                    >
-                      Суспендирај
-                    </button>
-                  )}
-
-                  {provider.status === 'suspended' && (
-                    <button
-                      className={styles.approveButton}
-                      onClick={() => handleStatusChange(provider._id, 'approved')}
-                    >
-                      Активирај
-                    </button>
-                  )}
-
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => handleDelete(provider._id)}
-                  >
-                    Избриши
-                  </button>
-                </div>
-              </div>
-            ))
+                      {provider.isActive ? (
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => handleStatusChange(provider._id, false)}
+                          title="Деактивирај"
+                        >
+                          ⏸
+                        </button>
+                      ) : (
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => handleStatusChange(provider._id, true)}
+                          title="Активирај"
+                        >
+                          ▶
+                        </button>
+                      )}
+                      <button
+                        className={styles.actionButton}
+                        onClick={() => handleDelete(provider._id)}
+                        title="Избриши"
+                      >
+                        ×
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>

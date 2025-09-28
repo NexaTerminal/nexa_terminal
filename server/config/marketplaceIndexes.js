@@ -11,9 +11,17 @@ async function createIndexSafely(collection, keys, options = {}) {
     await collection.createIndex(keys, options);
     return true;
   } catch (error) {
-    if (error.code === 85 || error.codeName === 'IndexOptionsConflict') {
-      // Index already exists with same or different options - that's fine
-      return false;
+    if (error.code === 85 || error.code === 86 || error.codeName === 'IndexOptionsConflict' || error.codeName === 'IndexKeySpecsConflict') {
+      // Index already exists with different options - try to recreate
+      console.log('  🔄 Dropping and recreating index due to options/spec conflict');
+      try {
+        await collection.dropIndex(keys);
+        await collection.createIndex(keys, options);
+        return true;
+      } catch (dropError) {
+        console.log('  ⚠️ Could not recreate index, continuing...', dropError.message);
+        return false;
+      }
     }
     // Re-throw other errors
     throw error;
@@ -28,7 +36,7 @@ async function createMarketplaceIndexes(db) {
 
     // Service Providers indexes (simplified)
     console.log('  📋 Creating service_providers indexes...');
-    await createIndexSafely(serviceProviders, { userId: 1 }, { unique: true }); // One provider per user
+    await createIndexSafely(serviceProviders, { userId: 1 }, { name: 'userId_performance_index' }); // Performance index, allows multiple null values
     await createIndexSafely(serviceProviders, { email: 1 }, { unique: true });
     await createIndexSafely(serviceProviders, { isActive: 1 });
     await createIndexSafely(serviceProviders, { serviceCategory: 1 });

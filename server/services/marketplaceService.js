@@ -85,13 +85,9 @@ class MarketplaceService {
    */
   async createServiceProvider(providerData, adminId) {
     try {
-      // Validate input data
-      const validationErrors = validators.validateServiceProvider(providerData);
-      if (validationErrors.length > 0) {
-        throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
-      }
+      // NO VALIDATION for admin creation - admins can add anything
 
-      // Check if email already exists
+      // Only check if email already exists
       const existingProvider = await this.serviceProviders.findOne({
         email: providerData.email
       });
@@ -101,10 +97,43 @@ class MarketplaceService {
       }
 
       const now = new Date();
+
+      // Handle location - if it's a string, convert to object
+      let locationData;
+      if (typeof providerData.location === 'string') {
+        locationData = {
+          city: providerData.location,
+          region: '',
+          country: 'Macedonia',
+          servesRemote: providerData.servesRemote || false
+        };
+      } else {
+        locationData = {
+          city: providerData.location?.city || '',
+          region: providerData.location?.region || '',
+          country: providerData.location?.country || 'Macedonia',
+          servesRemote: providerData.location?.servesRemote || providerData.servesRemote || false
+        };
+      }
+
       const newProvider = {
-        ...providerData,
+        userId: null, // Admin-created providers don't link to users
+        name: providerData.name || '',
+        email: providerData.email || '',
+        phone: providerData.phone || '',
+        website: providerData.website || '',
+        serviceCategory: providerData.serviceCategory || 'other',
+        description: providerData.description || '',
+        specializations: providerData.specializations || [],
+        location: locationData,
+        businessInfo: {
+          taxNumber: providerData.businessInfo?.taxNumber || '',
+          registrationNumber: providerData.businessInfo?.registrationNumber || '',
+          languagesSupported: providerData.businessInfo?.languagesSupported || ['mk', 'en']
+        },
         isActive: true,
         isVerified: true,
+        createdBy: adminId,
         createdAt: now,
         updatedAt: now,
         lastActiveAt: now,
@@ -157,21 +186,49 @@ class MarketplaceService {
   }
 
   /**
-   * Get service providers with filters and pagination
+   * Get providers by category with enhanced filtering
+   */
+  async getProvidersByCategory(category, includeInactive = false) {
+    try {
+      const query = { serviceCategory: category };
+      if (!includeInactive) {
+        query.isActive = true;
+      }
+
+      const providers = await this.serviceProviders.find(query)
+        .sort({ viewCount: -1, updatedAt: -1 })
+        .toArray();
+
+      return providers;
+
+    } catch (error) {
+      console.error('Error getting providers by category:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get service providers with filters and pagination (enhanced)
    */
   async getServiceProviders(filters = {}, pagination = {}) {
     try {
+      console.log('📋 MarketplaceService.getServiceProviders called');
+      console.log('Input filters:', JSON.stringify(filters, null, 2));
+      console.log('Input pagination:', JSON.stringify(pagination, null, 2));
+
       const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = -1 } = pagination;
       const skip = (page - 1) * limit;
 
-      // Build query from filters - only show active providers by default
-      const query = { isActive: true };
+      // Build query from filters
+      const query = {};
+      console.log('Initial query:', query);
 
-      // Admin can see all providers including inactive
-      if (filters.includeInactive === true) {
-        delete query.isActive;
+      // Admins can see all providers, others see only active by default
+      if (filters.includeInactive !== true) {
+        query.isActive = true;
       }
 
+      // Override with specific isActive filter if provided
       if (filters.isActive !== undefined) {
         query.isActive = filters.isActive;
       }
@@ -193,6 +250,10 @@ class MarketplaceService {
         ];
       }
 
+      console.log('Final query for database:', JSON.stringify(query, null, 2));
+      console.log('Sort:', { [sortBy]: sortOrder });
+      console.log('Skip:', skip, 'Limit:', limit);
+
       // Get providers with pagination
       const providers = await this.serviceProviders
         .find(query)
@@ -200,6 +261,11 @@ class MarketplaceService {
         .skip(skip)
         .limit(limit)
         .toArray();
+
+      console.log('Raw providers from DB:', providers.length);
+      if (providers.length > 0) {
+        console.log('First provider sample:', JSON.stringify(providers[0], null, 2));
+      }
 
       // Get total count for pagination
       const total = await this.serviceProviders.countDocuments(query);
@@ -304,10 +370,136 @@ class MarketplaceService {
     }
   }
 
-  // ==================== SERVICE CATEGORIES ====================
+  // ==================== ENHANCED DYNAMIC CATEGORY MANAGEMENT ====================
 
   /**
-   * Get all predefined service categories
+   * Get active providers by category (for offer request distribution)
+   */
+  async getActiveProvidersByCategory(category) {
+    try {
+      const providers = await this.serviceProviders.find({
+        serviceCategory: category,
+        isActive: true
+      }).toArray();
+
+      return providers;
+
+    } catch (error) {
+      console.error('Error getting active providers by category:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get only categories that have active providers (for dynamic dropdown)
+   */
+  async getActiveCategoriesOnly() {
+    try {
+      const activeCategories = await this.serviceProviders.distinct('serviceCategory', {
+        isActive: true
+      });
+
+      // Map to include both English and Macedonian labels
+      const categoriesWithLabels = activeCategories.map(category => {
+        const categoryInfo = utils.getServiceCategory(category);
+        return {
+          value: category,
+          label: categoryInfo ? categoryInfo.en : category,
+          labelMk: categoryInfo ? categoryInfo.mk : category
+        };
+      }).filter(cat => cat.label); // Remove any invalid categories
+
+      return categoriesWithLabels;
+
+    } catch (error) {
+      console.error('Error getting active categories:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Add provider manually (admin only - enhanced version)
+   */
+  async addProviderManually(providerData, adminId) {
+    try {
+      // Validate admin ID
+      if (!ObjectId.isValid(adminId)) {
+        throw new Error('Неважечки admin ID');
+      }
+
+      // Enhanced validation for manual provider creation
+      const validationErrors = validators.validateServiceProvider(providerData);
+      if (validationErrors.length > 0) {
+        throw new Error(`Валидација неуспешна: ${validationErrors.join(', ')}`);
+      }
+
+      // Check for duplicate email
+      const existingProvider = await this.serviceProviders.findOne({
+        email: providerData.email
+      });
+
+      if (existingProvider) {
+        throw new Error('Провајдер со оваа email адреса веќе постои');
+      }
+
+      const now = new Date();
+      const newProvider = {
+        name: providerData.name,
+        email: providerData.email,
+        phone: providerData.phone || '',
+        website: providerData.website || '',
+        serviceCategory: providerData.serviceCategory,
+        description: providerData.description || '',
+        specializations: providerData.specializations || [],
+        location: {
+          city: providerData.location?.city || '',
+          region: providerData.location?.region || '',
+          country: 'Macedonia',
+          servesRemote: providerData.location?.servesRemote || false
+        },
+        businessInfo: {
+          taxNumber: providerData.businessInfo?.taxNumber || '',
+          registrationNumber: providerData.businessInfo?.registrationNumber || '',
+          languagesSupported: providerData.businessInfo?.languagesSupported || ['mk']
+        },
+        isActive: true,
+        isVerified: true,
+        isManuallyAdded: true, // Flag to track manually added providers
+        addedBy: new ObjectId(adminId),
+        createdAt: now,
+        updatedAt: now,
+        lastActiveAt: now,
+        viewCount: 0,
+        contactCount: 0,
+        adminNotes: providerData.adminNotes || ''
+      };
+
+      const result = await this.serviceProviders.insertOne(newProvider);
+      return { ...newProvider, _id: result.insertedId };
+
+    } catch (error) {
+      console.error('Error adding provider manually:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get service categories for offer requests (only show categories with active providers)
+   */
+  async getServiceCategoriesForOfferRequests() {
+    try {
+      const activeCategories = await this.getActiveCategoriesOnly();
+      return activeCategories;
+    } catch (error) {
+      console.error('Error getting service categories for offer requests:', error);
+      return [];
+    }
+  }
+
+  // ==================== SERVICE CATEGORIES (LEGACY METHODS) ====================
+
+  /**
+   * Get all predefined service categories (legacy method)
    */
   getServiceCategories(language = 'en') {
     return utils.getCategoryOptions(language);
@@ -318,6 +510,22 @@ class MarketplaceService {
    */
   getServiceCategory(categoryName) {
     return utils.getServiceCategory(categoryName);
+  }
+
+  /**
+   * Check if category has active providers
+   */
+  async isCategoryActive(categoryName) {
+    try {
+      const count = await this.serviceProviders.countDocuments({
+        serviceCategory: categoryName,
+        isActive: true
+      });
+      return count > 0;
+    } catch (error) {
+      console.error('Error checking if category is active:', error);
+      return false;
+    }
   }
 
   // ==================== ANALYTICS ====================

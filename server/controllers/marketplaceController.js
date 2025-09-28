@@ -19,6 +19,7 @@ class MarketplaceController {
     this.getProviderPerformance = this.getProviderPerformance.bind(this);
     this.incrementProviderViews = this.incrementProviderViews.bind(this);
     this.incrementProviderContacts = this.incrementProviderContacts.bind(this);
+    this.getActiveCategoriesOnly = this.getActiveCategoriesOnly.bind(this);
   }
 
   // ==================== SERVICE PROVIDERS ====================
@@ -28,6 +29,10 @@ class MarketplaceController {
    */
   async createServiceProvider(req, res) {
     try {
+      console.log('🆕 POST /admin/marketplace/providers - Create provider request');
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
+      console.log('User:', { id: req.user?.id, isAdmin: req.user?.isAdmin });
+
       const marketplaceService = new MarketplaceService(req.app.locals.db);
       const adminId = req.user.id;
 
@@ -40,37 +45,50 @@ class MarketplaceController {
         specializations,
         description,
         location,
-        businessInfo,
-        servesRemote
+        businessInfo
       } = req.body;
 
-      // Validate required fields
-      if (!name || !email || !serviceCategory || !location?.city) {
+      // Minimal validation for admin creation
+      if (!name || !email) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields: name, email, serviceCategory, location.city'
+          message: 'Name and email are required'
+        });
+      }
+
+      // Check if provider already exists with this email
+      const serviceProviders = req.app.locals.db.collection('service_providers');
+      const existingProvider = await serviceProviders.findOne({ email: email.toLowerCase().trim() });
+      if (existingProvider) {
+        return res.status(400).json({
+          success: false,
+          message: `Service provider with email ${email} already exists. Use a different email.`
         });
       }
 
       const providerData = {
         name: name.trim(),
         email: email.toLowerCase().trim(),
-        phone: phone?.trim(),
-        website: website?.trim(),
-        serviceCategory: serviceCategory.trim(),
+        phone: phone?.trim() || '',
+        website: website?.trim() || '',
+        serviceCategory: serviceCategory?.trim() || 'legal',
         specializations: specializations || [],
-        description: description?.trim(),
-        location: {
-          city: location.city?.trim(),
-          region: location.region?.trim(),
-          country: location.country?.trim() || 'Macedonia',
-          servesRemote: servesRemote || false
-        },
+        description: description?.trim() || '',
+        location: typeof location === 'string' ? location.trim() : (location?.city || location?.town || 'Скопје'),
         businessInfo: {
-          registrationNumber: businessInfo?.registrationNumber?.trim(),
-          taxNumber: businessInfo?.taxNumber?.trim(),
+          registrationNumber: businessInfo?.registrationNumber?.trim() || '',
+          taxNumber: businessInfo?.taxNumber?.trim() || '',
           languagesSupported: businessInfo?.languagesSupported || ['mk', 'en']
-        }
+        },
+        // Admin-created providers don't need userId (not linked to user accounts)
+        userId: null,
+        isActive: true,
+        isVerified: true,
+        createdBy: adminId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        viewCount: 0,
+        contactCount: 0
       };
 
       const newProvider = await marketplaceService.createServiceProvider(providerData, adminId);
@@ -83,6 +101,16 @@ class MarketplaceController {
 
     } catch (error) {
       console.error('Error in createServiceProvider:', error);
+
+      // Handle duplicate key error (email already exists)
+      if (error.code === 11000) {
+        const duplicateField = error.message.includes('email') ? 'email' : 'user';
+        return res.status(400).json({
+          success: false,
+          message: `Service provider with this ${duplicateField} already exists`
+        });
+      }
+
       res.status(400).json({
         success: false,
         message: error.message || 'Failed to create service provider'
@@ -95,6 +123,10 @@ class MarketplaceController {
    */
   async getServiceProviders(req, res) {
     try {
+      console.log('🔍 GET /admin/marketplace/providers - Request received');
+      console.log('Query params:', req.query);
+      console.log('User:', { id: req.user?.id, isAdmin: req.user?.isAdmin });
+
       const marketplaceService = new MarketplaceService(req.app.locals.db);
 
       const filters = {
@@ -112,7 +144,16 @@ class MarketplaceController {
         sortOrder: req.query.sortOrder === 'asc' ? 1 : -1
       };
 
+      console.log('Filters being passed:', JSON.stringify(filters, null, 2));
+      console.log('Pagination:', JSON.stringify(pagination, null, 2));
+
       const result = await marketplaceService.getServiceProviders(filters, pagination);
+
+      console.log('Result from service:', JSON.stringify({
+        providersCount: result.providers?.length || 0,
+        totalCount: result.totalCount,
+        hasProviders: result.providers && result.providers.length > 0
+      }, null, 2));
 
       res.json({
         success: true,
@@ -188,21 +229,28 @@ class MarketplaceController {
     try {
       const marketplaceService = new MarketplaceService(req.app.locals.db);
       const { id } = req.params;
-      const { isActive, notes } = req.body;
+      const { isActive, status, notes } = req.body;
       const adminId = req.user.id;
 
-      if (isActive === undefined) {
+      // Handle both isActive boolean and status string for flexibility
+      let activeStatus;
+      if (isActive !== undefined) {
+        activeStatus = isActive;
+      } else if (status !== undefined) {
+        // Convert status string to isActive boolean
+        activeStatus = status === 'approved' || status === 'active' || status === true;
+      } else {
         return res.status(400).json({
           success: false,
-          message: 'isActive status is required'
+          message: 'Either isActive or status is required'
         });
       }
 
-      const updatedProvider = await marketplaceService.updateProviderStatus(id, isActive, adminId, notes);
+      const updatedProvider = await marketplaceService.updateProviderStatus(id, activeStatus, adminId, notes);
 
       res.json({
         success: true,
-        message: `Service provider ${isActive ? 'enabled' : 'disabled'} successfully`,
+        message: `Service provider ${activeStatus ? 'activated' : 'deactivated'} successfully`,
         data: updatedProvider
       });
 
@@ -398,6 +446,28 @@ class MarketplaceController {
       res.status(400).json({
         success: false,
         message: error.message || 'Failed to increment contact count'
+      });
+    }
+  }
+
+  // ==================== ENHANCED CATEGORY MANAGEMENT ====================
+
+  /**
+   * Get only categories that have active providers (for dynamic dropdown)
+   */
+  async getActiveCategoriesOnly(req, res) {
+    try {
+      const marketplaceService = new MarketplaceService(req.app.locals.db);
+      const activeCategories = await marketplaceService.getActiveCategoriesOnly();
+
+      res.json(activeCategories);
+
+    } catch (error) {
+      console.error('Error in getActiveCategoriesOnly:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Грешка при добивање на активните категории',
+        categories: []
       });
     }
   }

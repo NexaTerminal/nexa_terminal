@@ -8,6 +8,14 @@ const router = express.Router();
 const { authenticateJWT, isAdmin } = require('../middleware/auth');
 const marketplaceController = require('../controllers/marketplaceController');
 
+// ==================== SERVICE CATEGORIES ====================
+
+// Get active categories (only categories with active providers)
+router.get('/categories/active',
+  authenticateJWT,
+  marketplaceController.getActiveCategoriesOnly
+);
+
 // ==================== SERVICE PROVIDERS ====================
 
 // Admin-only routes for service provider management

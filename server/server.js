@@ -355,6 +355,26 @@ function registerRoutes() {
     } catch (error) {
       console.log('⚠️  Marketplace routes not found - will be created in next phase');
     }
+
+    // Offer Request routes (part of marketplace feature)
+    try {
+      const { router: offerRequestRouter, initializeController: initOfferRequestController } = require('./routes/offerRequests');
+      initOfferRequestController(db);
+      app.use('/api/offer-requests', offerRequestRouter);
+      console.log('✅ Offer request routes loaded successfully');
+    } catch (error) {
+      console.log('⚠️  Offer request routes not found - marketplace feature incomplete');
+      console.error('Offer request routes error:', error.message);
+    }
+
+    // Provider Interest routes (part of marketplace feature)
+    try {
+      const { router: providerInterestRouter, initializeController: initProviderInterestController } = require('./routes/providerInterest');
+      initProviderInterestController(db);
+      app.use('/api/provider-interest', providerInterestRouter);
+    } catch (error) {
+      console.log('⚠️  Provider interest routes not found - marketplace feature incomplete');
+    }
   }
 
   // Conditional feature routes (disabled by default in current settings)
@@ -401,12 +421,20 @@ function registerRoutes() {
   // Admin routes
   if (settings.isRouteEnabled('admin')) {
     try {
-      app.use('/api/admin', require('./routes/admin'));
-      
+      const { router: adminRouter, initializeOfferRequestController } = require('./routes/admin');
+
+      // Initialize admin offer request controller
+      if (initializeOfferRequestController) {
+        initializeOfferRequestController(db);
+      }
+
+      app.use('/api/admin', adminRouter);
+
       // Real-time admin routes
       const { router: realtimeAdminRouter } = require('./routes/realtimeAdmin');
       app.use('/api/realtime-admin', realtimeAdminRouter);
     } catch (error) {
+      console.error('Admin routes error:', error);
       // Admin routes file not found - skipping
     }
   }

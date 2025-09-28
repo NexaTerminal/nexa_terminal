@@ -3,6 +3,48 @@ const router = express.Router();
 const { authenticateJWT, isAdmin } = require('../middleware/auth');
 const adminController = require('../controllers/adminController');
 
+// Global controller instances (will be initialized by server.js)
+let offerRequestController;
+
+// Test route (no auth required for debugging)
+router.get('/test', (req, res) => {
+  console.log('🔍 Admin test route called');
+  res.json({ message: 'Admin routes are working', offerControllerExists: !!offerRequestController });
+});
+
+// Test offer requests route - direct database access
+router.get('/test-offer-requests', async (req, res) => {
+  console.log('🔍 Test offer requests route called');
+  try {
+    // Direct database access to verify data exists
+    const { MongoClient } = require('mongodb');
+    const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/nexa';
+    const client = new MongoClient(url);
+    await client.connect();
+    const db = client.db();
+    const collection = db.collection('offer_requests');
+
+    const requests = await collection.find({}).toArray();
+    console.log(`Found ${requests.length} offer requests in database`);
+
+    await client.close();
+
+    res.json({
+      success: true,
+      count: requests.length,
+      requests: requests.map(r => ({
+        _id: r._id,
+        serviceType: r.serviceType,
+        status: r.status,
+        createdAt: r.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Test route error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // All admin routes require authentication and admin privileges
 router.use(authenticateJWT, isAdmin);
 
@@ -71,4 +113,109 @@ router.get('/marketplace/analytics', (req, res, next) => {
   require('../controllers/marketplaceController').getMarketplaceAnalytics(req, res, next);
 });
 
-module.exports = router;
+// Offer Request Management
+router.get('/offer-requests', async (req, res, next) => {
+  console.log('🔍 GET /admin/offer-requests - Admin route called');
+  console.log('User:', { id: req.user?._id, isAdmin: req.user?.isAdmin });
+  console.log('Query params:', req.query);
+  try {
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+    await offerRequestController.getRequestsForAdmin(req, res);
+  } catch (error) {
+    console.error('Admin offer requests route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/offer-requests/statistics', async (req, res, next) => {
+  console.log('🔍 GET /admin/offer-requests/statistics - Admin route called');
+  console.log('User:', { id: req.user?._id, isAdmin: req.user?.isAdmin });
+  try {
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+    await offerRequestController.getQualityStatistics(req, res);
+  } catch (error) {
+    console.error('Admin statistics route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/offer-requests/:id', async (req, res, next) => {
+  try {
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+    await offerRequestController.getOfferRequestDetails(req, res);
+  } catch (error) {
+    console.error('Admin request details route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.put('/offer-requests/:id/verify', async (req, res, next) => {
+  try {
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+    await offerRequestController.verifyOfferRequest(req, res);
+  } catch (error) {
+    console.error('Admin verify request route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.put('/offer-requests/:id/reject', async (req, res, next) => {
+  try {
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+    await offerRequestController.rejectOfferRequest(req, res);
+  } catch (error) {
+    console.error('Admin reject request route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Initialize controller (to be called by server.js)
+const initializeOfferRequestController = (database) => {
+  const OfferRequestController = require('../controllers/offerRequestController');
+  offerRequestController = new OfferRequestController(database);
+};
+
+module.exports = {
+  router,
+  initializeOfferRequestController
+};

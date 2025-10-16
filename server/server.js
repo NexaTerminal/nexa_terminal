@@ -85,6 +85,9 @@ app.use(sanitizeRequest); // Sanitize all incoming requests
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', require('./routes/autoDocuments'));
 
+// Mount provider response routes BEFORE CSRF middleware (public API with token security)
+app.use('/api/provider-response', require('./routes/providerResponse'));
+
 // CSRF Protection setup (conditional)
 if (settings.isMiddlewareEnabled('csrf') && setCSRFToken) {
   app.use(setCSRFToken); // Set CSRF tokens for all requests
@@ -418,6 +421,13 @@ function registerRoutes() {
     }
   }
   
+  // Courses routes (education feature)
+  try {
+    app.use('/api/courses', require('./routes/courses'));
+  } catch (error) {
+    console.log('⚠️  Courses routes not found - education feature not available');
+  }
+
   // Admin routes
   if (settings.isRouteEnabled('admin')) {
     try {

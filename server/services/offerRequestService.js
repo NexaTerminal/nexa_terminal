@@ -45,14 +45,23 @@ class OfferRequestService {
 
       // Prepare offer request document
       const now = new Date();
+
+      // Defensive check: Ensure preferredLocations is always an array
+      let preferredLocations = requestData.preferredLocations || [];
+      if (!Array.isArray(preferredLocations)) {
+        console.warn(`⚠️ preferredLocations in request data is not an array, converting: ${typeof preferredLocations}`, preferredLocations);
+        preferredLocations = preferredLocations ? [preferredLocations] : [];
+      }
+
       const offerRequest = {
         userId: new ObjectId(userId),
+        requestCategory: requestData.requestCategory, // Add requestCategory field
         serviceType: requestData.serviceType,
         budgetRange: requestData.budgetRange,
         projectDescription: requestData.projectDescription.trim(),
         projectType: requestData.projectType,
         timeline: requestData.timeline,
-        preferredLocations: requestData.preferredLocations || [], // Changed to array
+        preferredLocations: preferredLocations, // Ensured to be array
         serviceSpecificFields: requestData.serviceSpecificFields || {},
         qualityIndicators,
         status: 'неверифицирано',
@@ -135,6 +144,10 @@ class OfferRequestService {
 
       if (filters.serviceType) {
         query.serviceType = filters.serviceType;
+      }
+
+      if (filters.requestCategory) {
+        query.requestCategory = filters.requestCategory;
       }
 
       if (filters.qualityFilter) {
@@ -251,12 +264,23 @@ class OfferRequestService {
    * Verify offer request (admin action)
    */
   async verifyOfferRequest(requestId, adminId, notes = '') {
+    console.log('\n🔐 ========== VERIFY OFFER REQUEST STARTED ==========');
+    console.log('📋 Verification Request:', {
+      requestId,
+      adminId,
+      notes: notes || 'No notes provided'
+    });
+
     try {
       if (!ObjectId.isValid(requestId) || !ObjectId.isValid(adminId)) {
         throw new Error('Неважечки ID параметри');
       }
 
+      console.log('✅ IDs validated successfully');
+
       const now = new Date();
+      console.log(`\n📝 Updating request ${requestId} to verified status...`);
+
       const result = await this.offerRequests.updateOne(
         { _id: new ObjectId(requestId) },
         {
@@ -270,20 +294,44 @@ class OfferRequestService {
         }
       );
 
+      console.log('   Update result:', {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        acknowledged: result.acknowledged
+      });
+
       if (result.matchedCount === 0) {
         throw new Error('Барањето не е пронајдено');
       }
 
+      if (result.modifiedCount === 0) {
+        console.warn('⚠️ WARNING: Request was matched but not modified. It may already be verified.');
+      }
+
       // Get the verified request
+      console.log(`\n📥 Fetching verified request data...`);
       const verifiedRequest = await this.getOfferRequestById(requestId);
+      console.log('   Verified request fetched:', {
+        id: verifiedRequest._id,
+        status: verifiedRequest.status,
+        serviceType: verifiedRequest.serviceType,
+        hasRequestCategory: !!verifiedRequest.requestCategory,
+        hasPreferredLocations: !!verifiedRequest.preferredLocations
+      });
 
       // Send to relevant providers
-      await this.sendToProviders(verifiedRequest);
+      console.log(`\n📤 Calling sendToProviders()...`);
+      const providerResult = await this.sendToProviders(verifiedRequest);
+      console.log('   Provider result:', providerResult);
 
+      console.log(`\n✅ ========== VERIFY OFFER REQUEST COMPLETED ==========\n`);
       return verifiedRequest;
 
     } catch (error) {
-      console.error('Error verifying offer request:', error);
+      console.error('\n❌ ========== VERIFY OFFER REQUEST FAILED ==========');
+      console.error('Error details:', error);
+      console.error('Stack:', error.stack);
+      console.error('========================================\n');
       throw error;
     }
   }
@@ -334,41 +382,126 @@ class OfferRequestService {
    * Send verified request to relevant providers
    */
   async sendToProviders(request) {
-    try {
-      const locationsList = request.preferredLocations || [];
-      console.log(`🔍 Finding providers for: ${request.serviceType} in locations: ${locationsList.join(', ') || 'any location'}`);
+    console.log('\n🚀 ========== SEND TO PROVIDERS STARTED ==========');
+    console.log('📋 Request Details:', {
+      id: request._id,
+      serviceType: request.serviceType,
+      requestCategory: request.requestCategory || 'MISSING',
+      preferredLocations: request.preferredLocations || 'MISSING',
+      budgetRange: request.budgetRange,
+      status: request.status
+    });
 
-      // Build query to filter by both service category AND location
+    try {
+      // Defensive check: Ensure preferredLocations is always an array
+      let locationsList = request.preferredLocations || [];
+
+      // Handle legacy data where preferredLocations might be a string or other non-array value
+      if (!Array.isArray(locationsList)) {
+        console.warn(`⚠️ preferredLocations is not an array, converting: ${typeof locationsList}`, locationsList);
+        locationsList = locationsList ? [locationsList] : [];
+      }
+
+      console.log(`🔍 Finding providers for: ${request.serviceType} (category: ${request.requestCategory || 'NOT SET'}) in locations: ${locationsList.length > 0 ? locationsList.join(', ') : 'any location'}`);
+
+      // Build query to filter by request category and service type
       const query = {
-        serviceCategory: request.serviceType,
         isActive: true
       };
 
-      // Add location filtering if specified
+      // CRITICAL FIX: Handle missing requestCategory
+      if (!request.requestCategory) {
+        console.warn('⚠️ WARNING: requestCategory is missing! Using serviceType as fallback');
+        // If requestCategory is missing, use serviceType directly
+        if (request.serviceType === 'legal') {
+          query.serviceCategory = 'legal';
+        } else {
+          query.serviceCategory = request.serviceType;
+        }
+      } else if (request.requestCategory === 'legal') {
+        // For legal requests, only send to legal service providers
+        query.serviceCategory = 'legal';
+      } else {
+        // For other requests, send to non-legal service providers matching the service type
+        query.serviceCategory = { $ne: 'legal' };
+        if (request.serviceType) {
+          query.serviceCategory = request.serviceType;
+        }
+      }
+
+      // CRITICAL FIX: Only add location filtering if locations exist AND providers have location data
       if (locationsList.length > 0 && !locationsList.includes('целосно-далечински')) {
-        query.$or = [
-          { 'location.city': { $in: locationsList } }, // Match any of the selected cities
-          { 'location.servesRemote': true }
-        ];
+        // First check if ANY providers have location data
+        const providersWithLocation = await this.serviceProviders.countDocuments({
+          isActive: true,
+          'location.city': { $exists: true, $ne: null }
+        });
+
+        console.log(`📍 Providers with location data: ${providersWithLocation}`);
+
+        if (providersWithLocation > 0) {
+          // Only filter by location if providers have location data
+          query.$or = [
+            { 'location.city': { $in: locationsList } }, // Match any of the selected cities
+            { 'location.servesRemote': true },
+            { 'location.city': { $exists: false } }, // Include providers without location data
+            { 'location': { $exists: false } } // Include providers without location field
+          ];
+        } else {
+          console.warn('⚠️ No providers have location data. Skipping location filter.');
+        }
       }
 
       console.log('🔍 Provider query:', JSON.stringify(query, null, 2));
 
       const providers = await this.serviceProviders.find(query).toArray();
 
-      console.log(`📊 Found ${providers.length} matching providers`);
-      providers.forEach(p => {
-        console.log(`  - ${p.name} in ${p.location?.city || 'Unknown'} (remote: ${p.location?.servesRemote || false})`);
+      // Debug: Check all providers in database for comparison
+      const allProviders = await this.serviceProviders.find({ isActive: true }).toArray();
+      console.log(`\n📊 DATABASE ANALYSIS:`);
+      console.log(`   Total active providers: ${allProviders.length}`);
+      console.log(`   Providers matching query: ${providers.length}`);
+
+      console.log(`\n📋 ALL ACTIVE PROVIDERS IN DB:`);
+      allProviders.forEach(p => {
+        console.log(`   - ${p.name}:`);
+        console.log(`       Category: "${p.serviceCategory}"`);
+        console.log(`       Has Location: ${!!p.location}`);
+        console.log(`       City: ${p.location?.city || 'N/A'}`);
+        console.log(`       Serves Remote: ${p.location?.servesRemote || 'N/A'}`);
       });
 
-      if (providers.length === 0) {
-        console.log(`❌ No active providers found for category: ${request.serviceType} in locations: ${locationsList.join(', ')}`);
-        return { providerCount: 0 };
+      if (providers.length > 0) {
+        console.log(`\n✅ MATCHED PROVIDERS (${providers.length}):`);
+        providers.forEach(p => {
+          console.log(`   - ${p.name} (${p.email})`);
+          console.log(`       Category: ${p.serviceCategory}`);
+          console.log(`       Location: ${p.location?.city || 'No location data'}`);
+        });
+      } else {
+        console.error(`\n❌ NO PROVIDERS MATCHED!`);
+        console.error(`   Query was: ${JSON.stringify(query, null, 2)}`);
+        console.error(`   Request category: ${request.requestCategory || 'MISSING'}`);
+        console.error(`   Request serviceType: ${request.serviceType}`);
+        console.error(`   Locations requested: ${locationsList.join(', ') || 'none'}`);
+
+        // Return early with warning but don't throw error
+        return {
+          providerCount: 0,
+          warning: 'No matching providers found',
+          query: query,
+          allProviders: allProviders.map(p => ({
+            name: p.name,
+            category: p.serviceCategory,
+            hasLocation: !!p.location
+          }))
+        };
       }
 
       // Update request with provider list
+      console.log(`\n📝 Updating request ${request._id} with ${providers.length} provider(s)...`);
       const providerIds = providers.map(p => p._id);
-      await this.offerRequests.updateOne(
+      const updateResult = await this.offerRequests.updateOne(
         { _id: request._id },
         {
           $set: {
@@ -378,17 +511,28 @@ class OfferRequestService {
           }
         }
       );
+      console.log(`   Update result: ${updateResult.modifiedCount} document(s) modified`);
 
       // Generate interest tokens and send emails
+      console.log(`\n📧 Sending interest invitations to ${providers.length} provider(s)...`);
       const ProviderInterestService = require('./providerInterestService');
       const providerInterestService = new ProviderInterestService(this.db);
 
-      await providerInterestService.sendInterestInvitations(request, providers);
+      const emailResult = await providerInterestService.sendInterestInvitations(request, providers);
+      console.log(`   Email result:`, emailResult);
 
-      return { providerCount: providers.length, providers };
+      console.log(`\n✅ ========== SEND TO PROVIDERS COMPLETED ==========\n`);
+      return {
+        providerCount: providers.length,
+        providers,
+        emailResult
+      };
 
     } catch (error) {
-      console.error('Error sending request to providers:', error);
+      console.error('\n❌ ========== SEND TO PROVIDERS FAILED ==========');
+      console.error('Error details:', error);
+      console.error('Stack:', error.stack);
+      console.error('========================================\n');
       throw error;
     }
   }

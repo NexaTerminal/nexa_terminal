@@ -16,7 +16,8 @@ const Sidebar = () => {
     { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
     { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
     // { path: '/terminal/profile', label: 'Профил', icon: '👤', noTranslate: true },
-    { path: '/terminal/contact', label: 'dashboard.contactUs', icon: '✉️' },
+    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
+    { path: '/terminal/contact', label: 'Побарај понуда', icon: '💼', noTranslate: true },
     { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
   ];
 

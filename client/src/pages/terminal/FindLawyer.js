@@ -6,32 +6,54 @@ import Sidebar from '../../components/terminal/Sidebar';
 import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
 import { useAuth } from '../../contexts/AuthContext';
 
-const Contact = () => {
+const FindLawyer = () => {
   const { token, currentUser } = useAuth();
   const location = useLocation();
   const isTerminal = location.pathname.startsWith('/terminal');
 
-  // Enhanced form data for "Побарај понуда"
+  // Enhanced form data for "Најди адвокат"
   const [formData, setFormData] = useState({
-    requestCategory: 'other', // Fixed for non-legal services
-    serviceType: '',
+    requestCategory: 'legal', // Fixed for legal services
+    serviceType: 'legal', // Fixed to legal
     budgetRange: '',
     projectDescription: '',
     projectType: 'еднократен',
     timeline: '',
     preferredLocations: [], // Changed to array for multiple selections
-    serviceSpecificFields: {},
+    serviceSpecificFields: {
+      legalMatter: '',
+      urgency: '',
+      documentsAvailable: ''
+    },
     acceptTerms: false
   });
 
-  // Fixed service categories (excluding legal - handled by FindLawyer page)
-  const serviceCategories = [
-    { value: 'accounting', label: 'Сметководство' },
-    { value: 'marketing', label: 'Маркетинг' },
-    { value: 'real-estate', label: 'Недвижности' },
-    { value: 'it-support', label: 'ИТ поддршка' },
-    { value: 'insurance', label: 'Осигурување' },
-    { value: 'other', label: 'Друго' }
+  // Legal-specific matter types
+  const legalMatterTypes = [
+    { value: 'договорно-право', label: 'Договорно право' },
+    { value: 'работно-право', label: 'Работно право' },
+    { value: 'трговско-право', label: 'Трговско право' },
+    { value: 'граѓанско-право', label: 'Граѓанско право' },
+    { value: 'казнено-право', label: 'Казнено право' },
+    { value: 'семејно-право', label: 'Семејно право' },
+    { value: 'недвижно-право', label: 'Недвижно право' },
+    { value: 'друго', label: 'Друго' }
+  ];
+
+  // Legal urgency levels
+  const urgencyLevels = [
+    { value: 'итно-до-3-дена', label: 'Итно (до 3 дена)' },
+    { value: 'средно-итно-до-1-недела', label: 'Средно итно (до 1 недела)' },
+    { value: 'стандардно-до-1-месец', label: 'Стандардно (до 1 месец)' },
+    { value: 'не-е-итно', label: 'Не е итно' }
+  ];
+
+  // Document availability
+  const documentAvailabilityOptions = [
+    { value: 'сите-потребни-документи', label: 'Сите потребни документи' },
+    { value: 'дел-од-документите', label: 'Дел од документите' },
+    { value: 'нема-документи', label: 'Нема документи' },
+    { value: 'не-сум-сигурен', label: 'Не сум сигурен' }
   ];
 
   // Macedonian cities for location filtering
@@ -73,10 +95,6 @@ const Contact = () => {
     { value: 'над-6-месеци', label: 'Над 6 месеци' }
   ];
 
-  // Removed service-specific fields to keep form short
-
-  // No useEffect needed - simplified form
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -102,7 +120,15 @@ const Contact = () => {
     }
   };
 
-  // Removed handleServiceSpecificChange - not needed
+  const handleServiceSpecificChange = (field, value) => {
+    setFormData({
+      ...formData,
+      serviceSpecificFields: {
+        ...formData.serviceSpecificFields,
+        [field]: value
+      }
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -162,22 +188,26 @@ const Contact = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Неуспешно поднесување на барањето за понуда');
+        throw new Error(errorData.message || 'Неуспешно поднесување на барањето за правна помош');
       }
 
       const result = await response.json();
-      setSuccess('Вашето барање за понуда е успешно поднесено! Ќе бидете контактирани од соодветни провајдери.');
+      setSuccess('Вашето барање за правна помош е успешно поднесено! Ќе бидете контактирани од соодветни адвокати.');
 
       // Reset form
       setFormData({
-        requestCategory: 'other',
-        serviceType: '',
+        requestCategory: 'legal',
+        serviceType: 'legal',
         budgetRange: '',
         projectDescription: '',
         projectType: 'еднократен',
         timeline: '',
         preferredLocations: [],
-        serviceSpecificFields: {},
+        serviceSpecificFields: {
+          legalMatter: '',
+          urgency: '',
+          documentsAvailable: ''
+        },
         acceptTerms: false
       });
 
@@ -191,42 +221,60 @@ const Contact = () => {
   return (
     <div>
       <Header isTerminal={isTerminal} />
-      
+
       <div className={styles["dashboard-layout"]}>
         <Sidebar />
 
         <main className={styles["dashboard-main"]}>
           <ProfileReminderBanner />
-          
+
           <div className={styles['contact-container']}>
             <div className={styles['contact-header']}>
-              <h1>Побарај понуда</h1>
-              <p>Поднесете барање за понуда и поврзете се со соодветни провајдери на услуги.</p>
+              <h1>Најди адвокат</h1>
+              <p>Поднесете барање за правна помош и поврзете се со соодветни адвокати и правни експерти.</p>
             </div>
-          
+
           <div className={styles['contact-form']}>
             {error && <div className={styles['error-message']}>{error}</div>}
             {success && <div className={styles['success-message']}>{success}</div>}
-            
+
             <form onSubmit={handleSubmit}>
               <div className={styles['form-grid']}>
                 {/* Left Column */}
                 <div className={`${styles['form-column']} ${styles['form-column-left']}`}>
-                  {/* Service Type - Fixed Categories */}
+                  {/* Legal Matter Type */}
                   <div className={styles['form-group']}>
-                    <label htmlFor="serviceType" className={styles['form-label']}>Тип на услуга *</label>
+                    <label htmlFor="legalMatter" className={styles['form-label']}>Тип на правна материја *</label>
                     <select
-                      id="serviceType"
-                      name="serviceType"
+                      id="legalMatter"
                       className={styles['form-select']}
-                      value={formData.serviceType}
-                      onChange={handleInputChange}
+                      value={formData.serviceSpecificFields.legalMatter}
+                      onChange={(e) => handleServiceSpecificChange('legalMatter', e.target.value)}
                       required
                     >
-                      <option value="">Избери тип на услуга</option>
-                      {serviceCategories.map(category => (
-                        <option key={category.value} value={category.value}>
-                          {category.label}
+                      <option value="">Избери тип на правна материја</option>
+                      {legalMatterTypes.map(matter => (
+                        <option key={matter.value} value={matter.value}>
+                          {matter.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Urgency */}
+                  <div className={styles['form-group']}>
+                    <label htmlFor="urgency" className={styles['form-label']}>Итност на случајот *</label>
+                    <select
+                      id="urgency"
+                      className={styles['form-select']}
+                      value={formData.serviceSpecificFields.urgency}
+                      onChange={(e) => handleServiceSpecificChange('urgency', e.target.value)}
+                      required
+                    >
+                      <option value="">Избери ниво на итност</option>
+                      {urgencyLevels.map(level => (
+                        <option key={level.value} value={level.value}>
+                          {level.label}
                         </option>
                       ))}
                     </select>
@@ -290,6 +338,24 @@ const Contact = () => {
                       ))}
                     </select>
                   </div>
+
+                  {/* Documents Available */}
+                  <div className={styles['form-group']}>
+                    <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
+                    <select
+                      id="documentsAvailable"
+                      className={styles['form-select']}
+                      value={formData.serviceSpecificFields.documentsAvailable}
+                      onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
+                    >
+                      <option value="">Избери статус на документи</option>
+                      {documentAvailabilityOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Right Column */}
@@ -315,14 +381,14 @@ const Contact = () => {
                 {/* Full-width items */}
                 {/* Project Description */}
                 <div className={`${styles['form-group']} ${styles['form-full-width']}`}>
-                  <label htmlFor="projectDescription" className={styles['form-label']}>Опис на барањето *</label>
+                  <label htmlFor="projectDescription" className={styles['form-label']}>Опис на правниот случај *</label>
                   <textarea
                     id="projectDescription"
                     name="projectDescription"
                     className={styles['form-textarea']}
                     value={formData.projectDescription}
                     onChange={handleInputChange}
-                    placeholder="Опишете го вашето барање детално..."
+                    placeholder="Опишете го вашиот правен случај детално. Вклучете релевантни факти, временски рамки и што сакате да постигнете..."
                     required
                     rows="4"
                   />
@@ -344,7 +410,7 @@ const Contact = () => {
                           required
                         />
                         <span className={styles['checkbox-text']}>
-                          Со испраќањето на оваа понуда се согласувате на условите за работа и ни дозволувате да ги споделиме наведените податоци со даватели на услуги, но без да го наведеме Вашиот назив или слични податоци. Доколку во податоците наведени погоре се изнесува деловна тајна или други деловни податоци, барањето за понуда ќе биде одбиено и нема да биде спроведено до давателите на услуги.{' '}
+                          Со испраќањето на ова барање се согласувате на условите за работа и ни дозволувате да ги споделиме наведените податоци со адвокати и правни експерти, но без да го наведеме Вашиот назив или слични податоци. Доколку во податоците наведени погоре се изнесува деловна тајна или други деловни податоци, барањето ќе биде одбиено и нема да биде спроведено до адвокатите.{' '}
                           <a
                             href="/terminal/disclaimer"
                             target="_blank"
@@ -363,13 +429,13 @@ const Contact = () => {
                     className={styles['submit-button']}
                     disabled={loading || !formData.acceptTerms}
                   >
-                    {loading ? 'Се поднесува...' : 'Побарај понуда'}
+                    {loading ? 'Се поднесува...' : 'Најди адвокат'}
                   </button>
 
                   <div className={styles['form-disclaimer']}>
                     <p>
                       <strong>Како функционира:</strong> Вашето барање ќе биде прегледано од нашиот тим и потоа
-                      проследено до релевантни провајдери. Ќе добиете одговори директно од заинтересираните провајдери.
+                      проследено до релевантни адвокати. Ќе добиете одговори директно од заинтересираните правни експерти.
                     </p>
                   </div>
                 </div>
@@ -383,4 +449,4 @@ const Contact = () => {
   );
 };
 
-export default Contact;
+export default FindLawyer;

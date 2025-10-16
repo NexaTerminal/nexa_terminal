@@ -18,8 +18,10 @@ const adminNewRequestNotification = (request, user) => {
   const spamLevel = spamScore <= 20 ? '✅ Ниско' :
                    spamScore <= 40 ? '⚠️ Средно' : '❌ Високо';
 
+  const categoryLabel = request.requestCategory === 'legal' ? 'Правни услуги' : 'Услуги';
+
   return {
-    subject: `🔔 Ново барање за понуда - ${request.serviceType}`,
+    subject: `🔔 Ново барање - ${categoryLabel} (${request.serviceType})`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #1E4DB7 0%, #4F46E5 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
@@ -37,6 +39,10 @@ const adminNewRequestNotification = (request, user) => {
             <tr>
               <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Email:</td>
               <td style="padding: 8px 0; color: #1f2937;">${user.email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Категорија:</td>
+              <td style="padding: 8px 0; color: #1f2937;"><span style="background: ${request.requestCategory === 'legal' ? '#fef3c7' : '#ecfdf5'}; color: ${request.requestCategory === 'legal' ? '#92400e' : '#065f46'}; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${categoryLabel}</span></td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Услуга:</td>
@@ -139,14 +145,16 @@ Nexa Terminal - Системот за автоматизација на дело
  * Provider invitation to express interest
  */
 const providerInterestInvitation = (request, provider, interestToken) => {
-  const interestUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/provider-interest/${interestToken}`;
+  const responseUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/provider-response/${interestToken}`;
+  const categoryLabel = request.requestCategory === 'legal' ? 'правни услуги' : 'услуги';
+  const categoryIcon = request.requestCategory === 'legal' ? '⚖️' : '💼';
 
   return {
-    subject: `🔔 Ново барање за ${request.serviceType} - Изразете интерес`,
+    subject: `${categoryIcon} Ново барање за ${categoryLabel} - ${request.serviceType}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-          <h1 style="margin: 0; font-size: 24px;">🎯 Ново барање за ваши услуги</h1>
+          <h1 style="margin: 0; font-size: 24px;">${categoryIcon} Ново барање за ваши ${categoryLabel}</h1>
           <p style="margin: 10px 0 0 0; opacity: 0.9;">Можност за нов проект</p>
         </div>
 
@@ -154,7 +162,7 @@ const providerInterestInvitation = (request, provider, interestToken) => {
           <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">Здраво <strong>${provider.name}</strong>,</p>
 
           <p style="color: #6b7280; line-height: 1.6; margin-bottom: 25px;">
-            Имаме ново барање за <strong>${request.serviceType}</strong> услуги што се совпаѓа со вашата експертиза.
+            Имаме ново барање за <strong>${request.serviceType}</strong> ${request.requestCategory === 'legal' ? '(правни услуги)' : ''} што се совпаѓа со вашата експертиза.
             Ова е одлична можност да се поврзете со нов клиент.
           </p>
 
@@ -203,13 +211,30 @@ const providerInterestInvitation = (request, provider, interestToken) => {
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            <p style="color: #6b7280; margin-bottom: 20px; font-size: 16px;">Заинтересирани сте за овој проект?</p>
-            <a href="${interestUrl}"
-               style="background: #10b981; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin-bottom: 15px;">
-              🎯 Изрази интерес и поднеси понуда
-            </a>
-            <br>
-            <small style="color: #9ca3af;">или копирај: ${interestUrl}</small>
+            <p style="color: #6b7280; margin-bottom: 20px; font-size: 16px;">Како ќе одговорите на ова барање?</p>
+
+            <div style="margin-bottom: 20px;">
+              <a href="${responseUrl}"
+                 style="background: #10b981; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin: 5px;">
+                ✅ Прифаќам - Детална понуда
+              </a>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <a href="${responseUrl}"
+                 style="background: #ef4444; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
+                ❌ Одбивам
+              </a>
+              <a href="${responseUrl}"
+                 style="background: #f59e0b; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
+                🚫 Отпиши ме
+              </a>
+            </div>
+
+            <p style="color: #9ca3af; font-size: 14px; margin-top: 15px;">
+              <strong>Напомена:</strong> Сите опции ве водат кон ист формулар каде можете да изберете ваш одговор.
+            </p>
+            <small style="color: #9ca3af;">Линк: ${responseUrl}</small>
           </div>
         </div>
 
@@ -235,8 +260,8 @@ const providerInterestInvitation = (request, provider, interestToken) => {
 Опис на проектот:
 ${request.projectDescription}
 
-За да изразите интерес и да поднесете понуда, посетете:
-${interestUrl}
+За да одговорите на барањето (Прифати/Одбиј/Отпиши се), посетете:
+${responseUrl}
 
 Овој линк е важечки 7 дена и е уникатен за вас.
 

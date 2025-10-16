@@ -173,6 +173,40 @@ router.get('/offer-requests/:id', async (req, res, next) => {
   }
 });
 
+// Get provider responses for a specific offer request
+router.get('/offer-requests/:id/responses', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    console.log(`🔍 GET /admin/offer-requests/${id}/responses - Admin route called`);
+
+    if (!offerRequestController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Offer request controller not initialized'
+      });
+    }
+
+    // Use the provider interest service to get responses
+    const ProviderInterestService = require('../services/providerInterestService');
+    const providerInterestService = new ProviderInterestService(req.app.locals.db);
+
+    // Get all provider interests for this request (including responses)
+    const responses = await providerInterestService.getResponsesByRequest(id);
+
+    res.json({
+      success: true,
+      responses
+    });
+
+  } catch (error) {
+    console.error('Admin get provider responses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 router.put('/offer-requests/:id/verify', async (req, res, next) => {
   try {
     if (!offerRequestController) {

@@ -11,11 +11,14 @@ const ManageOfferRequests = () => {
   const [error, setError] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [providerResponses, setProviderResponses] = useState(null);
+  const [loadingResponses, setLoadingResponses] = useState(false);
 
   // Filters
   const [filters, setFilters] = useState({
     status: '',
     serviceType: '',
+    requestCategory: '',
     qualityFilter: '',
     page: 1
   });
@@ -38,6 +41,13 @@ const ManageOfferRequests = () => {
     { value: 'low-quality', label: 'Ниско квалитет' },
     { value: 'high-quality', label: 'Високо квалитет' },
     { value: 'potential-duplicates', label: 'Можни дупликати' }
+  ];
+
+  // Request category options
+  const requestCategoryOptions = [
+    { value: '', label: 'Сите категории' },
+    { value: 'legal', label: 'Правни услуги' },
+    { value: 'other', label: 'Други услуги' }
   ];
 
   // Load requests
@@ -214,6 +224,7 @@ const ManageOfferRequests = () => {
 
   const showRequestDetails = async (requestId) => {
     try {
+      // Fetch request details
       const response = await fetch(
         `${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/admin/offer-requests/${requestId}`,
         {
@@ -227,12 +238,42 @@ const ManageOfferRequests = () => {
         const data = await response.json();
         setSelectedRequest(data.request);
         setShowDetails(true);
+
+        // Fetch provider responses
+        await loadProviderResponses(requestId);
       } else {
         throw new Error('Failed to load request details');
       }
     } catch (error) {
       console.error('Error loading request details:', error);
       alert('Грешка при вчитување на детали за барањето');
+    }
+  };
+
+  const loadProviderResponses = async (requestId) => {
+    try {
+      setLoadingResponses(true);
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/admin/offer-requests/${requestId}/responses`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setProviderResponses(data.responses);
+      } else {
+        console.error('Failed to load provider responses');
+        setProviderResponses(null);
+      }
+    } catch (error) {
+      console.error('Error loading provider responses:', error);
+      setProviderResponses(null);
+    } finally {
+      setLoadingResponses(false);
     }
   };
 
@@ -319,6 +360,16 @@ const ManageOfferRequests = () => {
               </select>
 
               <select
+                value={filters.requestCategory}
+                onChange={(e) => setFilters({...filters, requestCategory: e.target.value, page: 1})}
+                className={styles.filterSelect}
+              >
+                {requestCategoryOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+
+              <select
                 value={filters.qualityFilter}
                 onChange={(e) => setFilters({...filters, qualityFilter: e.target.value, page: 1})}
                 className={styles.filterSelect}
@@ -329,7 +380,7 @@ const ManageOfferRequests = () => {
               </select>
 
               <button
-                onClick={() => setFilters({status: '', serviceType: '', qualityFilter: '', page: 1})}
+                onClick={() => setFilters({status: '', serviceType: '', requestCategory: '', qualityFilter: '', page: 1})}
                 className={styles.clearFiltersBtn}
               >
                 Ресетирај филтри
@@ -353,6 +404,7 @@ const ManageOfferRequests = () => {
                 <thead>
                   <tr>
                     <th>Компанија</th>
+                    <th>Категорија</th>
                     <th>Услуга</th>
                     <th>Буџет</th>
                     <th>Статус</th>
@@ -370,6 +422,11 @@ const ManageOfferRequests = () => {
                           <strong>{request.user?.companyInfo?.companyName || 'Непознато'}</strong>
                           <small>{request.user?.email}</small>
                         </div>
+                      </td>
+                      <td>
+                        <span className={styles.categoryBadge}>
+                          {request.requestCategory === 'legal' ? 'Правни' : 'Други'}
+                        </span>
                       </td>
                       <td>
                         <span className={styles.serviceType}>{request.serviceType}</span>
@@ -489,6 +546,214 @@ const ManageOfferRequests = () => {
                   <div className={styles.detailSection}>
                     <h3>Админ забелешки</h3>
                     <p>{selectedRequest.adminNotes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Provider Responses Section */}
+              <div className={styles.responsesSection}>
+                <h3>Одговори од давателите на услуги</h3>
+                {loadingResponses ? (
+                  <div className={styles.loadingResponses}>
+                    <p>Се вчитуваат одговорите...</p>
+                  </div>
+                ) : providerResponses ? (
+                  <div className={styles.responsesContainer}>
+                    {/* Summary Statistics */}
+                    <div className={styles.responsesSummary}>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Вкупно покани:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.totalInvited || 0}</span>
+                      </div>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Одговорени:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.totalResponded || 0}</span>
+                      </div>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Прифатени:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.acceptedCount || 0}</span>
+                      </div>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Одбиени:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.declinedCount || 0}</span>
+                      </div>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Отпишани:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.unsubscribedCount || 0}</span>
+                      </div>
+                      <div className={styles.summaryCard}>
+                        <span className={styles.summaryLabel}>Одговор-стапка:</span>
+                        <span className={styles.summaryValue}>{providerResponses.summary?.responseRate?.toFixed(1) || 0}%</span>
+                      </div>
+                    </div>
+
+                    {/* Accepted Responses */}
+                    {providerResponses.responses?.accepted?.length > 0 && (
+                      <div className={styles.responseCategory}>
+                        <h4 className={styles.categoryTitle}>✅ Прифатени понуди ({providerResponses.responses.accepted.length})</h4>
+                        {providerResponses.responses.accepted.map((response, index) => (
+                          <div key={response._id} className={`${styles.responseCard} ${styles.acceptedResponse}`}>
+                            <div className={styles.responseHeader}>
+                              <h5>{response.provider.name}</h5>
+                              <span className={styles.responseDate}>
+                                {new Date(response.responseTimestamp).toLocaleDateString('mk-MK')}
+                              </span>
+                            </div>
+                            <div className={styles.responseDetails}>
+                              <p><strong>Email:</strong> {response.provider.email}</p>
+                              <p><strong>Категорија:</strong> {response.provider.serviceCategory}</p>
+                              <p><strong>Локација:</strong> {response.provider.location}</p>
+
+                              <div className={styles.responseAnswers}>
+                                <p><strong>Буџет прифатен:</strong>
+                                  <span className={response.budgetAccepted === 'да' ? styles.positive : styles.warning}>
+                                    {response.budgetAccepted === 'да' ? 'Да' : 'Потребна дискусија'}
+                                  </span>
+                                </p>
+                                {response.priceDetails && (
+                                  <p><strong>Детали за цена:</strong> {response.priceDetails}</p>
+                                )}
+
+                                <p><strong>Рок прифатлив:</strong>
+                                  <span className={response.timelineAcceptable === 'да' ? styles.positive : styles.warning}>
+                                    {response.timelineAcceptable === 'да' ? 'Да' : 'Потребно прилагодување'}
+                                  </span>
+                                </p>
+                                {response.timelineComment && (
+                                  <p><strong>Коментар за рок:</strong> {response.timelineComment}</p>
+                                )}
+
+                                <p><strong>Релевантно искуство:</strong>
+                                  <span className={styles.experienceLevel}>
+                                    {response.relevantExperience === 'да' ? 'Да' :
+                                     response.relevantExperience === 'делумно' ? 'Делумно' : 'Не'}
+                                  </span>
+                                </p>
+                                {response.experienceDetails && (
+                                  <p><strong>Детали за искуство:</strong> {response.experienceDetails}</p>
+                                )}
+
+                                <div className={styles.approachSection}>
+                                  <strong>Пристап кон проектот:</strong>
+                                  <div className={styles.approachText}>{response.approachComment}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Declined Responses */}
+                    {providerResponses.responses?.declined?.length > 0 && (
+                      <div className={styles.responseCategory}>
+                        <h4 className={styles.categoryTitle}>❌ Одбиени понуди ({providerResponses.responses.declined.length})</h4>
+                        {providerResponses.responses.declined.map((response, index) => (
+                          <div key={response._id} className={`${styles.responseCard} ${styles.declinedResponse}`}>
+                            <div className={styles.responseHeader}>
+                              <h5>{response.provider.name}</h5>
+                              <span className={styles.responseDate}>
+                                {new Date(response.responseTimestamp).toLocaleDateString('mk-MK')}
+                              </span>
+                            </div>
+                            <div className={styles.responseDetails}>
+                              <p><strong>Email:</strong> {response.provider.email}</p>
+                              <p><strong>Причина:</strong> {response.declineReason}</p>
+                              {response.declineComment && (
+                                <p><strong>Коментар:</strong> {response.declineComment}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Unsubscribed Responses */}
+                    {providerResponses.responses?.unsubscribed?.length > 0 && (
+                      <div className={styles.responseCategory}>
+                        <h4 className={styles.categoryTitle}>🚫 Отпишани ({providerResponses.responses.unsubscribed.length})</h4>
+                        {providerResponses.responses.unsubscribed.map((response, index) => (
+                          <div key={response._id} className={`${styles.responseCard} ${styles.unsubscribedResponse}`}>
+                            <div className={styles.responseHeader}>
+                              <h5>{response.provider.name}</h5>
+                              <span className={styles.responseDate}>
+                                {new Date(response.responseTimestamp).toLocaleDateString('mk-MK')}
+                              </span>
+                            </div>
+                            <div className={styles.responseDetails}>
+                              <p><strong>Email:</strong> {response.provider.email}</p>
+                              <p><strong>Причина:</strong> {response.unsubscribeReason}</p>
+                              {response.unsubscribeComment && (
+                                <p><strong>Коментар:</strong> {response.unsubscribeComment}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Pending Responses */}
+                    {providerResponses.responses?.pending?.length > 0 && (
+                      <div className={styles.responseCategory}>
+                        <h4 className={styles.categoryTitle}>⏳ Чекаат одговор ({providerResponses.responses.pending.length})</h4>
+                        {providerResponses.responses.pending.map((response, index) => (
+                          <div key={response._id} className={`${styles.responseCard} ${styles.pendingResponse}`}>
+                            <div className={styles.responseHeader}>
+                              <h5>{response.provider.name}</h5>
+                              <span className={styles.responseDate}>
+                                Покана испратена: {new Date(response.createdAt).toLocaleDateString('mk-MK')}
+                              </span>
+                            </div>
+                            <div className={styles.responseDetails}>
+                              <p><strong>Email:</strong> {response.provider.email}</p>
+                              <p><strong>Токен истекува:</strong> {new Date(response.tokenExpiry).toLocaleDateString('mk-MK')}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Legacy Responses */}
+                    {providerResponses.responses?.legacy?.length > 0 && (
+                      <div className={styles.responseCategory}>
+                        <h4 className={styles.categoryTitle}>📝 Стари одговори ({providerResponses.responses.legacy.length})</h4>
+                        {providerResponses.responses.legacy.map((response, index) => (
+                          <div key={response._id} className={`${styles.responseCard} ${styles.legacyResponse}`}>
+                            <div className={styles.responseHeader}>
+                              <h5>{response.provider.name}</h5>
+                              <span className={styles.responseDate}>
+                                {new Date(response.updatedAt).toLocaleDateString('mk-MK')}
+                              </span>
+                            </div>
+                            <div className={styles.responseDetails}>
+                              <p><strong>Email:</strong> {response.provider.email}</p>
+                              <p><strong>Достапност:</strong> {response.availability}</p>
+                              <p><strong>Буџет:</strong> {response.budgetAlignment}</p>
+                              <div className={styles.proposalSection}>
+                                <strong>Предлог:</strong>
+                                <div className={styles.proposalText}>{response.proposal}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* No responses */}
+                    {(!providerResponses.responses ||
+                      (providerResponses.responses.accepted?.length === 0 &&
+                       providerResponses.responses.declined?.length === 0 &&
+                       providerResponses.responses.unsubscribed?.length === 0 &&
+                       providerResponses.responses.legacy?.length === 0 &&
+                       providerResponses.responses.pending?.length === 0)) && (
+                      <div className={styles.noResponses}>
+                        <p>Сè уште нема одговори од даватели на услуги.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.noResponsesData}>
+                    <p>Не се достапни податоци за одговори.</p>
                   </div>
                 )}
               </div>

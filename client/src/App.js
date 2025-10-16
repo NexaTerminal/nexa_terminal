@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/website/Login';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
+import ProviderResponse from './pages/public/ProviderResponse';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
@@ -22,6 +23,7 @@ import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
 import Contact from './pages/terminal/Contact';
+import FindLawyer from './pages/terminal/FindLawyer';
 import Disclaimer from './pages/terminal/Disclaimer';
 import EditProfile from './pages/terminal/EditProfile';
 import User from './pages/terminal/User';
@@ -29,6 +31,8 @@ import AIChat from './pages/terminal/AIChat';
 // import CompleteProfile from './pages/terminal/CompleteProfile';
 import SimpleCompleteProfile from './pages/terminal/SimpleCompleteProfile';
 import Education from './pages/terminal/Education';
+import CourseDetail from './pages/terminal/CourseDetail';
+import CourseLesson from './pages/terminal/CourseLesson';
 
 
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
@@ -94,6 +98,9 @@ function App() {
       {/* <Route path="/complete-profile" element={<CompleteProfile />} /> */}
       <Route path="/auth/success" element={<AuthCallback />} />
 
+      {/* Provider Response - Public (no auth required) */}
+      <Route path="/provider-response/:token" element={<ProviderResponse />} />
+
       {/* Private Terminal Routes */}
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
@@ -118,11 +125,14 @@ function App() {
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
+      <Route path="/terminal/find-lawyer" element={<PrivateRoute><FindLawyer /></PrivateRoute>} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
       <Route path="/terminal/education" element={<PrivateRoute><Education /></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><CourseDetail /></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><CourseLesson /></PrivateRoute>} />
       
       {/* General Conditions */}
       <Route path="/general-conditions" element={<GeneralConditions />} />

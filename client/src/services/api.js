@@ -49,7 +49,7 @@ class ApiService {
 
   static async request(endpoint, options = {}) {
     const token = localStorage.getItem('token');
-    
+
     const defaultHeaders = {
       'Content-Type': 'application/json',
     };
@@ -57,7 +57,7 @@ class ApiService {
     if (token) {
       defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
-    
+
     // Add CSRF token for state-changing operations
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase())) {
       const csrfToken = await this.getCSRFToken();
@@ -82,7 +82,7 @@ class ApiService {
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-      
+
       // Handle authentication errors specifically
       if (response.status === 401) {
         // Don't automatically clear token here - let the component handle it
@@ -90,7 +90,7 @@ class ApiService {
         authError.isAuthError = true;
         throw authError;
       }
-      
+
       // Handle permission errors specifically
       if (response.status === 403) {
         let errorMessage = 'Access denied.';
@@ -102,13 +102,13 @@ class ApiService {
         } catch (e) {
           // Use default message if can't parse response
         }
-        
+
         const permissionError = new Error(errorMessage);
         permissionError.isPermissionError = true;
         permissionError.status = 403;
         throw permissionError;
       }
-      
+
       if (!response.ok) {
         // Clone the response to allow reading the body multiple times if necessary
         const clonedResponse = response.clone();
@@ -132,11 +132,11 @@ class ApiService {
         }
         throw new Error(errorMessageToShow);
       }
-      
+
       // If response is OK, try to parse JSON.
       // Handle cases where response might be OK but not have a JSON body (e.g. 204 No Content)
       if (response.status === 204) {
-        return null; 
+        return null;
       }
 
       const result = await response.json();
@@ -144,6 +144,31 @@ class ApiService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // Convenience methods
+  static async get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  }
+
+  static async post(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  static async put(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  static async delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
   }
 
 }

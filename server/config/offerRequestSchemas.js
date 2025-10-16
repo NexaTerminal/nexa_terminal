@@ -15,6 +15,11 @@ const offerRequestSchema = {
   userId: ObjectId, // Reference to requesting user
 
   // Request Details
+  requestCategory: {
+    type: String,
+    enum: ['legal', 'other'],
+    required: true
+  }, // "legal" for Find a Lawyer, "other" for Request an Offer
   serviceType: String, // Dynamic based on active providers
   budgetRange: String, // MKD ranges: "до-25000", "25000-50000", etc.
   projectDescription: String, // 10-300 words validation
@@ -59,9 +64,31 @@ const offerRequestSchema = {
   sentTo: [ObjectId], // Array of provider IDs who received this request
   interestCount: { type: Number, default: 0 }, // Number of providers who expressed interest
 
+  // Enhanced Provider Response Tracking
+  providerResponses: [ObjectId], // Array of provider_interest IDs with responses
+
+  // Response Statistics
+  responseStats: {
+    totalSent: { type: Number, default: 0 },
+    totalResponded: { type: Number, default: 0 },
+    acceptedCount: { type: Number, default: 0 },
+    declinedCount: { type: Number, default: 0 },
+    unsubscribedCount: { type: Number, default: 0 },
+    noResponseCount: { type: Number, default: 0 },
+    averageResponseTime: { type: Number, default: 0 }, // in hours
+    lastResponseDate: Date
+  },
+
   // Success Tracking
   connectionsMade: { type: Number, default: 0 },
-  isResolved: { type: Boolean, default: false }
+  isResolved: { type: Boolean, default: false },
+
+  // Client Communication Tracking
+  clientNotifications: {
+    totalNotificationsSent: { type: Number, default: 0 },
+    lastNotificationDate: Date,
+    providersIntroduced: [ObjectId] // Array of provider IDs introduced to client
+  }
 };
 
 /**
@@ -78,34 +105,154 @@ const providerInterestSchema = {
   interestToken: String, // Unique token for provider access
   tokenExpiry: Date, // Token expiration date
 
-  // Provider Response Fields
+  // Enhanced Provider Response Fields
+
+  // Legacy fields (maintained for backward compatibility)
   availability: {
     type: String,
     enum: ['да', 'не'],
-    required: true
+    required: false // Made optional as we have new detailed fields
   },
 
   budgetAlignment: {
     type: String,
     enum: ['да', 'не', 'преговарачки'],
-    required: true
+    required: false // Made optional as we have new detailed fields
   },
 
   proposal: {
     type: String,
-    maxlength: 500, // Maximum 500 characters
-    required: true
+    maxlength: 2000, // Increased from 500 to 2000 characters
+    required: false // Made optional as we have new detailed fields
   },
 
   portfolio: String, // Optional portfolio/website link
 
   preferredContact: {
     type: String,
-    enum: ['email', 'телефон', 'двете'],
+    enum: ['email', 'телефон', 'средба', 'двете'],
     default: 'email'
   },
 
   nextSteps: String, // What they propose as next steps
+
+  // NEW ENHANCED RESPONSE FIELDS
+
+  // Response Action Type
+  responseType: {
+    type: String,
+    enum: ['accept', 'decline', 'unsubscribe'],
+    required: true
+  },
+
+  // Budget Assessment
+  budgetAccepted: {
+    type: String,
+    enum: ['yes', 'negotiable', 'no'],
+    required: function() { return this.responseType === 'accept'; }
+  },
+
+  priceDetails: {
+    type: String,
+    maxlength: 500,
+    required: function() { return this.responseType === 'accept' && this.budgetAccepted !== 'yes'; }
+  },
+
+  // Timeline Assessment
+  timelineAcceptable: {
+    type: String,
+    enum: ['yes', 'with-adjustments', 'no'],
+    required: function() { return this.responseType === 'accept'; }
+  },
+
+  timelineComment: {
+    type: String,
+    maxlength: 300,
+    required: function() { return this.responseType === 'accept' && this.timelineAcceptable !== 'yes'; }
+  },
+
+  // Experience Assessment
+  relevantExperience: {
+    type: String,
+    enum: ['yes', 'some', 'no'],
+    required: function() { return this.responseType === 'accept'; }
+  },
+
+  experienceDetails: {
+    type: String,
+    maxlength: 800,
+    required: function() { return this.responseType === 'accept'; }
+  },
+
+  // Approach Strategy (most important field)
+  approachComment: {
+    type: String,
+    minlength: 100,
+    maxlength: 2000,
+    required: function() { return this.responseType === 'accept'; }
+  },
+
+  // Decline/Unsubscribe Reason
+  declineReason: {
+    type: String,
+    enum: [
+      'не-ми-одговара-буџетот',
+      'не-ми-одговара-времето',
+      'немам-искуство-со-ваквите-случаи',
+      'моментално-сум-зафатен',
+      'не-работам-со-ваков-тип-клиенти',
+      'друго'
+    ],
+    required: function() { return this.responseType === 'decline'; }
+  },
+
+  declineComment: {
+    type: String,
+    maxlength: 300,
+    required: function() { return this.responseType === 'decline' && this.declineReason === 'друго'; }
+  },
+
+  // Unsubscribe fields
+  unsubscribeReason: {
+    type: String,
+    enum: [
+      'премногу-барања',
+      'не-се-релевантни',
+      'променил-услуги',
+      'не-работам-повеќе',
+      'друго'
+    ],
+    required: function() { return this.responseType === 'unsubscribe'; }
+  },
+
+  unsubscribeComment: {
+    type: String,
+    maxlength: 200,
+    required: function() { return this.responseType === 'unsubscribe' && this.unsubscribeReason === 'друго'; }
+  },
+
+  // SECURITY & TRACKING FIELDS
+
+  // Security tracking (for fraud prevention)
+  securityData: {
+    ipAddress: String, // IP address of the response
+    userAgent: String, // Browser user agent string
+    submissionTimestamp: { type: Date, default: Date.now },
+    tokenUsed: Boolean, // Whether token was successfully used
+    responseSource: {
+      type: String,
+      enum: ['email-link', 'direct-access', 'mobile-app'],
+      default: 'email-link'
+    }
+  },
+
+  // Response validation
+  responseValidation: {
+    isValidToken: { type: Boolean, default: false },
+    tokenExpiryCheck: { type: Boolean, default: false },
+    duplicateResponseCheck: { type: Boolean, default: false },
+    suspiciousActivity: { type: Boolean, default: false }
+  },
 
   // Provider Contact Details (from service provider record)
   providerEmail: String,
@@ -115,7 +262,7 @@ const providerInterestSchema = {
   // Status Tracking
   status: {
     type: String,
-    enum: ['изразен', 'прифатен', 'одбиен', 'истечен'],
+    enum: ['изразен', 'прифатен', 'одбиен', 'истечен', 'declined', 'unsubscribed', 'responded'],
     default: 'изразен'
   },
 
@@ -363,6 +510,8 @@ const validators = {
     const errors = [];
 
     // Required field validation
+    if (!requestData.requestCategory) errors.push('Категоријата на барањето е задолжителна');
+    if (!['legal', 'other'].includes(requestData.requestCategory)) errors.push('Неважечка категорија на барање');
     if (!requestData.serviceType) errors.push('Типот на услуга е задолжителен');
     if (!requestData.budgetRange) errors.push('Буџетот е задолжителен');
     if (!requestData.projectDescription) errors.push('Описот на барањето е задолжителен');
@@ -506,6 +655,121 @@ const utils = {
       duplicateCheck: false, // Will be implemented in service layer
       qualityScore: Math.max(0, Math.min(100, qualityScore))
     };
+  },
+
+  // Enhanced validation for provider responses
+  validateProviderResponse: function(responseData) {
+    const errors = [];
+
+    // Required fields based on response type
+    if (!responseData.responseType || !['accept', 'decline', 'unsubscribe'].includes(responseData.responseType)) {
+      errors.push('Типот на одговор е задолжителен и мора да биде accept, decline или unsubscribe');
+    }
+
+    // Validation for acceptance responses
+    if (responseData.responseType === 'accept') {
+      if (!responseData.budgetAccepted || !['yes', 'negotiable', 'no'].includes(responseData.budgetAccepted)) {
+        errors.push('Ставот кон буџетот е задолжителен за прифаќање');
+      }
+
+      if (responseData.budgetAccepted !== 'yes' && (!responseData.priceDetails || responseData.priceDetails.length < 10)) {
+        errors.push('Детали за цената се задолжителни кога буџетот не е прифатен целосно');
+      }
+
+      if (!responseData.timelineAcceptable || !['yes', 'with-adjustments', 'no'].includes(responseData.timelineAcceptable)) {
+        errors.push('Ставот кон временската рамка е задолжителен');
+      }
+
+      if (responseData.timelineAcceptable !== 'yes' && (!responseData.timelineComment || responseData.timelineComment.length < 10)) {
+        errors.push('Коментар за временската рамка е задолжителен кога има потреба од прилагодувања');
+      }
+
+      if (!responseData.relevantExperience || !['yes', 'some', 'no'].includes(responseData.relevantExperience)) {
+        errors.push('Релевантното искуство е задолжително поле');
+      }
+
+      if (!responseData.experienceDetails || responseData.experienceDetails.length < 20) {
+        errors.push('Детали за искуството се задолжителни (минимум 20 карактери)');
+      }
+
+      if (!responseData.approachComment || responseData.approachComment.length < 100 || responseData.approachComment.length > 2000) {
+        errors.push('Коментарот за пристапот е задолжителен (100-2000 карактери)');
+      }
+    }
+
+    // Validation for decline responses
+    if (responseData.responseType === 'decline') {
+      if (!responseData.declineReason) {
+        errors.push('Причината за одбивање е задолжителна');
+      }
+
+      if (responseData.declineReason === 'друго' && (!responseData.declineComment || responseData.declineComment.length < 5)) {
+        errors.push('Коментар е потребен кога причината е "друго"');
+      }
+    }
+
+    // Validation for unsubscribe responses
+    if (responseData.responseType === 'unsubscribe') {
+      if (!responseData.unsubscribeReason) {
+        errors.push('Причината за отпишување е задолжителна');
+      }
+
+      if (responseData.unsubscribeReason === 'друго' && (!responseData.unsubscribeComment || responseData.unsubscribeComment.length < 5)) {
+        errors.push('Коментар е потребен кога причината е "друго"');
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
+  },
+
+  // Security validation for provider response tokens
+  validateResponseToken: function(token, tokenData, requestData) {
+    const validation = {
+      isValidToken: false,
+      tokenExpiryCheck: false,
+      duplicateResponseCheck: false,
+      suspiciousActivity: false,
+      errors: []
+    };
+
+    // Token format validation
+    if (!token || typeof token !== 'string' || token.length !== 64) {
+      validation.errors.push('Невалиден формат на токен');
+      return validation;
+    }
+
+    validation.isValidToken = true;
+
+    // Token expiry check
+    const now = new Date();
+    const expiryDate = new Date(tokenData.tokenExpiry);
+
+    if (now > expiryDate) {
+      validation.errors.push('Токенот е истечен');
+    } else {
+      validation.tokenExpiryCheck = true;
+    }
+
+    // Duplicate response check
+    if (tokenData.status && ['responded', 'declined', 'unsubscribed'].includes(tokenData.status)) {
+      validation.errors.push('Веќе сте одговориле на ова барање');
+    } else {
+      validation.duplicateResponseCheck = true;
+    }
+
+    // Basic suspicious activity check
+    const tokenAge = now - new Date(tokenData.createdAt);
+    const responseSpeed = tokenAge / (1000 * 60); // minutes
+
+    if (responseSpeed < 1) { // Response in less than 1 minute
+      validation.suspiciousActivity = true;
+      validation.errors.push('Премногу брз одговор - можна сомнителна активност');
+    }
+
+    return validation;
   }
 };
 

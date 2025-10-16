@@ -11,7 +11,7 @@ export const courseData = {
             id: 'lesson-1',
             title: 'Видео: Вовед во трудовото право',
             type: 'video',
-            videoId: 'QWAgeD3GN4I',
+            videoId: 'YKD8Dw0qPj8',
             duration: '15 мин'
           },
           {
@@ -31,14 +31,14 @@ export const courseData = {
       },
       {
         id: 2,
-        title: 'Модул 2: Договор за работа',
+        title: 'Модул 2: Работен однос и договор',
         lessons: [
           {
             id: 'lesson-2',
-            title: 'Видео: Договор за работа',
+            title: 'Видео: Работен однос и договор',
             type: 'video',
-            videoId: 'Gi7nVTxxs1Y',
-            duration: '12 мин'
+            videoId: 'QWAgeD3GN4I',
+            duration: '15 мин'
           },
           {
             id: 'reading-2',
@@ -61,10 +61,10 @@ export const courseData = {
         lessons: [
           {
             id: 'lesson-3',
-            title: 'Видео: Трудово законодавство (повторно)',
+            title: 'Видео: Договор за работа',
             type: 'video',
-            videoId: 'QWAgeD3GN4I',
-            duration: '15 мин'
+            videoId: 'Gi7nVTxxs1Y',
+            duration: '12 мин'
           },
           {
             id: 'reading-3',

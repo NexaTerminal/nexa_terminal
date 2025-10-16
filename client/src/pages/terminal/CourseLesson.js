@@ -16,6 +16,9 @@ const CourseLesson = () => {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [currentLesson, setCurrentLesson] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   // Find current lesson and navigation info
   const allLessons = course?.modules.flatMap(m => m.lessons) || [];
@@ -59,15 +62,29 @@ const CourseLesson = () => {
 
   const markLessonComplete = async (lessonIdToMark) => {
     if (!completedLessons.includes(lessonIdToMark)) {
-      const updated = [...completedLessons, lessonIdToMark];
-      setCompletedLessons(updated);
+      setIsSaving(true);
+      setSaveError(null);
+      setShowSuccessMessage(false);
 
       try {
         const response = await api.post(`/courses/${courseId}/lessons/${lessonIdToMark}/complete`, {});
         console.log('✅ Lesson marked as complete:', lessonIdToMark, response);
+
+        // Update local state
+        const updated = [...completedLessons, lessonIdToMark];
+        setCompletedLessons(updated);
+
+        // Show success message
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
       } catch (error) {
         console.error('❌ Error saving progress:', error);
-        setCompletedLessons(completedLessons);
+        setSaveError('Грешка при зачувување. Обидете се повторно.');
+
+        // Auto-hide error after 5 seconds
+        setTimeout(() => setSaveError(null), 5000);
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -159,13 +176,23 @@ const CourseLesson = () => {
           ></iframe>
           <div className={courseStyles.videoInfo}>
             <h2>{currentLesson.title}</h2>
-            <button
-              className={courseStyles.completeButton}
-              onClick={() => markLessonComplete(currentLesson.id)}
-              disabled={completedLessons.includes(currentLesson.id)}
-            >
-              {completedLessons.includes(currentLesson.id) ? '✓ Завршено' : 'Означи како завршено'}
-            </button>
+            <div className={courseStyles.videoActions}>
+              <button
+                className={courseStyles.completeButton}
+                onClick={() => markLessonComplete(currentLesson.id)}
+                disabled={completedLessons.includes(currentLesson.id) || isSaving}
+              >
+                {isSaving ? '⏳ Зачувување...' :
+                 completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
+                 'Означи како завршено'}
+              </button>
+              {showSuccessMessage && (
+                <span className={courseStyles.successMessage}>✓ Лекцијата е зачувана</span>
+              )}
+              {saveError && (
+                <span className={courseStyles.errorMessage}>{saveError}</span>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -182,13 +209,23 @@ const CourseLesson = () => {
               <p style={{ whiteSpace: 'pre-line' }}>{section.text}</p>
             </div>
           ))}
-          <button
-            className={courseStyles.completeButton}
-            onClick={handleMarkReadingComplete}
-            disabled={completedLessons.includes(currentLesson.id)}
-          >
-            {completedLessons.includes(currentLesson.id) ? '✓ Завршено' : 'Означи како завршено'}
-          </button>
+          <div className={courseStyles.readingActions}>
+            <button
+              className={courseStyles.completeButton}
+              onClick={handleMarkReadingComplete}
+              disabled={completedLessons.includes(currentLesson.id) || isSaving}
+            >
+              {isSaving ? '⏳ Зачувување...' :
+               completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
+               'Означи како завршено'}
+            </button>
+            {showSuccessMessage && (
+              <span className={courseStyles.successMessage}>✓ Лекцијата е зачувана</span>
+            )}
+            {saveError && (
+              <span className={courseStyles.errorMessage}>{saveError}</span>
+            )}
+          </div>
         </div>
       );
     }

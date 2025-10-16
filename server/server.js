@@ -424,8 +424,10 @@ function registerRoutes() {
   // Courses routes (education feature)
   try {
     app.use('/api/courses', require('./routes/courses'));
+    console.log('✅ Courses routes loaded successfully');
   } catch (error) {
     console.log('⚠️  Courses routes not found - education feature not available');
+    console.error('Courses routes error:', error.message);
   }
 
   // Admin routes

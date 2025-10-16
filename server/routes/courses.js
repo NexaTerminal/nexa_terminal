@@ -1,19 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const { ObjectId } = require('mongodb');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateJWT } = require('../middleware/auth');
 
 // Get user's progress for a specific course
-router.get('/:courseId/progress', authenticateToken, async (req, res) => {
+router.get('/:courseId/progress', authenticateJWT, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { courseId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user._id; // Use _id, not userId
+
+    console.log('📚 Loading progress for user:', userId, 'course:', courseId);
 
     const progress = await db.collection('courseProgress').findOne({
       userId: new ObjectId(userId),
       courseId: courseId
     });
+
+    console.log('📚 Progress found:', progress);
 
     if (!progress) {
       return res.json({ completedLessons: [] });
@@ -27,11 +31,13 @@ router.get('/:courseId/progress', authenticateToken, async (req, res) => {
 });
 
 // Mark lesson as complete
-router.post('/:courseId/lessons/:lessonId/complete', authenticateToken, async (req, res) => {
+router.post('/:courseId/lessons/:lessonId/complete', authenticateJWT, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { courseId, lessonId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user._id; // Use _id, not userId
+
+    console.log('✅ Marking lesson complete for user:', userId, 'lesson:', lessonId);
 
     const result = await db.collection('courseProgress').updateOne(
       {
@@ -49,6 +55,8 @@ router.post('/:courseId/lessons/:lessonId/complete', authenticateToken, async (r
       { upsert: true }
     );
 
+    console.log('✅ Lesson marked complete, result:', result);
+
     res.json({ message: 'Lesson marked as complete', success: true });
   } catch (error) {
     console.error('Error marking lesson complete:', error);
@@ -57,12 +65,12 @@ router.post('/:courseId/lessons/:lessonId/complete', authenticateToken, async (r
 });
 
 // Update video progress (watch position)
-router.put('/:courseId/lessons/:lessonId/progress', authenticateToken, async (req, res) => {
+router.put('/:courseId/lessons/:lessonId/progress', authenticateJWT, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { courseId, lessonId } = req.params;
     const { watchPosition } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user._id; // Use _id, not userId
 
     await db.collection('courseProgress').updateOne(
       {
@@ -86,10 +94,10 @@ router.put('/:courseId/lessons/:lessonId/progress', authenticateToken, async (re
 });
 
 // Get all courses with user progress
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateJWT, async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const userId = req.user.userId;
+    const userId = req.user._id; // Use _id, not userId
 
     // Get all user's course progress
     const userProgress = await db.collection('courseProgress')

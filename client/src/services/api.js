@@ -7,43 +7,55 @@ class ApiService {
    * Get CSRF token from cookie
    */
   static getCSRFTokenFromCookie() {
+    console.log('🍪 Checking cookies for CSRF token...');
+    console.log('🍪 All cookies:', document.cookie);
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === 'csrfToken') {
+        console.log('✅ Found CSRF token in cookie:', value.substring(0, 10) + '...');
         return value;
       }
     }
+    console.log('⚠️ No CSRF token found in cookies');
     return null;
   }
-  
+
   /**
    * Fetch CSRF token from server
    */
   static async fetchCSRFToken() {
+    console.log('🌐 Fetching CSRF token from server...');
     try {
       const response = await fetch(`${API_BASE_URL}/csrf-token`, {
         credentials: 'include' // Include cookies
       });
+      console.log('🌐 CSRF token endpoint response:', response.status);
       if (response.ok) {
         const data = await response.json();
         this.csrfToken = data.csrfToken;
+        console.log('✅ CSRF token fetched successfully:', data.csrfToken ? data.csrfToken.substring(0, 10) + '...' : 'null');
         return data.csrfToken;
+      } else {
+        console.error('❌ Failed to fetch CSRF token, status:', response.status);
       }
     } catch (error) {
-      // Silently handle CSRF token fetch errors
+      console.error('❌ Error fetching CSRF token:', error);
     }
     return null;
   }
-  
+
   /**
    * Get CSRF token (from cookie or fetch new one)
    */
   static async getCSRFToken() {
+    console.log('🛡️ getCSRFToken called');
     let token = this.getCSRFTokenFromCookie();
     if (!token) {
+      console.log('⚠️ No token in cookie, fetching from server...');
       token = await this.fetchCSRFToken();
     }
+    console.log('🛡️ Final CSRF token:', token ? token.substring(0, 10) + '...' : 'null');
     return token;
   }
 
@@ -175,7 +187,10 @@ class ApiService {
    * Download blob (for PDFs, images, etc.) with CSRF token support
    */
   static async downloadBlob(endpoint, method = 'GET', data = null, options = {}) {
+    console.log('🔍 downloadBlob called:', { endpoint, method, data });
+
     const token = localStorage.getItem('token');
+    console.log('🔑 Auth token exists:', !!token);
 
     const defaultHeaders = {
       'Authorization': `Bearer ${token}`
@@ -183,12 +198,20 @@ class ApiService {
 
     // Add CSRF token for POST requests
     if (method === 'POST') {
+      console.log('🛡️ Fetching CSRF token for POST request...');
       const csrfToken = await this.getCSRFToken();
+      console.log('🛡️ CSRF token received:', csrfToken ? csrfToken.substring(0, 10) + '...' : 'null');
+
       if (csrfToken) {
         defaultHeaders['X-CSRF-Token'] = csrfToken;
+        console.log('✅ CSRF token added to headers');
+      } else {
+        console.error('❌ Failed to get CSRF token!');
       }
       defaultHeaders['Content-Type'] = 'application/json';
     }
+
+    console.log('📦 Request headers:', Object.keys(defaultHeaders));
 
     const config = {
       method,
@@ -201,18 +224,24 @@ class ApiService {
 
     if (data && method === 'POST') {
       config.body = JSON.stringify(data);
+      console.log('📤 Request body prepared');
     }
 
     try {
+      console.log('🚀 Sending request to:', `${API_BASE_URL}${endpoint}`);
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Request failed:', errorData);
         throw new Error(errorData.message || `Server error: ${response.status}`);
       }
 
+      console.log('✅ Request successful, returning blob');
       return await response.blob();
     } catch (error) {
+      console.error('💥 downloadBlob error:', error);
       throw error;
     }
   }

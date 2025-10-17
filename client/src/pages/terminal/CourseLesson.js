@@ -89,21 +89,8 @@ const CourseLesson = () => {
   const handleGenerateCertificate = async (formData) => {
     setIsGeneratingCertificate(true);
     try {
-      const response = await fetch(`${api.defaults?.baseURL || ''}/api/certificates/${courseId}/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate certificate');
-      }
-
-      // Get the PDF blob
-      const blob = await response.blob();
+      // Use api.downloadBlob with CSRF token support
+      const blob = await api.downloadBlob(`/certificates/${courseId}/generate`, 'POST', formData);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -130,18 +117,9 @@ const CourseLesson = () => {
 
   const handleDownloadCertificate = async () => {
     try {
-      const response = await fetch(`${api.defaults?.baseURL || ''}/api/certificates/${courseId}/download`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      // Use api.downloadBlob for GET request
+      const blob = await api.downloadBlob(`/certificates/${courseId}/download`, 'GET');
 
-      if (!response.ok) {
-        throw new Error('Failed to download certificate');
-      }
-
-      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

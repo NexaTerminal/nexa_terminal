@@ -171,6 +171,52 @@ class ApiService {
     return this.request(endpoint, { ...options, method: 'DELETE' });
   }
 
+  /**
+   * Download blob (for PDFs, images, etc.) with CSRF token support
+   */
+  static async downloadBlob(endpoint, method = 'GET', data = null, options = {}) {
+    const token = localStorage.getItem('token');
+
+    const defaultHeaders = {
+      'Authorization': `Bearer ${token}`
+    };
+
+    // Add CSRF token for POST requests
+    if (method === 'POST') {
+      const csrfToken = await this.getCSRFToken();
+      if (csrfToken) {
+        defaultHeaders['X-CSRF-Token'] = csrfToken;
+      }
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
+
+    const config = {
+      method,
+      credentials: 'include',
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    if (data && method === 'POST') {
+      config.body = JSON.stringify(data);
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
+
+      return await response.blob();
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
 
 export default ApiService;

@@ -31,7 +31,7 @@ class CertificateGenerator {
         // Create PDF document (A4 landscape)
         const doc = new PDFDocument({
           size: [this.width, this.height],
-          margins: { top: 50, bottom: 50, left: 50, right: 50 }
+          margins: { top: 40, bottom: 40, left: 50, right: 50 }
         });
 
         // Buffer to store PDF
@@ -49,70 +49,71 @@ class CertificateGenerator {
         // Logo/Header area
         this.drawHeader(doc);
 
-        // Certificate title
-        doc.fontSize(36)
+        // Certificate title - darker and more compact
+        doc.fontSize(32)
           .font(this.fonts.bold)
-          .fillColor('#2d3748')
-          .text('СЕРТИФИКАТ', 0, 120, { align: 'center' });
+          .fillColor('#1a202c')
+          .text('СЕРТИФИКАТ', 0, 110, { align: 'center' });
 
-        doc.fontSize(18)
+        doc.fontSize(16)
+          .font(this.fonts.regular)
+          .fillColor('#2d3748')
+          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 148, { align: 'center' });
+
+        // "This certifies that" text - darker
+        doc.fontSize(12)
           .font(this.fonts.regular)
           .fillColor('#4a5568')
-          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 165, { align: 'center' });
+          .text('Се потврдува дека', 0, 190, { align: 'center' });
 
-        // "This certifies that" text
-        doc.fontSize(14)
-          .font(this.fonts.regular)
-          .fillColor('#718096')
-          .text('Се потврдува дека', 0, 220, { align: 'center' });
-
-        // Recipient name (bold and large)
-        doc.fontSize(28)
+        // Recipient name (bold and large) - darker
+        doc.fontSize(26)
           .font(this.fonts.bold)
-          .fillColor('#2d3748')
-          .text(fullName, 0, 250, { align: 'center' });
+          .fillColor('#1a202c')
+          .text(fullName, 0, 215, { align: 'center' });
 
-        // Job position and company
-        doc.fontSize(14)
+        // Job position and company - darker, more compact
+        doc.fontSize(13)
           .font(this.fonts.regular)
-          .fillColor('#4a5568')
-          .text(jobPosition, 0, 290, { align: 'center' });
+          .fillColor('#2d3748')
+          .text(jobPosition, 0, 250, { align: 'center' });
 
         if (companyName) {
-          doc.fontSize(14)
+          doc.fontSize(13)
             .font(this.fonts.italic)
-            .fillColor('#718096')
-            .text(companyName, 0, 315, { align: 'center' });
+            .fillColor('#4a5568')
+            .text(companyName, 0, 270, { align: 'center' });
         }
 
-        // "has successfully completed" text
-        doc.fontSize(14)
+        // "has successfully completed" text - darker, adjusted position
+        const afterCompanyY = companyName ? 300 : 280;
+        doc.fontSize(12)
           .font(this.fonts.regular)
-          .fillColor('#718096')
-          .text('успешно го заврши курсот', 0, 350, { align: 'center' });
+          .fillColor('#4a5568')
+          .text('успешно го заврши курсот', 0, afterCompanyY, { align: 'center' });
 
-        // Course name (highlighted)
-        doc.fontSize(20)
+        // Course name (highlighted) - darker blue
+        doc.fontSize(18)
           .font(this.fonts.bold)
-          .fillColor('#667eea')
-          .text(courseName, 0, 380, { align: 'center' });
+          .fillColor('#4c51bf')
+          .text(courseName, 0, afterCompanyY + 25, { align: 'center' });
 
-        // Issue date and certificate ID
+        // Issue date and certificate ID - darker, more compact
         const formattedDate = new Date(issueDate).toLocaleDateString('mk-MK', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         });
 
-        doc.fontSize(11)
-          .font(this.fonts.regular)
-          .fillColor('#718096')
-          .text(`Издадено на: ${formattedDate}`, 0, 450, { align: 'center' });
-
         doc.fontSize(10)
           .font(this.fonts.regular)
-          .fillColor('#a0aec0')
-          .text(`Сертификат бр: ${certificateId}`, 0, 470, { align: 'center' });
+          .fillColor('#4a5568')
+          .text(`Издадено на: ${formattedDate}`, 0, afterCompanyY + 75, { align: 'center' });
+
+        doc.fontSize(9)
+          .font(this.fonts.regular)
+          .fillColor('#718096')
+          .text(`Сертификат бр: ${certificateId}`, 0, afterCompanyY + 92, { align: 'center' });
 
         // Signature line
         this.drawSignature(doc);
@@ -159,33 +160,33 @@ class CertificateGenerator {
   }
 
   drawHeader(doc) {
-    // Nexa Terminal text logo
-    doc.fontSize(24)
+    // Nexa Terminal text logo - darker
+    doc.fontSize(22)
       .font(this.fonts.bold)
-      .fillColor('#667eea')
-      .text('NEXA', 0, 60, { align: 'center' });
+      .fillColor('#4c51bf')
+      .text('NEXA', 0, 55, { align: 'center' });
 
-    doc.fontSize(12)
+    doc.fontSize(11)
       .font(this.fonts.regular)
-      .fillColor('#718096')
-      .text('T E R M I N A L', 0, 88, { align: 'center', characterSpacing: 3 });
+      .fillColor('#4a5568')
+      .text('T E R M I N A L', 0, 80, { align: 'center', characterSpacing: 3 });
   }
 
   drawSignature(doc) {
-    const signatureY = 510;
+    const signatureY = 475;
     const centerX = this.width / 2;
 
     // Signature line
     doc.moveTo(centerX - 100, signatureY)
       .lineTo(centerX + 100, signatureY)
-      .strokeColor('#cbd5e0')
+      .strokeColor('#718096')
       .lineWidth(1)
       .stroke();
 
     // Signature text
-    doc.fontSize(11)
+    doc.fontSize(10)
       .font(this.fonts.italic)
-      .fillColor('#4a5568')
+      .fillColor('#2d3748')
       .text('Nexa Terminal', centerX - 100, signatureY + 10, {
         width: 200,
         align: 'center'
@@ -193,21 +194,21 @@ class CertificateGenerator {
   }
 
   drawFooter(doc) {
-    // Footer text
-    doc.fontSize(8)
+    // Footer text - darker and more compact
+    doc.fontSize(7)
       .font(this.fonts.regular)
-      .fillColor('#a0aec0')
+      .fillColor('#718096')
       .text('Овој сертификат потврдува успешно завршување на курсот на платформата Nexa Terminal',
-        50, this.height - 35, {
+        50, this.height - 30, {
           align: 'center',
           width: this.width - 100
         });
 
-    doc.fontSize(8)
+    doc.fontSize(7)
       .font(this.fonts.regular)
-      .fillColor('#cbd5e0')
+      .fillColor('#a0aec0')
       .text('www.nexaterminal.com | terminalnexa@gmail.com',
-        50, this.height - 20, {
+        50, this.height - 18, {
           align: 'center',
           width: this.width - 100
         });

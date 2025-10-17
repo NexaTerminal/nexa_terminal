@@ -56,11 +56,11 @@ class CertificateGenerator {
         const centerX = 50; // Left margin
         const textWidth = this.width - 100; // Full width minus margins
 
-        // Certificate title - PURE BLACK and bold
-        doc.fontSize(34)
+        // Certificate title - 30% LARGER (44px) and BLUE like Nexa logo
+        doc.fontSize(44)
           .font(this.fonts.bold)
-          .fillColor('#000000', 1) // Opacity 1 = fully opaque
-          .text('СЕРТИФИКАТ', centerX, 125, {
+          .fillColor('#2563eb', 1) // Blue like Nexa logo
+          .text('СЕРТИФИКАТ', centerX, 120, {
             width: textWidth,
             align: 'center'
           });
@@ -202,31 +202,23 @@ class CertificateGenerator {
     const centerX = 50;
     const textWidth = this.width - 100;
 
-    // Nexa logo image with better positioning
+    // Nexa logo image - 20% larger (120px instead of 100px)
     if (fs.existsSync(this.logoPath)) {
-      const logoWidth = 100;
+      const logoWidth = 120;
       const logoX = (this.width - logoWidth) / 2;
-      doc.image(this.logoPath, logoX, 35, { width: logoWidth });
+      doc.image(this.logoPath, logoX, 40, { width: logoWidth });
     } else {
-      // Fallback to text if logo not found - BOLD and DARK BLUE
-      doc.fontSize(28)
+      // Fallback to text if logo not found - BOLD and BLUE
+      doc.fontSize(32)
         .font(this.fonts.bold)
         .fillColor('#1e40af', 1)
-        .text('NEXA', centerX, 40, {
+        .text('NEXA', centerX, 45, {
           width: textWidth,
           align: 'center'
         });
     }
 
-    // Terminal text - PURE BLACK, bold, with space after logo
-    doc.fontSize(10)
-      .font(this.fonts.bold)
-      .fillColor('#000000', 1)
-      .text('T E R M I N A L', centerX, 100, {
-        width: textWidth,
-        align: 'center',
-        characterSpacing: 5
-      });
+    // No "TERMINAL" text - removed as requested
   }
 
   drawSignature(doc, yPosition = 475) {

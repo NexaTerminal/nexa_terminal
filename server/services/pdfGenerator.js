@@ -14,6 +14,9 @@ class CertificateGenerator {
       bold: path.join(__dirname, '../fonts/DejaVuSans-Bold.ttf'),
       italic: path.join(__dirname, '../fonts/DejaVuSans-Oblique.ttf')
     };
+
+    // Logo path
+    this.logoPath = path.join(__dirname, '../fonts/nexa-logo.png');
   }
 
   async generateCertificate(certificateData) {
@@ -28,10 +31,11 @@ class CertificateGenerator {
           issueDate
         } = certificateData;
 
-        // Create PDF document (A4 landscape)
+        // Create PDF document (A4 landscape) - single page only
         const doc = new PDFDocument({
           size: [this.width, this.height],
-          margins: { top: 40, bottom: 40, left: 50, right: 50 }
+          margins: { top: 30, bottom: 30, left: 50, right: 50 },
+          autoFirstPage: true
         });
 
         // Buffer to store PDF
@@ -40,65 +44,67 @@ class CertificateGenerator {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        // Background gradient effect (simulated with rectangles)
+        // Background gradient effect
         this.drawBackground(doc);
 
         // Border
         this.drawBorder(doc);
 
-        // Logo/Header area
+        // Logo/Header area with actual logo image
         this.drawHeader(doc);
 
-        // Certificate title - darker and more compact
-        doc.fontSize(32)
+        // Certificate title - MUCH darker and bold
+        doc.fontSize(36)
           .font(this.fonts.bold)
-          .fillColor('#1a202c')
-          .text('СЕРТИФИКАТ', 0, 110, { align: 'center' });
+          .fillColor('#000000')
+          .text('СЕРТИФИКАТ', 0, 135, { align: 'center' });
 
         doc.fontSize(16)
           .font(this.fonts.regular)
-          .fillColor('#2d3748')
-          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 148, { align: 'center' });
+          .fillColor('#1a202c')
+          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 178, { align: 'center' });
 
         // "This certifies that" text - darker
-        doc.fontSize(12)
-          .font(this.fonts.regular)
-          .fillColor('#4a5568')
-          .text('Се потврдува дека', 0, 190, { align: 'center' });
-
-        // Recipient name (bold and large) - darker
-        doc.fontSize(26)
-          .font(this.fonts.bold)
-          .fillColor('#1a202c')
-          .text(fullName, 0, 215, { align: 'center' });
-
-        // Job position and company - darker, more compact
-        doc.fontSize(13)
+        doc.fontSize(11)
           .font(this.fonts.regular)
           .fillColor('#2d3748')
-          .text(jobPosition, 0, 250, { align: 'center' });
+          .text('Се потврдува дека', 0, 215, { align: 'center' });
 
+        // Recipient name - BOLD and BLACK
+        doc.fontSize(28)
+          .font(this.fonts.bold)
+          .fillColor('#000000')
+          .text(fullName, 0, 238, { align: 'center' });
+
+        // Job position - darker
+        doc.fontSize(13)
+          .font(this.fonts.regular)
+          .fillColor('#1a202c')
+          .text(jobPosition, 0, 275, { align: 'center' });
+
+        // Company name if exists
+        let nextY = 298;
         if (companyName) {
           doc.fontSize(13)
             .font(this.fonts.italic)
-            .fillColor('#4a5568')
-            .text(companyName, 0, 270, { align: 'center' });
+            .fillColor('#2d3748')
+            .text(companyName, 0, 295, { align: 'center' });
+          nextY = 318;
         }
 
-        // "has successfully completed" text - darker, adjusted position
-        const afterCompanyY = companyName ? 300 : 280;
-        doc.fontSize(12)
+        // "has successfully completed" text
+        doc.fontSize(11)
           .font(this.fonts.regular)
-          .fillColor('#4a5568')
-          .text('успешно го заврши курсот', 0, afterCompanyY, { align: 'center' });
+          .fillColor('#2d3748')
+          .text('успешно го заврши курсот', 0, nextY, { align: 'center' });
 
-        // Course name (highlighted) - darker blue
-        doc.fontSize(18)
+        // Course name - BOLD and dark blue
+        doc.fontSize(20)
           .font(this.fonts.bold)
-          .fillColor('#4c51bf')
-          .text(courseName, 0, afterCompanyY + 25, { align: 'center' });
+          .fillColor('#2563eb')
+          .text(courseName, 0, nextY + 22, { align: 'center' });
 
-        // Issue date and certificate ID - darker, more compact
+        // Issue date and certificate ID
         const formattedDate = new Date(issueDate).toLocaleDateString('mk-MK', {
           year: 'numeric',
           month: 'long',
@@ -107,21 +113,21 @@ class CertificateGenerator {
 
         doc.fontSize(10)
           .font(this.fonts.regular)
-          .fillColor('#4a5568')
-          .text(`Издадено на: ${formattedDate}`, 0, afterCompanyY + 75, { align: 'center' });
+          .fillColor('#1a202c')
+          .text(`Издадено на: ${formattedDate}`, 0, nextY + 70, { align: 'center' });
 
         doc.fontSize(9)
           .font(this.fonts.regular)
-          .fillColor('#718096')
-          .text(`Сертификат бр: ${certificateId}`, 0, afterCompanyY + 92, { align: 'center' });
+          .fillColor('#4a5568')
+          .text(`Сертификат бр: ${certificateId}`, 0, nextY + 87, { align: 'center' });
 
-        // Signature line
-        this.drawSignature(doc);
+        // Signature line - positioned to fit on page
+        this.drawSignature(doc, nextY + 115);
 
-        // Footer
+        // Footer - compact at bottom
         this.drawFooter(doc);
 
-        // Finalize PDF
+        // Finalize PDF - ensure single page
         doc.end();
       } catch (error) {
         reject(error);
@@ -160,55 +166,52 @@ class CertificateGenerator {
   }
 
   drawHeader(doc) {
-    // Nexa Terminal text logo - darker
-    doc.fontSize(22)
-      .font(this.fonts.bold)
-      .fillColor('#4c51bf')
-      .text('NEXA', 0, 55, { align: 'center' });
+    // Nexa logo image
+    if (fs.existsSync(this.logoPath)) {
+      const logoWidth = 80;
+      const logoX = (this.width - logoWidth) / 2;
+      doc.image(this.logoPath, logoX, 50, { width: logoWidth });
+    } else {
+      // Fallback to text if logo not found
+      doc.fontSize(24)
+        .font(this.fonts.bold)
+        .fillColor('#2563eb')
+        .text('NEXA', 0, 55, { align: 'center' });
+    }
 
-    doc.fontSize(11)
+    doc.fontSize(10)
       .font(this.fonts.regular)
-      .fillColor('#4a5568')
-      .text('T E R M I N A L', 0, 80, { align: 'center', characterSpacing: 3 });
+      .fillColor('#1a202c')
+      .text('T E R M I N A L', 0, 105, { align: 'center', characterSpacing: 4 });
   }
 
-  drawSignature(doc) {
-    const signatureY = 475;
+  drawSignature(doc, yPosition = 475) {
     const centerX = this.width / 2;
 
-    // Signature line
-    doc.moveTo(centerX - 100, signatureY)
-      .lineTo(centerX + 100, signatureY)
-      .strokeColor('#718096')
-      .lineWidth(1)
+    // Signature line - darker
+    doc.moveTo(centerX - 100, yPosition)
+      .lineTo(centerX + 100, yPosition)
+      .strokeColor('#4a5568')
+      .lineWidth(1.5)
       .stroke();
 
-    // Signature text
+    // Signature text - darker and bolder
     doc.fontSize(10)
       .font(this.fonts.italic)
-      .fillColor('#2d3748')
-      .text('Nexa Terminal', centerX - 100, signatureY + 10, {
+      .fillColor('#000000')
+      .text('Nexa Terminal', centerX - 100, yPosition + 10, {
         width: 200,
         align: 'center'
       });
   }
 
   drawFooter(doc) {
-    // Footer text - darker and more compact
+    // Footer text - single line, darker
     doc.fontSize(7)
       .font(this.fonts.regular)
-      .fillColor('#718096')
-      .text('Овој сертификат потврдува успешно завршување на курсот на платформата Nexa Terminal',
-        50, this.height - 30, {
-          align: 'center',
-          width: this.width - 100
-        });
-
-    doc.fontSize(7)
-      .font(this.fonts.regular)
-      .fillColor('#a0aec0')
-      .text('www.nexaterminal.com | terminalnexa@gmail.com',
-        50, this.height - 18, {
+      .fillColor('#4a5568')
+      .text('Овој сертификат потврдува успешно завршување на курсот на платформата Nexa Terminal  •  www.nexaterminal.com',
+        50, this.height - 25, {
           align: 'center',
           width: this.width - 100
         });

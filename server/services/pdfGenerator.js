@@ -53,58 +53,85 @@ class CertificateGenerator {
         // Logo/Header area with actual logo image
         this.drawHeader(doc);
 
-        // Certificate title - BLACK and bold
+        const centerX = 50; // Left margin
+        const textWidth = this.width - 100; // Full width minus margins
+
+        // Certificate title - PURE BLACK and bold
         doc.fontSize(34)
           .font(this.fonts.bold)
-          .fillColor('#000000')
-          .text('СЕРТИФИКАТ', 0, 125, { align: 'center' });
+          .fillColor('#000000', 1) // Opacity 1 = fully opaque
+          .text('СЕРТИФИКАТ', centerX, 125, {
+            width: textWidth,
+            align: 'center'
+          });
 
         doc.fontSize(15)
           .font(this.fonts.regular)
-          .fillColor('#000000')
-          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 165, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', centerX, 165, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // "This certifies that" text - BLACK
+        // "This certifies that" text - PURE BLACK
         doc.fontSize(11)
           .font(this.fonts.regular)
-          .fillColor('#000000')
-          .text('Се потврдува дека', 0, 198, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text('Се потврдува дека', centerX, 198, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // Recipient name - BOLD BLACK
+        // Recipient name - BOLD PURE BLACK
         doc.fontSize(26)
           .font(this.fonts.bold)
-          .fillColor('#000000')
-          .text(fullName, 0, 218, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text(fullName, centerX, 218, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // Job position - BLACK
+        // Job position - PURE BLACK
         doc.fontSize(12)
           .font(this.fonts.regular)
-          .fillColor('#000000')
-          .text(jobPosition, 0, 252, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text(jobPosition, centerX, 252, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // Company name if exists
+        // Company name if exists - PURE BLACK
         let nextY = 272;
         if (companyName) {
           doc.fontSize(12)
             .font(this.fonts.italic)
-            .fillColor('#000000')
-            .text(companyName, 0, 270, { align: 'center' });
+            .fillColor('#000000', 1)
+            .text(companyName, centerX, 270, {
+              width: textWidth,
+              align: 'center'
+            });
           nextY = 290;
         }
 
-        // "has successfully completed" text - BLACK
+        // "has successfully completed" text - PURE BLACK
         doc.fontSize(11)
           .font(this.fonts.regular)
-          .fillColor('#000000')
-          .text('успешно го заврши курсот', 0, nextY, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text('успешно го заврши курсот', centerX, nextY, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // Course name - BOLD BLUE (but darker)
+        // Course name - BOLD DARK BLUE
         doc.fontSize(18)
           .font(this.fonts.bold)
-          .fillColor('#1e40af')
-          .text(courseName, 0, nextY + 20, { align: 'center' });
+          .fillColor('#1e40af', 1)
+          .text(courseName, centerX, nextY + 20, {
+            width: textWidth,
+            align: 'center'
+          });
 
-        // Issue date and certificate ID - BLACK
+        // Issue date and certificate ID - PURE BLACK
         const formattedDate = new Date(issueDate).toLocaleDateString('mk-MK', {
           year: 'numeric',
           month: 'long',
@@ -113,13 +140,19 @@ class CertificateGenerator {
 
         doc.fontSize(10)
           .font(this.fonts.regular)
-          .fillColor('#000000')
-          .text(`Издадено на: ${formattedDate}`, 0, nextY + 62, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text(`Издадено на: ${formattedDate}`, centerX, nextY + 62, {
+            width: textWidth,
+            align: 'center'
+          });
 
         doc.fontSize(9)
           .font(this.fonts.regular)
-          .fillColor('#1a202c')
-          .text(`Сертификат бр: ${certificateId}`, 0, nextY + 78, { align: 'center' });
+          .fillColor('#000000', 1)
+          .text(`Сертификат бр: ${certificateId}`, centerX, nextY + 78, {
+            width: textWidth,
+            align: 'center'
+          });
 
         // Signature line - calculated to stay on page
         this.drawSignature(doc, nextY + 105);
@@ -166,40 +199,50 @@ class CertificateGenerator {
   }
 
   drawHeader(doc) {
+    const centerX = 50;
+    const textWidth = this.width - 100;
+
     // Nexa logo image with better positioning
     if (fs.existsSync(this.logoPath)) {
-      const logoWidth = 100; // Larger logo
+      const logoWidth = 100;
       const logoX = (this.width - logoWidth) / 2;
-      doc.image(this.logoPath, logoX, 40, { width: logoWidth });
+      doc.image(this.logoPath, logoX, 35, { width: logoWidth });
     } else {
-      // Fallback to text if logo not found - BOLD and BLUE
+      // Fallback to text if logo not found - BOLD and DARK BLUE
       doc.fontSize(28)
         .font(this.fonts.bold)
-        .fillColor('#1e40af')
-        .text('NEXA', 0, 45, { align: 'center' });
+        .fillColor('#1e40af', 1)
+        .text('NEXA', centerX, 40, {
+          width: textWidth,
+          align: 'center'
+        });
     }
 
-    // Terminal text - BLACK and bold
-    doc.fontSize(11)
+    // Terminal text - PURE BLACK, bold, with space after logo
+    doc.fontSize(10)
       .font(this.fonts.bold)
-      .fillColor('#000000')
-      .text('T E R M I N A L', 0, 95, { align: 'center', characterSpacing: 5 });
+      .fillColor('#000000', 1)
+      .text('T E R M I N A L', centerX, 100, {
+        width: textWidth,
+        align: 'center',
+        characterSpacing: 5
+      });
   }
 
   drawSignature(doc, yPosition = 475) {
     const centerX = this.width / 2;
 
-    // Signature line - darker
+    // Signature line - PURE BLACK
     doc.moveTo(centerX - 100, yPosition)
       .lineTo(centerX + 100, yPosition)
-      .strokeColor('#4a5568')
+      .strokeColor('#000000', 1)
       .lineWidth(1.5)
       .stroke();
 
-    // Signature text - darker and bolder
+    // Signature text - PURE BLACK italic
     doc.fontSize(10)
       .font(this.fonts.italic)
-      .fillColor('#000000')
+      .fillColor('#000000', 1)
       .text('Nexa Terminal', centerX - 100, yPosition + 10, {
         width: 200,
         align: 'center'
@@ -209,15 +252,17 @@ class CertificateGenerator {
   drawFooter(doc, yPosition = null) {
     // Use provided position or calculate from bottom
     const footerY = yPosition || (this.height - 25);
+    const centerX = 50;
+    const textWidth = this.width - 100;
 
-    // Footer text - single line, BLACK for readability
+    // Footer text - single line, PURE BLACK
     doc.fontSize(7)
       .font(this.fonts.regular)
-      .fillColor('#000000')
+      .fillColor('#000000', 1)
       .text('Овој сертификат потврдува успешно завршување на курсот на платформата Nexa Terminal  •  www.nexaterminal.com',
-        50, footerY, {
+        centerX, footerY, {
+          width: textWidth,
           align: 'center',
-          width: this.width - 100,
           lineBreak: false // Prevent line breaks
         });
   }

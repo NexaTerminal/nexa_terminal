@@ -424,6 +424,15 @@ Common issues and solutions:
 - **Quiz not working**: Check question IDs are unique, options array has 4 items
 - **Progress not saving**: Ensure lesson IDs match exactly
 - **Certificate not generating**: Verify user completed ALL lessons (100%)
+- **Lesson completion fails (403 error)**: Course routes must be in CSRF exemption list in `server/server.js`:
+  ```javascript
+  const csrfExemptRoutes = [
+    // ... other routes
+    /^\/courses\/.*$/,      // All course routes (JWT protected)
+    /^\/certificates\/.*$/, // All certificate routes (JWT protected)
+  ];
+  ```
+  Course and certificate routes are JWT-protected and don't need CSRF tokens.
 
 ## Best Practices
 

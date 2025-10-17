@@ -321,6 +321,8 @@ function registerRoutes() {
     '/verification/pending',               // Get pending verifications (JWT protected)
     '/marketplace',                        // Marketplace endpoints (JWT protected)
     /^\/marketplace\/.*$/,                 // All marketplace sub-routes (JWT protected)
+    /^\/courses\/.*$/,                     // All course routes (JWT protected)
+    /^\/certificates\/.*$/,                // All certificate routes (JWT protected)
   ];
   
   // Apply CSRF exemptions only if CSRF is enabled

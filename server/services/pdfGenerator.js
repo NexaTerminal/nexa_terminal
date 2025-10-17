@@ -7,6 +7,13 @@ class CertificateGenerator {
     // Certificate dimensions (A4 landscape)
     this.width = 842;
     this.height = 595;
+
+    // Register custom fonts that support Cyrillic
+    this.fonts = {
+      regular: path.join(__dirname, '../fonts/DejaVuSans.ttf'),
+      bold: path.join(__dirname, '../fonts/DejaVuSans-Bold.ttf'),
+      italic: path.join(__dirname, '../fonts/DejaVuSans-Oblique.ttf')
+    };
   }
 
   async generateCertificate(certificateData) {
@@ -44,49 +51,49 @@ class CertificateGenerator {
 
         // Certificate title
         doc.fontSize(36)
-          .font('Helvetica-Bold')
+          .font(this.fonts.bold)
           .fillColor('#2d3748')
           .text('СЕРТИФИКАТ', 0, 120, { align: 'center' });
 
         doc.fontSize(18)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#4a5568')
           .text('ЗА УСПЕШНО ЗАВРШУВАЊЕ', 0, 165, { align: 'center' });
 
         // "This certifies that" text
         doc.fontSize(14)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#718096')
           .text('Се потврдува дека', 0, 220, { align: 'center' });
 
         // Recipient name (bold and large)
         doc.fontSize(28)
-          .font('Helvetica-Bold')
+          .font(this.fonts.bold)
           .fillColor('#2d3748')
           .text(fullName, 0, 250, { align: 'center' });
 
         // Job position and company
         doc.fontSize(14)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#4a5568')
           .text(jobPosition, 0, 290, { align: 'center' });
 
         if (companyName) {
           doc.fontSize(14)
-            .font('Helvetica-Oblique')
+            .font(this.fonts.italic)
             .fillColor('#718096')
             .text(companyName, 0, 315, { align: 'center' });
         }
 
         // "has successfully completed" text
         doc.fontSize(14)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#718096')
           .text('успешно го заврши курсот', 0, 350, { align: 'center' });
 
         // Course name (highlighted)
         doc.fontSize(20)
-          .font('Helvetica-Bold')
+          .font(this.fonts.bold)
           .fillColor('#667eea')
           .text(courseName, 0, 380, { align: 'center' });
 
@@ -98,12 +105,12 @@ class CertificateGenerator {
         });
 
         doc.fontSize(11)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#718096')
           .text(`Издадено на: ${formattedDate}`, 0, 450, { align: 'center' });
 
         doc.fontSize(10)
-          .font('Helvetica')
+          .font(this.fonts.regular)
           .fillColor('#a0aec0')
           .text(`Сертификат бр: ${certificateId}`, 0, 470, { align: 'center' });
 
@@ -154,12 +161,12 @@ class CertificateGenerator {
   drawHeader(doc) {
     // Nexa Terminal text logo
     doc.fontSize(24)
-      .font('Helvetica-Bold')
+      .font(this.fonts.bold)
       .fillColor('#667eea')
       .text('NEXA', 0, 60, { align: 'center' });
 
     doc.fontSize(12)
-      .font('Helvetica')
+      .font(this.fonts.regular)
       .fillColor('#718096')
       .text('T E R M I N A L', 0, 88, { align: 'center', characterSpacing: 3 });
   }
@@ -177,7 +184,7 @@ class CertificateGenerator {
 
     // Signature text
     doc.fontSize(11)
-      .font('Helvetica-Oblique')
+      .font(this.fonts.italic)
       .fillColor('#4a5568')
       .text('Nexa Terminal', centerX - 100, signatureY + 10, {
         width: 200,
@@ -188,7 +195,7 @@ class CertificateGenerator {
   drawFooter(doc) {
     // Footer text
     doc.fontSize(8)
-      .font('Helvetica')
+      .font(this.fonts.regular)
       .fillColor('#a0aec0')
       .text('Овој сертификат потврдува успешно завршување на курсот на платформата Nexa Terminal',
         50, this.height - 35, {
@@ -197,7 +204,7 @@ class CertificateGenerator {
         });
 
     doc.fontSize(8)
-      .font('Helvetica')
+      .font(this.fonts.regular)
       .fillColor('#cbd5e0')
       .text('www.nexaterminal.com | terminalnexa@gmail.com',
         50, this.height - 20, {

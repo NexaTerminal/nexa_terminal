@@ -430,6 +430,17 @@ function registerRoutes() {
     console.error('Courses routes error:', error.message);
   }
 
+  // Certificate routes (education feature)
+  try {
+    const { router: certificateRouter, initializeController: initCertificateController } = require('./routes/certificates');
+    initCertificateController(db);
+    app.use('/api/certificates', certificateRouter);
+    console.log('✅ Certificate routes loaded successfully');
+  } catch (error) {
+    console.log('⚠️  Certificate routes not found - certificate feature not available');
+    console.error('Certificate routes error:', error.message);
+  }
+
   // Admin routes
   if (settings.isRouteEnabled('admin')) {
     try {

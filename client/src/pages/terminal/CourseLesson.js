@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import courseStyles from '../../styles/terminal/CourseDetail.module.css';
+import certificateStyles from '../../styles/education/Certificate.module.css';
 import api from '../../services/api';
 import { courseData, readingContent, quizData } from '../../data/courseData';
+import CertificateModal from '../../components/education/CertificateModal';
 
 const CourseLesson = () => {
   const { courseId, lessonId } = useParams();
@@ -19,6 +21,10 @@ const CourseLesson = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [certificateStatus, setCertificateStatus] = useState({ issued: false });
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   // Find current lesson and navigation info
   const allLessons = course?.modules.flatMap(m => m.lessons) || [];
@@ -41,6 +47,8 @@ const CourseLesson = () => {
 
     setCurrentLesson(lesson);
     loadProgress();
+    loadUserData();
+    checkCertificateStatus();
 
     // Reset quiz state when lesson changes
     setQuizAnswers({});
@@ -57,6 +65,94 @@ const CourseLesson = () => {
       }
     } catch (error) {
       console.log('No previous progress found:', error.message);
+    }
+  };
+
+  const loadUserData = async () => {
+    try {
+      const response = await api.get('/users/profile');
+      setUserData(response);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const checkCertificateStatus = async () => {
+    try {
+      const response = await api.get(`/certificates/${courseId}/status`);
+      setCertificateStatus(response);
+    } catch (error) {
+      console.log('No certificate status found:', error);
+    }
+  };
+
+  const handleGenerateCertificate = async (formData) => {
+    setIsGeneratingCertificate(true);
+    try {
+      const response = await fetch(`${api.defaults?.baseURL || ''}/api/certificates/${courseId}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate certificate');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Nexa-Certificate-${courseId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Update certificate status
+      setShowCertificateModal(false);
+      await checkCertificateStatus();
+
+      alert('✅ Сертификатот е успешно генериран и преземен!');
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      alert('❌ Грешка при генерирање на сертификатот. Обидете се повторно.');
+    } finally {
+      setIsGeneratingCertificate(false);
+    }
+  };
+
+  const handleDownloadCertificate = async () => {
+    try {
+      const response = await fetch(`${api.defaults?.baseURL || ''}/api/certificates/${courseId}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download certificate');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Nexa-Certificate-${courseId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      alert('❌ Грешка при преземање на сертификатот. Обидете се повторно.');
     }
   };
 
@@ -115,7 +211,7 @@ const CourseLesson = () => {
     });
   };
 
-  const handleQuizSubmit = () => {
+  const handleQuizSubmit = async () => {
     const quiz = quizData[currentLesson.id];
     let correct = 0;
 
@@ -132,7 +228,17 @@ const CourseLesson = () => {
     // Use passingScore from lesson data, default to 70 if not specified
     const passingScore = currentLesson.passingScore || 70;
     if (score >= passingScore) {
-      markLessonComplete(currentLesson.id);
+      await markLessonComplete(currentLesson.id);
+
+      // Check if this is the final quiz (quiz-final)
+      if (currentLesson.id === 'quiz-final') {
+        // Check certificate status
+        const status = await api.get(`/certificates/${courseId}/status`);
+        if (!status.issued) {
+          // Show certificate modal
+          setTimeout(() => setShowCertificateModal(true), 1500);
+        }
+      }
     }
   };
 
@@ -326,6 +432,19 @@ const CourseLesson = () => {
               ></div>
               <span className={courseStyles.progressText}>{calculateProgress()}% завршено</span>
             </div>
+
+            {/* Certificate Section */}
+            {calculateProgress() === 100 && certificateStatus.issued && (
+              <div className={certificateStyles.certificateSection}>
+                <p>🎉 Честитки! Успешно го завршивте курсот!</p>
+                <button
+                  className={certificateStyles.downloadCertificateButton}
+                  onClick={handleDownloadCertificate}
+                >
+                  📄 Преземи сертификат
+                </button>
+              </div>
+            )}
           </div>
 
           <div className={courseStyles.courseContent}>
@@ -385,6 +504,16 @@ const CourseLesson = () => {
           </div>
         </main>
       </div>
+
+      {/* Certificate Modal */}
+      <CertificateModal
+        isOpen={showCertificateModal}
+        onClose={() => setShowCertificateModal(false)}
+        onGenerate={handleGenerateCertificate}
+        userData={userData}
+        courseName={course.title}
+        isGenerating={isGeneratingCertificate}
+      />
     </div>
   );
 };

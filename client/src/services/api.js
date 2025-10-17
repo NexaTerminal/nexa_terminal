@@ -33,8 +33,11 @@ class ApiService {
       console.log('🌐 CSRF token endpoint response:', response.status);
       if (response.ok) {
         const data = await response.json();
+        // The server sets the token in a cookie AND returns it in JSON
+        // We'll use the JSON value (which matches the cookie value)
         this.csrfToken = data.csrfToken;
-        console.log('✅ CSRF token fetched successfully:', data.csrfToken ? data.csrfToken.substring(0, 10) + '...' : 'null');
+        console.log('✅ CSRF token fetched from server:', data.csrfToken ? data.csrfToken.substring(0, 10) + '...' : 'null');
+        console.log('🍪 Cookies after fetch:', document.cookie);
         return data.csrfToken;
       } else {
         console.error('❌ Failed to fetch CSRF token, status:', response.status);
@@ -50,12 +53,26 @@ class ApiService {
    */
   static async getCSRFToken() {
     console.log('🛡️ getCSRFToken called');
+
+    // First, try to get token from cookie
     let token = this.getCSRFTokenFromCookie();
-    if (!token) {
-      console.log('⚠️ No token in cookie, fetching from server...');
-      token = await this.fetchCSRFToken();
+
+    if (token) {
+      console.log('✅ Using existing CSRF token from cookie');
+      return token;
     }
-    console.log('🛡️ Final CSRF token:', token ? token.substring(0, 10) + '...' : 'null');
+
+    // No cookie found, fetch new token from server
+    console.log('⚠️ No token in cookie, fetching from server...');
+    token = await this.fetchCSRFToken();
+
+    if (!token) {
+      console.error('❌ Failed to obtain CSRF token from server!');
+      // Last resort: try reading cookie again in case it was set
+      token = this.getCSRFTokenFromCookie();
+    }
+
+    console.log('🛡️ Final CSRF token:', token ? `${token.substring(0, 10)}... (length: ${token.length})` : 'null');
     return token;
   }
 

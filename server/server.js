@@ -51,15 +51,17 @@ app.use(securityLogger); // Log suspicious activities
 app.use(requestSizeLimiter('10mb')); // Limit request size
 
 // CORS Configuration
-const corsOrigins = process.env.CORS_ORIGINS 
-  ? process.env.CORS_ORIGINS.split(',') 
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
   : [
-      'http://localhost:3000', 
-      'http://localhost:3003', 
+      'http://localhost:3000',
+      'http://localhost:3003',
       'http://localhost:3004',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
       'http://127.0.0.1:3004',
+      'https://www.nexa.mk',
+      'https://nexa.mk',
       'https://nexa-v1.vercel.app',
       'https://nexa-v1-git-main-martinboshkoskis-projects.vercel.app'
     ];

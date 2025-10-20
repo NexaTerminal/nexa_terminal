@@ -124,11 +124,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Simple health check endpoint (no DB required)
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Debug endpoint to check CORS configuration
+app.get('/api/debug/cors', (req, res) => {
+  res.status(200).json({
+    corsOrigins: corsOrigins,
+    envCorsOrigins: process.env.CORS_ORIGINS || 'NOT SET',
+    origin: req.headers.origin || 'NO ORIGIN HEADER'
   });
 });
 

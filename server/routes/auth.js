@@ -51,4 +51,29 @@ router.post('/change-password', authenticateJWT, RateLimitingService.createPassw
 // Logout endpoint
 router.post('/logout', authenticateJWT, authController.logout);
 
+// Google OAuth Routes
+// Initiate Google OAuth flow
+router.get('/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  session: false
+}));
+
+// Google OAuth callback
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    try {
+      // Generate JWT token
+      const token = authController.generateToken(req.user);
+
+      // Redirect to client with token
+      const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${clientURL}/auth/callback?token=${token}`);
+    } catch (error) {
+      console.error('Google OAuth callback error:', error);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_failed`);
+    }
+  }
+);
+
 module.exports = router;

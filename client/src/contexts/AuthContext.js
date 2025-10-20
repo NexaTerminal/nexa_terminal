@@ -5,7 +5,7 @@ import ApiService from '../services/api';
 import { clearCSRFTokenCache } from '../services/csrfService';
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
 
 // Create auth context
 const AuthContext = createContext();
@@ -373,6 +373,7 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     loginWithUsername,
+    loginWithToken,
     register,
     registerSimple,
     updateProfile,

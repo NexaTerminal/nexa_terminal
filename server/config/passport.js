@@ -91,6 +91,7 @@ module.exports = (db) => {
 
   // Google OAuth Strategy (only if credentials are provided)
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log('✅ Google OAuth enabled');
     passport.use(
       new GoogleStrategy(
         {
@@ -115,13 +116,42 @@ module.exports = (db) => {
             return done(null, user);
           }
 
-          // Create new user
+          // Create new user from Google profile
+          // Generate username from email (before @)
+          const emailUsername = profile.emails[0].value.split('@')[0];
+          let username = emailUsername.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+
+          // Ensure username is unique by checking and appending number if needed
+          let usernameExists = await userService.findByUsername(username);
+          let counter = 1;
+          while (usernameExists) {
+            username = `${emailUsername.toLowerCase().replace(/[^a-z0-9_]/g, '_')}_${counter}`;
+            usernameExists = await userService.findByUsername(username);
+            counter++;
+          }
+
           const userData = {
             googleId: profile.id,
+            username: username,
             email: profile.emails[0].value,
             profileComplete: false,
-            isVerified: false,
-            canPost: false
+            isVerified: true, // Google verified their email
+            role: 'user',
+            companyInfo: {
+              companyName: '',
+              mission: '',
+              website: '',
+              industry: '',
+              companySize: '',
+              role: '',
+              description: '',
+              crnNumber: '',
+              address: '',
+              phone: '',
+              companyPIN: '',
+              taxNumber: '',
+              contactEmail: ''
+            }
           };
 
           const newUser = await userService.createUser(userData);

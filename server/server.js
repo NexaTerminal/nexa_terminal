@@ -1,6 +1,7 @@
 // Load environment variables based on NODE_ENV
 const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
 require('dotenv').config({ path: envFile });
+
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
@@ -95,13 +96,8 @@ if (settings.isMiddlewareEnabled('csrf') && setCSRFToken) {
 
 app.use(passport.initialize());
 
-// API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/documents', require('./routes/documents'));
-
-const marketingRoutes = require('./routes/marketing');
-app.use('/api/marketing', marketingRoutes);
+// API Routes will be registered after passport strategies are configured
+// See registerRoutes() function below
 
 // Create uploads directories if they don't exist
 async function createUploadDirs() {

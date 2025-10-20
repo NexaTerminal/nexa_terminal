@@ -6,9 +6,10 @@
 stop_servers() {
     echo "🛑 Stopping all development servers..."
 
-    # Kill processes on ports 3000 and 5001
+    # Kill processes on ports 3000, 5001, and 5002
     lsof -ti:3000 | xargs kill -9 2>/dev/null
     lsof -ti:5001 | xargs kill -9 2>/dev/null
+    lsof -ti:5002 | xargs kill -9 2>/dev/null
 
     # Kill any node processes that might be running the app
     pkill -f "react-scripts start" 2>/dev/null
@@ -41,7 +42,7 @@ start_servers() {
     trap cleanup INT TERM
 
     # Start server in background
-    echo "📡 Starting server on http://localhost:5001..."
+    echo "📡 Starting server on http://localhost:5002..."
     cd server
     npm run dev > ../server.log 2>&1 &
     SERVER_PID=$!
@@ -51,8 +52,8 @@ start_servers() {
     sleep 15
 
     # Check if server started successfully
-    if curl -s http://localhost:5001/health > /dev/null; then
-        echo "✅ Server running on http://localhost:5001"
+    if curl -s http://localhost:5002/health > /dev/null; then
+        echo "✅ Server running on http://localhost:5002"
     else
         echo "❌ Server failed to start. Check server.log for details."
         kill $SERVER_PID 2>/dev/null
@@ -74,11 +75,11 @@ start_servers() {
     echo "🎉 Development environment ready!"
     echo ""
     echo "📱 Frontend: http://localhost:3000"
-    echo "🔌 Backend:  http://localhost:5001"
+    echo "🔌 Backend:  http://localhost:5002"
     echo "💾 Database: MongoDB Atlas (production DB)"
     echo ""
     echo "📋 Available endpoints:"
-    echo "   • Health check: http://localhost:5001/health"
+    echo "   • Health check: http://localhost:5002/health"
     echo "   • Employment Agreement: http://localhost:3000/terminal/documents/employment/employment-agreement"
     echo "   • All Documents: http://localhost:3000/terminal/documents"
     echo ""

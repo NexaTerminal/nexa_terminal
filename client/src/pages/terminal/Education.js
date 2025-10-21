@@ -25,7 +25,7 @@ const courses = [
     id: 'rabotni-odnosi',
     title: 'Работни односи',
     description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',
-    image: 'https://images.unsplash.com/photo-1515168833906-d2a3b82b3029?auto=format&fit=crop&w=400&q=80',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
     available: true
   },
   {
@@ -60,15 +60,21 @@ const Education = () => {
     }
   };
 
+  // Sort courses: available first, then coming soon
+  const sortedCourses = [...courses].sort((a, b) => {
+    if (a.available && !b.available) return -1;
+    if (!a.available && b.available) return 1;
+    return 0;
+  });
+
   return (
     <div>
       <Header isTerminal={true} />
       <div className={styles['dashboard-layout']}>
         <Sidebar />
         <main className={styles['dashboard-main']}>
-          <h1 style={{ marginTop: 0, marginBottom: 24 }}>Обуки</h1>
           <div className={educationStyles.grid}>
-            {courses.map((course, idx) => (
+            {sortedCourses.map((course, idx) => (
               <div
                 key={idx}
                 className={`${educationStyles.card} ${course.available ? educationStyles.available : educationStyles.unavailable}`}

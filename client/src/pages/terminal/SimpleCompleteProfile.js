@@ -14,6 +14,7 @@ const SimpleCompleteProfile = () => {
     companyName: '',
     companyAddress: '',
     taxNumber: '',
+    companyManager: '',
     email: currentUser?.email || '',
     website: '',
     mission: '',
@@ -42,47 +43,37 @@ const SimpleCompleteProfile = () => {
     setLoading(true);
 
     try {
-      // Update company profile
+      // Update profile with company information
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
-      
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/users/company`, {
-        method: 'POST',
-        body: JSON.stringify({
-          companyName: formData.companyName,
-          companyAddress: formData.companyAddress,
-          taxNumber: formData.taxNumber,
-          email: formData.email,
-          website: formData.website,
-          mission: formData.mission,
-          logoUrl: formData.logoUrl,
-          businessActivity: 'Правни услуги' // Default value
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('❌ Company update failed:', errorData);
-        throw new Error(`Неуспешно ажурирање на профилот: ${response.status} - ${errorData.message || 'Unknown error'}`);
-      }
 
-      const companyResult = await response.json();
-
-      // The company endpoint now also updates the user's profileComplete status
-      // But let's still make the profile update call for backwards compatibility
-      const updateResponse = await makeAuthenticatedRequest(`${API_BASE_URL}/users/profile`, {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/auth/update-profile`, {
         method: 'PUT',
         body: JSON.stringify({
+          companyInfo: {
+            companyName: formData.companyName,
+            companyAddress: formData.companyAddress,
+            companyTaxNumber: formData.taxNumber,
+            companyManager: formData.companyManager || '',
+            businessActivity: 'Правни услуги', // Default value
+            website: formData.website,
+            missionStatement: formData.mission,
+            companyLogo: formData.logoUrl
+          },
+          email: formData.email,
           profileComplete: true
         })
       });
 
-      let profileResult = { profileComplete: true };
-      if (updateResponse.ok) {
-        profileResult = await updateResponse.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('❌ Profile update failed:', errorData);
+        throw new Error(`Неуспешно ажурирање на профилот: ${response.status} - ${errorData.message || 'Unknown error'}`);
       }
 
+      const result = await response.json();
+
       setSuccess('Профилот е успешно пополнет!');
-      
+
       // Show success message for 2 seconds then redirect
       setTimeout(() => {
         navigate('/terminal');
@@ -160,6 +151,22 @@ const SimpleCompleteProfile = () => {
                   value={formData.taxNumber}
                   onChange={handleInputChange}
                   placeholder="Внеси го даночниот број"
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="companyManager" className={styles.label}>
+                  Управител/Менаџер *
+                </label>
+                <input
+                  type="text"
+                  id="companyManager"
+                  name="companyManager"
+                  className={styles.input}
+                  value={formData.companyManager}
+                  onChange={handleInputChange}
+                  placeholder="Внеси го името на управителот"
                   required
                 />
               </div>

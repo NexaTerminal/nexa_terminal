@@ -256,11 +256,24 @@
   transition: background-color 0.2s ease, color 0.2s ease; /* Smoother transition */
   position: relative;
   min-height: 44px; /* Touch-friendly minimum height */
+  outline: none; /* Remove browser default outline */
 }
 
 .profile-button:hover {
-  background: rgba(0, 0, 0, 0.05); /* Subtle hover effect like sidebar */
+  background: rgba(114, 158, 228, 0.1) !important; /* Light blue tint */
   color: var(--color-accent); /* Accent color on hover for text */
+}
+
+.profile-button:focus {
+  background: rgba(114, 158, 228, 0.1) !important; /* Light blue tint on focus */
+  color: var(--color-accent);
+  outline: 2px solid rgba(114, 158, 228, 0.3);
+  outline-offset: 2px;
+}
+
+.profile-button:active {
+  background: rgba(114, 158, 228, 0.15) !important; /* Slightly darker on click */
+  color: var(--color-accent);
 }
 
 .profile-icon {
@@ -336,7 +349,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: rgba(0, 0, 0, 0.05); /* Subtle hover effect like sidebar */
+  background-color: rgba(114, 158, 228, 0.08); /* Light blue tint */
   color: var(--color-accent);
 }
 

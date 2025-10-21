@@ -135,7 +135,8 @@ module.exports = (db) => {
             username: username,
             email: profile.emails[0].value,
             profileComplete: false,
-            isVerified: true, // Google verified their email
+            isVerified: false, // Company verification requires business info
+            emailVerified: true, // Google verified their email
             role: 'user',
             companyInfo: {
               companyName: '',

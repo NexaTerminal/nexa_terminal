@@ -65,12 +65,12 @@ class VerificationController {
 
       // Validation
       if (!companyName || !companyAddress || !taxNumber || !businessActivity) {
-        return res.status(400).json({ 
-          message: 'Company name, address, tax number, and business activity are required' 
+        return res.status(400).json({
+          message: 'Company name, address, tax number, and business activity are required'
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
@@ -124,7 +124,7 @@ class VerificationController {
   // Get verification status for current user
   async getVerificationStatus(req, res) {
     try {
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const verificationsCollection = db.collection('company_verifications');
 
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
@@ -157,7 +157,7 @@ class VerificationController {
   // Get all pending verifications (admin only)
   async getPendingVerifications(req, res) {
     try {
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const verificationsCollection = db.collection('company_verifications');
 
       const pendingVerifications = await verificationsCollection.aggregate([
@@ -199,13 +199,13 @@ class VerificationController {
         return res.status(400).json({ message: 'Invalid verification ID' });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
       // Find verification
-      const verification = await verificationsCollection.findOne({ 
-        _id: new ObjectId(id) 
+      const verification = await verificationsCollection.findOne({
+        _id: new ObjectId(id)
       });
 
       if (!verification) {
@@ -218,14 +218,14 @@ class VerificationController {
       // Update verification status
       await verificationsCollection.updateOne(
         { _id: new ObjectId(id) },
-        { 
-          $set: { 
+        {
+          $set: {
             status: 'approved',
             reviewComments: reviewComments || '',
             reviewedAt: new Date(),
             reviewedBy: new ObjectId(userId),
             updatedAt: new Date()
-          } 
+          }
         }
       );
 
@@ -239,7 +239,7 @@ class VerificationController {
       let serviceProviderCreated = false;
       if (settingsManager.isFeatureEnabled('marketplace')) {
         try {
-          const marketplaceService = new MarketplaceService(req.app.locals.database);
+          const marketplaceService = new MarketplaceService(db);
 
           // Get the updated user to check for marketplace info
           const updatedUser = await userService.findById(verification.userId.toString());
@@ -291,20 +291,20 @@ class VerificationController {
         return res.status(400).json({ message: 'Invalid verification ID' });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const verificationsCollection = db.collection('company_verifications');
 
       // Find verification
-      const verification = await verificationsCollection.findOne({ 
-        _id: new ObjectId(id) 
+      const verification = await verificationsCollection.findOne({
+        _id: new ObjectId(id)
       });
 
       if (!verification) {
         return res.status(404).json({ message: 'Verification request not found' });
       }
 
-      // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)  
+      // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
 
       // Update verification status
@@ -362,14 +362,55 @@ class VerificationController {
       const { officialEmail, companyName, companyManager } = req.body;
 
       if (!officialEmail || !companyName || !companyManager) {
-        return res.status(400).json({ 
-          message: 'Official email, company name, and company manager are required' 
+        return res.status(400).json({
+          message: 'Official email, company name, and company manager are required'
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const userId = req.user.id || req.user._id;
+
+      // Get current user to validate
+      const currentUser = await userService.findById(userId.toString());
+
+      if (!currentUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Check if user is already verified
+      if (currentUser.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Your company is already verified'
+        });
+      }
+
+      // Validate required company information is complete
+      const requiredFields = ['companyName', 'companyAddress', 'companyTaxNumber', 'companyManager'];
+      const missingFields = requiredFields.filter(field => !currentUser.companyInfo[field]?.trim());
+
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ве молиме пополнете ги сите задолжителни полиња (име на компанија, адреса, даночен број, менаџер) пред да побарате верификација.'
+        });
+      }
+
+      // Email spam prevention - check last email sent time
+      const lastEmailSent = currentUser.lastVerificationEmailSent;
+      const ONE_HOUR = 60 * 60 * 1000; // 1 hour in milliseconds
+
+      if (lastEmailSent && (Date.now() - new Date(lastEmailSent).getTime() < ONE_HOUR)) {
+        const minutesRemaining = Math.ceil((ONE_HOUR - (Date.now() - new Date(lastEmailSent).getTime())) / 60000);
+        return res.status(429).json({
+          success: false,
+          message: `Веќе испративте верификационен email. Ве молиме почекајте ${minutesRemaining} минути пред да побарате повторно.`
+        });
+      }
 
       // Generate verification token
       const verificationToken = emailService.generateVerificationToken();
@@ -381,7 +422,8 @@ class VerificationController {
         companyManager: companyManager.trim(),
         verificationToken,
         verificationTokenExpiry: tokenExpiry,
-        verificationStatus: 'email_sent',
+        emailVerificationSent: true,
+        lastVerificationEmailSent: new Date(),
         updatedAt: new Date()
       });
 
@@ -414,13 +456,13 @@ class VerificationController {
       const { token } = req.query;
 
       if (!token) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Verification token is required' 
+          message: 'Verification token is required'
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const usersCollection = db.collection('users');
 
@@ -436,9 +478,28 @@ class VerificationController {
         return res.redirect(`${clientUrl}/verification-result?success=false&error=invalid_token`);
       }
 
+      // Validate that all required company information is present
+      const requiredFields = {
+        companyName: user.companyInfo?.companyName,
+        companyAddress: user.companyInfo?.companyAddress || user.companyInfo?.address,
+        companyTaxNumber: user.companyInfo?.companyTaxNumber || user.companyInfo?.taxNumber,
+        companyManager: user.companyManager
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([key, value]) => !value || !value.trim())
+        .map(([key]) => key);
+
+      if (missingFields.length > 0) {
+        // Redirect to frontend with error - company info incomplete
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        return res.redirect(`${clientUrl}/verification-result?success=false&error=incomplete_profile&missing=${missingFields.join(',')}`);
+      }
+
       // Update user verification status
       await userService.updateUser(user._id.toString(), {
         isVerified: true,
+        emailVerified: true,
         verificationStatus: 'approved',
         verificationToken: null,
         verificationTokenExpiry: null,
@@ -470,7 +531,7 @@ class VerificationController {
   async resendVerificationEmail(req, res) {
     try {
       const userId = req.user.id || req.user._id;
-      const db = req.app.locals.database;
+      const db = req.app.locals.db;
       const userService = new UserService(db);
       const usersCollection = db.collection('users');
 
@@ -505,7 +566,8 @@ class VerificationController {
       await userService.updateUser(userId.toString(), {
         verificationToken,
         verificationTokenExpiry: tokenExpiry,
-        verificationStatus: 'email_sent',
+        emailVerificationSent: true,
+        lastVerificationEmailSent: new Date(),
         updatedAt: new Date()
       });
 

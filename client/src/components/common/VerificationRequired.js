@@ -6,8 +6,21 @@ import styles from '../../styles/VerificationRequired.module.css';
 const VerificationRequired = ({ children, feature = "оваа функција" }) => {
   const { currentUser } = useAuth();
 
-  // Check if user is verified
-  if (!currentUser?.isVerified) {
+  // Validate that all required company information is present
+  const isCompanyInfoComplete = () => {
+    if (!currentUser) return false;
+    const requiredFields = [
+      currentUser.companyInfo?.companyName,
+      currentUser.companyInfo?.companyAddress || currentUser.companyInfo?.address,
+      currentUser.companyInfo?.companyTaxNumber || currentUser.companyInfo?.taxNumber,
+      currentUser.companyInfo?.companyManager || currentUser.companyManager,
+      currentUser.officialEmail
+    ];
+    return requiredFields.every(field => field && field.trim());
+  };
+
+  // Check if user is verified AND has complete company info
+  if (!currentUser?.isVerified || !isCompanyInfoComplete()) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>

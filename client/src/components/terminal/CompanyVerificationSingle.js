@@ -32,17 +32,6 @@ const CompanyVerificationSingle = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Credentials update state
-  const [credentialsData, setCredentialsData] = useState({
-    currentPassword: '',
-    newUsername: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [updatingCredentials, setUpdatingCredentials] = useState(false);
-  const [credentialsError, setCredentialsError] = useState('');
-  const [credentialsSuccess, setCredentialsSuccess] = useState('');
-
   // Form data for all required fields
   const [formData, setFormData] = useState({
     // Required fields
@@ -71,6 +60,19 @@ const CompanyVerificationSingle = () => {
     companyLogo: ''
   });
 
+  // Check if company info is complete
+  const isCompanyInfoComplete = () => {
+    if (!user) return false;
+    const requiredFields = [
+      user.companyInfo?.companyName,
+      user.companyInfo?.companyAddress || user.companyInfo?.address,
+      user.companyInfo?.companyTaxNumber || user.companyInfo?.taxNumber,
+      user.companyInfo?.companyManager || user.companyManager,
+      user.officialEmail
+    ];
+    return requiredFields.every(field => field && field.trim());
+  };
+
   // Pre-fill form with existing user data and refresh user context
   useEffect(() => {
     // Refresh user data to get latest verification status
@@ -81,7 +83,7 @@ const CompanyVerificationSingle = () => {
         console.error('Failed to refresh user data:', error);
       }
     };
-    
+
     refreshUserData();
   }, []);
 
@@ -122,13 +124,6 @@ const CompanyVerificationSingle = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
     setError('');
     setSuccess('');
-  };
-
-  const handleCredentialsChange = (e) => {
-    const { name, value } = e.target;
-    setCredentialsData(prev => ({ ...prev, [name]: value }));
-    setCredentialsError('');
-    setCredentialsSuccess('');
   };
 
   const validateForm = () => {
@@ -192,11 +187,9 @@ const CompanyVerificationSingle = () => {
 
       await refreshUser(); // Refresh user data
       setSuccess(user?.isVerified ? 'Профилот на компанијата е успешно ажуриран!' : 'Профилот е успешно ажуриран!');
-      
-      // Only send verification email for unverified users
-      if (!user?.isVerified && formData.officialEmail?.trim()) {
-        await sendVerificationEmailAutomatically();
-      }
+
+      // Only send verification email for unverified users if they explicitly click the button
+      // We DON'T auto-send anymore to prevent spam
     } catch (error) {
       console.error('Profile update error:', error);
       setError(error.message || 'Грешка при ажурирање на профилот.');
@@ -205,31 +198,6 @@ const CompanyVerificationSingle = () => {
     }
   };
 
-  const sendVerificationEmailAutomatically = async () => {
-    try {
-      const response = await ApiService.request('/verification/send-verification-email', {
-        method: 'POST',
-        body: JSON.stringify({
-          officialEmail: formData.officialEmail,
-          companyName: formData.companyName,
-          companyManager: formData.companyManager
-        })
-      });
-
-      if (response.success) {
-        setEmailSent(true);
-        setSuccess(`Профилот е ажуриран! Верификационен email е пратен на ${formData.officialEmail}. Проверете го вашиот inbox и кликнете на линкот за да ја завршите верификацијата.`);
-        
-        // Show success for 3 seconds, then show options
-        setTimeout(() => {
-          setShowSuccessOptions(true);
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Auto email verification error:', error);
-      // Don't show error for automatic email - just log it
-    }
-  };
 
   const handleSendVerificationEmail = async () => {
     if (!formData.officialEmail?.trim()) {
@@ -237,10 +205,16 @@ const CompanyVerificationSingle = () => {
       return;
     }
 
-    // Save profile first if needed
-    if (!success) {
+    if (!formData.companyName?.trim() || !formData.address?.trim() || !formData.taxNumber?.trim() || !formData.companyManager?.trim()) {
+      setError('Ве молиме пополнете ги сите задолжителни полиња (име на компанија, адреса, даночен број, менаџер) пред да побарате верификација.');
+      return;
+    }
+
+    // Save profile first before sending email
+    if (!user?.profileComplete) {
       await handleSaveProfile();
-      if (error) return; // Don't send email if profile save failed
+      // Wait a moment for the state to update
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     setSendingEmail(true);
@@ -259,6 +233,7 @@ const CompanyVerificationSingle = () => {
       if (response.success) {
         setEmailSent(true);
         setSuccess(`Верификационен email е пратен на ${formData.officialEmail}. Проверете го вашиот inbox и кликнете на линкот за верификација.`);
+        setShowSuccessOptions(true);
       }
     } catch (error) {
       console.error('Email verification error:', error);
@@ -271,70 +246,6 @@ const CompanyVerificationSingle = () => {
   const handleResendEmail = async () => {
     setEmailSent(false);
     await handleSendVerificationEmail();
-  };
-
-  const handleCredentialsSubmit = async (e) => {
-    e.preventDefault();
-    setCredentialsError('');
-    setCredentialsSuccess('');
-    
-    // Validation
-    if (!credentialsData.currentPassword) {
-      setCredentialsError('Тековната лозинка е задолжителна.');
-      return;
-    }
-    
-    if (!credentialsData.newUsername && !credentialsData.newPassword) {
-      setCredentialsError('Внесете ново корисничко име или нова лозинка.');
-      return;
-    }
-    
-    if (credentialsData.newPassword !== credentialsData.confirmPassword) {
-      setCredentialsError('Новата лозинка и потврдата не се совпаѓаат.');
-      return;
-    }
-    
-    if (credentialsData.newPassword && credentialsData.newPassword.length < 6) {
-      setCredentialsError('Лозинката мора да има најмалку 6 карактери.');
-      return;
-    }
-    
-    setUpdatingCredentials(true);
-    try {
-      const updateData = {
-        currentPassword: credentialsData.currentPassword
-      };
-      
-      if (credentialsData.newUsername?.trim()) {
-        updateData.username = credentialsData.newUsername.trim();
-      }
-      
-      if (credentialsData.newPassword?.trim()) {
-        updateData.password = credentialsData.newPassword.trim();
-      }
-      
-      await ApiService.request('/users/credentials', {
-        method: 'PUT',
-        body: JSON.stringify(updateData),
-      });
-      
-      setCredentialsSuccess('Корисничките податоци се успешно ажурирани!');
-      setCredentialsData({
-        currentPassword: '',
-        newUsername: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      // Refresh user data
-      await refreshUser();
-      
-      setTimeout(() => setCredentialsSuccess(''), 3000);
-    } catch (error) {
-      setCredentialsError(error.message || 'Настана грешка при ажурирање на корисничките податоци.');
-    } finally {
-      setUpdatingCredentials(false);
-    }
   };
 
   return (
@@ -355,23 +266,23 @@ const CompanyVerificationSingle = () => {
                   ← Назад кон Dashboard
                 </button>
               </div>
-              <h2>{user?.isVerified ? 'Ажурирање на профил на компанија' : 'Верификација на компанија'}</h2>
-              <p>{user?.isVerified ? 'Ажурирајте ги информациите за вашата верификувана компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
-        
-        {user?.isVerified && (
+              <h2>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирање на профил на компанија' : 'Верификација на компанија'}</h2>
+              <p>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирајте ги информациите за вашата верификувана компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
+
+        {user?.isVerified && isCompanyInfoComplete() && (
           <div className={styles.verificationStatus}>
             <div className={styles.verifiedBadge}>
               ✅ Компанијата е верификувана
             </div>
             <p>Честитки! Вашата компанија е успешно верификувана и имате пристап до сите функции.</p>
             <div className={styles.accessFeatures}>
-              <button 
+              <button
                 onClick={() => navigate('/terminal/documents')}
                 className={styles.accessButton}
               >
                 📄 Пристапи до Документи
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/terminal/ai-chat')}
                 className={styles.accessButton}
               >
@@ -380,7 +291,16 @@ const CompanyVerificationSingle = () => {
             </div>
           </div>
         )}
-        
+
+        {user?.isVerified && !isCompanyInfoComplete() && (
+          <div className={styles.verificationStatus}>
+            <div className={styles.pendingBadge}>
+              ⚠️ Профилот на компанијата е некомплетен
+            </div>
+            <p>Вашиот email е верификуван, но информациите за компанијата не се комплетни. Ве молиме пополнете ги сите задолжителни полиња (име на компанија, адреса, даночен број, менаџер и email).</p>
+          </div>
+        )}
+
         {user?.profileComplete && !user?.isVerified && (
           <div className={styles.verificationStatus}>
             <div className={styles.pendingBadge}>
@@ -687,108 +607,6 @@ const CompanyVerificationSingle = () => {
                   onChange={handleInputChange}
                   placeholder="https://linkedin.com/company/company"
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Credentials Update Section */}
-          <div className={styles.section}>
-            <h3>🔐 Промена на корисничко име и лозинка</h3>
-            <p className={styles.sectionDescription}>
-              Ажурирајте ги вашите кориснички права за пријавување
-            </p>
-
-            {credentialsError && (
-              <div className={styles.errorMessage}>
-                <span className={styles.errorIcon}>❌</span>
-                {credentialsError}
-              </div>
-            )}
-
-            {credentialsSuccess && (
-              <div className={styles.successMessage}>
-                <span className={styles.successIcon}>✅</span>
-                {credentialsSuccess}
-              </div>
-            )}
-
-            <div className={styles.credentialsForm}>
-              <div className={styles.row}>
-                <div className={styles.field}>
-                  <label htmlFor="currentPassword">Моментална лозинка *</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={credentialsData.currentPassword}
-                    onChange={handleCredentialsChange}
-                    placeholder="Внесете ја моменталната лозинка"
-                    required
-                  />
-                  <small className={styles.fieldHint}>
-                    Потребно е за потврда на идентитетот
-                  </small>
-                </div>
-              </div>
-
-              <div className={styles.row}>
-                <div className={styles.field}>
-                  <label htmlFor="newUsername">Ново корисничко име</label>
-                  <input
-                    type="text"
-                    id="newUsername"
-                    name="newUsername"
-                    value={credentialsData.newUsername}
-                    onChange={handleCredentialsChange}
-                    placeholder="Оставете празно за да не се менува"
-                  />
-                  <small className={styles.fieldHint}>
-                    Тековно корисничко име: <strong>{user?.username}</strong>
-                  </small>
-                </div>
-              </div>
-
-              <div className={styles.row}>
-                <div className={styles.field}>
-                  <label htmlFor="newPassword">Нова лозинка</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    value={credentialsData.newPassword}
-                    onChange={handleCredentialsChange}
-                    placeholder="Оставете празно за да не се менува"
-                  />
-                  <small className={styles.fieldHint}>
-                    Минимум 6 карактери
-                  </small>
-                </div>
-                
-                <div className={styles.field}>
-                  <label htmlFor="confirmPassword">Потврдете ја новата лозинка</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={credentialsData.confirmPassword}
-                    onChange={handleCredentialsChange}
-                    placeholder="Повторете ја новата лозинка"
-                  />
-                  <small className={styles.fieldHint}>
-                    Лозинките мора да се совпаѓаат
-                  </small>
-                </div>
-              </div>
-
-              <div className={styles.credentialsActions}>
-                <button
-                  type="button"
-                  onClick={handleCredentialsSubmit}
-                  disabled={updatingCredentials}
-                  className={styles.credentialsButton}
-                >
-                  {updatingCredentials ? 'Ажурира...' : '🔐 Ажурирај корисни податоци'}
-                </button>
               </div>
             </div>
           </div>

@@ -11,6 +11,10 @@ services:
         value: production
       - key: PORT
         value: 5002
+      - key: SERVER_URL
+        value: https://nexa-terminal-api.onrender.com
+      - key: CLIENT_URL
+        value: https://www.nexa.mk
     envVars:
       # Environment variables will be set through Render dashboard
       # for security reasons - don't put sensitive values here

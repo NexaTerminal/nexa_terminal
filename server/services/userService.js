@@ -52,18 +52,23 @@ class UserService {
       profileComplete: userData.profileComplete || false,
       companyInfo: userData.companyInfo || {
         companyName: '',
-        mission: '',
+        companyAddress: '',
+        companyTaxNumber: '',
+        companyManager: '',
+        businessActivity: '',
         website: '',
         industry: '',
         companySize: '',
         role: '',
         description: '',
         crnNumber: '',
-        address: '',
         phone: '',
         companyPIN: '',
-        taxNumber: '',
-        contactEmail: ''
+        contactEmail: '',
+        facebook: '',
+        linkedin: '',
+        missionStatement: '',
+        companyLogo: ''
       },
       createdAt: userData.createdAt || new Date(),
       updatedAt: new Date(),
@@ -103,12 +108,9 @@ class UserService {
   // Find user by tax number
   async findByTaxNumber(taxNumber) {
     if (!taxNumber) return null;
-    // Look in companyInfo.companyTaxNumber or legacy companyInfo.taxNumber
-    return await this.collection.findOne({ 
-      $or: [
-        { 'companyInfo.companyTaxNumber': taxNumber.toString().trim() },
-        { 'companyInfo.taxNumber': taxNumber.toString().trim() }
-      ]
+    // Use standardized field name
+    return await this.collection.findOne({
+      'companyInfo.companyTaxNumber': taxNumber.toString().trim()
     });
   }
 

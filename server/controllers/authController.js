@@ -205,20 +205,26 @@ class AuthController {
         role: 'user',
         companyInfo: {
           companyName: '',
-          mission: '',
+          companyAddress: '',
+          companyTaxNumber: '',
+          companyManager: '',
+          businessActivity: '',
           website: '',
           industry: '',
           companySize: '',
           role: '',
           description: '',
           crnNumber: '',
-          address: '',
           phone: '',
           companyPIN: '',
-          taxNumber: '',
-          contactEmail: ''
+          contactEmail: '',
+          facebook: '',
+          linkedin: '',
+          missionStatement: '',
+          companyLogo: ''
         },
         profileComplete: false,
+        emailVerified: false,
         isVerified: false
       };
 
@@ -439,22 +445,40 @@ class AuthController {
 
       // Prepare update data
       const updateData = {};
-      
+
       if (typeof email === 'string') updateData.email = email.trim() === '' ? null : email.trim();
-      
+
       if (companyInfo) {
+        // Tax number immutability check - cannot be changed once profile is complete
+        if (currentUser.profileComplete &&
+            companyInfo.companyTaxNumber &&
+            currentUser.companyInfo.companyTaxNumber &&
+            companyInfo.companyTaxNumber !== currentUser.companyInfo.companyTaxNumber) {
+          return res.status(400).json({
+            message: 'Даночниот број не може да се менува согласно Законот за трговски друштва'
+          });
+        }
+
         // Merge existing companyInfo with new data
         updateData.companyInfo = {
           ...currentUser.companyInfo,
           ...companyInfo
         };
-        
+
         // Trim string fields if they exist
         Object.keys(companyInfo).forEach(key => {
           if (typeof companyInfo[key] === 'string') {
             updateData.companyInfo[key] = companyInfo[key].trim();
           }
         });
+
+        // Check if profile should be marked complete
+        const requiredFields = ['companyName', 'companyAddress', 'companyTaxNumber', 'companyManager'];
+        const allFieldsComplete = requiredFields.every(field => updateData.companyInfo[field]?.trim());
+
+        if (allFieldsComplete && !currentUser.profileComplete) {
+          updateData.profileComplete = true;
+        }
       }
 
       if (typeof profileComplete === 'boolean') updateData.profileComplete = profileComplete;

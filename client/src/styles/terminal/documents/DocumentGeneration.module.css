@@ -10,49 +10,11 @@
 }
 
 /* ========================================
-   CSS CUSTOM PROPERTIES (Light/Dark Mode)
+   DESIGN TOKENS - Using Global System
    ======================================== */
-
-:root,
-.light-theme {
-  /* Light Mode (Default) */
-  --bg-primary: #fff;
-  --bg-secondary: #f7fafd;
-  --bg-tertiary: #f3f4f6;
-  --text-primary: #222;
-  --text-secondary: #444;
-  --text-muted: #888;
-  --border-color: #e5e7eb;
-  --border-focus: #2563eb;
-  --shadow-light: rgba(0, 0, 0, 0.02);
-  --shadow-medium: rgba(0, 0, 0, 0.04);
-  --input-bg: #fff;
-  --section-bg: #f7fafd;
-  --company-info-bg: #f7fafd;
-  --error-bg: #fff5f5;
-  --success-bg: #f0fff4;
-}
-
-/* Auto-detect system preference */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light-theme) {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --bg-tertiary: #404040;
-    --text-primary: #ffffff;
-    --text-secondary: #d1d5db;
-    --text-muted: #9ca3af;
-    --border-color: #404040;
-    --border-focus: #667eea;
-    --shadow-light: rgba(0, 0, 0, 0.2);
-    --shadow-medium: rgba(0, 0, 0, 0.3);
-    --input-bg: #2d2d2d;
-    --section-bg: #2d2d2d;
-    --company-info-bg: #2d2d2d;
-    --error-bg: #2d1b1b;
-    --success-bg: #1b2d1b;
-  }
-}
+/* All design tokens now reference global.css for consistency.
+   Colors: var(--color-*), Spacing: var(--spacing-*), Typography: var(--font-size-*)
+   Shadows: var(--shadow-*), Border Radius: var(--border-radius-*), Transitions: var(--transition-*) */
 
 /* ========================================
    UNIFIED TERMINAL LAYOUT SYSTEM
@@ -75,25 +37,29 @@
   flex-direction: column;
 }
 
-/* Content sections */
+/* ========================================
+   PAGE HEADLINE (Consolidated from 2 duplicate blocks)
+   ======================================== */
+
 .pageHeadline {
-  background: #f8fafc;
-  color: #222;
-  padding: 1.5rem 2rem;
+  background: var(--color-neutral-100);
+  color: var(--color-white);
+  padding: var(--spacing-6) var(--spacing-8);
   margin: 0;
-  box-shadow: none;
-  border-bottom: 1px solid #e5e7eb;
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pageHeadline h1 {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: var(--font-size-3xl);
   font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .pageHeadline p {
-  margin: 0.25rem 0 0 0;
-  font-size: 1rem;
+  margin: var(--spacing-1) 0 0 0;
+  font-size: var(--font-size-base);
   opacity: 0.9;
   font-weight: 300;
 }
@@ -107,39 +73,12 @@
 
 @media (max-width: 768px) {
   .pageHeadline {
-    padding: 1rem 1.5rem;
+    padding: var(--spacing-4) var(--spacing-6);
   }
-  
+
   .pageHeadline h1 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
-}
-
-/* ========================================
-   ELEGANT HEADLINE UNDER NAVBAR
-   ======================================== */
-
-.pageHeadline {
-  background: #f1f5f9;
-  color: white;
-  padding: 1.5rem 2rem;
-  margin: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.pageHeadline h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.pageHeadline p {
-  margin: 0.25rem 0 0 0;
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 300;
 }
 
 /* ========================================
@@ -599,7 +538,8 @@
 }
 
 .dropdown-item:hover {
-  background-color: var(--bg-secondary);
+  color: var(--color-primary-300);
+  text-decoration: underline;
 }
 
 .job-title {
@@ -857,6 +797,7 @@
 
 .btn {
   padding: 8px 16px;
+  min-height: 48px;
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.8rem;
@@ -865,6 +806,7 @@
   border: none;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -6067,12 +6009,171 @@
     grid-template-columns: 1fr;
     gap: 0.4rem;
   }
-  
+
   .checkbox-card {
     padding: 0.6rem;
   }
-  
+
   .checkbox-title {
     font-size: 0.85rem;
+  }
+}
+
+/* ========================================
+   MOBILE TOUCH TARGET IMPROVEMENTS
+   ======================================== */
+
+/* Ensure all interactive elements meet minimum 44x44px touch target */
+@media (max-width: 768px) {
+  /* Form inputs */
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+
+  /* Buttons */
+  .btn,
+  .prev-btn,
+  .next-btn,
+  .generate-btn,
+  .add-button,
+  .remove-button,
+  .collapse-button,
+  .modern-add-button,
+  .modern-toggle-button,
+  .modern-delete-button {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  /* Navigation buttons */
+  .navigation-buttons {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .navigation-buttons .btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  /* Checkbox and radio touch targets */
+  .checkbox-card,
+  .checkbox-label,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Improve touch spacing */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-row {
+    margin-bottom: 24px;
+  }
+
+  /* Step progress touch targets */
+  .step-number {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  /* Tooltip touch area */
+  .help-tooltip {
+    padding: 8px;
+    margin-left: 4px;
+    font-size: 16px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  /* Adjust split layout for very small screens */
+  .splitLayout {
+    padding: 0.5rem;
+    width: 100vw;
+    gap: 0.75rem;
+  }
+
+  .formSection,
+  .previewSection {
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+
+  /* Stack navigation buttons vertically */
+  .navigation-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .navigation-buttons .btn {
+    width: 100%;
+    min-width: 100%;
+    min-height: 48px;
+  }
+
+  /* Touch-friendly form inputs and buttons on mobile */
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    min-height: 48px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .btn,
+  .add-button,
+  .remove-button,
+  .collapse-button,
+  .modern-add-button {
+    min-height: 48px;
+  }
+
+  /* Form sections */
+  .form-section {
+    padding: 0.75rem;
+    min-height: auto;
+  }
+
+  /* Document header */
+  .documentHeader h1,
+  .headerContent h1 {
+    font-size: 1.25rem;
+  }
+
+  .documentHeader p,
+  .headerContent p {
+    font-size: 0.9rem;
+  }
+
+  /* Reduce form header size */
+  .form-header {
+    padding: 1rem;
+  }
+
+  .form-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  /* Adjust button text for small screens */
+  .generate-btn,
+  .btn {
+    font-size: 14px;
+    padding: 10px 16px;
   }
 }

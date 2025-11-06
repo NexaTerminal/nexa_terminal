@@ -285,6 +285,10 @@
   transition: var(--transition-all);
   border: 1px solid transparent;
   min-width: 80px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .compact .btn {

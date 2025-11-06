@@ -490,59 +490,45 @@
   transform: scale(0.95);
 }
 
-/* Delete confirmation modal */
+/* Delete confirmation modal - Uses standard .modal-backdrop, .modal from global.css */
 .deleteModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: var(--blur-sm);
 }
 
 .modalContent {
-  background: var(--color-white);
-  border-radius: 12px;
-  padding: 24px;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  animation: modalSlideIn 0.2s ease-out;
 }
 
 .modalContent h3 {
-  margin: 0 0 12px 0;
-  color: var(--color-text-primary);
-  font-size: 18px;
+  margin: 0 0 var(--spacing-3) 0;
+  color: var(--color-neutral-900);
+  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
 .modalContent p {
-  margin: 0 0 20px 0;
-  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-5) 0;
+  color: var(--color-neutral-700);
   line-height: 1.5;
 }
 
 .modalActions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-3);
   justify-content: flex-end;
 }
 
 .cancelButton {
-  padding: 8px 16px;
-  border: 1px solid var(--color-neutral-300);
-  background: var(--color-white);
-  color: var(--color-text-primary);
-  border-radius: 6px;
+  padding: var(--spacing-2) var(--spacing-4);
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-neutral-900);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  transition: var(--transition-all);
+  font-size: var(--font-size-sm);
 }
 
 .cancelButton:hover {
@@ -551,38 +537,28 @@
 }
 
 .confirmButton {
-  padding: 8px 16px;
+  padding: var(--spacing-2) var(--spacing-4);
+  min-height: 40px;
   border: none;
-  background: #ef4444;
-  color: white;
-  border-radius: 6px;
+  background: var(--color-error);
+  color: var(--color-white);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  transition: var(--transition-all);
+  font-size: var(--font-size-sm);
   font-weight: 500;
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--color-error-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 8px var(--color-error-200);
 }
 
 .confirmButton:disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   transform: none;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* Responsive Design */
@@ -648,60 +624,53 @@
   }
 }
 
+/* Company Modal - Uses standard .modal-backdrop, .modal from global.css */
 .companyModalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.45);
   z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s;
+  background: var(--overlay-backdrop-light);
 }
 
 .companyModal {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   max-width: 95vw;
   width: 400px;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
-  position: relative;
-  animation: modalSlideIn 0.25s cubic-bezier(0.4,0,0.2,1);
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-6) var(--spacing-6);
+  border-radius: var(--border-radius-2xl);
 }
 
 .closeModalButton {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
   background: none;
   border: none;
-  font-size: 2rem;
-  color: #888;
+  font-size: var(--font-size-3xl);
+  color: var(--color-neutral-500);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: var(--transition-colors);
   z-index: 1;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .closeModalButton:hover {
-  color: #222;
+  color: var(--color-neutral-900);
 }
 
 .companyModalHeader {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-6);
 }
 .companyModalLogo {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-full);
   object-fit: cover;
-  border: 2px solid #4b5563;
-  margin-bottom: 0.5rem;
+  border: 2px solid var(--color-neutral-600);
+  margin-bottom: var(--spacing-2);
 }
 .companyModalLogoPlaceholder {
   width: 80px;
@@ -709,57 +678,53 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3f4f6;
-  color: #4b5563;
-  font-size: 2.5rem;
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-4xl);
   font-weight: bold;
-  border-radius: 50%;
-  border: 2px solid #4b5563;
-  margin-bottom: 0.5rem;
+  border-radius: var(--border-radius-full);
+  border: 2px solid var(--color-neutral-600);
+  margin-bottom: var(--spacing-2);
 }
 .companyModalHeader h2 {
-  font-size: 1.35rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  margin: 0.5rem 0 0.25rem 0;
+  margin: var(--spacing-2) 0 var(--spacing-1) 0;
   text-align: center;
 }
 .companyModalIndustry {
-  font-size: 1rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-600);
+  margin-bottom: var(--spacing-2);
   text-align: center;
 }
 .companyModalBody {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  font-size: 1rem;
-  color: #222;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-900);
 }
 .companyModalBody strong {
-  color: #4b5563;
+  color: var(--color-neutral-600);
   font-weight: 600;
 }
 @media (max-width: 480px) {
   .companyModal {
     width: 98vw;
-    padding: 1rem 0.5rem 1rem 0.5rem;
+    padding: var(--spacing-4) var(--spacing-2) var(--spacing-4) var(--spacing-2);
   }
   .companyModalLogo, .companyModalLogoPlaceholder {
     width: 60px;
     height: 60px;
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
   .companyModalHeader h2 {
-    font-size: 1.05rem;
+    font-size: var(--font-size-lg);
   }
   .companyModalBody {
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
   }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .investmentLink {
@@ -774,7 +739,6 @@
 }
 
 .investmentLink:hover {
-  background-color: #e9ecef;
   border-color: #007bff;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);

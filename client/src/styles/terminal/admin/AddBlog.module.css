@@ -5,23 +5,23 @@
 
 .dashboard-main {
   flex: 1;
-  padding: 2rem;
-  background-color: #f8f9fa;
+  padding: var(--spacing-8);
+  background-color: var(--color-neutral-50);
 }
 
 .container {
   max-width: 800px;
   margin: 0 auto;
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--color-white);
+  padding: var(--spacing-8);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
 }
 
 .container h1 {
-  color: #333;
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
+  color: var(--color-neutral-900);
+  margin-bottom: var(--spacing-8);
+  font-size: var(--font-size-2xl);
   font-weight: 600;
 }
 
@@ -45,26 +45,26 @@
 
 .formGroup label {
   font-weight: 500;
-  color: #555;
-  font-size: 0.9rem;
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-sm);
 }
 
 .input,
 .textarea,
 .select {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  transition: border-color 0.2s ease;
+  padding: var(--spacing-3);
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-all);
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
 .textarea {
@@ -74,62 +74,70 @@
 
 .formActions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-neutral-200);
 }
 
 .submitButton,
 .cancelButton {
-  padding: 0.75rem 1.5rem;
+  padding: var(--spacing-3) var(--spacing-6);
   border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-all);
+  min-height: 48px;
+  box-shadow: var(--shadow-sm);
 }
 
 .submitButton {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #0056b3;
+  background-color: var(--color-primary-600);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .submitButton:disabled {
-  background-color: #6c757d;
+  background-color: var(--color-neutral-400);
   cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+  transform: none;
 }
 
 .cancelButton {
-  background-color: #6c757d;
-  color: white;
+  background-color: var(--color-neutral-500);
+  color: var(--color-white);
 }
 
 .cancelButton:hover {
-  background-color: #545b62;
+  background-color: var(--color-neutral-600);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .error {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #f5c6cb;
-  margin-bottom: 1rem;
+  background-color: var(--color-error-50);
+  color: var(--color-error);
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-error-200);
+  margin-bottom: var(--spacing-4);
 }
 
 .success {
-  background-color: #d4edda;
-  color: #155724;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #c3e6cb;
-  margin-bottom: 1rem;
+  background-color: var(--color-success-50);
+  color: var(--color-success);
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-success-200);
+  margin-bottom: var(--spacing-4);
 }
 
 /* Responsive design */

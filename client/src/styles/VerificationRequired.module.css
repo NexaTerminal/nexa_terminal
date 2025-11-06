@@ -3,56 +3,53 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  padding: var(--spacing-8);
+  background: linear-gradient(135deg, var(--color-neutral-50), var(--color-neutral-200));
 }
 
+/* Uses standard .card from global.css with custom text alignment */
 .card {
   max-width: 500px;
-  background: white;
-  border-radius: 16px;
-  padding: 3rem;
+  padding: var(--spacing-12);
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
 }
 
 .icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--spacing-6);
   opacity: 0.8;
 }
 
 .card h2 {
-  color: #1e293b;
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  color: var(--color-neutral-900);
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-4);
   font-weight: 700;
 }
 
 .card > p {
-  color: #64748b;
-  font-size: 1.1rem;
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-8);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 2rem 0;
+  gap: var(--spacing-4);
+  margin: var(--spacing-8) 0;
   text-align: left;
 }
 
 .step {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border-left: 4px solid #3b82f6;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background: var(--color-neutral-50);
+  border-radius: var(--border-radius-lg);
+  border-left: 4px solid var(--color-primary);
 }
 
 .stepNumber {
@@ -61,119 +58,122 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: #3b82f6;
-  color: white;
+  border-radius: var(--border-radius-full);
+  background: var(--color-primary);
+  color: var(--color-white);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 .emailReminder {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 1px solid #f59e0b;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin: 1.5rem 0;
+  background: linear-gradient(135deg, var(--color-warning-100), var(--color-warning-200));
+  border: 1px solid var(--color-warning);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-6);
+  margin: var(--spacing-6) 0;
 }
 
 .emailReminder p {
-  margin: 0.5rem 0;
-  color: #92400e;
+  margin: var(--spacing-2) 0;
+  color: var(--color-warning-700);
 }
 
 .email {
   font-weight: 600;
-  color: #b45309 !important;
-  font-size: 1.05rem;
+  color: var(--color-warning-700) !important;
+  font-size: var(--font-size-lg);
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--color-white);
   text-decoration: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--border-radius-lg);
   font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
+  font-size: var(--font-size-lg);
+  transition: var(--transition-all);
   display: inline-block;
+  min-height: 48px;
+  box-shadow: var(--shadow-md);
 }
 
 .primaryButton:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-xl);
   text-decoration: none;
-  color: white;
+  color: var(--color-white);
 }
 
 .secondaryButton {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning-600));
+  color: var(--color-white);
   text-decoration: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--border-radius-lg);
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  font-size: var(--font-size-base);
+  transition: var(--transition-all);
   display: inline-block;
+  min-height: 48px;
+  box-shadow: var(--shadow-sm);
 }
 
 .secondaryButton:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+  box-shadow: var(--shadow-lg);
   text-decoration: none;
-  color: white;
+  color: var(--color-white);
 }
 
 .backButton {
-  background: white;
-  color: #64748b;
+  background: var(--color-white);
+  color: var(--color-neutral-600);
   text-decoration: none;
-  padding: 0.875rem 1.5rem;
-  border-radius: 8px;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--border-radius-lg);
   font-weight: 500;
-  border: 2px solid #e2e8f0;
-  transition: all 0.2s ease;
+  border: 2px solid var(--color-neutral-200);
+  transition: var(--transition-all);
   display: inline-block;
+  min-height: 48px;
 }
 
 .backButton:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #475569;
+  background: var(--color-neutral-50);
+  border-color: var(--color-neutral-400);
+  color: var(--color-neutral-900);
   text-decoration: none;
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
+    padding: var(--spacing-4);
   }
-  
+
   .card {
-    padding: 2rem 1.5rem;
+    padding: var(--spacing-8) var(--spacing-6);
   }
-  
+
   .card h2 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
   }
-  
+
   .icon {
-    font-size: 3rem;
+    font-size: var(--font-size-3xl);
   }
-  
+
   .steps {
     text-align: center;
   }
-  
+
   .step {
     flex-direction: column;
     text-align: center;

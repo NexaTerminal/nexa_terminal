@@ -29,16 +29,9 @@
   gap: var(--spacing-lg);
 }
 
+/* Uses standard .card from global.css with custom content padding */
 .investment-card {
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-md);
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform var(--transition-medium);
-}
-
-.investment-card:hover {
-  transform: translateY(-5px);
 }
 
 .investment-content {
@@ -64,29 +57,29 @@
 }
 
 .investment-amount {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background-color: var(--color-success-100);
+  color: var(--color-success-700);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
 .investment-sector {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background-color: var(--color-primary-50);
+  color: var(--color-primary);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 500;
 }
 
 .investment-risk {
-  background-color: #fff3e0;
-  color: #f57c00;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background-color: var(--color-warning-100);
+  color: var(--color-warning-700);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   text-transform: capitalize;
 }
@@ -104,7 +97,6 @@
 }
 
 .investment-link:hover {
-  background-color: var(--color-accent-dark);
   text-decoration: none;
 }
 
@@ -116,22 +108,30 @@
 }
 
 .page-button {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-gray);
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 2px solid var(--color-neutral-300);
   background-color: var(--color-white);
-  color: var(--color-dark);
-  border-radius: var(--border-radius-sm);
+  color: var(--color-neutral-900);
+  border-radius: var(--border-radius-lg);
   cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  transition: var(--transition-all);
+  font-weight: 500;
 }
 
 .page-button.active {
-  background-color: var(--color-dark);
+  background-color: var(--color-primary);
   color: var(--color-white);
-  border-color: var(--color-dark);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .page-button:hover:not(.active) {
-  background-color: var(--color-off-white);
+  background-color: var(--color-neutral-50);
+  border-color: var(--color-neutral-500);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 768px) {

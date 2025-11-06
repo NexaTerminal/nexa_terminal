@@ -16,14 +16,11 @@
   min-height: calc(100vh - 64px);
 }
 
+/* Uses standard .card from global.css with custom sizing */
 .container {
   max-width: 600px;
   margin: 0 auto;
-  background: var(--color-white);
-  border-radius: var(--border-radius-2xl);
   padding: var(--spacing-8);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-border);
 }
 
 .header {

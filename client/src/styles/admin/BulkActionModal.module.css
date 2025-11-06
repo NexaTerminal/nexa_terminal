@@ -1,119 +1,60 @@
 /* Bulk Action Modal Styles */
+/* Uses standard .modal-backdrop, .modal, .modal-header, .modal-body, .modal-footer from global.css */
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem;
-}
-
+/* Modal customizations */
 .modal {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* Modal Header */
+/* Modal Header - Custom gradient */
 .modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  border-bottom: 2px solid #f1f5f9;
-  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  background: linear-gradient(135deg, var(--color-neutral-50), var(--color-surface));
+  border-bottom: 2px solid var(--color-neutral-100);
 }
 
 .modalHeader h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #1e293b;
-  font-weight: 700;
-}
-
-.closeButton {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: #f1f5f9;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  color: #64748b;
-  transition: all 0.2s ease;
-}
-
-.closeButton:hover {
-  background: #e2e8f0;
-  color: #1e293b;
-  transform: scale(1.05);
-}
-
-/* Modal Body */
-.modalBody {
-  padding: 2rem;
-  overflow-y: auto;
-  flex: 1;
+  color: var(--color-neutral-900);
 }
 
 /* Selection Info */
 .selectionInfo {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
+  background: var(--color-info-50);
+  border: 1px solid var(--color-info-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4) var(--spacing-5);
+  margin-bottom: var(--spacing-6);
 }
 
 .selectionCount {
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #0369a1;
-  margin-bottom: 0.25rem;
+  color: var(--color-info-600);
+  margin-bottom: var(--spacing-1);
 }
 
 .actionDescription {
   margin: 0;
-  color: #0c4a6e;
-  font-size: 0.875rem;
+  color: var(--color-info-700);
+  font-size: var(--font-size-sm);
 }
 
-/* Form Groups */
-.formGroup {
-  margin-bottom: 1.5rem;
-}
-
+/* Form Groups - Uses standard .form-group from global.css as base */
 .formGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-neutral-700);
 }
 
 .input,
 .select,
 .textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  padding: var(--spacing-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
+  transition: var(--transition-all);
   box-sizing: border-box;
 }
 
@@ -121,8 +62,8 @@
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
 .textarea {
@@ -132,31 +73,31 @@
 
 .helpText {
   display: block;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #64748b;
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
 }
 
 /* Warning Box */
 .warningBox {
   display: flex;
-  gap: 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-4);
+  background: var(--color-error-50);
+  border: 1px solid var(--color-error-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4) var(--spacing-5);
+  margin-bottom: var(--spacing-4);
 }
 
 .warningIcon {
-  font-size: 1.5rem;
-  color: #dc2626;
+  font-size: var(--font-size-2xl);
+  color: var(--color-error);
   flex-shrink: 0;
 }
 
 .warningBox p {
-  margin: 0 0 0.5rem 0;
-  color: #dc2626;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--color-error);
 }
 
 .warningBox p:last-child {
@@ -167,63 +108,60 @@
   font-weight: 700;
 }
 
-/* Modal Actions */
+/* Modal Actions - Uses standard .modal-footer from global.css as base */
 .modalActions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 1.5rem;
-  border-top: 2px solid #f1f5f9;
-  margin-top: 1.5rem;
+  border-top: 2px solid var(--color-neutral-100);
+  margin-top: var(--spacing-6);
 }
 
 .cancelButton,
 .confirmButton {
-  padding: 0.75rem 1.5rem;
+  padding: var(--spacing-3) var(--spacing-6);
+  min-height: 48px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius-lg);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-all);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
 }
 
 .cancelButton {
-  background: white;
-  color: #6b7280;
-  border: 2px solid #d1d5db;
+  background: var(--color-surface);
+  color: var(--color-neutral-600);
+  border: 2px solid var(--color-border);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  background: var(--color-neutral-50);
+  border-color: var(--color-neutral-400);
 }
 
 .confirmButton {
-  background: #3b82f6;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-white);
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-primary-600);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px var(--color-primary-200);
 }
 
 .confirmButton.destructive {
-  background: #dc2626;
+  background: var(--color-error);
 }
 
 .confirmButton.destructive:hover:not(:disabled) {
-  background: #b91c1c;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  background: var(--color-error-600);
+  box-shadow: 0 4px 12px var(--color-error-200);
 }
 
 .confirmButton:disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   transform: none;
 }
@@ -233,8 +171,8 @@
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
+  border-top: 2px solid var(--color-white);
+  border-radius: var(--border-radius-full);
   animation: spin 1s linear infinite;
 }
 
@@ -245,53 +183,25 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .modalOverlay {
-    padding: 1rem;
-  }
-  
   .modal {
     max-height: 95vh;
   }
-  
+
   .modalHeader {
-    padding: 1.5rem;
+    padding: var(--spacing-6);
   }
-  
+
   .modalHeader h2 {
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
   }
-  
-  .modalBody {
-    padding: 1.5rem;
-  }
-  
+
   .modalActions {
     flex-direction: column-reverse;
   }
-  
+
   .cancelButton,
   .confirmButton {
     width: 100%;
     justify-content: center;
-  }
-}
-
-/* Print styles */
-@media print {
-  .modalOverlay {
-    position: static;
-    background: white;
-    padding: 0;
-  }
-  
-  .modal {
-    box-shadow: none;
-    max-width: none;
-    max-height: none;
-  }
-  
-  .closeButton,
-  .modalActions {
-    display: none;
   }
 }

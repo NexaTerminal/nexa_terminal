@@ -1,62 +1,47 @@
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
+/* Uses standard .modal-backdrop, .modal from global.css */
+  .modalOverlay {
+    padding: var(--spacing-5);
   }
-  
+
   .modalContent {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    width: 100%;
+    padding: var(--spacing-8);
     max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    border-top: 5px solid var(--category-color, #4F46E5); /* Dynamic border color */
+    border-top: 5px solid var(--category-color, var(--color-primary));
   }
-  
+
   .closeButton {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
     background: none;
     border: none;
-    font-size: 2rem;
-    color: #888;
+    font-size: var(--font-size-2xl);
+    color: var(--color-neutral-500);
     cursor: pointer;
     line-height: 1;
-    min-width: 48px; /* Touch-friendly size */
-    min-height: 48px; /* Touch-friendly size */
+    min-width: 48px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: var(--transition-all);
   }
   .closeButton:hover {
-    color: #333;
+    color: var(--color-neutral-900);
   }
-  
+
   .modalTitle {
-    font-size: 1.8rem;
-    color: #1f2937;
-    margin-bottom: 10px;
+    font-size: var(--font-size-2xl);
+    color: var(--color-neutral-900);
+    margin-bottom: var(--spacing-2);
     font-weight: 600;
     text-align: center;
   }
-  
+
   .modalDescription {
-    font-size: 0.95rem;
-    color: #6b7280;
-    margin-bottom: 25px;
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-600);
+    margin-bottom: var(--spacing-7);
     text-align: center;
     line-height: 1.6;
   }

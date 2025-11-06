@@ -67,28 +67,39 @@
 }
 
 .save-button {
-  background-color: var(--color-dark);
+  background-color: var(--color-primary);
   color: var(--color-white);
   border: none;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-medium);
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: var(--transition-all);
+  min-height: 48px;
+  box-shadow: var(--shadow-sm);
 }
 
 .save-button:hover {
-  background-color: var(--color-gray);
+  background-color: var(--color-primary-600);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .error-message {
-  color: #e53935;
+  color: var(--color-error);
   margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-error-50);
+  border-radius: var(--border-radius-sm);
 }
 
 .success-message {
-  color: #43a047;
+  color: var(--color-success);
   margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-success-50);
+  border-radius: var(--border-radius-sm);
 }
 
 @media (max-width: 768px) {

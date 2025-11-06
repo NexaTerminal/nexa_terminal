@@ -1,54 +1,49 @@
-/* filepath: /Users/martinboshkoski/Desktop/nexa-bilingual (working version)/client/src/styles/DocumentGenerator/DocumentItem.module.css */
+/* Uses standard .card and .card-hover from global.css */
 .documentItemContainer {
-    background-color: #fff;
-    color: #1f2937;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px; /* Space between items */
+    color: var(--color-neutral-900);
+    padding: var(--spacing-5);
+    margin-bottom: var(--spacing-4);
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid #e5e7eb; /* Light border */
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pushes button to the bottom */
-    height: 100%; /* Ensure items in a grid row have same height */
+    justify-content: space-between;
+    height: 100%;
   }
-  
+
   .documentItemContainer:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
-    border-color: var(--category-color, #4F46E5);
+    border-color: var(--category-color, var(--color-primary));
   }
-  
+
   .templateName {
-    font-size: 1.2rem;
-    color: #1f2937;
-    margin-bottom: 10px;
+    font-size: var(--font-size-xl);
+    color: var(--color-neutral-900);
+    margin-bottom: var(--spacing-2);
     font-weight: 600;
   }
-  
+
   .templateDescription {
-    font-size: 0.85rem;
-    color: #6b7280;
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
     line-height: 1.6;
-    margin-bottom: 15px;
-    flex-grow: 1; /* Allows description to take available space */
+    margin-bottom: var(--spacing-4);
+    flex-grow: 1;
   }
-  
+
   .selectButton {
-    background-color: var(--category-color, #4F46E5); /* Default to a primary color */
-    color: white;
+    background-color: var(--category-color, var(--color-primary));
+    color: var(--color-white);
     border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-sm);
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    align-self: flex-start; /* Align button to the start of the flex container */
+    transition: var(--transition-all);
+    align-self: flex-start;
+    min-height: 44px;
   }
-  
+
   .selectButton:hover {
-    opacity: 0.9;
+    opacity: var(--opacity-hover);
   }
   

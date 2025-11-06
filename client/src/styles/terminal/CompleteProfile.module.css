@@ -1,10 +1,10 @@
 .completeProfileContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--spacing-8);
 }
 
 .formWrapper {
@@ -39,13 +39,13 @@
 }
 
 .errorMessage {
-  background: #fed7d7;
-  color: #c53030;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-  border: 1px solid #feb2b2;
+  background: var(--color-error-50);
+  color: var(--color-error);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-6);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-error-200);
 }
 
 .profileForm {
@@ -94,12 +94,12 @@
 
 .formInput:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
 .formInput:invalid {
-  border-color: #ef4444;
+  border-color: var(--color-error);
 }
 
 .formInput::placeholder {
@@ -121,8 +121,8 @@
 
 .formTextarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
 .formTextarea::placeholder {
@@ -177,48 +177,53 @@
 }
 
 .skipButton {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #d1d5db;
-  background: white;
-  color: #6b7280;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: var(--spacing-3) var(--spacing-6);
+  border: 2px solid var(--color-neutral-300);
+  background: var(--color-white);
+  color: var(--color-neutral-600);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-all);
+  min-height: 48px;
 }
 
 .skipButton:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  color: #374151;
+  background: var(--color-neutral-50);
+  border-color: var(--color-neutral-500);
+  color: var(--color-neutral-900);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .skipButton:disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
 
 .submitButton {
-  padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: var(--spacing-3) var(--spacing-8);
+  background: var(--gradient-primary);
+  color: var(--color-white);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-all);
   min-width: 160px;
+  min-height: 48px;
+  box-shadow: var(--shadow-md);
 }
 
 .submitButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
 }
 
 .submitButton:disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

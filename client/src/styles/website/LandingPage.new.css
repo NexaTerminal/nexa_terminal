@@ -901,7 +901,7 @@
 }
 
 .textButton:hover {
-  color: var(--color-accent-hover);
+  color: var(--color-primary-300);
 }
 
 /* Responsive Design */
@@ -981,13 +981,87 @@
   .featuresSection {
     padding: var(--spacing-xl) var(--spacing-md);
   }
-  
+
   .loginSide {
     padding: var(--spacing-xl) var(--spacing-md);
   }
-  
+
   .headerContainer {
     flex-direction: column;
     gap: var(--spacing-md);
+  }
+
+  .heroTitle {
+    font-size: 1.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .loginContainer {
+    padding: var(--spacing-md);
+  }
+}
+
+/* ========================================
+   MOBILE TOUCH TARGET IMPROVEMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Ensure all interactive elements meet minimum 44x44px touch target */
+  .formInput,
+  .submitButton,
+  button,
+  a.blogButton,
+  .ctaButton {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+
+  /* Improve button touch targets */
+  .languageSelector button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+  }
+
+  /* Footer links */
+  .footerColumn a {
+    display: inline-block;
+    padding: 8px 0;
+    min-height: 44px;
+    line-height: 28px;
+  }
+
+  /* Social icons */
+  .footerSocial a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Blog button */
+  .blogButton {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  /* Hero CTA buttons */
+  .heroCta {
+    min-height: 48px;
+    padding: 14px 24px;
+  }
+
+  /* Improve spacing for touch */
+  .loginForm {
+    gap: var(--spacing-xl);
+  }
+
+  .formGroup {
+    margin-bottom: var(--spacing-md);
   }
 }

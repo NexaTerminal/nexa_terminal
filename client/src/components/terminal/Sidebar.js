@@ -32,20 +32,23 @@ const Sidebar = () => {
     setIsOpen(!isOpen);
   };
 
+  const closeSidebar = () => {
+    setIsOpen(false);
+  };
+
   return (
     <>
       {/* Mobile menu button - restored with improved styling */}
-      <button 
-        className={styles["mobile-menu-button"]} 
+      <button
+        className={styles["mobile-menu-button"]}
         onClick={toggleSidebar}
         aria-label="Toggle menu"
-        style={{ display: 'none' }} // Will be shown via CSS media query
       >
         ☰
       </button>
 
       {/* Backdrop for mobile */}
-      {isOpen && <div className={styles["sidebar-backdrop"]} onClick={toggleSidebar}></div>}
+      {isOpen && <div className={styles["sidebar-backdrop"]} onClick={closeSidebar}></div>}
 
       <aside className={`${styles["dashboard-sidebar"]} ${isOpen ? styles["open"] : ""}`}>
         {/* <div className={styles["dashboard-welcome"]}>
@@ -61,6 +64,7 @@ const Sidebar = () => {
               className={`${styles["menu-item"]} ${
                 location.pathname === path ? styles.active : ""
               }`}
+              onClick={closeSidebar}
             >
               <span className={styles["menu-icon"]}>{icon}</span>
               <h3>{noTranslate ? label : t(label)}</h3>
@@ -81,6 +85,7 @@ const Sidebar = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles["menu-item"]}
+                    onClick={closeSidebar}
                   >
                     <span className={styles["menu-icon"]}>{icon}</span>
                     <h3>{t(label)}</h3>
@@ -92,6 +97,7 @@ const Sidebar = () => {
                     className={`${styles["menu-item"]} ${
                       location.pathname === path ? styles.active : ""
                     }`}
+                    onClick={closeSidebar}
                   >
                     <span className={styles["menu-icon"]}>{icon}</span>
                     <h3>{t(label)}</h3>

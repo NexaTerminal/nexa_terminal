@@ -131,9 +131,12 @@ const BlogCard = ({ blog, formatDate }) => {
           <div className={styles.blogImageContainer}>
             {blog.featuredImage ? (
               <img
-                src={blog.featuredImage.startsWith('data:')
-                  ? blog.featuredImage
-                  : `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${blog.featuredImage}`
+                src={
+                  blog.featuredImage.startsWith('data:') ||
+                  blog.featuredImage.startsWith('http://') ||
+                  blog.featuredImage.startsWith('https://')
+                    ? blog.featuredImage
+                    : `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${blog.featuredImage}`
                 }
                 alt={blog.title}
                 className={styles.blogFeaturedImage}

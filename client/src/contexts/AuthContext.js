@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { clearCSRFTokenCache } from '../services/csrfService';
+import { trackLogin, trackSignup } from '../utils/analytics';
 
 // API Configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
@@ -95,6 +96,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
+
+      // Track successful login
+      trackLogin('email');
+
       return { success: true };
     } catch (error) {
       setError(error.message);
@@ -144,7 +149,10 @@ export const AuthProvider = ({ children }) => {
 
       // Clear CSRF token cache on successful login
       clearCSRFTokenCache();
-      
+
+      // Track successful login
+      trackLogin('username');
+
       return { success: true, user: data.user };
     } catch (error) {
       setError(error.message);
@@ -192,7 +200,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      
+
+      // Track successful registration
+      trackSignup('username');
+
       return { success: true, user: data.user };
     } catch (error) {
       setError(error.message);
@@ -239,6 +250,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
+
+      // Track successful registration
+      trackSignup('email');
+
       return data.user;
     } catch (error) {
       throw error;
@@ -263,6 +278,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setCurrentUser(data.user);
+
+      // Track successful OAuth login
+      trackLogin('oauth');
+
       return data.user;
     } catch (error) {
       localStorage.removeItem('token');

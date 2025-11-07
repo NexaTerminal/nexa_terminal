@@ -148,35 +148,9 @@
   transform: translateX(4px);
 }
 
-/* Mobile menu button */
+/* Mobile menu button - DISABLED (Header provides mobile menu now) */
 .mobile-menu-button {
-  display: none;
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1300;
-  background: var(--color-primary);
-  border: none;
-  padding: 0.75rem;
-  border-radius: 50%;
-  cursor: pointer;
-  width: 48px;
-  height: 48px;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  color: #fff;
-  font-size: 1.25rem;
-  transition: all 0.3s ease;
-}
-
-.mobile-menu-button:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transform: scale(1.05);
-}
-
-.mobile-menu-button:active {
-  transform: scale(0.95);
+  display: none !important;
 }
 
 .hamburger-icon {
@@ -222,56 +196,10 @@
     flex-direction: column;
   }
   .dashboard-sidebar {
-    width: 80vw;
-    max-width: 320px;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    z-index: 1200;
-    box-shadow: 2px 0 16px rgba(0,0,0,0.18);
-    background: #fff;
-    position: fixed;
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    display: flex;
-  }
-  .dashboard-sidebar.open {
-    transform: translateX(0);
+    display: none; /* Hidden on mobile - Header provides mobile menu */
   }
   .sidebar-backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.35);
-    z-index: 1199;
-    opacity: 1;
-    transition: opacity 0.2s;
-  }
-  .mobile-menu-button {
-    display: flex;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1300;
-    width: 48px;
-    height: 48px;
-    background: var(--color-primary);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    font-size: 1.25rem;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .mobile-menu-button:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: none; /* No backdrop needed */
   }
   .menu-item {
     font-size: 1.05rem;
@@ -286,17 +214,11 @@
 
 @media (max-width: 480px) {
   .dashboard-sidebar {
-    width: 100vw;
-    max-width: 100vw;
+    display: none; /* Hidden on mobile - Header provides mobile menu */
   }
   .menu-item {
     font-size: 1.05rem;
     padding: var(--spacing-md) var(--spacing-lg);
     min-height: 48px;
-  }
-  .mobile-menu-button {
-    width: 44px;
-    height: 44px;
-    font-size: 1.5rem;
   }
 }

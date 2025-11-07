@@ -52,11 +52,29 @@ const Header = ({ isTerminal = false }) => {
     setMobileMenuOpen(false);
   }, [location]);
 
+  // Navigation links for regular menu items
+  const regularMenuItems = [
+    { path: '/terminal', label: 'common.dashboard', icon: '📊' },
+    { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
+    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
+    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
+    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
+    { path: '/terminal/contact', label: 'Побарај понуда', icon: '💼', noTranslate: true },
+    { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
+  ];
+
+  const adminMenuItems = [
+    { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️', noTranslate: true },
+    { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
+    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪', noTranslate: true },
+    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝', noTranslate: true },
+  ];
+
   const renderNavLinks = () => (
     isTerminal ? (
       <div className={styles['profile-section']} ref={dropdownRef}>
-        <button 
-          className={styles['profile-button']} 
+        <button
+          className={styles['profile-button']}
           onClick={toggleProfileDropdown}
           aria-expanded={profileDropdownOpen}
         >
@@ -64,41 +82,41 @@ const Header = ({ isTerminal = false }) => {
           <span className={styles['profile-name']}>
             {currentUser?.companyInfo?.companyName || currentUser?.username || currentUser?.email}
           </span>
-          <span 
+          <span
             className={`${styles['dropdown-arrow']} ${profileDropdownOpen ? styles['dropdown-arrow-open'] : ''}`}
           >
             ▼
           </span>
         </button>
         {/* Profile dropdown with conditional class for animation */}
-          <div 
+          <div
             className={`${styles['profile-dropdown']} ${profileDropdownOpen ? styles['profile-dropdown-open'] : ''}`}
           >
-            {/* <Link 
-              to="/terminal/profile" 
+            {/* <Link
+              to="/terminal/profile"
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
               <span className={styles['dropdown-icon']}>⚙️</span>
               {t('dashboard.editProfile')}
             </Link> */}
-            <Link 
-              to="/terminal/verification" 
+            <Link
+              to="/terminal/verification"
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
               <span className={styles['dropdown-icon']}>🏢</span>
               Профил
             </Link>
-            <Link 
-              to="/terminal/user" 
+            <Link
+              to="/terminal/user"
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
               <span className={styles['dropdown-icon']}>👤</span>
               Корисник
             </Link>
-            <button 
+            <button
               onClick={(e) => {
                 e.preventDefault();
                 setProfileDropdownOpen(false);
@@ -113,21 +131,121 @@ const Header = ({ isTerminal = false }) => {
       </div>
     ) : (
       <>
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className={`${styles['nav-link']} ${location.pathname === '/' ? styles.active : ''}`}
         >
           {t('common.home')}
         </Link>
-        <Link 
-          to="/about" 
+        <Link
+          to="/about"
           className={`${styles['nav-link']} ${location.pathname === '/about' ? styles.active : ''}`}
         >
           {t('common.about')}
         </Link>
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className={`${styles['nav-link']} ${styles.loginButton} ${location.pathname === '/login' ? styles.active : ''}`}
+        >
+          {t('common.login')}
+        </Link>
+      </>
+    )
+  );
+
+  // Mobile menu content with navigation links and logout
+  const renderMobileMenu = () => (
+    isTerminal ? (
+      <>
+        <div className={styles['mobileUserInfo']}>
+          <span className={styles['mobileUserIcon']}>👤</span>
+          <span className={styles['mobileUserName']}>
+            {currentUser?.companyInfo?.companyName || currentUser?.username || currentUser?.email}
+          </span>
+        </div>
+
+        <div className={styles['mobileMenuLinks']}>
+          {regularMenuItems.map(({ path, label, icon, noTranslate }) => (
+            <Link
+              key={path}
+              to={path}
+              className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className={styles['mobileMenuIcon']}>{icon}</span>
+              <span>{noTranslate ? label : t(label)}</span>
+            </Link>
+          ))}
+
+          {currentUser?.role === 'admin' && (
+            <>
+              <div className={styles['mobileDivider']}>
+                <span>{t('dashboard.adminSection')}</span>
+              </div>
+              {adminMenuItems.map(({ path, label, icon, noTranslate }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className={styles['mobileMenuIcon']}>{icon}</span>
+                  <span>{noTranslate ? label : t(label)}</span>
+                </Link>
+              ))}
+            </>
+          )}
+        </div>
+
+        <div className={styles['mobileMenuFooter']}>
+          <Link
+            to="/terminal/verification"
+            className={styles['mobileMenuItem']}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <span className={styles['mobileMenuIcon']}>🏢</span>
+            <span>Профил</span>
+          </Link>
+          <Link
+            to="/terminal/user"
+            className={styles['mobileMenuItem']}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <span className={styles['mobileMenuIcon']}>👤</span>
+            <span>Корисник</span>
+          </Link>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              handleLogout();
+            }}
+            className={`${styles['mobileMenuItem']} ${styles['logoutButton']}`}
+          >
+            <span className={styles['mobileMenuIcon']}>🚪</span>
+            <span>{t('common.logout')}</span>
+          </button>
+        </div>
+      </>
+    ) : (
+      <>
+        <Link
+          to="/"
+          className={`${styles['mobileMenuItem']} ${location.pathname === '/' ? styles.active : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {t('common.home')}
+        </Link>
+        <Link
+          to="/about"
+          className={`${styles['mobileMenuItem']} ${location.pathname === '/about' ? styles.active : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {t('common.about')}
+        </Link>
+        <Link
+          to="/login"
+          className={`${styles['mobileMenuItem']} ${location.pathname === '/login' ? styles.active : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
         >
           {t('common.login')}
         </Link>
@@ -174,7 +292,7 @@ const Header = ({ isTerminal = false }) => {
         {/* Mobile menu */}
         <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
           <nav className={styles.mobileNav}>
-            {renderNavLinks()}
+            {renderMobileMenu()}
             <div className={styles.mobileLangSwitcher}>
               {/* <LanguageSwitcher /> DISABLED FOR NOW */}
             </div>

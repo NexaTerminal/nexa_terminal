@@ -480,17 +480,18 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--color-white);
+    background: #ffffff;
     padding: var(--spacing-lg);
     transform: translateX(100%);
     transition: transform 0.3s ease;
-    display: block;
+    display: none;
     z-index: 1000;
     overflow-y: auto;
     box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
   }
 
   .mobileMenu.open {
+    display: block;
     transform: translateX(0);
   }
 
@@ -535,17 +536,18 @@
     gap: var(--spacing-3);
     padding: var(--spacing-4) var(--spacing-3);
     min-height: 48px;
-    color: var(--color-text-dark);
+    color: #262626;
     text-decoration: none;
     border-radius: var(--border-radius-md);
     transition: var(--transition-all);
-    font-size: var(--font-size-medium);
+    font-size: 1rem;
     font-weight: 500;
     background: transparent;
     border: none;
     width: 100%;
     text-align: left;
     cursor: pointer;
+    border-bottom: 1px solid #e5e5e5;
   }
 
   .mobileMenuItem:hover,

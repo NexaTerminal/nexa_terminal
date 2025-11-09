@@ -15,6 +15,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env.development
+render-production.env
 # Note: .env (production) is intentionally committed for deployment
 
 # Logs

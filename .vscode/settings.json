@@ -6,6 +6,7 @@
     "socialPosts": true,
     "legalHealthCheck": true,
     "blog": true,
-    "marketplace": true
+    "marketplace": true,
+    "aiChatbot": true
   }
 }

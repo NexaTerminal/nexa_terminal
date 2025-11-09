@@ -249,6 +249,13 @@ async function initializeServices(database) {
       await initializeMarketplaceDatabase(database);
     }
 
+    // Initialize AI Chatbot service if feature is enabled
+    if (settings.isFeatureEnabled('aiChatbot')) {
+      console.log('🤖 Initializing AI Chatbot service...');
+      const chatBotService = require('./chatbot/ChatBotService');
+      await chatBotService.setDatabase(database);
+    }
+
     // Initialize activity logger
     activityLogger.initialize(database);
     app.locals.activityLogger = activityLogger;
@@ -330,6 +337,8 @@ function registerRoutes() {
     /^\/marketplace\/.*$/,                 // All marketplace sub-routes (JWT protected)
     /^\/courses\/.*$/,                     // All course routes (JWT protected)
     /^\/certificates\/.*$/,                // All certificate routes (JWT protected)
+    '/chatbot',                            // AI Chatbot endpoints (JWT protected)
+    /^\/chatbot\/.*$/,                     // All chatbot sub-routes (JWT protected)
   ];
   
   // Apply CSRF exemptions only if CSRF is enabled
@@ -386,6 +395,17 @@ function registerRoutes() {
       app.use('/api/provider-interest', providerInterestRouter);
     } catch (error) {
       console.log('⚠️  Provider interest routes not found - marketplace feature incomplete');
+    }
+  }
+
+  // AI Chatbot routes
+  if (settings.isRouteEnabled('chatbot')) {
+    try {
+      app.use('/api/chatbot', require('./routes/chatbot'));
+      console.log('✅ AI Chatbot routes loaded successfully');
+    } catch (error) {
+      console.log('⚠️  AI Chatbot routes not found - feature not available');
+      console.error('Chatbot routes error:', error.message);
     }
   }
 

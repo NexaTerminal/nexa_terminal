@@ -21,7 +21,8 @@ class SettingsManager {
           socialPosts: true,
           legalHealthCheck: true,
           blog: true,
-          marketplace: true
+          marketplace: true,
+          aiChatbot: true
         };
         return;
       }
@@ -63,10 +64,11 @@ class SettingsManager {
         blog: features.blog,
         legal: features.legalHealthCheck,
         marketplace: features.marketplace,
+        chatbot: features.aiChatbot,
         admin: true, // Always enabled for admin functionality
         verification: true // Always enabled for company verification
       },
-      // Map features to collections automatically  
+      // Map features to collections automatically
       database: {
         collections: {
           users: true, // Always needed
@@ -79,7 +81,10 @@ class SettingsManager {
           service_providers: features.marketplace,
           service_requests: features.marketplace,
           provider_offers: features.marketplace,
-          service_categories: features.marketplace
+          service_categories: features.marketplace,
+          chatbot_conversations: features.aiChatbot,
+          chatbot_usage: features.aiChatbot,
+          chatbot_documents: features.aiChatbot
         }
       },
       // Use middleware settings from VS Code
@@ -105,7 +110,8 @@ class SettingsManager {
         socialPosts: true,
         legalHealthCheck: true,
         blog: true,  // Enable blogs for online version
-        marketplace: true
+        marketplace: true,
+        aiChatbot: true
       },
       database: {
         collections: {
@@ -119,7 +125,10 @@ class SettingsManager {
           service_providers: true,
           service_requests: true,
           provider_offers: true,
-          service_categories: true
+          service_categories: true,
+          chatbot_conversations: true,
+          chatbot_usage: true,
+          chatbot_documents: true
         }
       },
       routes: {
@@ -130,6 +139,7 @@ class SettingsManager {
         blog: true,  // Enable blog routes
         legal: true,
         marketplace: true,
+        chatbot: true,
         admin: true,  // Enable admin routes
         verification: true  // Enable verification routes
       },

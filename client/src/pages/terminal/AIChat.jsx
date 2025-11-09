@@ -1,0 +1,338 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import Header from '../../components/common/Header';
+import Sidebar from '../../components/terminal/Sidebar';
+import RightSidebar from '../../components/terminal/RightSidebar';
+import styles from '../../styles/terminal/AIChat.module.css';
+import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
+
+/**
+ * AIChat Component
+ *
+ * AI-powered legal document chatbot interface
+ * - Ask questions about legal documents in Macedonian
+ * - Get answers with source citations
+ * - Weekly limit of 4 questions per user
+ */
+const AIChat = () => {
+  const { user } = useAuth();
+
+  // State management
+  const [question, setQuestion] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [limits, setLimits] = useState({
+    remaining: 4,
+    total: 4,
+    resetDate: null
+  });
+
+  // Ref for auto-scrolling to bottom
+  const messagesEndRef = useRef(null);
+
+  // Fetch user's remaining question limits on component mount
+  useEffect(() => {
+    fetchLimits();
+  }, []);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  /**
+   * Fetch user's weekly question limits
+   */
+  const fetchLimits = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.warn('No auth token found');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5002/api/chatbot/limits', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLimits({
+          remaining: data.data.remaining,
+          total: data.data.total,
+          resetDate: data.data.resetDate
+        });
+      } else {
+        // Silently fail - keep default limits
+        console.warn('Failed to fetch limits:', data.message);
+      }
+    } catch (err) {
+      // Silently fail - keep default limits
+      console.error('Error fetching limits:', err);
+    }
+  };
+
+  /**
+   * Handle sending a question to the chatbot
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!question.trim()) return;
+
+    // Check if user has questions remaining
+    if (limits.remaining <= 0) {
+      setError('Ја достигнавте вашата неделна граница од прашања.');
+      return;
+    }
+
+    // Add user's question to messages
+    const userMessage = {
+      type: 'user',
+      content: question,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setQuestion(''); // Clear input
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5002/api/chatbot/ask', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ question: userMessage.content })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Add AI response to messages
+        const aiMessage = {
+          type: 'ai',
+          content: data.data.answer,
+          sources: data.data.sources,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Update remaining questions
+        setLimits(prev => ({
+          ...prev,
+          remaining: data.data.remainingQuestions
+        }));
+      } else {
+        // Handle error response
+        setError(data.message || 'Се случи грешка. Ве молиме обидете се повторно.');
+
+        // Remove the user message if request failed
+        setMessages(prev => prev.slice(0, -1));
+      }
+    } catch (err) {
+      console.error('Error asking question:', err);
+      setError('Не можевме да се поврземе со серверот. Ве молиме обидете се повторно.');
+
+      // Remove the user message if request failed
+      setMessages(prev => prev.slice(0, -1));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Scroll to bottom of messages
+   */
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  /**
+   * Format reset date in Macedonian
+   */
+  const formatResetDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('mk-MK', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div>
+      <Header isTerminal={true} />
+
+      <div className={dashboardStyles['dashboard-layout']}>
+        <Sidebar />
+
+        <main className={dashboardStyles['dashboard-main']}>
+          <div className={styles.container}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>AI Правен Асистент</h1>
+            <p className={styles.subtitle}>
+              Поставувајте прашања за правни документи и постапки
+            </p>
+
+            {/* Question counter */}
+            <div className={styles.limitsCard}>
+              <div className={styles.limitsInfo}>
+                <span className={styles.limitsLabel}>Преостанати прашања:</span>
+                <span className={styles.limitsCount}>
+                  {limits.remaining} / {limits.total}
+                </span>
+              </div>
+              {limits.resetDate && (
+                <div className={styles.resetInfo}>
+                  Ресетирање: {formatResetDate(limits.resetDate)}
+                </div>
+              )}
+            </div>
+
+            {/* Disclaimer */}
+            <div className={styles.disclaimer}>
+              ⚠️ <strong>Важно:</strong> Овој асистент не е лиценциран адвокат.
+              За специфични правни прашања, консултирајте се со{' '}
+              <a
+                href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.disclaimerLink}
+              >
+                квалификуван правен професионалец
+              </a>.
+            </div>
+          </div>
+
+          {/* Chat messages area */}
+          <div className={styles.messagesContainer}>
+            {messages.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>💬</div>
+                <h3>Започнете разговор</h3>
+                <p>Поставете прашање за правни документи, процедури или барајте совети.</p>
+                <div className={styles.exampleQuestions}>
+                  <p className={styles.examplesTitle}>Примери на прашања:</p>
+                  <ul>
+                    <li>Кои се основните елементи на работен договор?</li>
+                    <li>Какви се правата на вработените при отпуштање?</li>
+                    <li>Што содржи согласност за обработка на лични податоци?</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.messagesList}>
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`${styles.message} ${
+                      message.type === 'user' ? styles.userMessage : styles.aiMessage
+                    }`}
+                  >
+                    <div className={styles.messageHeader}>
+                      <span className={styles.messageAuthor}>
+                        {message.type === 'user' ? '👤 Вие' : '🤖 AI Асистент'}
+                      </span>
+                      <span className={styles.messageTime}>
+                        {message.timestamp.toLocaleTimeString('mk-MK', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+
+                    <div className={styles.messageContent}>
+                      {message.content}
+                    </div>
+
+                    {/* Show sources for AI messages */}
+                    {message.type === 'ai' && message.sources && message.sources.length > 0 && (
+                      <div className={styles.sources}>
+                        <p className={styles.sourcesTitle}>📚 Извори:</p>
+                        <ul className={styles.sourcesList}>
+                          {message.sources.map((source, idx) => (
+                            <li key={idx} className={styles.sourceItem}>
+                              {source.documentName}
+                              {source.pageNumber && ` (Страна ${source.pageNumber})`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Loading indicator */}
+                {isLoading && (
+                  <div className={`${styles.message} ${styles.aiMessage}`}>
+                    <div className={styles.messageHeader}>
+                      <span className={styles.messageAuthor}>🤖 AI Асистент</span>
+                    </div>
+                    <div className={styles.loadingIndicator}>
+                      <span className={styles.dot}></span>
+                      <span className={styles.dot}></span>
+                      <span className={styles.dot}></span>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className={styles.errorMessage}>
+              ❌ {error}
+            </div>
+          )}
+
+          {/* Input form */}
+          <div className={styles.inputContainer}>
+            <form onSubmit={handleSubmit} className={styles.inputForm}>
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Поставете ваше прашање..."
+                className={styles.input}
+                disabled={isLoading || limits.remaining <= 0}
+                maxLength={500}
+              />
+              <button
+                type="submit"
+                className={styles.sendButton}
+                disabled={isLoading || !question.trim() || limits.remaining <= 0}
+              >
+                {isLoading ? 'Се обработува...' : 'Прашај'}
+              </button>
+            </form>
+            <div className={styles.charCount}>
+              {question.length} / 500 карактери
+            </div>
+          </div>
+        </div>
+        </main>
+
+        <RightSidebar />
+      </div>
+    </div>
+  );
+};
+
+export default AIChat;

@@ -15,7 +15,7 @@ import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
  * - Weekly limit of 4 questions per user
  */
 const AIChat = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Not needed for this component
 
   // State management
   const [question, setQuestion] = useState('');

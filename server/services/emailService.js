@@ -34,14 +34,24 @@ class EmailService {
    */
   // Create Gmail transporter (fallback for when Resend fails)
   getGmailTransporter() {
+    console.log('🔍 DEBUG: Checking Gmail configuration...');
+    console.log('🔍 GMAIL_APP_PASSWORD exists:', !!process.env.GMAIL_APP_PASSWORD);
+    console.log('🔍 GMAIL_APP_PASSWORD length:', process.env.GMAIL_APP_PASSWORD?.length);
+
     if (!this.gmailTransporter && process.env.GMAIL_APP_PASSWORD) {
-      this.gmailTransporter = nodemailer.createTransporter({
+      console.log('✅ Creating Gmail transporter...');
+      this.gmailTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: 'terminalnexa@gmail.com',
           pass: process.env.GMAIL_APP_PASSWORD
         }
       });
+      console.log('✅ Gmail transporter created successfully');
+    } else {
+      console.log('❌ Gmail transporter NOT created. Reasons:');
+      console.log('   - Already exists?', !!this.gmailTransporter);
+      console.log('   - GMAIL_APP_PASSWORD missing?', !process.env.GMAIL_APP_PASSWORD);
     }
     return this.gmailTransporter;
   }

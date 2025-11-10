@@ -400,15 +400,15 @@ class VerificationController {
         });
       }
 
-      // Email spam prevention - check last email sent time
+      // Email spam prevention - TEMPORARILY SET TO 1 MINUTE (TODO: Change to 15 minutes in production)
       const lastEmailSent = currentUser.lastVerificationEmailSent;
-      const ONE_HOUR = 60 * 60 * 1000; // 1 hour in milliseconds
+      const ONE_MINUTE = 60 * 1000; // 1 minute in milliseconds (TODO: Change to 15 * 60 * 1000 for production)
 
-      if (lastEmailSent && (Date.now() - new Date(lastEmailSent).getTime() < ONE_HOUR)) {
-        const minutesRemaining = Math.ceil((ONE_HOUR - (Date.now() - new Date(lastEmailSent).getTime())) / 60000);
+      if (lastEmailSent && (Date.now() - new Date(lastEmailSent).getTime() < ONE_MINUTE)) {
+        const secondsRemaining = Math.ceil((ONE_MINUTE - (Date.now() - new Date(lastEmailSent).getTime())) / 1000);
         return res.status(429).json({
           success: false,
-          message: `Веќе испративте верификационен email. Ве молиме почекајте ${minutesRemaining} минути пред да побарате повторно.`
+          message: `Веќе испративте верификационен email. Ве молиме почекајте ${secondsRemaining} секунди пред да побарате повторно.`
         });
       }
 

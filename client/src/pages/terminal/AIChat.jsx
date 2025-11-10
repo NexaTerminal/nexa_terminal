@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import RightSidebar from '../../components/terminal/RightSidebar';
+import ApiService from '../../services/api';
 import styles from '../../styles/terminal/AIChat.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 
@@ -53,15 +54,7 @@ const AIChat = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5002/api/chatbot/limits', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      const data = await ApiService.get('/chatbot/limits');
 
       if (data.success) {
         setLimits({
@@ -106,17 +99,7 @@ const AIChat = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5002/api/chatbot/ask', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ question: userMessage.content })
-      });
-
-      const data = await response.json();
+      const data = await ApiService.post('/chatbot/ask', { question: userMessage.content });
 
       if (data.success) {
         // Add AI response to messages

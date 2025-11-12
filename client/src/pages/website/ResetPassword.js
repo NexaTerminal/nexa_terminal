@@ -5,6 +5,7 @@ import AuthMessage from '../../components/common/AuthMessage';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 import ApiService from '../../services/api';
 import { validatePassword } from '../../utils/passwordValidation';
+import PublicFooter from '../../components/common/PublicFooter';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -298,6 +299,8 @@ const ResetPassword = () => {
           </div>
         </div>
       </div>
+
+      <PublicFooter />
     </div>
   );
 };

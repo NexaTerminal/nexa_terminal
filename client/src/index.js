@@ -6,14 +6,14 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-// import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider } from 'react-helmet-async';
 import './i18n/i18n';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   // <React.StrictMode>
     <div>
-      {/* <HelmetProvider> */}
+      <HelmetProvider>
       <BrowserRouter>
         <LanguageProvider>
           <AuthProvider>
@@ -21,7 +21,7 @@ root.render(
           </AuthProvider>
         </LanguageProvider>
       </BrowserRouter>
-      {/* </HelmetProvider> */}
+      </HelmetProvider>
     </div>
   // </React.StrictMode>
 );

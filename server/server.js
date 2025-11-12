@@ -91,6 +91,9 @@ app.use('/api/auto-documents', require('./routes/autoDocuments'));
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));
 
+// Mount public blog routes BEFORE CSRF middleware (public API for SEO)
+app.use('/api/blog', require('./routes/blog'));
+
 // CSRF Protection setup (conditional)
 if (settings.isMiddlewareEnabled('csrf') && setCSRFToken) {
   app.use(setCSRFToken); // Set CSRF tokens for all requests

@@ -15,13 +15,17 @@ const AuthCallback = () => {
       try {
         const params = new URLSearchParams(location.search);
         const token = params.get('token');
-        
+        const redirect = params.get('redirect');
+
         if (!token) {
           throw new Error(t('auth.noTokenProvided', 'No authentication token provided'));
         }
-        
+
         await loginWithToken(token);
-        navigate('/terminal');
+
+        // Redirect to the original destination or default to /terminal
+        const destination = redirect || '/terminal';
+        navigate(destination);
       } catch (error) {
         setError(error.message);
         setTimeout(() => {
@@ -29,7 +33,7 @@ const AuthCallback = () => {
         }, 3000);
       }
     };
-    
+
     handleCallback();
   }, [location, loginWithToken, navigate, t]);
   

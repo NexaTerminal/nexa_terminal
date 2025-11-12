@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from '../../styles/website/Login.module.css';
 import AuthMessage from '../../components/common/AuthMessage';
 import ApiService from '../../services/api';
+import PublicFooter from '../../components/common/PublicFooter';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -171,6 +172,8 @@ const ForgotPassword = () => {
           </div>
         </div>
       </div>
+
+      <PublicFooter />
     </div>
   );
 };

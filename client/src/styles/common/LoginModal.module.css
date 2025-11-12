@@ -1,0 +1,330 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modalContent {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #9ca3af;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.closeButton:hover {
+  background: #f3f4f6;
+  color: #374151;
+  transform: rotate(90deg);
+}
+
+/* Modal Header */
+.modalHeader {
+  padding: 2.5rem 2rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nexaLogo {
+  height: 45px;
+  width: auto;
+  margin-bottom: 1.5rem;
+}
+
+.modalHeader h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Login Card */
+.loginCard {
+  padding: 2rem;
+}
+
+/* Form Styles */
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.formInput::placeholder {
+  color: #9ca3af;
+}
+
+/* Forgot Password */
+.forgotPasswordContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.5rem;
+}
+
+.forgotPasswordLink {
+  color: #4F46E5;
+  font-size: 0.875rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.forgotPasswordLink:hover {
+  color: #4338CA;
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.submitButton {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.loginDivider {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.loginDivider::before,
+.loginDivider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.loginDivider::before {
+  left: 0;
+}
+
+.loginDivider::after {
+  right: 0;
+}
+
+/* OAuth Buttons */
+.oauthButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.googleButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.googleButton:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.googleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Toggle Auth */
+.toggleAuth {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.toggleAuth p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: #4F46E5;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+  padding: 0;
+  font-size: inherit;
+}
+
+.toggleButton:hover {
+  color: #4338CA;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .modalContent {
+    max-width: 95%;
+    border-radius: 16px;
+  }
+
+  .modalHeader {
+    padding: 2rem 1.5rem 1rem;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.5rem;
+  }
+
+  .loginCard {
+    padding: 1.5rem;
+  }
+
+  .nexaLogo {
+    height: 40px;
+  }
+}
+
+/* Scrollbar styling for modal content */
+.modalContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 0 20px 20px 0;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

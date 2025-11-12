@@ -53,10 +53,16 @@ router.post('/logout', authenticateJWT, authController.logout);
 
 // Google OAuth Routes
 // Initiate Google OAuth flow
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-  session: false
-}));
+router.get('/google', (req, res, next) => {
+  // Extract and preserve the state parameter (redirect URL)
+  const state = req.query.state;
+
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+    state: state || '' // Pass state to OAuth flow
+  })(req, res, next);
+});
 
 // Google OAuth callback
 router.get('/google/callback',
@@ -66,9 +72,16 @@ router.get('/google/callback',
       // Generate JWT token
       const token = authController.generateToken(req.user);
 
-      // Redirect to client with token
+      // Extract state parameter (redirect URL) from query
+      const state = req.query.state;
+
+      // Redirect to client with token and optional state
       const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
-      res.redirect(`${clientURL}/auth/callback?token=${token}`);
+      const redirectUrl = state
+        ? `${clientURL}/auth/callback?token=${token}&redirect=${encodeURIComponent(state)}`
+        : `${clientURL}/auth/callback?token=${token}`;
+
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error('Google OAuth callback error:', error);
       res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_failed`);

@@ -7,6 +7,13 @@ import Login from './pages/website/Login';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
 import ProviderResponse from './pages/public/ProviderResponse';
+import Blog from './pages/website/Blog';
+import BlogPost from './pages/website/BlogPost';
+import TopicsPage from './pages/website/TopicsPage';
+import ResidencePage from './pages/website/ResidencePage';
+import EmploymentPage from './pages/website/EmploymentPage';
+import TrademarkPage from './pages/website/TrademarkPage';
+import CorporatePage from './pages/website/CorporatePage';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
@@ -106,6 +113,17 @@ function App() {
       {/* <Route path="/complete-profile" element={<CompleteProfile />} /> */}
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/success" element={<AuthCallback />} />
+
+      {/* Public Blog Routes (SEO-friendly, excerpt only) */}
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:id" element={<BlogPost />} />
+
+      {/* Public SEO Pages */}
+      <Route path="/topics" element={<TopicsPage />} />
+      <Route path="/residence" element={<ResidencePage />} />
+      <Route path="/employment" element={<EmploymentPage />} />
+      <Route path="/trademark" element={<TrademarkPage />} />
+      <Route path="/corporate" element={<CorporatePage />} />
 
       {/* Provider Response - Public (no auth required) */}
       <Route path="/provider-response/:token" element={<ProviderResponse />} />

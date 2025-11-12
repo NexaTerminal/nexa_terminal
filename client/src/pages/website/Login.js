@@ -10,6 +10,7 @@ import TypewriterFeatures from '../../components/website/TypewriterFeatures';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 import AuthMessage from '../../components/common/AuthMessage';
 import { validatePassword, validatePasswordMatch, validateUsername } from '../../utils/passwordValidation';
+import SimpleNavbar from '../../components/common/SimpleNavbar';
 
 const Login = () => {
   const { t } = useTranslation();
@@ -29,10 +30,13 @@ const Login = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (currentUser) {
-      const destination = location.state?.from?.pathname || '/terminal';
+      // Check URL query params first, then location state
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      const destination = redirect || location.state?.from?.pathname || '/terminal';
       navigate(destination, { replace: true });
     }
-    
+
     // Display error if redirected due to authentication error
     if (location.state?.authError) {
       setError(t('login.sessionExpired', 'Your session has expired. Please log in again.'));
@@ -56,11 +60,14 @@ const Login = () => {
         }
 
         const result = await loginWithUsername(username, password);
-        
+
         if (result.success) {
           setSuccess('Успешна најава! Пренасочување...');
           setTimeout(() => {
-            const destination = location.state?.from?.pathname || '/terminal';
+            // Check URL query params first, then location state
+            const params = new URLSearchParams(location.search);
+            const redirect = params.get('redirect');
+            const destination = redirect || location.state?.from?.pathname || '/terminal';
             navigate(destination, { replace: true });
           }, 1000);
         } else {
@@ -95,7 +102,11 @@ const Login = () => {
         if (result.success) {
           setSuccess('Успешна регистрација! Добредојдовте во Nexa Terminal!');
           setTimeout(() => {
-            navigate('/terminal');
+            // Check URL query params first, then default to /terminal
+            const params = new URLSearchParams(location.search);
+            const redirect = params.get('redirect');
+            const destination = redirect || '/terminal';
+            navigate(destination);
           }, 1500);
         } else {
           // Handle specific registration errors
@@ -135,12 +146,26 @@ const Login = () => {
   // Handle Google OAuth login
   const handleGoogleLogin = () => {
     const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-    window.location.href = `${apiURL}/auth/google`;
+
+    // Extract redirect parameter from URL query params
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+
+    // Pass redirect as state parameter to preserve it through OAuth flow
+    const googleAuthUrl = redirect
+      ? `${apiURL}/auth/google?state=${encodeURIComponent(redirect)}`
+      : `${apiURL}/auth/google`;
+
+    window.location.href = googleAuthUrl;
   };
 
   return (
-    <div className={styles.loginPage}>
-      {/* Top Bar with Language Selector - DISABLED FOR NOW */}
+    <>
+      {/* Simple Navbar at the very top */}
+      <SimpleNavbar />
+
+      <div className={styles.loginPage}>
+        {/* Top Bar with Language Selector - DISABLED FOR NOW */}
       {/* <div className={styles.topBar}>
         <div className={styles.topLeftControls}>
           <div className={styles.languageSelector}>
@@ -391,7 +416,18 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Minimal Footer */}
+      <footer className={styles.minimalFooter}>
+        <div className={styles.footerContent}>
+          <span className={styles.footerText}>© 2025 Nexa Terminal. Сите права задржани.</span>
+          <div className={styles.footerLinks}>
+            <a href="mailto:info@nexa.mk" className={styles.footerLink}>info@nexa.mk</a>
+          </div>
+        </div>
+      </footer>
     </div>
+    </>
   );
 };
 

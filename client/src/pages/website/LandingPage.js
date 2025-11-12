@@ -4,6 +4,8 @@ import styles from '../../styles/website/LandingPage.new.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
+import SimpleNavbar from '../../components/common/SimpleNavbar';
+import PublicFooter from '../../components/common/PublicFooter';
 
 const LandingPage = () => {
   const { t } = useTranslation();
@@ -88,18 +90,22 @@ const LandingPage = () => {
   };
 
   return (
-    <div className={styles.landingPage}>
-      {/* Top Bar with Language Selector - DISABLED FOR NOW */}
-      {/* <div className={styles.topBar}>
-        <div className={styles.languageSelector}>
-          <button onClick={() => i18n.changeLanguage('en')} className={i18n.language === 'en' ? styles.activeLang : ''}>EN</button>
-          <span className={styles.langDivider}>|</span>
-          <button onClick={() => i18n.changeLanguage('mk')} className={i18n.language === 'mk' ? styles.activeLang : ''}>MK</button>
-        </div>
-      </div> */}
+    <>
+      {/* Public Navbar - Transparent, minimal, on top */}
+      <SimpleNavbar />
 
-      {/* Main Split Layout */}
-      <div className={styles.mainContainer}>
+      <div className={styles.landingPage}>
+        {/* Top Bar with Language Selector - DISABLED FOR NOW */}
+        {/* <div className={styles.topBar}>
+          <div className={styles.languageSelector}>
+            <button onClick={() => i18n.changeLanguage('en')} className={i18n.language === 'en' ? styles.activeLang : ''}>EN</button>
+            <span className={styles.langDivider}>|</span>
+            <button onClick={() => i18n.changeLanguage('mk')} className={i18n.language === 'mk' ? styles.activeLang : ''}>MK</button>
+          </div>
+        </div> */}
+
+        {/* Main Split Layout */}
+        <div className={styles.mainContainer}>
         {/* Left Side - Business Content (3/5) */}
         <div className={styles.businessContent}>
           {/* Simple Hero Section */}
@@ -240,39 +246,10 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerLogo}>Nexa</div>
-            <p>{t('footer.description', 'Empowering small businesses with AI-driven solutions.')}</p>
-          </div>
-          
-          <div className={styles.footerLinks}>
-            <div className={styles.footerSection}>
-              <h3>{t('footer.product', 'Product')}</h3>
-              <ul>
-                <li><a href="#features">{t('footer.features', 'Features')}</a></li>
-                <li><a href="#pricing">{t('footer.pricing', 'Pricing')}</a></li>
-              </ul>
-            </div>
-            
-            <div className={styles.footerSection}>
-              <h3>{t('footer.support', 'Support')}</h3>
-              <ul>
-                <li><a href="#help">{t('footer.help', 'Help Center')}</a></li>
-                <li><a href="#contact">{t('footer.contact', 'Contact Us')}</a></li>
-                <li><a href="#privacy">{t('footer.privacy', 'Privacy Policy')}</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        
-        <div className={styles.footerBottom}>
-          <p>&copy; 2025 Nexa. {t('footer.rights', 'All rights reserved.')}</p>
-        </div>
-      </footer>
-    </div>
+      {/* Minimal Footer */}
+      <PublicFooter />
+      </div>
+    </>
   );
 };
 

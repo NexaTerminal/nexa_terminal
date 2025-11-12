@@ -25,10 +25,18 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && react-snap",
     "vercel-build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "reactSnap": {
+    "inlineCss": true,
+    "minifyHtml": {
+      "collapseWhitespace": true,
+      "removeComments": true
+    },
+    "skipThirdPartyRequests": true
   },
   "eslintConfig": {
     "extends": [
@@ -49,6 +57,7 @@
     ]
   },
   "devDependencies": {
-    "ajv": "^8.17.1"
+    "ajv": "^8.17.1",
+    "react-snap": "^1.23.0"
   }
 }

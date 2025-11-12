@@ -214,11 +214,15 @@ class ChatBotService {
       }
 
       // Step 1: Retrieve relevant documents from vector store
-      // For now, we'll use a placeholder context until we implement document processing
+      console.log(`\n🤖 [RAG DEBUG] Processing question for user ${userId}`);
       const relevantDocs = await this.retrieveRelevantDocuments(question);
 
       // Step 2: Format context from retrieved documents
       const context = this.formatContext(relevantDocs);
+      console.log(`\n📝 [RAG DEBUG] Context being sent to LLM (${context.length} characters):`);
+      console.log('─'.repeat(70));
+      console.log(context.substring(0, 500) + (context.length > 500 ? '...' : ''));
+      console.log('─'.repeat(70));
 
       // Step 3: Create the RAG chain
       const chain = RunnableSequence.from([
@@ -228,10 +232,16 @@ class ChatBotService {
       ]);
 
       // Step 4: Execute the chain
+      console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
+      const llmStartTime = Date.now();
       const response = await chain.invoke({
         context: context,
         question: question,
       });
+      const llmTime = Date.now() - llmStartTime;
+      console.log(`✓ [RAG DEBUG] LLM response received in ${llmTime}ms (${response.length} characters)`);
+      console.log(`\n📤 [RAG DEBUG] Response preview: "${response.substring(0, 200)}..."`);
+      console.log(`\n✅ [RAG DEBUG] Full RAG pipeline completed successfully\n`);
 
       // Step 5: Track usage (increment question count)
       await this.incrementUsageCount(userId);
@@ -276,15 +286,26 @@ class ChatBotService {
     }
 
     try {
+      console.log(`\n🔍 [RAG DEBUG] Starting document retrieval for question: "${question.substring(0, 100)}..."`);
+
       // Step 1: Create embedding for the user's question
+      console.log('📊 [RAG DEBUG] Generating query embedding...');
+      const embeddingStartTime = Date.now();
       const questionEmbedding = await this.embeddings.embedQuery(question);
+      const embeddingTime = Date.now() - embeddingStartTime;
+      console.log(`✓ [RAG DEBUG] Embedding generated in ${embeddingTime}ms (dimensions: ${questionEmbedding.length})`);
 
       // Step 2: Search Qdrant for similar vectors
+      console.log('🔎 [RAG DEBUG] Searching Qdrant vector database...');
+      const searchStartTime = Date.now();
       const searchResult = await this.qdrantClient.search(this.collectionName, {
         vector: questionEmbedding,
         limit: 5, // Top 5 most relevant chunks
         with_payload: true,
+        score_threshold: 0.3, // Only return results with similarity > 30%
       });
+      const searchTime = Date.now() - searchStartTime;
+      console.log(`✓ [RAG DEBUG] Search completed in ${searchTime}ms`);
 
       // Step 3: Format results
       const topResults = searchResult.map(result => ({
@@ -297,12 +318,40 @@ class ChatBotService {
         },
       }));
 
-      console.log(`📊 Retrieved ${topResults.length} relevant chunks from Qdrant (scores: ${topResults.map(r => r.metadata.score.toFixed(3)).join(', ')})`);
+      console.log(`\n📚 [RAG DEBUG] Retrieved ${topResults.length} relevant chunks:`);
+      topResults.forEach((result, index) => {
+        const scorePercent = (result.metadata.score * 100).toFixed(1);
+        const preview = result.pageContent.substring(0, 100).replace(/\n/g, ' ');
+        console.log(`  [${index + 1}] ${result.metadata.documentName} - Confidence: ${scorePercent}%`);
+        console.log(`      Preview: "${preview}..."`);
+
+        if (result.metadata.score < 0.5) {
+          console.log(`      ⚠️ WARNING: Low confidence score - may not be relevant`);
+        }
+      });
+
+      // Calculate and log average confidence
+      if (topResults.length > 0) {
+        const avgScore = topResults.reduce((sum, r) => sum + r.metadata.score, 0) / topResults.length;
+        console.log(`\n📊 [RAG DEBUG] Average confidence: ${(avgScore * 100).toFixed(1)}%`);
+
+        if (avgScore < 0.5) {
+          console.log(`⚠️ [RAG DEBUG] WARNING: Low average confidence! Retrieved documents may not be relevant.`);
+          console.log(`   This could explain why answers don't match source documents.`);
+        }
+      } else {
+        console.log(`⚠️ [RAG DEBUG] WARNING: No documents found above confidence threshold (30%)`);
+      }
 
       return topResults;
 
     } catch (error) {
-      console.error('❌ Error retrieving documents from Qdrant:', error);
+      console.error('❌ [RAG DEBUG] Error retrieving documents from Qdrant:', error);
+      console.error('   Error details:', error.message);
+      if (error.stack) {
+        console.error('   Stack trace:', error.stack);
+      }
+
       return [{
         pageContent: 'Се случи грешка при обработка на вашето прашање. Ве молиме обидете се повторно.',
         metadata: {

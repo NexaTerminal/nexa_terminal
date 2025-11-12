@@ -56,6 +56,7 @@
   align-items: center;
   gap: 2rem;
   margin-left: auto;
+  padding-right: 20px;
 }
 
 .navLink {

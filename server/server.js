@@ -303,6 +303,10 @@ async function connectToDatabase() {
 
 // API Routes (registered after passport config)
 function registerRoutes() {
+  // Social Media Preview Middleware - MUST be first to intercept crawler requests
+  const { socialPreviewMiddleware } = require('./middleware/socialPreview');
+  app.use(socialPreviewMiddleware(app.locals.db));
+
   // CSRF token endpoint (only if CSRF is enabled)
   if (settings.isMiddlewareEnabled('csrf') && getCSRFToken) {
     app.get('/api/csrf-token', getCSRFToken);

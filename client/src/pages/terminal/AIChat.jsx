@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/common/Header';
-import Sidebar from '../../components/terminal/Sidebar';
-import RightSidebar from '../../components/terminal/RightSidebar';
-import ApiService from '../../services/api';
+import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
+import ChatbotApiService from '../../services/chatbotApi';
 import styles from '../../styles/terminal/AIChat.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 
@@ -28,6 +27,10 @@ const AIChat = () => {
     total: 4,
     resetDate: null
   });
+
+  // Conversation history state
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef(null);
@@ -54,7 +57,7 @@ const AIChat = () => {
         return;
       }
 
-      const data = await ApiService.get('/chatbot/limits');
+      const data = await ChatbotApiService.getLimits();
 
       if (data.success) {
         setLimits({
@@ -69,6 +72,48 @@ const AIChat = () => {
     } catch (err) {
       // Silently fail - keep default limits
       console.error('Error fetching limits:', err);
+    }
+  };
+
+  /**
+   * Handle starting a new conversation
+   */
+  const handleNewConversation = () => {
+    setMessages([]);
+    setCurrentConversationId(null);
+    setError(null);
+  };
+
+  /**
+   * Handle loading a previous conversation
+   */
+  const handleSelectConversation = async (conversationId) => {
+    try {
+      setIsLoading(true);
+      const response = await ChatbotApiService.getConversation(conversationId);
+
+      if (response.success) {
+        const conversation = response.data.conversation;
+
+        // Format messages from conversation history
+        const formattedMessages = conversation.messages.map(msg => ({
+          type: msg.type,
+          content: msg.content,
+          sources: msg.sources || [],
+          timestamp: new Date(msg.timestamp)
+        }));
+
+        setMessages(formattedMessages);
+        setCurrentConversationId(conversationId);
+        setError(null);
+      } else {
+        setError('Не можевме да ја вчитаме конверзацијата.');
+      }
+    } catch (err) {
+      console.error('Error loading conversation:', err);
+      setError('Грешка при вчитување на конверзацијата.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,12 +139,25 @@ const AIChat = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const questionText = question; // Store before clearing
     setQuestion(''); // Clear input
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await ApiService.post('/chatbot/ask', { question: userMessage.content });
+      let conversationId = currentConversationId;
+
+      // If no current conversation, create one
+      if (!conversationId) {
+        const newConvResponse = await ChatbotApiService.createConversation(questionText);
+        if (newConvResponse.success) {
+          conversationId = newConvResponse.data.conversationId;
+          setCurrentConversationId(conversationId);
+        }
+      }
+
+      // Send message to conversation
+      const data = await ChatbotApiService.sendMessage(conversationId, questionText);
 
       if (data.success) {
         // Add AI response to messages
@@ -117,6 +175,9 @@ const AIChat = () => {
           ...prev,
           remaining: data.data.remainingQuestions
         }));
+
+        // Trigger conversation list refresh
+        setRefreshTrigger(prev => prev + 1);
       } else {
         // Handle error response
         setError(data.message || 'Се случи грешка. Ве молиме обидете се повторно.');
@@ -160,10 +221,16 @@ const AIChat = () => {
     <div>
       <Header isTerminal={true} />
 
-      <div className={dashboardStyles['dashboard-layout']}>
-        <Sidebar />
+      <div className={styles.chatLayout}>
+        {/* Conversation History Sidebar */}
+        <ConversationSidebar
+          currentConversationId={currentConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
+          refreshTrigger={refreshTrigger}
+        />
 
-        <main className={dashboardStyles['dashboard-main']}>
+        <main className={styles.chatMain}>
           <div className={styles.container}>
           <div className={styles.header}>
             <h1 className={styles.title}>AI Правен Асистент</h1>
@@ -250,6 +317,7 @@ const AIChat = () => {
                           {message.sources.map((source, idx) => (
                             <li key={idx} className={styles.sourceItem}>
                               {source.documentName}
+                              {source.article && ` - ${source.article}`}
                               {source.pageNumber && ` (Страна ${source.pageNumber})`}
                             </li>
                           ))}
@@ -311,8 +379,6 @@ const AIChat = () => {
           </div>
         </div>
         </main>
-
-        <RightSidebar />
       </div>
     </div>
   );

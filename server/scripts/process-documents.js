@@ -89,6 +89,129 @@ async function extractTextFromDOCX(filePath) {
 }
 
 /**
+ * Intelligent chunking based on legal article (член) boundaries
+ * Falls back to standard chunking if no articles detected
+ */
+async function createIntelligentChunks(text, fileName, pageCount) {
+  // Pattern to detect article boundaries in Macedonian legal documents
+  // Matches: "Член 1", "Член 15", "ЧЛЕН 1", etc.
+  const articlePattern = /(?:^|\n)(\s*(?:Член|ЧЛЕН|член)\s+\d+[а-в]?)/gm;
+
+  const matches = [...text.matchAll(articlePattern)];
+
+  // If we found articles, split by them
+  if (matches.length > 5) { // At least 5 articles to consider it a legal document
+    console.log(`  📑 Detected ${matches.length} articles (using article-based chunking)`);
+
+    const chunks = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      const currentMatch = matches[i];
+      const nextMatch = matches[i + 1];
+
+      const startIndex = currentMatch.index;
+      const endIndex = nextMatch ? nextMatch.index : text.length;
+
+      // Extract the article text
+      let articleText = text.substring(startIndex, endIndex).trim();
+      const articleNumber = currentMatch[1].trim();
+
+      // If article is too long (>3000 chars), split it into sub-chunks
+      if (articleText.length > 3000) {
+        const subChunks = splitLongArticle(articleText, articleNumber, fileName, pageCount);
+        chunks.push(...subChunks);
+      } else {
+        // Create single chunk for this article
+        chunks.push({
+          pageContent: articleText,
+          metadata: {
+            documentName: fileName,
+            pageCount: pageCount,
+            article: articleNumber,
+            processedAt: new Date().toISOString(),
+            chunkType: 'article'
+          }
+        });
+      }
+    }
+
+    return chunks;
+  } else {
+    // No articles detected - use standard chunking
+    console.log(`  📄 No articles detected (using standard character-based chunking)`);
+
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: CHUNK_SIZE,
+      chunkOverlap: CHUNK_OVERLAP,
+      separators: ['\n\n', '\n', '. ', ' ', '']
+    });
+
+    return await textSplitter.createDocuments(
+      [text],
+      [{
+        documentName: fileName,
+        pageCount: pageCount,
+        processedAt: new Date().toISOString(),
+        chunkType: 'standard'
+      }]
+    );
+  }
+}
+
+/**
+ * Split a long article into smaller sub-chunks while preserving context
+ */
+function splitLongArticle(articleText, articleNumber, fileName, pageCount) {
+  const chunks = [];
+  const maxChunkSize = 2500; // Slightly smaller than CHUNK_SIZE to allow for overlap
+
+  // Try to split by paragraphs or numbered items first
+  const paragraphs = articleText.split(/\n\n+/);
+
+  let currentChunk = '';
+  let subChunkIndex = 1;
+
+  for (const paragraph of paragraphs) {
+    if ((currentChunk + paragraph).length > maxChunkSize && currentChunk.length > 0) {
+      // Save current chunk
+      chunks.push({
+        pageContent: currentChunk.trim(),
+        metadata: {
+          documentName: fileName,
+          pageCount: pageCount,
+          article: `${articleNumber} (Part ${subChunkIndex})`,
+          processedAt: new Date().toISOString(),
+          chunkType: 'article-split'
+        }
+      });
+
+      currentChunk = paragraph + '\n\n';
+      subChunkIndex++;
+    } else {
+      currentChunk += paragraph + '\n\n';
+    }
+  }
+
+  // Add remaining chunk
+  if (currentChunk.trim().length > 0) {
+    chunks.push({
+      pageContent: currentChunk.trim(),
+      metadata: {
+        documentName: fileName,
+        pageCount: pageCount,
+        article: subChunkIndex > 1 ? `${articleNumber} (Part ${subChunkIndex})` : articleNumber,
+        processedAt: new Date().toISOString(),
+        chunkType: subChunkIndex > 1 ? 'article-split' : 'article'
+      }
+    });
+  }
+
+  console.log(`    ↳ Article too long (${articleText.length} chars) - split into ${chunks.length} parts`);
+
+  return chunks;
+}
+
+/**
  * Process a single document file
  */
 async function processDocument(filePath) {
@@ -125,21 +248,8 @@ async function processDocument(filePath) {
 
   console.log(`  ✓ Extracted ${text.length} characters from ${fileName} (${pageCount} pages)`);
 
-  // Split text into chunks
-  const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: CHUNK_SIZE,
-    chunkOverlap: CHUNK_OVERLAP,
-    separators: ['\n\n', '\n', '. ', ' ', '']
-  });
-
-  const chunks = await textSplitter.createDocuments(
-    [text],
-    [{
-      documentName: fileName,
-      pageCount: pageCount,
-      processedAt: new Date().toISOString()
-    }]
-  );
+  // Split text into chunks based on articles (член) for legal documents
+  const chunks = await createIntelligentChunks(text, fileName, pageCount);
 
   console.log(`  ✓ Split into ${chunks.length} chunks`);
 
@@ -275,17 +385,30 @@ async function createVectorStore(documents) {
       documentName: doc.metadata.documentName,
       pageCount: doc.metadata.pageCount,
       processedAt: doc.metadata.processedAt,
+      // Include article metadata if available (for legal documents)
+      article: doc.metadata.article || null,
+      chunkType: doc.metadata.chunkType || 'standard',
     },
   }));
 
-  // Upload to Qdrant
-  console.log('  💾 Uploading vectors to Qdrant...');
-  await qdrantClient.upsert(collectionName, {
-    wait: true,
-    points: points,
-  });
+  // Upload to Qdrant in batches (to avoid request size limits)
+  console.log('  💾 Uploading vectors to Qdrant in batches...');
+  const batchSize = 100; // Upload 100 vectors at a time
+  const totalBatches = Math.ceil(points.length / batchSize);
 
-  console.log(`  ✓ Uploaded ${points.length} vectors to Qdrant\n`);
+  for (let i = 0; i < points.length; i += batchSize) {
+    const batch = points.slice(i, i + batchSize);
+    const batchNum = Math.floor(i / batchSize) + 1;
+
+    console.log(`    Uploading batch ${batchNum}/${totalBatches} (${batch.length} vectors)...`);
+
+    await qdrantClient.upsert(collectionName, {
+      wait: true,
+      points: batch,
+    });
+  }
+
+  console.log(`  ✓ Uploaded ${points.length} vectors to Qdrant in ${totalBatches} batches\n`);
 
   return { count: points.length, collectionName };
 }

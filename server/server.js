@@ -255,8 +255,26 @@ async function initializeServices(database) {
     // Initialize AI Chatbot service if feature is enabled
     if (settings.isFeatureEnabled('aiChatbot')) {
       console.log('🤖 Initializing AI Chatbot service...');
+
+      // Initialize chatbot database (collections and indexes)
+      const { initializeChatbotDatabase } = require('./config/chatbotIndexes');
+      await initializeChatbotDatabase(database);
+
+      // Initialize ChatBotService
       const chatBotService = require('./chatbot/ChatBotService');
       await chatBotService.setDatabase(database);
+
+      // Initialize ConversationService
+      const ConversationService = require('./chatbot/services/ConversationService');
+      const conversationService = new ConversationService(database);
+
+      // Connect conversation service to chatbot service
+      chatBotService.setConversationService(conversationService);
+
+      // Make conversation service available to routes via app.locals
+      app.locals.conversationService = conversationService;
+
+      console.log('✅ AI Chatbot with conversation history initialized');
     }
 
     // Initialize activity logger

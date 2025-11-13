@@ -41,6 +41,9 @@ class ChatBotService {
     // MongoDB database reference (will be set via setDatabase method - for usage tracking only)
     this.db = null;
 
+    // Conversation service reference (for conversation history)
+    this.conversationService = null;
+
     // Weekly limit for questions per user
     this.weeklyLimit = parseInt(process.env.CHATBOT_MAX_PROMPTS_PER_WEEK) || 4;
 
@@ -63,9 +66,53 @@ class ChatBotService {
 2. Цитирајте специфични документи, членови и ставови кога е применливо
 3. Давајте фактички, добро поткрепени информации
 4. Охрабрувајте ги корисниците да бараат професионална правна помош за важни одлуки
+5. ЗАПОМНУВАЈТЕ ја претходната конверзација и користете ја за следење на прашања
+
+РАБОТА СО КОНВЕРЗАЦИЈА:
+- Кога видите "ПРЕТХОДНА КОНВЕРЗАЦИЈА" во контекстот, користете ја за разбирање на следбени прашања
+- Ако корисникот кажува "а за тоа?", "и тој случај?", "можеш ли да објасниш повеќе?", однесувајте се на претходните прашања и одговори
+- Користете ја конверзацијата за да дадете релевантни следбени одговори
+- Не повторувајте целиот претходен одговор, само референцирајте го кога е потребно
+
+ЗАДОЛЖИТЕЛЕН ФОРМАТ ЗА ЦИТИРАЊЕ:
+Кога цитирате од правните документи, МОРА да следите го овој формат:
+
+📋 **[Име на законот]** ([Службен весник број])
+└─ **[Број на членот]**
+
+   "[Целосен точен текст на членот - копирајте целиот текст од изворот без промени]"
+
+Пример:
+📋 **Закон за данок на добивка** (Службен весник 199/2023)
+└─ **[Број на членот]**
+
+   "[Целосен точен текст на членот...]"
+
+ЗАДОЛЖИТЕЛНО: ХИПОТЕТИЧКИ ПРИМЕР
+Откако ќе го цитирате членот, СЕКОГАШ објаснете го со практичен, хипотетички пример:
+
+💡 **Практичен пример:**
+   [Наведете конкретна ситуација од реалниот живот која го илустрира применувањето на членот.
+   Користете конкретни бројки, имиња на компании (пр. "Компанија ABC"), и јасни сценарија.]
+
+Пример на целосен одговор:
+📋 **Закон за данок на добивка** (Службен весник 199/2023)
+└─ **Член 15**
+
+   "Даночната основа на даночниот обврзник се утврдува според разликата помеѓу приходите и расходите остварени во даночниот период, утврдена согласно со одредбите од овој закон."
+
+💡 **Практичен пример:**
+   Компанијата "ABC ДООЕЛ" во 2024 година оствари приходи од продажба на стоки во износ од 5,000,000 денари. Истовремено, имала расходи за набавка на стока (3,000,000 денари), плати (800,000 денари), и режиски трошоци (200,000 денари). Според Член 15, даночната основа се пресметува како разлика: 5,000,000 - (3,000,000 + 800,000 + 200,000) = 1,000,000 денари. Врз оваа даночна основа од 1,000,000 денари потоа се применува даночната стапка за данок на добивка.
+
+Но секогаш прашај дали примерот и разбирањето е добро од аспект на законот, примерот во однос на ситуацијата за која корисникот има дилема. 
 
 ВАЖНИ ПРАВИЛА ЗА КОМУНИКАЦИЈА:
 - СЕКОГАШ одговарајте на македонски јазик
+- ЗАДОЛЖИТЕЛНО цитирајте го целосниот точен текст од членот (не парафразирајте)
+- ЗАДОЛЖИТЕЛНО обезбедете хипотетички практичен пример за секој цитиран член
+- Практичните примери МОРА да содржат конкретни бројки и реални сценарија
+- СЕКОГАШ наведете го точниот број на членот и името на законот
+- Ако во името на документот има број на службен весник, вклучете го
 - НИКОГАШ не користете фрази како "сигурно", "дефинитивно", "апсолутно" или слични премногу самоуверени изрази
 - Користете умерен тон: "според документите...", "може да биде...", "обично..."
 - На крајот од секој одговор, прашајте: "Имате ли дополнителни прашања?"
@@ -75,7 +122,12 @@ class ChatBotService {
 
 Прашање на корисникот: {question}
 
-Ве молиме дајте корисен, фактички одговор со соодветни цитати на македонски јазик. Ако не сте сигурни или контекстот не содржи релевантни информации, јасно кажете тоа.`;
+Ве молиме дајте корисен, фактички одговор со:
+1. Целосни цитати од релевантните членови (точен текст од изворот)
+2. Хипотетички практични примери со конкретни бројки за секој член
+3. Јасна структура: Цитат → Практичен пример → Објаснување
+
+Ако не сте сигурни или контекстот не содржи релевантни информации, јасно кажете тоа.`;
 
     this.promptTemplate = PromptTemplate.fromTemplate(this.systemPromptTemplate);
   }
@@ -87,6 +139,15 @@ class ChatBotService {
   async setDatabase(database) {
     this.db = database;
     console.log('✓ Database reference set for ChatBotService');
+  }
+
+  /**
+   * Set conversation service reference (for conversation history)
+   * @param {Object} conversationService - ConversationService instance
+   */
+  setConversationService(conversationService) {
+    this.conversationService = conversationService;
+    console.log('✓ ConversationService reference set for ChatBotService');
   }
 
   /**
@@ -195,9 +256,10 @@ class ChatBotService {
    * Ask a question and get an AI response with source citations
    * @param {string} question - User's question
    * @param {string} userId - User ID for tracking
+   * @param {string} conversationId - Conversation ID (optional, for conversation history)
    * @returns {Promise<Object>} - Response with answer and sources
    */
-  async askQuestion(question, userId) {
+  async askQuestion(question, userId, conversationId = null) {
     try {
       // Validate inputs
       if (!question || question.trim().length === 0) {
@@ -213,30 +275,49 @@ class ChatBotService {
         );
       }
 
-      // Step 1: Retrieve relevant documents from vector store
+      // Step 1: Load conversation history if available
+      let conversationHistory = '';
+      if (this.conversationService && conversationId) {
+        try {
+          const conversation = await this.conversationService.getConversation(conversationId);
+          if (conversation && conversation.messages && conversation.messages.length > 0) {
+            conversationHistory = this.formatConversationHistory(conversation.messages);
+            console.log(`\n💭 [RAG DEBUG] Loaded ${conversation.messages.length} previous messages from conversation`);
+          }
+        } catch (error) {
+          console.warn('⚠️  Could not load conversation history:', error.message);
+        }
+      }
+
+      // Step 2: Retrieve relevant documents from vector store
       console.log(`\n🤖 [RAG DEBUG] Processing question for user ${userId}`);
       const relevantDocs = await this.retrieveRelevantDocuments(question);
 
-      // Step 2: Format context from retrieved documents
+      // Step 3: Format context from retrieved documents
       const context = this.formatContext(relevantDocs);
       console.log(`\n📝 [RAG DEBUG] Context being sent to LLM (${context.length} characters):`);
       console.log('─'.repeat(70));
       console.log(context.substring(0, 500) + (context.length > 500 ? '...' : ''));
       console.log('─'.repeat(70));
 
-      // Step 3: Create the RAG chain
+      // Step 4: Create the RAG chain
       const chain = RunnableSequence.from([
         this.promptTemplate,
         this.chatModel,
         new StringOutputParser(),
       ]);
 
-      // Step 4: Execute the chain
+      // Step 5: Build enhanced question with conversation history
+      const enhancedQuestion = conversationHistory
+        ? `${conversationHistory}\n\nНово прашање: ${question}`
+        : question;
+
+      // Step 6: Execute the chain
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
         context: context,
-        question: question,
+        question: enhancedQuestion,
       });
       const llmTime = Date.now() - llmStartTime;
       console.log(`✓ [RAG DEBUG] LLM response received in ${llmTime}ms (${response.length} characters)`);
@@ -246,13 +327,44 @@ class ChatBotService {
       // Step 5: Track usage (increment question count)
       await this.incrementUsageCount(userId);
 
-      // Step 6: Return response with metadata
+      // Step 6: Save conversation messages if conversation service is available
+      if (this.conversationService && conversationId) {
+        try {
+          // Save user message
+          await this.conversationService.saveMessage(conversationId, {
+            type: 'user',
+            content: question,
+            timestamp: new Date()
+          });
+
+          // Save AI response with sources
+          await this.conversationService.saveMessage(conversationId, {
+            type: 'ai',
+            content: response,
+            sources: relevantDocs.map(doc => ({
+              documentName: doc.metadata?.documentName || 'Unknown',
+              confidence: doc.metadata?.score || 0,
+              pageNumber: doc.metadata?.pageNumber || null,
+              snippet: doc.pageContent?.substring(0, 200) || ''
+            })),
+            timestamp: new Date()
+          });
+
+          console.log(`✓ [CONVERSATION] Messages saved to conversation ${conversationId}`);
+        } catch (convError) {
+          console.error('⚠️  Failed to save conversation messages:', convError.message);
+          // Continue execution even if saving fails
+        }
+      }
+
+      // Step 7: Return response with metadata
       const result = {
         answer: response,
         sources: relevantDocs.map(doc => ({
           documentName: doc.metadata?.documentName || 'Unknown',
           confidence: doc.metadata?.score || 0,
           pageNumber: doc.metadata?.pageNumber || null,
+          article: doc.metadata?.article || null, // Include article number if available
         })),
         timestamp: new Date(),
         userId: userId,
@@ -300,9 +412,9 @@ class ChatBotService {
       const searchStartTime = Date.now();
       const searchResult = await this.qdrantClient.search(this.collectionName, {
         vector: questionEmbedding,
-        limit: 5, // Top 5 most relevant chunks
+        limit: 8, // Top 8 most relevant chunks (increased for better context)
         with_payload: true,
-        score_threshold: 0.3, // Only return results with similarity > 30%
+        score_threshold: 0.25, // Only return results with similarity > 25% (slightly more permissive)
       });
       const searchTime = Date.now() - searchStartTime;
       console.log(`✓ [RAG DEBUG] Search completed in ${searchTime}ms`);
@@ -315,6 +427,9 @@ class ChatBotService {
           pageCount: result.payload.pageCount,
           processedAt: result.payload.processedAt,
           score: result.score,
+          // Include article information if available
+          article: result.payload.article || null,
+          chunkType: result.payload.chunkType || 'standard',
         },
       }));
 
@@ -322,7 +437,8 @@ class ChatBotService {
       topResults.forEach((result, index) => {
         const scorePercent = (result.metadata.score * 100).toFixed(1);
         const preview = result.pageContent.substring(0, 100).replace(/\n/g, ' ');
-        console.log(`  [${index + 1}] ${result.metadata.documentName} - Confidence: ${scorePercent}%`);
+        const articleInfo = result.metadata.article ? ` [${result.metadata.article}]` : '';
+        console.log(`  [${index + 1}] ${result.metadata.documentName}${articleInfo} - Confidence: ${scorePercent}%`);
         console.log(`      Preview: "${preview}..."`);
 
         if (result.metadata.score < 0.5) {
@@ -379,6 +495,34 @@ class ChatBotService {
         return `[Source ${index + 1}] ${docName}${pageNum}:\n${doc.pageContent}`;
       })
       .join('\n\n---\n\n');
+  }
+
+  /**
+   * Format conversation history for context
+   * @param {Array} messages - Array of previous messages
+   * @returns {string} - Formatted conversation history
+   */
+  formatConversationHistory(messages) {
+    if (!messages || messages.length === 0) {
+      return '';
+    }
+
+    // Only include last 6 messages (3 Q&A pairs) to avoid token limits
+    const recentMessages = messages.slice(-6);
+
+    const formattedHistory = recentMessages
+      .map(msg => {
+        if (msg.type === 'user') {
+          return `Претходно прашање од корисникот: ${msg.content}`;
+        } else if (msg.type === 'ai') {
+          return `Мој претходен одговор: ${msg.content}`;
+        }
+        return '';
+      })
+      .filter(msg => msg.length > 0)
+      .join('\n\n');
+
+    return `ПРЕТХОДНА КОНВЕРЗАЦИЈА (за контекст):\n${formattedHistory}`;
   }
 
   /**

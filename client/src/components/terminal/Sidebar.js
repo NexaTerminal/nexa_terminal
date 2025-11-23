@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,7 +8,6 @@ const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
 
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard', icon: '📊' },
@@ -28,29 +27,9 @@ const Sidebar = () => {
     { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝' },
   ];
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsOpen(false);
-  };
-
   return (
     <>
-      {/* Mobile menu button - restored with improved styling */}
-      <button
-        className={styles["mobile-menu-button"]}
-        onClick={toggleSidebar}
-        aria-label="Toggle menu"
-      >
-        ☰
-      </button>
-
-      {/* Backdrop for mobile */}
-      {isOpen && <div className={styles["sidebar-backdrop"]} onClick={closeSidebar}></div>}
-
-      <aside className={`${styles["dashboard-sidebar"]} ${isOpen ? styles["open"] : ""}`}>
+      <aside className={styles["dashboard-sidebar"]}>
         {/* <div className={styles["dashboard-welcome"]}>
           <h2>{t("dashboard.welcome")}, {currentUser?.fullName || t("common.user")}</h2>
         </div> */}
@@ -64,7 +43,6 @@ const Sidebar = () => {
               className={`${styles["menu-item"]} ${
                 location.pathname === path ? styles.active : ""
               }`}
-              onClick={closeSidebar}
             >
               <span className={styles["menu-icon"]}>{icon}</span>
               <h3>{noTranslate ? label : t(label)}</h3>
@@ -85,7 +63,6 @@ const Sidebar = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles["menu-item"]}
-                    onClick={closeSidebar}
                   >
                     <span className={styles["menu-icon"]}>{icon}</span>
                     <h3>{t(label)}</h3>
@@ -97,7 +74,6 @@ const Sidebar = () => {
                     className={`${styles["menu-item"]} ${
                       location.pathname === path ? styles.active : ""
                     }`}
-                    onClick={closeSidebar}
                   >
                     <span className={styles["menu-icon"]}>{icon}</span>
                     <h3>{t(label)}</h3>

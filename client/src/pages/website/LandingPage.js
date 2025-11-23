@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import styles from '../../styles/website/LandingPage.new.css';
+import styles from '../../styles/LandingPage.new.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';

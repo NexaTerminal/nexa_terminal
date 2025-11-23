@@ -49,13 +49,9 @@ const BlogDetail = () => {
   const formatBlogContent = (content) => {
     if (!content) return '';
 
-    // If content already has HTML tags, return as is
-    if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>')) {
-      return content;
-    }
-
-    // For content without HTML tags, wrap in a single paragraph
-    return `<p>${content.trim()}</p>`;
+    // Content is already formatted with <p> tags on the server
+    // Just return it as-is to preserve the paragraph formatting
+    return content;
   };
 
   const stripHtmlTags = (html) => {

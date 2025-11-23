@@ -1,14 +1,14 @@
 .dashboard-layout {
   display: flex;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 60px);
   background-color: var(--color-off-white);
 }
 
 .dashboard-main {
   flex: 1;
   padding: var(--spacing-lg);
-  margin-left: 280px;
-  max-width: calc(100% - 280px);
+  margin-left: 252px;
+  max-width: calc(100% - 252px);
   background-color: var(--color-white);
   overflow-y: auto;
   min-height: calc(100vh - 64px);
@@ -706,6 +706,13 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-main {
+    margin-left: 198px;
+    max-width: calc(100% - 198px);
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-main {
     margin-left: 0;
@@ -731,6 +738,11 @@
 
   .form-actions {
     flex-direction: column;
+  }
+
+  .form-input,
+  .form-textarea {
+    font-size: 16px; /* Prevent iOS zoom */
   }
 
   .preview-actions {

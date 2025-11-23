@@ -321,15 +321,28 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
+  .dashboard-main {
+    margin-left: 0;
+    max-width: 100%;
+    padding: var(--spacing-md);
+  }
+
   .form {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+    padding: var(--spacing-md);
   }
-  
+
   .container {
     max-width: 100%;
     padding: var(--spacing-md);
+  }
+
+  .formGroup input,
+  .formGroup textarea,
+  .formGroup select {
+    font-size: 16px; /* Prevent iOS zoom */
   }
 }
 

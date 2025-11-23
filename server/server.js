@@ -88,6 +88,9 @@ app.use(sanitizeRequest); // Sanitize all incoming requests
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', require('./routes/autoDocuments'));
 
+// Mount LHC (Legal Health Check) routes (JWT-protected API)
+app.use('/api/lhc', require('./routes/lhc'));
+
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));
 
@@ -240,10 +243,13 @@ async function initializeServices(database) {
     const UserAnalyticsService = require('./services/userAnalyticsService');
     const activityLogger = require('./middleware/activityLogger');
 
-    new UserService(database);
+    const userService = new UserService(database);
     new SocialPostService(database);
     new InvestmentService(database);
     new UserAnalyticsService(database);
+
+    // Make userService available globally
+    app.locals.userService = userService;
 
     // Initialize marketplace database if feature is enabled
     if (settings.isFeatureEnabled('marketplace')) {
@@ -276,6 +282,33 @@ async function initializeServices(database) {
 
       console.log('✅ AI Chatbot with conversation history initialized');
     }
+
+    // Initialize Credit System
+    console.log('💳 Initializing Credit System...');
+    const CreditService = require('./services/creditService');
+    const ReferralService = require('./services/referralService');
+    const CreditScheduler = require('./services/creditScheduler');
+    const emailService = require('./services/emailService');
+
+    // Create credit service instance
+    const creditService = new CreditService(database, userService);
+    app.locals.creditService = creditService;
+
+    // Create referral service instance
+    const referralService = new ReferralService(database, userService, creditService);
+    app.locals.referralService = referralService;
+
+    // Create and start credit scheduler
+    const creditScheduler = new CreditScheduler(creditService, referralService, emailService);
+    app.locals.creditScheduler = creditScheduler;
+
+    // Check for missed resets on startup
+    await creditService.checkAndPerformMissedResets();
+
+    // Start scheduler (if enabled)
+    creditScheduler.startAll();
+
+    console.log('✅ Credit System initialized successfully');
 
     // Initialize activity logger
     activityLogger.initialize(database);
@@ -364,6 +397,10 @@ function registerRoutes() {
     /^\/certificates\/.*$/,                // All certificate routes (JWT protected)
     '/chatbot',                            // AI Chatbot endpoints (JWT protected)
     /^\/chatbot\/.*$/,                     // All chatbot sub-routes (JWT protected)
+    '/credits',                            // Credit system endpoints (JWT protected)
+    /^\/credits\/.*$/,                     // All credit sub-routes (JWT protected)
+    '/referrals',                          // Referral system endpoints (JWT protected)
+    /^\/referrals\/.*$/,                   // All referral sub-routes (JWT protected)
   ];
   
   // Apply CSRF exemptions only if CSRF is enabled
@@ -432,6 +469,15 @@ function registerRoutes() {
       console.log('⚠️  AI Chatbot routes not found - feature not available');
       console.error('Chatbot routes error:', error.message);
     }
+  }
+
+  // Credit System routes (always enabled)
+  try {
+    app.use('/api/credits', require('./routes/credits'));
+    app.use('/api/referrals', require('./routes/referrals'));
+    console.log('✅ Credit and Referral routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Credit routes error:', error.message);
   }
 
   // Conditional feature routes (disabled by default in current settings)
@@ -539,7 +585,7 @@ async function initializeServer() {
   if (!app.locals.initialized) {
     await createUploadDirs();
     const database = await connectToDatabase();
-    
+
     // Only proceed if database connection was successful
     if (database) {
       app.locals.database = database; // Store database connection
@@ -558,13 +604,13 @@ async function initializeServer() {
 async function startServer() {
   try {
     await initializeServer();
-    
+
     // Only start the server if initialization was successful
     if (app.locals.initialized) {
       const PORT = process.env.PORT || 5002;
       const http = require('http');
       const { Server } = require('socket.io');
-      
+
       const server = http.createServer(app);
       const io = new Server(server, {
         cors: {
@@ -577,7 +623,7 @@ async function startServer() {
       const UserAnalyticsService = require('./services/userAnalyticsService');
       const RealtimeAdminController = require('./controllers/realtimeAdminController');
       const { setRealtimeController } = require('./routes/realtimeAdmin');
-      
+
       // Get database connection (available in app.locals)
       const database = app.locals.database;
       if (database) {
@@ -587,12 +633,10 @@ async function startServer() {
       } else {
         console.warn('⚠️ Real-time monitoring disabled - no database connection');
       }
-      
+
       server.listen(PORT, () => {
         console.log(`🚀 Server running on port ${PORT} with Socket.io enabled`);
       });
-    } else {
-      // Server initialization failed
     }
   } catch (error) {
     console.error('❌ Server startup error:', error);

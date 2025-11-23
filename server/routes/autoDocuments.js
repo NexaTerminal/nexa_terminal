@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateJWT } = require('../middleware/auth');
 const { requireVerifiedCompany } = require('../middleware/verificationMiddleware');
+const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
 const generate = require('../controllers/autoDocuments/consentForPersonalDataProcessingController');
 const terminationAgreementController = require('../controllers/autoDocuments/terminationAgreementController');
 const annualLeaveDecisionController = require('../controllers/autoDocuments/annualLeaveDecisionController');
@@ -35,100 +36,100 @@ const deathCompensationDecisionController = require('../controllers/autoDocument
 // const gdprCompanyPoliticsController = require('../controllers/autoDocuments/gdprCompanyPoliticsController');
 
 // Consent for Personal Data Processing
-router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, generate);
+router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
 
 // Politics for Data Protection (Политика за заштита на лични податоци)
-router.post('/politics-for-data-protection', authenticateJWT, requireVerifiedCompany, politicsForDataProtectionController);
+router.post('/politics-for-data-protection', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), politicsForDataProtectionController);
 
 // Procedure for Estimation (Процедура за проценка на влијанието врз заштитата на личните податоци)
-router.post('/procedure-for-estimation', authenticateJWT, requireVerifiedCompany, procedureForEstimationController);
+router.post('/procedure-for-estimation', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), procedureForEstimationController);
 
 // GDPR Company Politics (Политика за администрирање со правата на субјектите на персонални податоци)
 // router.post('/gdpr-company-politics', authenticateJWT, requireVerifiedCompany, gdprCompanyPoliticsController);
 
 // Employment
 // Confirmation of Employment (Потврда за вработување)
-router.post('/confirmation-of-employment', authenticateJWT, requireVerifiedCompany, confirmationOfEmploymentController);
+router.post('/confirmation-of-employment', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), confirmationOfEmploymentController);
 
 // Death Compensation Decision (Одлука за исплата на надомест во случај на смрт на член на семејно домаќинство)
-router.post('/death-compensation-decision', authenticateJWT, requireVerifiedCompany, deathCompensationDecisionController);
+router.post('/death-compensation-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), deathCompensationDecisionController);
 
 // Termination Agreement (Спогодба за престанок на работен однос)
-router.post('/termination-agreement', authenticateJWT, requireVerifiedCompany, terminationAgreementController);
+router.post('/termination-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationAgreementController);
 
 // Annual Leave Decision (Решение за годишен одмор)
-router.post('/annual-leave-decision', authenticateJWT, requireVerifiedCompany, annualLeaveDecisionController);
+router.post('/annual-leave-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), annualLeaveDecisionController);
 
 // Unpaid Leave Decision (Одлука за неплатено отсуство)
-router.post('/unpaid-leave-decision', authenticateJWT, requireVerifiedCompany, unpaidLeaveDecisionController);
+router.post('/unpaid-leave-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), unpaidLeaveDecisionController);
 
 // Annual Leave Bonus Decision (Одлука за исплата на регрес за годишен одмор)
-router.post('/annual-leave-bonus', authenticateJWT, requireVerifiedCompany, annualLeaveBonusDecisionController);
+router.post('/annual-leave-bonus', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), annualLeaveBonusDecisionController);
 
 // Employment Agreement (Договор за вработување)
-router.post('/employment-agreement', authenticateJWT, requireVerifiedCompany, employmentAgreementController);
+router.post('/employment-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), employmentAgreementController);
 
 // Disciplinary Action (Дисциплинска мерка)
-router.post('/disciplinary-action', authenticateJWT, requireVerifiedCompany, disciplinaryActionController);
+router.post('/disciplinary-action', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), disciplinaryActionController);
 
 // Termination Decision Due to Duration (Одлука за престанок поради истек на времето)
-router.post('/termination-decision-due-to-duration', authenticateJWT, requireVerifiedCompany, terminationDecisionDueToDurationController);
+router.post('/termination-decision-due-to-duration', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationDecisionDueToDurationController);
 
 // Termination Warning (Предупредување пред откажување на договор за вработување)
-router.post('/termination-warning', authenticateJWT, requireVerifiedCompany, terminationWarningController);
+router.post('/termination-warning', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationWarningController);
 
 // Employment Annex (Анекс на договор за вработување)
-router.post('/employment-annex', authenticateJWT, requireVerifiedCompany, employmentAnnexController);
+router.post('/employment-annex', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), employmentAnnexController);
 
 // Warning Letter to Employee (Опомена до вработен)
-router.post('/warning-letter', authenticateJWT, requireVerifiedCompany, warningLetterController);
+router.post('/warning-letter', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), warningLetterController);
 
 // Termination Decision Due to Personal Reasons (Одлука за престанок поради лични причини)
-router.post('/termination-personal-reasons', authenticateJWT, requireVerifiedCompany, terminationPersonalReasonsController);
+router.post('/termination-personal-reasons', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationPersonalReasonsController);
 
 // Termination Decision Due to Fault by Employee (Одлука за престанок поради вина на работникот)
-router.post('/termination-due-to-fault', authenticateJWT, requireVerifiedCompany, terminationDueToFaultController);
+router.post('/termination-due-to-fault', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationDueToFaultController);
 
 // Termination by Employee Request (Решение за престанок по барање на работникот)
-router.post('/termination-by-employee-request', authenticateJWT, requireVerifiedCompany, terminationByEmployeeRequestController);
+router.post('/termination-by-employee-request', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationByEmployeeRequestController);
 
 // Bonus Payment Decision (Одлука за бонус плаќање)
-router.post('/bonus-payment', authenticateJWT, requireVerifiedCompany, bonusPaymentController);
+router.post('/bonus-payment', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), bonusPaymentController);
 
 // Bonus Decision (Одлука за бонус)
-router.post('/bonus-decision', authenticateJWT, requireVerifiedCompany, bonusDecisionController);
+router.post('/bonus-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), bonusDecisionController);
 
 // Employee Damages Statement (Изјава за согласност за намалување на плата поради предизвикана штета)
-router.post('/employee-damages-statement', authenticateJWT, requireVerifiedCompany, employeeDamagesStatementController);
+router.post('/employee-damages-statement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), employeeDamagesStatementController);
 
 // Termination Due to Age Limit (Решение за престанок поради возраст)
-router.post('/termination-due-to-age-limit', authenticateJWT, requireVerifiedCompany, terminationDueToAgeLimitController);
+router.post('/termination-due-to-age-limit', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), terminationDueToAgeLimitController);
 
 // Organization Act (Акт за систематизација на работните места)
-router.post('/organization-act', authenticateJWT, requireVerifiedCompany, organizationActController);
+router.post('/organization-act', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), organizationActController);
 
 // Mandatory Bonus - Multi Document (Задолжителен бонус - Мултидокумент)
-router.post('/mandatory-bonus', authenticateJWT, requireVerifiedCompany, mandatoryBonusController);
+router.post('/mandatory-bonus', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), mandatoryBonusController);
 
 // Contracts
 // Rent Agreement (Договор за закуп на недвижен имот)
-router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, rentAgreementController);
+router.post('/rent-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), rentAgreementController);
 
 // NDA (Договор за доверливост на информации)
-router.post('/nda', authenticateJWT, requireVerifiedCompany, ndaController);
+router.post('/nda', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), ndaController);
 
 // Mediation Agreement (Договор за посредување)
-router.post('/mediation-agreement', authenticateJWT, requireVerifiedCompany, mediationAgreementController);
+router.post('/mediation-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), mediationAgreementController);
 
 // Vehicle Sale-Purchase Agreement (Договор за продажба-купување на возило)
-router.post('/vehicle-sale-purchase-agreement', authenticateJWT, requireVerifiedCompany, vehicleSalePurchaseAgreementController);
+router.post('/vehicle-sale-purchase-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), vehicleSalePurchaseAgreementController);
 
 // Debt Assumption Agreement (Договор за преземање на долг)
-router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompany, debtAssumptionAgreementController);
+router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), debtAssumptionAgreementController);
 
 // Rulebooks
 // Business Secret Rulebook (Правилник за заштита на деловна тајна)
-router.post('/business-secret-rulebook', authenticateJWT, requireVerifiedCompany, personalDataRulebookController);
+router.post('/business-secret-rulebook', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), personalDataRulebookController);
 
 // Add more document routes here as needed
 

@@ -137,7 +137,12 @@ const sanitizeInput = (input) => {
       .replace(/eval\(/gi, '')
       .replace(/function\(/gi, '');
   }
-  
+
+  // Handle arrays - must check before object since arrays are objects
+  if (Array.isArray(input)) {
+    return input.map(item => sanitizeInput(item));
+  }
+
   if (typeof input === 'object' && input !== null) {
     const sanitized = {};
     for (const key in input) {
@@ -149,7 +154,7 @@ const sanitizeInput = (input) => {
     }
     return sanitized;
   }
-  
+
   return input;
 };
 

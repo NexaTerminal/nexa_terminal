@@ -20,6 +20,26 @@ const userSchemaDefinition = {
     facebook: { type: 'String', trim: true, default: '' },
     linkedin: { type: 'String', trim: true, default: '' }
   },
+  credits: {
+    balance: { type: 'Number', default: 14 },
+    weeklyAllocation: { type: 'Number', default: 14 },
+    lastResetDate: { type: 'Date', default: null },
+    lifetimeEarned: { type: 'Number', default: 14 },
+    lifetimeSpent: { type: 'Number', default: 0 }
+  },
+  referralCode: { type: 'String', unique: true, sparse: true },
+  referredBy: { type: 'String', default: null },
+  referrals: {
+    type: 'Array',
+    default: [],
+    items: {
+      userId: { type: 'ObjectId' },
+      email: { type: 'String' },
+      status: { type: 'String' }, // 'pending', 'active', 'inactive'
+      invitedAt: { type: 'Date' },
+      activatedAt: { type: 'Date' }
+    }
+  },
   createdAt: { type: 'Date', default: Date.now },
   updatedAt: { type: 'Date', default: Date.now },
   lastLogin: { type: 'Date', default: null }

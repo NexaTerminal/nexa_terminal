@@ -27,6 +27,12 @@ import DocumentGen from './pages/terminal/DocumentGen';
 import DocumentGeneratorPage from './pages/DocumentGeneratorPage';
 import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTemplateGenerator';
 import LegalScreening from './pages/terminal/LegalScreening';
+import EmploymentQuestionnaire from './pages/terminal/lhc/EmploymentQuestionnaire';
+import EmploymentReport from './pages/terminal/lhc/EmploymentReport';
+import HealthAndSafetyQuestionnaire from './pages/terminal/lhc/HealthAndSafetyQuestionnaire';
+import HealthAndSafetyReport from './pages/terminal/lhc/HealthAndSafetyReport';
+import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
+import GDPRReport from './pages/terminal/lhc/GDPRReport';
 import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
@@ -41,6 +47,8 @@ import SimpleCompleteProfile from './pages/terminal/SimpleCompleteProfile';
 import Education from './pages/terminal/Education';
 import CourseDetail from './pages/terminal/CourseDetail';
 import CourseLesson from './pages/terminal/CourseLesson';
+import Credits from './pages/terminal/Credits';
+import Invite from './pages/terminal/Invite';
 
 
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
@@ -147,6 +155,12 @@ function App() {
       {/* <Route path="/terminal/documents/personal-data-protection/gdpr-company-politics" element={<PrivateRoute><GdprCompanyPoliticsPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/personal-data-protection/privacy-policy" element={<PrivateRoute><PrivacyPolicyPage /></PrivateRoute>} /> */}
       <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><LegalScreening /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><EmploymentQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><EmploymentReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/health-safety" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><HealthAndSafetyQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
@@ -160,7 +174,9 @@ function App() {
       <Route path="/terminal/education" element={<PrivateRoute><Education /></PrivateRoute>} />
       <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><CourseDetail /></PrivateRoute>} />
       <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><CourseLesson /></PrivateRoute>} />
-      
+      <Route path="/terminal/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
+      <Route path="/terminal/invite" element={<PrivateRoute><Invite /></PrivateRoute>} />
+
       {/* General Conditions */}
       <Route path="/general-conditions" element={<GeneralConditions />} />
       

@@ -107,11 +107,11 @@
 
 /* Info specific styling */
 .messageContainer.info .messageTitle {
-  color: var(--color-info);
+  color: var(--color-primary);
 }
 
 .messageContainer.info .messageText {
-  color: #1e40af;
+  color: var(--color-primary-800);
 }
 
 @keyframes slideIn {

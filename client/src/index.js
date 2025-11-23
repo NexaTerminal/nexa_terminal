@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { CreditProvider } from './contexts/CreditContext';
 import { HelmetProvider } from 'react-helmet-async';
 import './i18n/i18n';
 
@@ -17,7 +18,9 @@ root.render(
       <BrowserRouter>
         <LanguageProvider>
           <AuthProvider>
-            <App />
+            <CreditProvider>
+              <App />
+            </CreditProvider>
           </AuthProvider>
         </LanguageProvider>
       </BrowserRouter>

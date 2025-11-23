@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useCredit } from '../contexts/CreditContext';
 import { createValidator, createStepValidator } from '../utils/documentValidation';
 import documentService from '../services/documentService';
 
@@ -15,6 +16,9 @@ export const useDocumentForm = (config) => {
     documentType,
     fileName
   } = config;
+
+  // Credit context for refreshing balance
+  const { refreshCredits } = useCredit();
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1);
@@ -60,7 +64,7 @@ export const useDocumentForm = (config) => {
    */
   const prevStep = useCallback(() => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep(prev => prev + 1);
     }
   }, [currentStep]);
 
@@ -110,13 +114,16 @@ export const useDocumentForm = (config) => {
     await documentService.generateDocument(apiEndpoint, formData, {
       fileName: generatedFileName,
       onStart: () => setIsGenerating(true),
-      onSuccess: () => setIsGenerating(false),
+      onSuccess: () => {
+        setIsGenerating(false);
+        refreshCredits(); // Refresh credits on success
+      },
       onError: (error) => {
         setIsGenerating(false);
         console.error('Document generation failed:', error);
       }
     });
-  }, [apiEndpoint, documentType, fileName, formData]);
+  }, [apiEndpoint, documentType, fileName, formData, refreshCredits]);
 
   /**
    * Handle form submission

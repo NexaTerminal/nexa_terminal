@@ -102,7 +102,7 @@ const adminNewRequestNotification = (request, user) => {
           <div style="text-align: center; margin-top: 30px;">
             <p style="color: #6b7280; margin-bottom: 20px;">Прегледајте го барањето и донесете одлука:</p>
             <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/terminal/admin/offer-requests"
-               style="background: #1E4DB7; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: 600;">
+               style="background: #ffffff; color: #1E4DB7; border: 2px solid #1E4DB7; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: 600;">
               📝 Прегледај во админ панел
             </a>
           </div>
@@ -215,18 +215,18 @@ const providerInterestInvitation = (request, provider, interestToken) => {
 
             <div style="margin-bottom: 20px;">
               <a href="${responseUrl}"
-                 style="background: #10b981; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin: 5px;">
+                 style="background: #ffffff; color: #22C55E; border: 2px solid #22C55E; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin: 5px;">
                 ✅ Прифаќам - Детална понуда
               </a>
             </div>
 
             <div style="margin-bottom: 20px;">
               <a href="${responseUrl}"
-                 style="background: #ef4444; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
+                 style="background: #ffffff; color: #dc2626; border: 2px solid #dc2626; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
                 ❌ Одбивам
               </a>
               <a href="${responseUrl}"
-                 style="background: #f59e0b; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
+                 style="background: #ffffff; color: #F97316; border: 2px solid #F97316; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 14px; margin: 5px;">
                 🚫 Отпиши ме
               </a>
             </div>
@@ -480,12 +480,12 @@ const clientProviderInterestNotification = (client, request, provider, interestD
 
           <div style="text-align: center; margin-top: 30px;">
             <a href="mailto:${provider.email}?subject=Re: ${request.serviceType} - Ваше барање за понуда"
-               style="background: #1E4DB7; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin-right: 10px;">
+               style="background: #ffffff; color: #1E4DB7; border: 2px solid #1E4DB7; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin-right: 10px;">
               📧 Контактирај преку Email
             </a>
             ${provider.phone ? `
             <a href="tel:${provider.phone}"
-               style="background: #10b981; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">
+               style="background: #ffffff; color: #22C55E; border: 2px solid #22C55E; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">
               📞 Повикај
             </a>
             ` : ''}
@@ -589,12 +589,12 @@ const requestRejectionNotification = (request, client, reason) => {
 
           <div style="text-align: center; margin-top: 30px;">
             <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/terminal/contact"
-               style="background: #1E4DB7; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin-bottom: 15px;">
+               style="background: #ffffff; color: #1E4DB7; border: 2px solid #1E4DB7; text-decoration: none; padding: 15px 30px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin-bottom: 15px;">
               📝 Поднеси ново барање
             </a>
             <br>
             <a href="mailto:terminalnexa@gmail.com?subject=Помош со барање за понуда"
-               style="color: #6b7280; font-size: 14px; text-decoration: underline;">
+               style="color: #1E4DB7; font-size: 14px; text-decoration: underline;">
               Контактирај за помош
             </a>
           </div>

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
-import styles from '../../styles/terminal/UnifiedVerification.module.css';
+import styles from '../../styles/terminal/CompanyVerification.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 import ApiService from '../../services/api';
 

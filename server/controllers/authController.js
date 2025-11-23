@@ -153,7 +153,7 @@ class AuthController {
   // Register new user
   register = async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const { username, password, referralCode } = req.body;
 
       // Basic field validation
       if (!username || !password) {
@@ -198,11 +198,35 @@ class AuthController {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
+      // Process referral code if provided
+      let referredByCode = null;
+      if (referralCode && referralCode.trim().length > 0) {
+        try {
+          const referralService = req.app.locals.referralService;
+          if (referralService) {
+            // Validate referral code exists
+            const referrer = await userService.findByReferralCode(referralCode.trim());
+            if (referrer) {
+              referredByCode = referralCode.trim();
+              // Track the referral invitation
+              await referralService.processInvitation(referredByCode, username);
+              console.log(`✅ User ${username} registered with referral code: ${referredByCode}`);
+            } else {
+              console.log(`⚠️ Invalid referral code provided: ${referralCode}`);
+            }
+          }
+        } catch (referralError) {
+          // Log error but don't fail registration
+          console.error('Referral processing error:', referralError.message);
+        }
+      }
+
       // Create new user with minimal required information
       const userData = {
         username: username.trim().toLowerCase(),
         password: hashedPassword,
         role: 'user',
+        referredBy: referredByCode,
         companyInfo: {
           companyName: '',
           companyAddress: '',

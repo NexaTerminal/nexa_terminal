@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { useAuth } from "../../../../contexts/AuthContext";
+import { useCredit } from "../../../../contexts/CreditContext";
 import Header from "../../../../components/common/Header";
 import Sidebar from "../../../../components/terminal/Sidebar";
 import ProfileReminderBanner from "../../../../components/terminal/ProfileReminderBanner";
 import DocumentPreview from "../../../../components/terminal/documents/DocumentPreview";
+import InsufficientCreditsModal from "../../../../components/common/InsufficientCreditsModal";
+import useCreditHandler from "../../../../hooks/useCreditHandler";
 import styles from "../../../../styles/terminal/documents/DocumentGeneration.module.css";
 
 const ConsentForPersonalDataProcessingPage = () => {
   const { currentUser } = useAuth();
+  const { refreshCredits } = useCredit();
+  const { handleCreditOperation, showInsufficientModal, modalConfig, closeModal } = useCreditHandler();
 
   const [formData, setFormData] = useState({
     // companyName: currentUser?.company?.name || '',
@@ -49,36 +54,64 @@ const ConsentForPersonalDataProcessingPage = () => {
       return;
     }
 
+    setIsGenerating(true);
+    setError(null);
+    setSuccess(null);
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         setError('No authentication token found');
+        setIsGenerating(false);
         return;
       }
 
-      const response = await fetch('/api/auto-documents/consent-for-personal-data-processing', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ formData })
-      });
+      // Wrap the document generation with credit handling
+      const response = await handleCreditOperation(
+        async () => {
+          const res = await fetch('/api/auto-documents/consent-for-personal-data-processing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ formData })
+          });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = 'Failed to generate document';
-        
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-          // If response is not JSON, use the text as error message
-        }
-        
-        throw new Error(errorMessage);
+          // For 402 errors (insufficient credits), throw specific error
+          if (res.status === 402) {
+            const error = new Error('Insufficient credits');
+            error.response = { status: 402, data: { code: 'INSUFFICIENT_CREDITS' } };
+            throw error;
+          }
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            let errorMessage = 'Failed to generate document';
+
+            try {
+              const errorData = JSON.parse(errorText);
+              errorMessage = errorData.message || errorMessage;
+            } catch (parseError) {
+              // If response is not JSON, use the text as error message
+            }
+
+            throw new Error(errorMessage);
+          }
+
+          return res;
+        },
+        'генерирање на документ за согласност',
+        1
+      );
+
+      // If null, insufficient credits (handled by modal)
+      if (!response) {
+        setIsGenerating(false);
+        return;
       }
 
+      // Download the document
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -91,9 +124,14 @@ const ConsentForPersonalDataProcessingPage = () => {
 
       setSuccess('Document downloaded successfully!');
       setError(null);
+
+      // Refresh credits after successful generation
+      await refreshCredits();
     } catch (error) {
       setError(error.message);
       setSuccess(null);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -210,6 +248,14 @@ const ConsentForPersonalDataProcessingPage = () => {
           </div>
         </main>
       </div>
+
+      {/* Insufficient Credits Modal */}
+      <InsufficientCreditsModal
+        isOpen={showInsufficientModal}
+        onClose={closeModal}
+        requiredCredits={modalConfig.requiredCredits}
+        actionName={modalConfig.actionName}
+      />
     </>
   );
 };

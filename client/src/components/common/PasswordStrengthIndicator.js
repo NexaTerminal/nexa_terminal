@@ -10,11 +10,11 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
 
   const getStrengthColor = (strength) => {
     switch (strength) {
-      case 'weak': return '#ef4444';
-      case 'fair': return '#f59e0b';
-      case 'good': return '#22c55e';
-      case 'strong': return '#10b981';
-      default: return '#6b7280';
+      case 'weak': return 'var(--color-error)';
+      case 'fair': return 'var(--color-warning)';
+      case 'good': return 'var(--color-green-500)';
+      case 'strong': return 'var(--color-green-700)';
+      default: return 'var(--color-neutral-600)';
     }
   };
 

@@ -196,18 +196,21 @@ class EmailService {
         }
         .verify-btn {
           display: inline-block;
-          background-color: #2563eb;
-          color: white;
+          background-color: #ffffff;
+          color: #1E4DB7;
+          border: 2px solid #1E4DB7;
           padding: 15px 30px;
           text-decoration: none;
           border-radius: 6px;
           font-weight: bold;
           text-align: center;
           margin: 20px 0;
-          transition: background-color 0.3s;
+          transition: all 0.3s;
         }
         .verify-btn:hover {
-          background-color: #1d4ed8;
+          background-color: #F0F7FF;
+          border-color: #163A8F;
+          color: #163A8F;
         }
         .info-box {
           background-color: #f0f9ff;
@@ -397,14 +400,21 @@ class EmailService {
         }
         .login-btn {
           display: inline-block;
-          background-color: #2563eb;
-          color: white;
+          background-color: #ffffff;
+          color: #1E4DB7;
+          border: 2px solid #1E4DB7;
           padding: 15px 30px;
           text-decoration: none;
           border-radius: 6px;
           font-weight: bold;
           text-align: center;
           margin: 20px 0;
+          transition: all 0.3s;
+        }
+        .login-btn:hover {
+          background-color: #F0F7FF;
+          border-color: #163A8F;
+          color: #163A8F;
         }
       </style>
     </head>
@@ -664,6 +674,705 @@ class EmailService {
       console.error('Error testing email template:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  /**
+   * Send low credit warning email
+   * @param {string} email - User email
+   * @param {string} username - User name
+   * @param {number} remainingCredits - Credits remaining
+   * @param {Date} resetDate - Next reset date
+   */
+  async sendLowCreditWarning(email, username, remainingCredits, resetDate) {
+    try {
+      const emailData = {
+        from: this.fromEmail,
+        to: [email],
+        subject: '⚠️ Малку кредити - Nexa Terminal',
+        html: this.generateLowCreditWarningHTML(username, remainingCredits, resetDate)
+      };
+
+      const resendClient = this.getResendClient();
+
+      if (!resendClient) {
+        console.log('\n📧 [MOCK EMAIL] Low credit warning would be sent:');
+        console.log('==========================================');
+        console.log(`To: ${email}`);
+        console.log(`User: ${username}`);
+        console.log(`Remaining Credits: ${remainingCredits}`);
+        console.log(`Reset Date: ${resetDate}`);
+        console.log('==========================================\n');
+        return { success: true, mockMode: true };
+      }
+
+      try {
+        const result = await resendClient.emails.send(emailData);
+        console.log('✅ Low credit warning email sent successfully:', result.id);
+        return { success: true, messageId: result.id };
+      } catch (resendError) {
+        console.error('❌ Resend failed, trying Gmail fallback...');
+        return await this.sendEmailViaGmail(emailData);
+      }
+    } catch (error) {
+      console.error('Error sending low credit warning email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send credit depleted notification
+   * @param {string} email - User email
+   * @param {string} username - User name
+   * @param {Date} resetDate - Next reset date
+   * @param {string} referralCode - User's referral code
+   */
+  async sendCreditDepletedNotification(email, username, resetDate, referralCode) {
+    try {
+      const emailData = {
+        from: this.fromEmail,
+        to: [email],
+        subject: '🚨 Кредитите се потрошени - Nexa Terminal',
+        html: this.generateCreditDepletedHTML(username, resetDate, referralCode)
+      };
+
+      const resendClient = this.getResendClient();
+
+      if (!resendClient) {
+        console.log('\n📧 [MOCK EMAIL] Credit depleted notification would be sent:');
+        console.log('==========================================');
+        console.log(`To: ${email}`);
+        console.log(`User: ${username}`);
+        console.log(`Reset Date: ${resetDate}`);
+        console.log(`Referral Code: ${referralCode}`);
+        console.log('==========================================\n');
+        return { success: true, mockMode: true };
+      }
+
+      try {
+        const result = await resendClient.emails.send(emailData);
+        console.log('✅ Credit depleted notification sent successfully:', result.id);
+        return { success: true, messageId: result.id };
+      } catch (resendError) {
+        console.error('❌ Resend failed, trying Gmail fallback...');
+        return await this.sendEmailViaGmail(emailData);
+      }
+    } catch (error) {
+      console.error('Error sending credit depleted notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send weekly credit reset notification
+   * @param {string} email - User email
+   * @param {string} username - User name
+   * @param {number} newBalance - New credit balance
+   * @param {number} bonusCredits - Bonus credits awarded
+   */
+  async sendWeeklyCreditReset(email, username, newBalance, bonusCredits = 0) {
+    try {
+      const emailData = {
+        from: this.fromEmail,
+        to: [email],
+        subject: '🔄 Неделно ресетирање на кредити - Nexa Terminal',
+        html: this.generateWeeklyCreditResetHTML(username, newBalance, bonusCredits)
+      };
+
+      const resendClient = this.getResendClient();
+
+      if (!resendClient) {
+        console.log('\n📧 [MOCK EMAIL] Weekly credit reset would be sent:');
+        console.log('==========================================');
+        console.log(`To: ${email}`);
+        console.log(`User: ${username}`);
+        console.log(`New Balance: ${newBalance}`);
+        console.log(`Bonus Credits: ${bonusCredits}`);
+        console.log('==========================================\n');
+        return { success: true, mockMode: true };
+      }
+
+      try {
+        const result = await resendClient.emails.send(emailData);
+        console.log('✅ Weekly credit reset email sent successfully:', result.id);
+        return { success: true, messageId: result.id };
+      } catch (resendError) {
+        console.error('❌ Resend failed, trying Gmail fallback...');
+        return await this.sendEmailViaGmail(emailData);
+      }
+    } catch (error) {
+      console.error('Error sending weekly credit reset email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send referral bonus notification
+   * @param {string} email - User email
+   * @param {string} username - User name
+   * @param {number} bonusAmount - Bonus credits awarded
+   * @param {number} activeReferrals - Number of active referrals
+   */
+  async sendReferralBonusNotification(email, username, bonusAmount, activeReferrals) {
+    try {
+      const emailData = {
+        from: this.fromEmail,
+        to: [email],
+        subject: '🎁 Референтен бонус - Nexa Terminal',
+        html: this.generateReferralBonusHTML(username, bonusAmount, activeReferrals)
+      };
+
+      const resendClient = this.getResendClient();
+
+      if (!resendClient) {
+        console.log('\n📧 [MOCK EMAIL] Referral bonus notification would be sent:');
+        console.log('==========================================');
+        console.log(`To: ${email}`);
+        console.log(`User: ${username}`);
+        console.log(`Bonus Amount: ${bonusAmount}`);
+        console.log(`Active Referrals: ${activeReferrals}`);
+        console.log('==========================================\n');
+        return { success: true, mockMode: true };
+      }
+
+      try {
+        const result = await resendClient.emails.send(emailData);
+        console.log('✅ Referral bonus notification sent successfully:', result.id);
+        return { success: true, messageId: result.id };
+      } catch (resendError) {
+        console.error('❌ Resend failed, trying Gmail fallback...');
+        return await this.sendEmailViaGmail(emailData);
+      }
+    } catch (error) {
+      console.error('Error sending referral bonus notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send invitation email to potential new user
+   * @param {string} email - Recipient email
+   * @param {Object} referrer - User who is sending the invitation
+   * @param {string} referralCode - Referrer's referral code
+   */
+  async sendInvitationEmail(email, referrer, referralCode) {
+    try {
+      console.log('\n🎯 [EmailService] sendInvitationEmail called');
+      console.log('📧 [EmailService] To:', email);
+      console.log('👤 [EmailService] Referrer:', referrer.username || referrer.email);
+      console.log('🔑 [EmailService] Referral code:', referralCode);
+
+      const referralLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/register?ref=${referralCode}`;
+      const referrerName = referrer.companyInfo?.companyName || referrer.username || 'Твој пријател';
+
+      console.log('🏢 [EmailService] Referrer name:', referrerName);
+      console.log('🔗 [EmailService] Referral link:', referralLink);
+
+      const emailData = {
+        from: this.fromEmail,
+        to: [email],
+        subject: `${referrerName} те покани да се приклучиш на Nexa Terminal`,
+        html: this.generateInvitationEmailHTML(referrerName, referralLink)
+      };
+
+      console.log('📨 [EmailService] Email data prepared');
+      console.log('   From:', emailData.from);
+      console.log('   To:', emailData.to);
+      console.log('   Subject:', emailData.subject);
+
+      const resendClient = this.getResendClient();
+      console.log('🔍 [EmailService] Resend client available:', !!resendClient);
+
+      if (!resendClient) {
+        console.log('\n📧 [MOCK EMAIL] Invitation email would be sent:');
+        console.log('==========================================');
+        console.log(`To: ${email}`);
+        console.log(`From: ${referrerName}`);
+        console.log(`Referral Link: ${referralLink}`);
+        console.log('==========================================\n');
+        return { success: true, mockMode: true };
+      }
+
+      try {
+        console.log('📮 [EmailService] Sending via Resend...');
+        const result = await resendClient.emails.send(emailData);
+        console.log(`✅ [EmailService] Invitation sent to ${email}:`, result.id);
+        return { success: true, messageId: result.id };
+      } catch (resendError) {
+        console.error('❌ [EmailService] Resend failed:', resendError.message);
+        console.log('🔄 [EmailService] Trying Gmail fallback...');
+        return await this.sendEmailViaGmail(emailData);
+      }
+    } catch (error) {
+      console.error(`❌ [EmailService] Error sending invitation to ${email}:`, error);
+      throw error;
+    }
+  }
+
+  // HTML Templates for Credit Notifications
+
+  generateLowCreditWarningHTML(username, remainingCredits, resetDate) {
+    const resetDateStr = new Date(resetDate).toLocaleDateString('mk-MK', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px 12px 0 0;">
+                    <div style="font-size: 64px; margin-bottom: 10px;">⚠️</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Малку кредити</h1>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Здраво <strong>${username}</strong>,
+                    </p>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Вашите кредити се на исчезнување. Имате само <strong style="color: #f59e0b;">${remainingCredits} кредит${remainingCredits === 1 ? '' : 'и'}</strong> преостанати.
+                    </p>
+
+                    <!-- Credit Info Box -->
+                    <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 20px; margin: 30px 0;">
+                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Преостанати кредити:</div>
+                      <div style="font-size: 32px; font-weight: 700; color: #f59e0b;">${remainingCredits}</div>
+                      <div style="font-size: 14px; color: #6b7280; margin-top: 8px;">Ресетирање: ${resetDateStr}</div>
+                    </div>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      <strong>Како да добиете повеќе кредити:</strong>
+                    </p>
+
+                    <ul style="margin: 0 0 30px; padding-left: 20px; color: #374151; font-size: 16px; line-height: 1.8;">
+                      <li>Поканете <strong>3+ пријатели</strong> и добијте <strong>+7 бонус кредити</strong> секоја недела</li>
+                      <li>Почекајте до <strong>${resetDateStr}</strong> за автоматско ресетирање</li>
+                    </ul>
+
+                    <!-- CTA Button -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 10px 0;">
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/invite" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            🎁 Покани пријатели
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Вашиот правен асистент<br>
+                      <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  generateCreditDepletedHTML(username, resetDate, referralCode) {
+    const resetDateStr = new Date(resetDate).toLocaleDateString('mk-MK', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const referralLink = `${process.env.CLIENT_URL || 'https://nexa.mk'}/register?ref=${referralCode}`;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); border-radius: 12px 12px 0 0;">
+                    <div style="font-size: 64px; margin-bottom: 10px;">🚨</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Кредитите се потрошени</h1>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Здраво <strong>${username}</strong>,
+                    </p>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Ги потрошивте сите ваши кредити за оваа недела. Нема да можете да користите некои функции додека не се ресетираат кредитите.
+                    </p>
+
+                    <!-- Alert Box -->
+                    <div style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%); border: 2px solid rgba(220, 38, 38, 0.3); border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                      <div style="font-size: 48px; font-weight: 700; color: #dc2626;">0</div>
+                      <div style="font-size: 14px; color: #6b7280; margin-top: 8px;">Преостанати кредити</div>
+                    </div>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      <strong>Како да добиете кредити веднаш:</strong>
+                    </p>
+
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 20px; margin: 20px 0;">
+                      <div style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 10px;">🎁 Поканете пријатели</div>
+                      <p style="margin: 0 0 15px; color: #4b5563; font-size: 14px;">
+                        Поканете 3+ пријатели со вашиот референтен код и добијте <strong style="color: #059669;">+7 бонус кредити</strong> секоја недела!
+                      </p>
+                      <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 14px; color: #059669; font-weight: 700; text-align: center;">
+                        ${referralCode}
+                      </div>
+                      <p style="margin: 15px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
+                        Или споделете го овој линк: <a href="${referralLink}" style="color: #10b981; word-break: break-all;">${referralLink}</a>
+                      </p>
+                    </div>
+
+                    <p style="margin: 30px 0 20px; color: #6b7280; font-size: 14px; text-align: center;">
+                      Или почекајте до <strong>${resetDateStr}</strong> за автоматско ресетирање.
+                    </p>
+
+                    <!-- CTA Button -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 10px 0;">
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/invite" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            ✉️ Испрати покани
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Вашиот правен асистент<br>
+                      <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  generateWeeklyCreditResetHTML(username, newBalance, bonusCredits) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+                    <div style="font-size: 64px; margin-bottom: 10px;">🔄</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Кредитите се ресетирани!</h1>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Здраво <strong>${username}</strong>,
+                    </p>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Добра вест! Вашите неделни кредити се ресетирани и сега имате нови кредити достапни.
+                    </p>
+
+                    <!-- Credit Balance Box -->
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                      <div style="font-size: 48px; font-weight: 700; color: #10b981;">${newBalance}</div>
+                      <div style="font-size: 14px; color: #6b7280; margin-top: 8px;">Нови кредити</div>
+                      ${bonusCredits > 0 ? `
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                          <div style="font-size: 14px; color: #6b7280;">Вклучувајќи</div>
+                          <div style="font-size: 24px; font-weight: 700; color: #059669; margin-top: 5px;">+${bonusCredits} референтен бонус 🎁</div>
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    ${bonusCredits > 0 ? `
+                      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 20px; margin: 20px 0;">
+                        <div style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 10px; text-align: center;">🎉 Честитки!</div>
+                        <p style="margin: 0; color: #4b5563; font-size: 14px; text-align: center;">
+                          Добивте <strong style="color: #d97706;">${bonusCredits} бонус кредити</strong> за вашите активни препораки. Продолжете да поканувате пријатели за уште повеќе бонуси!
+                        </p>
+                      </div>
+                    ` : `
+                      <div style="background: rgba(243, 244, 246, 0.8); border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
+                        <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                          Поканете 3+ пријатели за да добиете <strong style="color: #059669;">+7 бонус кредити</strong> секоја недела!
+                        </p>
+                      </div>
+                    `}
+
+                    <p style="margin: 30px 0 20px; color: #374151; font-size: 16px; line-height: 1.6; text-align: center;">
+                      Вашите кредити се спремни за употреба. Започнете со генерирање на документи!
+                    </p>
+
+                    <!-- CTA Buttons -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 10px 0;">
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/documents" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); margin: 5px;">
+                            📄 Генерирај документи
+                          </a>
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/ai-chat" style="display: inline-block; background: rgba(59, 130, 246, 0.9); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin: 5px;">
+                            🤖 AI Асистент
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Вашиот правен асистент<br>
+                      <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  generateReferralBonusHTML(username, bonusAmount, activeReferrals) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 12px 12px 0 0;">
+                    <div style="font-size: 64px; margin-bottom: 10px;">🎁</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Референтен бонус!</h1>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Здраво <strong>${username}</strong>,
+                    </p>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Одлична работа! Благодарение на вашите успешни препораки, заработивте бонус кредити!
+                    </p>
+
+                    <!-- Bonus Box -->
+                    <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 30px; margin: 30px 0; text-align: center;">
+                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 10px;">Вие заработивте</div>
+                      <div style="font-size: 64px; font-weight: 700; color: #8b5cf6; line-height: 1;">+${bonusAmount}</div>
+                      <div style="font-size: 18px; color: #6b7280; margin-top: 10px;">бонус кредити 🎉</div>
+                    </div>
+
+                    <!-- Referral Stats -->
+                    <div style="background: rgba(243, 244, 246, 0.8); border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                      <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 32px; font-weight: 700; color: #10b981;">${activeReferrals}</div>
+                        <div style="font-size: 14px; color: #6b7280;">Активни препораки</div>
+                      </div>
+                      <p style="margin: 0; color: #4b5563; font-size: 14px; text-align: center;">
+                        Продолжете да поканувате пријатели за да продолжите да заработувате <strong style="color: #8b5cf6;">+7 кредити</strong> секоја недела!
+                      </p>
+                    </div>
+
+                    <p style="margin: 30px 0 20px; color: #374151; font-size: 16px; line-height: 1.6; text-align: center;">
+                      Благодариме што го промовирате Nexa Terminal! 💜
+                    </p>
+
+                    <!-- CTA Buttons -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 10px 0;">
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/invite" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); margin: 5px;">
+                            ✉️ Покани повеќе пријатели
+                          </a>
+                          <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/credits" style="display: inline-block; background: rgba(139, 92, 246, 0.9); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); margin: 5px;">
+                            💳 Преглед на кредити
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Вашиот правен асистент<br>
+                      <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  generateInvitationEmailHTML(referrerName, referralLink) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+                    <div style="font-size: 64px; margin-bottom: 10px;">✉️</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Добиваш покана!</h1>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      Здраво,
+                    </p>
+
+                    <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                      <strong style="color: #10b981;">${referrerName}</strong> те покани да се приклучиш на <strong>Nexa Terminal</strong> - твојот дигитален правен асистент!
+                    </p>
+
+                    <!-- Benefits Box -->
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 25px; margin: 30px 0;">
+                      <h3 style="margin: 0 0 15px; color: #111827; font-size: 18px; font-weight: 600;">Што добиваш?</h3>
+                      <ul style="margin: 0; padding-left: 20px; color: #374151; font-size: 15px; line-height: 1.8;">
+                        <li>Автоматско генерирање на правни документи</li>
+                        <li>AI правен советник достапен 24/7</li>
+                        <li>Проверка на законска усогласеност</li>
+                        <li><strong style="color: #10b981;">14 бесплатни кредити</strong> при регистрација</li>
+                        <li>Пристап до експертски правни совети</li>
+                      </ul>
+                    </div>
+
+                    <p style="margin: 20px 0; color: #374151; font-size: 16px; line-height: 1.6; text-align: center;">
+                      Регистрирај се денес и започни со професионално управување со правните документи!
+                    </p>
+
+                    <!-- CTA Button -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 20px 0;">
+                          <a href="${referralLink}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 18px 40px; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
+                            Прифати покана
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Info Box -->
+                    <div style="background: rgba(243, 244, 246, 0.8); border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 30px 0;">
+                      <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+                        Регистрацијата е бесплатна и трае помалку од 2 минути.<br>
+                        Веднаш добиваш <strong style="color: #10b981;">14 кредити</strong> за започнување!
+                      </p>
+                    </div>
+
+                    <!-- Social Proof -->
+                    <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
+                        Придружи се на стотици македонски компании кои веќе го користат Nexa Terminal
+                      </p>
+                      <div style="font-size: 24px; margin-top: 10px;">⭐⭐⭐⭐⭐</div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Вашиот правен асистент<br>
+                      <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
   }
 }
 

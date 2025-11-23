@@ -70,6 +70,16 @@ class UserService {
         missionStatement: '',
         companyLogo: ''
       },
+      credits: {
+        balance: 14,
+        weeklyAllocation: 14,
+        lastResetDate: new Date(),
+        lifetimeEarned: 14,
+        lifetimeSpent: 0
+      },
+      referralCode: userData.referralCode || null,
+      referredBy: userData.referredBy || null,
+      referrals: userData.referrals || [],
       createdAt: userData.createdAt || new Date(),
       updatedAt: new Date(),
       lastLogin: userData.lastLogin || new Date()
@@ -557,6 +567,65 @@ class UserService {
     return history
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, limit);
+  }
+
+  // ============ CREDIT SYSTEM METHODS ============
+
+  // Find user by referral code
+  async findByReferralCode(referralCode) {
+    if (!referralCode) return null;
+    return await this.collection.findOne({ referralCode: referralCode.trim() });
+  }
+
+  // Update user credits
+  async updateCredits(userId, creditsData) {
+    if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const updateDoc = {
+      'credits.balance': creditsData.balance,
+      updatedAt: new Date()
+    };
+
+    if (creditsData.weeklyAllocation !== undefined) {
+      updateDoc['credits.weeklyAllocation'] = creditsData.weeklyAllocation;
+    }
+    if (creditsData.lastResetDate !== undefined) {
+      updateDoc['credits.lastResetDate'] = creditsData.lastResetDate;
+    }
+    if (creditsData.lifetimeEarned !== undefined) {
+      updateDoc['credits.lifetimeEarned'] = creditsData.lifetimeEarned;
+    }
+    if (creditsData.lifetimeSpent !== undefined) {
+      updateDoc['credits.lifetimeSpent'] = creditsData.lifetimeSpent;
+    }
+
+    const result = await this.collection.findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: updateDoc },
+      { returnDocument: 'after' }
+    );
+
+    return result.value;
+  }
+
+  // Get all users with low credits (for notifications)
+  async getUsersWithLowCredits(threshold = 3) {
+    return await this.collection
+      .find({
+        'credits.balance': { $lte: threshold, $gt: 0 }
+      })
+      .project({ password: 0 })
+      .toArray();
+  }
+
+  // Get all users for credit reset (scheduled job)
+  async getAllUsersForCreditReset() {
+    return await this.collection
+      .find({})
+      .project({ _id: 1, username: 1, email: 1, credits: 1 })
+      .toArray();
   }
 }
 

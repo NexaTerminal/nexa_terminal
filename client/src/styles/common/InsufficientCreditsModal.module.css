@@ -1,0 +1,352 @@
+/* ============================================================================
+   Insufficient Credits Modal Stylesheet
+   ============================================================================ */
+
+/* Backdrop */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 9998;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Container */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(249, 250, 251, 0.98));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: calc(100% - 2rem);
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  z-index: 9999;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Close Button */
+.closeBtn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(243, 244, 246, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(229, 231, 235, 0.8);
+  color: #374151;
+  transform: rotate(90deg);
+}
+
+/* Icon Container */
+.iconContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.icon {
+  font-size: 4rem;
+  z-index: 2;
+  position: relative;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.iconBg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+  border-radius: 50%;
+  z-index: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Title */
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  margin: 0 0 1.25rem 0;
+}
+
+/* Message Section */
+.message {
+  background: rgba(249, 250, 251, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mainText {
+  text-align: center;
+  color: #4b5563;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+}
+
+.mainText strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Credit Info */
+.creditInfo {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.creditRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.value.shortage {
+  color: #ef4444;
+}
+
+.separator {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(229, 231, 235, 0.8), transparent);
+  margin: 0.5rem 0;
+}
+
+/* Reset Info */
+.resetInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.resetIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.resetInfo strong {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.tertiaryBtn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.primaryBtn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.primaryBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.secondaryBtn {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #2563eb;
+}
+
+.secondaryBtn:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.1));
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.secondaryBtn:active {
+  transform: translateY(0);
+}
+
+.tertiaryBtn {
+  background: rgba(243, 244, 246, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  color: #6b7280;
+}
+
+.tertiaryBtn:hover {
+  background: rgba(229, 231, 235, 0.8);
+  color: #374151;
+}
+
+.tertiaryBtn:active {
+  transform: scale(0.98);
+}
+
+/* Help Text */
+.helpText {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+}
+
+.helpText p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.helpText strong {
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .modal {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .icon {
+    font-size: 3rem;
+  }
+
+  .iconBg {
+    width: 80px;
+    height: 80px;
+  }
+
+  .mainText {
+    font-size: 0.95rem;
+  }
+
+  .creditInfo {
+    padding: 0.875rem 1rem;
+  }
+
+  .value {
+    font-size: 1rem;
+  }
+
+  .primaryBtn,
+  .secondaryBtn,
+  .tertiaryBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}

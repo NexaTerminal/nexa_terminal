@@ -72,6 +72,13 @@
   min-height: 100px;
 }
 
+.helpText {
+  font-size: var(--font-size-xs, 0.875rem);
+  color: var(--color-neutral-600);
+  font-style: italic;
+  margin-top: -0.25rem;
+}
+
 .formActions {
   display: flex;
   gap: var(--spacing-4);

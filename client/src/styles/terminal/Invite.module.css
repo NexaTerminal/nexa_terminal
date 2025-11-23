@@ -1,0 +1,615 @@
+/* ============================================================================
+   Invite (Referral) Page Stylesheet
+   ============================================================================ */
+
+.container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(16, 185, 129, 0.1);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading p {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.backBtn {
+  background: rgba(243, 244, 246, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.backBtn:hover {
+  background: rgba(229, 231, 235, 0.8);
+  color: #374151;
+  transform: translateX(-4px);
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* Banner */
+.banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
+}
+
+.bannerIcon {
+  font-size: 4rem;
+  flex-shrink: 0;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.bannerContent h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.bannerContent p {
+  font-size: 1rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.bannerContent strong {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Referral Code Section */
+.codeSection {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.codeSection h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1.25rem 0;
+}
+
+.codeBox {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.codeDisplay {
+  flex: 1;
+  background: rgba(249, 250, 251, 0.8);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #059669;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.copyBtn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 1.75rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.copyBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.copyBtn:active {
+  transform: translateY(0);
+}
+
+.codeHint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  text-align: center;
+  word-break: break-all;
+}
+
+.linkPreview {
+  background: rgba(243, 244, 246, 0.8);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #059669;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  background: rgba(243, 244, 246, 0.95);
+  border-color: rgba(209, 213, 219, 0.8);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.statIcon {
+  font-size: 2rem;
+}
+
+.statValue {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Invite Section */
+.inviteSection {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.inviteSection h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Input Group */
+.inputGroup {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.emailInput {
+  flex: 1;
+  background: rgba(249, 250, 251, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 10px;
+  padding: 0.875rem 1.125rem;
+  font-size: 0.95rem;
+  color: #111827;
+  transition: all 0.3s ease;
+}
+
+.emailInput:focus {
+  outline: none;
+  border-color: #10b981;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.emailInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addBtn {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 0.875rem 1.5rem;
+  color: #059669;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.addBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1));
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.addBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Email List */
+.emailList {
+  background: rgba(249, 250, 251, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.emailListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.emailListHeader span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.clearAllBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.clearAllBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.emailItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.emailItem {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.emailItem:hover {
+  background: rgba(243, 244, 246, 0.8);
+  border-color: rgba(209, 213, 219, 0.8);
+}
+
+.emailText {
+  font-size: 0.9rem;
+  color: #111827;
+  font-family: 'Courier New', monospace;
+}
+
+.removeBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.removeBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Send Button */
+.sendBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.sendBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.sendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnSpinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Messages */
+.successMessage,
+.errorMessage {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+.successMessage {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
+}
+
+.errorMessage {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+/* How It Works Section */
+.howItWorks {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.howItWorks h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1.5rem 0;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.stepContent h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.375rem 0;
+}
+
+.stepContent p {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .bannerIcon {
+    font-size: 3rem;
+  }
+
+  .bannerContent h2 {
+    font-size: 1.25rem;
+  }
+
+  .codeSection {
+    padding: 1.5rem;
+  }
+
+  .codeBox {
+    flex-direction: column;
+  }
+
+  .copyBtn {
+    width: 100%;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inputGroup {
+    flex-direction: column;
+  }
+
+  .addBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statValue {
+    font-size: 1.875rem;
+  }
+
+  .step {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

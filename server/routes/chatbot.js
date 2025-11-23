@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateJWT } = require('../middleware/auth');
+const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
 const chatBotService = require('../chatbot/ChatBotService');
 
 /**
@@ -28,7 +29,7 @@ const chatBotService = require('../chatbot/ChatBotService');
  * @body    { question: string, conversationId?: string }
  * @returns { answer: string, sources: array, remainingQuestions: number, conversationId?: string }
  */
-router.post('/ask', authenticateJWT, async (req, res) => {
+router.post('/ask', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const { question, conversationId } = req.body;
     const userId = req.user._id.toString(); // From JWT auth middleware
@@ -52,7 +53,46 @@ router.post('/ask', authenticateJWT, async (req, res) => {
     // Ask the chatbot (with optional conversationId for history tracking)
     const response = await chatBotService.askQuestion(question, userId, conversationId);
 
-    // Return successful response
+    // Deduct credits after successful question
+    const creditService = req.app.locals.creditService;
+    if (creditService) {
+      try {
+        const creditResult = await creditService.deductCredits(
+          req.user._id,
+          1,
+          'AI_QUESTION',
+          { conversationId, endpoint: req.originalUrl }
+        );
+
+        // Return successful response with credit info
+        return res.status(200).json({
+          success: true,
+          data: {
+            answer: response.answer,
+            sources: response.sources,
+            remainingQuestions: response.remainingQuestions,
+            timestamp: response.timestamp,
+            conversationId: conversationId || null,
+            creditsRemaining: creditResult.newBalance,
+          },
+        });
+      } catch (creditError) {
+        console.error('Credit deduction error:', creditError);
+        // Still return the answer even if credit deduction fails
+        return res.status(200).json({
+          success: true,
+          data: {
+            answer: response.answer,
+            sources: response.sources,
+            remainingQuestions: response.remainingQuestions,
+            timestamp: response.timestamp,
+            conversationId: conversationId || null,
+          },
+        });
+      }
+    }
+
+    // Fallback if credit service not available
     return res.status(200).json({
       success: true,
       data: {
@@ -257,7 +297,7 @@ router.get('/conversations/:id', authenticateJWT, async (req, res) => {
  * @body    { question: string }
  * @returns { answer: string, sources: array, remainingQuestions: number }
  */
-router.post('/conversations/:id/ask', authenticateJWT, async (req, res) => {
+router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const conversationId = req.params.id;
     const { question } = req.body;
@@ -285,6 +325,34 @@ router.post('/conversations/:id/ask', authenticateJWT, async (req, res) => {
     // Ask the chatbot with conversation context
     const response = await chatBotService.askQuestion(question, userId, conversationId);
 
+    // Deduct credits after successful question
+    const creditService = req.app.locals.creditService;
+    if (creditService) {
+      try {
+        const creditResult = await creditService.deductCredits(
+          req.user._id,
+          1,
+          'AI_QUESTION',
+          { conversationId, endpoint: req.originalUrl }
+        );
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            answer: response.answer,
+            sources: response.sources,
+            remainingQuestions: response.remainingQuestions,
+            timestamp: response.timestamp,
+            creditsRemaining: creditResult.newBalance,
+          },
+        });
+      } catch (creditError) {
+        console.error('Credit deduction error:', creditError);
+        // Still return the answer even if credit deduction fails
+      }
+    }
+
+    // Fallback response
     return res.status(200).json({
       success: true,
       data: {

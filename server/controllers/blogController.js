@@ -292,18 +292,23 @@ class BlogController {
     try {
       const { id } = req.params;
       const updateData = { ...req.body };
-      
+
       // Remove fields that shouldn't be updated directly
       delete updateData._id;
       delete updateData.author;
       delete updateData.createdAt;
-      
+
       // Handle language field conversion
       if (updateData.language) {
         updateData.contentLanguage = updateData.language;
         delete updateData.language;
       }
-      
+
+      // Format content into proper paragraphs if content is being updated
+      if (updateData.content) {
+        updateData.content = this.formatContentToParagraphs(updateData.content);
+      }
+
       // Add updated timestamp
       updateData.updatedAt = new Date();
 

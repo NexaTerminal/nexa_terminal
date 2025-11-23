@@ -1,100 +1,60 @@
-# Nexa Terminal
+# GEMINI.md
 
 ## Project Overview
 
-Nexa Terminal is a full-stack MERN (MongoDB, Express.js, React, Node.js) application designed to provide document automation, user management, and legal assistance services. A key feature of the application is a sophisticated Legal AI Chatbot, which uses Retrieval-Augmented Generation (RAG) to query a large corpus of legal documents in the Macedonian language.
+This is a MERN stack project called **Nexa Terminal**, a bilingual (English/Macedonian) business document automation platform. It features AI-powered document generation, company verification, user management, and social features.
 
-The application is divided into two main parts:
--   **`client`**: A React-based single-page application that provides the user interface.
--   **`server`**: A Node.js and Express.js backend that handles business logic, API endpoints, and database interactions.
+The project is structured as a monorepo with a `client` directory for the React frontend and a `server` directory for the Express.js backend.
 
-### Core Technologies
+### Key Technologies
 
--   **Frontend**: React, React Router, Axios, Socket.io
--   **Backend**: Node.js, Express.js, MongoDB
--   **Authentication**: JWT (JSON Web Tokens), Passport.js
--   **AI/Chatbot**: LangChain.js, OpenAI GPT-4
--   **Styling**: CSS Modules
+*   **Frontend**: React, React Router, i18next, CSS Modules
+*   **Backend**: Express.js, MongoDB, JWT, Passport.js, LangChain, OpenAI
+*   **Document Generation**: docxtemplater, DOCX.js
+*   **Deployment**: Vercel (frontend), Render (backend)
 
 ## Building and Running
 
 ### Prerequisites
 
--   Node.js and npm
--   MongoDB instance
+*   Node.js and npm
+*   MongoDB
 
-### Server Setup
+### Installation
 
-1.  **Navigate to the server directory:**
+1.  **Install server dependencies:**
     ```bash
-    cd server
+    npm run install-server
+    ```
+2.  **Install client dependencies:**
+    ```bash
+    npm run install-client
     ```
 
-2.  **Install dependencies:**
+### Environment Variables
+
+1.  Copy the example environment file for the server:
     ```bash
-    npm install
+    cp server/.env.example server/.env
     ```
+2.  Update `server/.env` with your environment-specific settings (database connection string, JWT secret, etc.).
 
-3.  **Set up environment variables:**
-    Create a `.env` file in the `server` directory and populate it with the necessary configuration (e.g., database connection string, JWT secret, OpenAI API key). Refer to the source code and existing `.env.production` for required variables.
+### Running the Application
 
-4.  **Run the server:**
-    -   For production:
-        ```bash
-        npm start
-        ```
-    -   For development (with auto-reloading via nodemon):
-        ```bash
-        npm run dev
-        ```
-
-The server will typically run on `http://localhost:5002`.
-
-### Client Setup
-
-1.  **Navigate to the client directory:**
+1.  **Start the backend server (runs on port 5002):**
     ```bash
-    cd client
+    npm run dev
     ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Run the client:**
+2.  **Start the frontend development server (runs on port 3000):**
     ```bash
     npm start
     ```
 
-The client development server will start, usually on `http://localhost:3000`, and will proxy API requests to the backend server.
-
 ## Development Conventions
 
-### Backend Architecture
-
-The backend follows a standard Model-View-Controller (MVC) like pattern, with a clear separation of concerns:
-
--   **`routes`**: Define the API endpoints and connect them to the appropriate controllers.
--   **`controllers`**: Handle incoming requests, process input, and call services to perform business logic.
--   **`services`**: Contain the core business logic of the application.
--   **`models`**: (Implicitly defined through schemas) Represent the data structures used in the application.
--   **`middleware`**: Used for handling authentication, rate limiting, and other cross-cutting concerns.
-
-### Frontend Architecture
-
-The frontend is built with React and uses a component-based architecture.
-
--   **`pages`**: Represent top-level views for different routes.
--   **`components`**: Reusable UI elements.
--   **`contexts`**: For managing global state (e.g., authentication, language).
--   **`services`**: For making API calls to the backend.
--   **`styles`**: Uses CSS Modules for scoped styling to avoid class name collisions.
-
-### Feature Toggles
-
-The application uses a feature toggle system managed by `server/config/settingsManager.js`. This allows for enabling or disabling features without changing the code, which is useful for gradual rollouts and A/B testing.
-
-### AI Chatbot
-
-The Legal AI Chatbot is a core feature. Its implementation is centered in the `server/chatbot` and `server/services/aiChatService.js` files. It uses LangChain.js to manage conversations and interact with the OpenAI API. The chatbot is designed to be cost-effective and production-ready.
+*   The backend uses a `settingsManager` to conditionally enable/disable features and routes. This is a good practice for managing a modular application.
+*   The frontend uses `react-router-dom` for routing, with a clear separation between public and private routes.
+*   The project uses `i18next` for internationalization, supporting both English and Macedonian.
+*   The backend includes security middleware for headers, rate limiting, and CSRF protection.
+*   The backend uses Passport.js for authentication, with support for local, Google, and LinkedIn strategies.
+*   The project includes AI features using LangChain and OpenAI.

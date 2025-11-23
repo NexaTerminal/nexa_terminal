@@ -281,10 +281,10 @@ class PasswordResetService {
         <p>Добивме барање за ресетирање на лозинката за вашиот Nexa Terminal профил.</p>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" 
-             style="background-color: #3182ce; color: white; padding: 15px 30px; 
-                    text-decoration: none; border-radius: 8px; display: inline-block;
-                    font-weight: bold;">
+          <a href="${resetUrl}"
+             style="background-color: #ffffff; color: #1E4DB7; border: 2px solid #1E4DB7;
+                    padding: 15px 30px; text-decoration: none; border-radius: 8px;
+                    display: inline-block; font-weight: bold; transition: all 0.3s;">
             Ресетирај лозинка
           </a>
         </div>

@@ -47,6 +47,7 @@
   --color-error: #dc2626;         /* Keep existing error color */
   --color-error-light: #ef4444;
   --color-error-bg: #fef2f2;
+  --color-info: var(--color-primary-400);
   
   /* Convenience aliases for backward compatibility */
   --color-dark: var(--color-neutral-800);
@@ -1213,4 +1214,8 @@ html::before, html::after, body::before, body::after {
   display: none !important;
   content: none !important;
   background: none !important;
+}
+
+.body-no-scroll {
+  overflow: hidden;
 }

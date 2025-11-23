@@ -20,9 +20,9 @@
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 100px;
+  top: 60px;
   left: 0;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 60px);
   overflow-y: auto;
   z-index: 10;
   transition: all 0.3s ease;
@@ -31,9 +31,11 @@
 .dashboard-main {
   flex: 1;
   margin-left: 252px;
-  background-color: #ffffff;
+  background-color: var(--color-background);
   min-height: calc(100vh - 60px);
   overflow-y: auto;
+  z-index: 1;
+  margin-top: 60px;
 }
 
 /* Sidebar Content */
@@ -149,58 +151,14 @@
 }
 
 /* Mobile menu button - DISABLED (Header provides mobile menu now) */
-.mobile-menu-button {
-  display: none !important;
-}
-
-.hamburger-icon {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: var(--color-white);
-  position: relative;
-  transition: all var(--transition-medium);
-}
-
-.hamburger-icon::before,
-.hamburger-icon::after {
-  content: '';
-  position: absolute;
-  width: 24px;
-  height: 2px;
-  background: var(--color-white);
-  transition: all var(--transition-medium);
-}
-
-.hamburger-icon::before {
-  top: -6px;
-}
-
-.hamburger-icon::after {
-  bottom: -6px;
-}
-
-@media (max-width: 1024px) {
-  .dashboard-sidebar {
-    width: 198px;
-    min-width: 144px;
-  }
-  .dashboard-main {
-    margin-left: 198px;
-    max-width: calc(100% - 198px);
-  }
-}
-
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
   }
   .dashboard-sidebar {
-    display: none; /* Hidden on mobile - Header provides mobile menu */
+    /* Hidden on mobile - Header provides mobile menu */
   }
-  .sidebar-backdrop {
-    display: none; /* No backdrop needed */
-  }
+
   .menu-item {
     font-size: 1.05rem;
     padding: var(--spacing-lg) var(--spacing-xl);
@@ -214,7 +172,7 @@
 
 @media (max-width: 480px) {
   .dashboard-sidebar {
-    display: none; /* Hidden on mobile - Header provides mobile menu */
+     /* Hidden on mobile - Header provides mobile menu */
   }
   .menu-item {
     font-size: 1.05rem;

@@ -50,7 +50,7 @@
 }
 
 /* Tablet: Hide right sidebar, adjust main content */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .dashboard-main {
     margin-right: 0; /* No right sidebar */
     padding: var(--spacing-6) var(--spacing-6);

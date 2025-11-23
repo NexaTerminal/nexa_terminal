@@ -388,7 +388,7 @@
   font-weight: 500;
   color: #374151;
   margin-bottom: 5px;
-  font-size: 0.8rem;
+  font-size: 0.875rem; /* 14px - improved readability */
   position: relative;
 }
 
@@ -467,7 +467,7 @@
   padding: 10px 14px;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 1rem; /* 16px - prevents iOS zoom */
   transition: all 0.2s ease;
   background: #ffffff;
   color: #374151;
@@ -643,8 +643,8 @@
 }
 
 .radio-option input[type="radio"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin: 2px 12px 0 0;
   cursor: pointer;
   flex-shrink: 0;
@@ -656,7 +656,7 @@
   cursor: pointer;
   flex: 1;
   display: block;
-  font-size: 0.9rem;
+  font-size: 1rem; /* 16px - improved readability */
 }
 
 .radio-content {
@@ -798,9 +798,10 @@
 .btn {
   padding: 8px 16px;
   min-height: 48px;
+  min-width: 48px; /* Touch target minimum */
   border-radius: 6px;
   font-weight: 500;
-  font-size: 0.8rem;
+  font-size: 0.875rem; /* 14px - improved readability */
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
@@ -1153,6 +1154,12 @@
   .signature-row {
     flex-direction: column;
     gap: 24px;
+  }
+
+  /* Mobile-friendly radio buttons */
+  .radio-option input[type="radio"] {
+    width: 24px;
+    height: 24px;
   }
 }
 

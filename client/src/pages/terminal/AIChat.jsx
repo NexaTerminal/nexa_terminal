@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
 import ChatbotApiService from '../../services/chatbotApi';
+import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
+import useCreditHandler from '../../hooks/useCreditHandler';
 import styles from '../../styles/terminal/AIChat.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 
@@ -16,6 +19,8 @@ import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
  */
 const AIChat = () => {
   // const { user } = useAuth(); // Not needed for this component
+  const { refreshCredits } = useCredit();
+  const { handleCreditOperation, showInsufficientModal, modalConfig, closeModal } = useCreditHandler();
 
   // State management
   const [question, setQuestion] = useState('');
@@ -156,8 +161,19 @@ const AIChat = () => {
         }
       }
 
-      // Send message to conversation
-      const data = await ChatbotApiService.sendMessage(conversationId, questionText);
+      // Send message to conversation with credit handling
+      const data = await handleCreditOperation(
+        async () => ChatbotApiService.sendMessage(conversationId, questionText),
+        'AI прашање',
+        1
+      );
+
+      // If null, it means insufficient credits (handled by modal)
+      if (!data) {
+        setMessages(prev => prev.slice(0, -1));
+        setIsLoading(false);
+        return;
+      }
 
       if (data.success) {
         // Add AI response to messages
@@ -178,6 +194,9 @@ const AIChat = () => {
 
         // Trigger conversation list refresh
         setRefreshTrigger(prev => prev + 1);
+
+        // Refresh credits after successful operation
+        await refreshCredits();
       } else {
         // Handle error response
         setError(data.message || 'Се случи грешка. Ве молиме обидете се повторно.');
@@ -380,6 +399,14 @@ const AIChat = () => {
         </div>
         </main>
       </div>
+
+      {/* Insufficient Credits Modal */}
+      <InsufficientCreditsModal
+        isOpen={showInsufficientModal}
+        onClose={closeModal}
+        requiredCredits={modalConfig.requiredCredits}
+        actionName={modalConfig.actionName}
+      />
     </div>
   );
 };

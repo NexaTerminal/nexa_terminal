@@ -1,0 +1,683 @@
+/* ============================================================================
+   Credits Dashboard Stylesheet
+   ============================================================================ */
+
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(16, 185, 129, 0.1);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading p {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.refreshBtn {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 0.625rem 1.125rem;
+  color: #10b981;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refreshBtn:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1));
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+.refreshBtn:active {
+  transform: translateY(0);
+}
+
+/* Overview Card */
+.overviewCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.creditDisplay {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+/* Credit Circle */
+.creditCircle {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.progressRing {
+  transform: rotate(-90deg);
+}
+
+.progressRingBg {
+  opacity: 0.2;
+}
+
+.progressRingProgress {
+  transition: stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  stroke-linecap: round;
+}
+
+.progressRingProgress.lowCredit {
+  animation: pulseStroke 2s ease-in-out infinite;
+}
+
+.progressRingProgress.depleted {
+  animation: shake 0.5s ease-in-out;
+}
+
+.creditNumber {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.balance {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.total {
+  display: block;
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Credit Info */
+.creditInfo {
+  flex: 1;
+}
+
+.creditInfo h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.resetInfo {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.resetInfo strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Stats Grid */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.statItem {
+  background: rgba(249, 250, 251, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Warning/Info Boxes */
+.warningBox,
+.infoBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  animation: slideIn 0.4s ease-out;
+}
+
+.warningBox {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(220, 38, 38, 0.05));
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.infoBox {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.warningIcon,
+.infoIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.warningBox strong,
+.infoBox strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+.warningBox p,
+.infoBox p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab:hover {
+  color: #374151;
+  background: rgba(243, 244, 246, 0.8);
+}
+
+.tab.active {
+  color: #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05));
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.625rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #10b981, transparent);
+  border-radius: 3px;
+}
+
+/* Tab Content */
+.tabContent {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  min-height: 400px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.tabContent h3 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Overview Tab */
+.overview {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.usageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.usageCard {
+  background: rgba(249, 250, 251, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.usageCard:hover {
+  background: rgba(243, 244, 246, 0.8);
+  border-color: rgba(209, 213, 219, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.usageIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.usageInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.usageLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.usageValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Transactions Tab */
+.transactions {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.transactionItem {
+  background: rgba(249, 250, 251, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.transactionItem:hover {
+  background: rgba(243, 244, 246, 0.8);
+  border-color: rgba(209, 213, 219, 0.8);
+  transform: translateX(4px);
+}
+
+.txIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.txInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.txLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.txDate {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.txAmount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.txAmount.positive {
+  color: #10b981;
+}
+
+.txAmount.negative {
+  color: #ef4444;
+}
+
+/* Referrals Tab */
+.referrals {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.referralHeader {
+  margin-bottom: 2rem;
+}
+
+.referralHeader h3 {
+  margin-bottom: 0.5rem;
+}
+
+.referralHeader p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.referralCode {
+  margin-bottom: 2rem;
+}
+
+.referralCode label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.625rem;
+}
+
+.codeBox {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.codeInput {
+  flex: 1;
+  background: rgba(249, 250, 251, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 10px;
+  padding: 0.875rem 1.125rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.copyBtn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 10px;
+  padding: 0.875rem 1.5rem;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.copyBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.copyBtn:active {
+  transform: translateY(0);
+}
+
+/* Referral Stats */
+.referralStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.refStatCard {
+  background: rgba(249, 250, 251, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.refStatCard:hover {
+  background: rgba(243, 244, 246, 0.8);
+  border-color: rgba(209, 213, 219, 0.8);
+  transform: translateY(-2px);
+}
+
+.refStatValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.refStatLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.inviteBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.inviteBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.inviteBtn:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseStroke {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .overviewCard {
+    padding: 1.5rem;
+  }
+
+  .creditDisplay {
+    flex-direction: column;
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .creditInfo h2 {
+    font-size: 1.5rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .usageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .referralStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .codeBox {
+    flex-direction: column;
+  }
+
+  .copyBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .refreshBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .balance {
+    font-size: 2rem;
+  }
+
+  .usageValue {
+    font-size: 1.5rem;
+  }
+
+  .referralStats {
+    grid-template-columns: 1fr;
+  }
+}

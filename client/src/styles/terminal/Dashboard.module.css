@@ -64,6 +64,7 @@
 @media (max-width: 768px) {
   .dashboard-sidebar {
     /* Sidebar already handled by mobile drawer in Sidebar.js */
+    display: none;
   }
 
   .dashboard-main {

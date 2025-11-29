@@ -1075,6 +1075,41 @@ label {
   background: var(--color-neutral-400);
 }
 
+/* Responsive Table Support */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--spacing-4);
+}
+
+.table-responsive table {
+  min-width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--spacing-4);
+}
+
+table th,
+table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+table th {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  background-color: var(--color-neutral-50);
+}
+
+table tr:hover {
+  background-color: var(--color-neutral-50);
+}
+
 /* Responsive utilities */
 @media (max-width: 768px) {
   .container,
@@ -1082,21 +1117,21 @@ label {
   .container-md,
   .container-lg,
   .container-xl {
-    padding: 0 var(--spacing-2);
+    padding: 0 var(--spacing-3);
   }
   .section,
   .section-sm,
   .section-lg {
-    padding: var(--spacing-4) 0;
+    padding: var(--spacing-6) 0;
   }
   h1 {
-    font-size: 1.875rem; /* Increased for better readability */
+    font-size: 2rem; /* 32px - Increased for better readability */
   }
   h2 {
-    font-size: 1.5rem; /* Increased for better readability */
+    font-size: 1.625rem; /* 26px - Increased for better readability */
   }
   h3 {
-    font-size: 1.25rem; /* Increased for better readability */
+    font-size: 1.375rem; /* 22px - Increased for better readability */
   }
   button, input, select, textarea {
     min-height: 48px; /* Increased for better touch targets */
@@ -1112,12 +1147,17 @@ label {
     max-width: 100%;
     margin: var(--spacing-4);
     max-height: calc(100vh - 2rem);
+    border-radius: var(--border-radius-xl);
   }
 
   .modal-header,
   .modal-body,
   .modal-footer {
     padding: var(--spacing-4);
+  }
+
+  .modal-title {
+    font-size: var(--font-size-lg);
   }
 
   /* Button Group Mobile */
@@ -1135,6 +1175,18 @@ label {
   /* Form Row Mobile */
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  /* Table Mobile */
+  .table-responsive {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+  }
+
+  table th,
+  table td {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
   }
 
   /* Hide/show mobile utilities */
@@ -1157,29 +1209,29 @@ label {
   .container-md,
   .container-lg,
   .container-xl {
-    padding: 0 var(--spacing-1);
+    padding: 0 var(--spacing-3);
   }
   .section,
   .section-sm,
   .section-lg {
-    padding: var(--spacing-2) 0;
+    padding: var(--spacing-6) 0;
   }
   h1 {
-    font-size: 1.1rem;
+    font-size: 1.75rem; /* 28px - better readability */
   }
   h2 {
-    font-size: 1rem;
+    font-size: 1.375rem; /* 22px - better readability */
   }
   h3 {
-    font-size: 0.95rem;
+    font-size: 1.125rem; /* 18px - better readability */
   }
   button, input, select, textarea {
     min-height: 48px;
     font-size: 16px; /* Prevent iOS zoom - must be at least 16px */
   }
   .card, .card-sm, .card-lg {
-    padding: var(--spacing-2);
-    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-4);
+    border-radius: var(--border-radius-lg);
   }
 }
 

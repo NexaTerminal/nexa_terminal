@@ -26,9 +26,13 @@ const CompanyVerificationSingle = () => {
   const { currentUser: user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [showSuccessOptions, setShowSuccessOptions] = useState(false);
+  // ============================================
+  // EMAIL VERIFICATION DISABLED (2025-11-29)
+  // ============================================
+  // Email verification state variables removed - no longer needed
+  // const [sendingEmail, setSendingEmail] = useState(false); // REMOVED
+  // const [emailSent, setEmailSent] = useState(false); // REMOVED
+  // const [showSuccessOptions, setShowSuccessOptions] = useState(false); // REMOVED
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -114,8 +118,8 @@ const CompanyVerificationSingle = () => {
         serviceDescription: user.marketplaceInfo?.description || ''
       }));
 
-      // Check if email has been sent before
-      setEmailSent(user.verificationStatus === 'email_sent' || false);
+      // Email verification removed - no longer checking email sent status
+      // setEmailSent(user.verificationStatus === 'email_sent' || false); // REMOVED
     }
   }, [user]);
 
@@ -185,11 +189,14 @@ const CompanyVerificationSingle = () => {
         })
       });
 
-      await refreshUser(); // Refresh user data
-      setSuccess(user?.isVerified ? 'Профилот на компанијата е успешно ажуриран!' : 'Профилот е успешно ажуриран!');
+      await refreshUser(); // Refresh user data after update
 
-      // Only send verification email for unverified users if they explicitly click the button
-      // We DON'T auto-send anymore to prevent spam
+      // Show success message with auto-verification info
+      if (response.autoVerified) {
+        setSuccess('✅ Профилот е успешно ажуриран и верификуван! Сега имате пристап до сите функции.');
+      } else {
+        setSuccess(user?.isVerified ? 'Профилот на компанијата е успешно ажуриран!' : 'Профилот е успешно ажуриран!');
+      }
     } catch (error) {
       console.error('Profile update error:', error);
       setError(error.message || 'Грешка при ажурирање на профилот.');
@@ -198,7 +205,13 @@ const CompanyVerificationSingle = () => {
     }
   };
 
+  // ============================================
+  // EMAIL VERIFICATION FUNCTIONS REMOVED (2025-11-29)
+  // ============================================
+  // Email verification is no longer required
+  // Functions commented out for potential future use
 
+  /* COMMENTED OUT: Email verification functions
   const handleSendVerificationEmail = async () => {
     if (!formData.officialEmail?.trim()) {
       setError('Ве молиме внесете службена email адреса.');
@@ -247,6 +260,7 @@ const CompanyVerificationSingle = () => {
     setEmailSent(false);
     await handleSendVerificationEmail();
   };
+  */ // END OF COMMENTED OUT EMAIL FUNCTIONS
 
   return (
     <div>
@@ -797,57 +811,55 @@ const CompanyVerificationSingle = () => {
             disabled={loading}
             className={styles.saveButton}
           >
-            {loading ? 'Зачувува...' : 'Зачувај профил'}
-          </button>
-
-          <button
-            type="button"
-            onClick={emailSent ? handleResendEmail : handleSendVerificationEmail}
-            disabled={sendingEmail || !success}
-            className={styles.emailButton}
-          >
-            {sendingEmail 
-              ? 'Испраќа...' 
-              : emailSent 
-                ? 'Повторно испрати email' 
-                : 'Испрати верификационен email'
-            }
+            {loading ? 'Зачувува...' : user?.isVerified ? 'Ажурирај профил' : 'Верификувај профил'}
           </button>
         </div>
 
+        {/* ============================================ */}
+        {/* EMAIL VERIFICATION UI REMOVED (2025-11-29)   */}
+        {/* ============================================ */}
+        {/* Email verification button and notification UI removed */}
+        {/* All features now accessible after completing company data */}
+
+        {/* REMOVED: Second button for sending verification email
+        <button
+          type="button"
+          onClick={emailSent ? handleResendEmail : handleSendVerificationEmail}
+          disabled={sendingEmail || !success}
+          className={styles.emailButton}
+        >
+          {sendingEmail ? 'Испраќа...' : emailSent ? 'Повторно испрати email' : 'Испрати верификационен email'}
+        </button>
+        */}
+
+        {/* REMOVED: Email sent notification
         {emailSent && (
           <div className={styles.emailInfo}>
             <p>📧 Верификационен email е пратен на <strong>{formData.officialEmail}</strong></p>
             <p>Проверете го вашиот inbox (и spam папката) и кликнете на линкот за верификација.</p>
           </div>
         )}
+        */}
 
+        {/* REMOVED: Success options after email sent
         {showSuccessOptions && (
           <div className={styles.successActions}>
             <h3>🎉 Следни чекори</h3>
             <p>Додека чекате да ја завршите верификацијата на email-то, можете:</p>
-            
             <div className={styles.actionButtons}>
-              <button 
-                onClick={() => navigate('/terminal')}
-                className={styles.primaryAction}
-              >
+              <button onClick={() => navigate('/terminal')} className={styles.primaryAction}>
                 🏠 Назад кон Dashboard
               </button>
-              
-              <button 
-                onClick={() => navigate('/terminal/documents')}
-                className={styles.secondaryAction}
-              >
+              <button onClick={() => navigate('/terminal/documents')} className={styles.secondaryAction}>
                 📄 Разгледај документи (по верификација)
               </button>
             </div>
-            
             <div className={styles.helpText}>
               <p>💡 <strong>Подсетник:</strong> Откако ќе ја завршите email верификацијата, ќе имате пристап до сите премиум функции!</p>
             </div>
           </div>
         )}
+        */}
         </div>
       )}
           </div>

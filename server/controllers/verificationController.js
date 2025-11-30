@@ -356,8 +356,23 @@ class VerificationController {
     }
   }
 
+  // ============================================
+  // EMAIL VERIFICATION DISABLED (2025-11-29)
+  // ============================================
+  // Email verification is no longer required
+  // Users are auto-verified when they complete company data
+  // Keeping this code commented for potential future use
+
   // Send verification email
   async sendVerificationEmail(req, res) {
+    // Return friendly message indicating feature is disabled
+    return res.status(200).json({
+      success: false,
+      message: 'Email verification is no longer required. Complete your company profile to access all features.',
+      disabled: true
+    });
+
+    /* COMMENTED OUT: Email verification logic
     try {
       const { officialEmail, companyName, companyManager } = req.body;
 
@@ -443,15 +458,21 @@ class VerificationController {
       });
     } catch (error) {
       console.error('Error sending verification email:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: error.message || 'Failed to send verification email' 
+        message: error.message || 'Failed to send verification email'
       });
     }
+    */
   }
 
   // Verify email with token
   async verifyEmail(req, res) {
+    // Return friendly message indicating feature is disabled
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    return res.redirect(`${clientUrl}/verification-result?success=false&error=feature_disabled&message=${encodeURIComponent('Email verification is no longer required')}`);
+
+    /* COMMENTED OUT: Email verification logic
     try {
       const { token } = req.query;
 
@@ -525,10 +546,19 @@ class VerificationController {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
       res.redirect(`${clientUrl}/verification-result?success=false&error=server_error`);
     }
+    */
   }
 
   // Resend verification email
   async resendVerificationEmail(req, res) {
+    // Return friendly message indicating feature is disabled
+    return res.status(200).json({
+      success: false,
+      message: 'Email verification is no longer required. Complete your company profile to access all features.',
+      disabled: true
+    });
+
+    /* COMMENTED OUT: Resend verification email logic
     try {
       const userId = req.user.id || req.user._id;
       const db = req.app.locals.db;
@@ -538,23 +568,23 @@ class VerificationController {
       // Get current user data
       const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
       if (!user) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: 'User not found' 
+          message: 'User not found'
         });
       }
 
       if (!user.officialEmail || !user.companyInfo?.companyName || !user.companyManager) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Missing required information. Please update your profile first.' 
+          message: 'Missing required information. Please update your profile first.'
         });
       }
 
       if (user.isVerified) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'User is already verified' 
+          message: 'User is already verified'
         });
       }
 
@@ -587,11 +617,12 @@ class VerificationController {
       });
     } catch (error) {
       console.error('Error resending verification email:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: error.message || 'Failed to resend verification email' 
+        message: error.message || 'Failed to resend verification email'
       });
     }
+    */
   }
 }
 

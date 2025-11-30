@@ -1,37 +1,44 @@
 /**
  * Verification Middleware
- * Ensures users have proper verification status for accessing protected features
+ * Ensures users have complete company data for accessing protected features
+ *
+ * UPDATED: Email verification disabled - now checks only company data completeness
+ * All features accessible once required company fields are filled
  */
 
-// Check if user's company is fully verified for restricted actions
+// Check if user's company data is complete for restricted actions
 const requireVerifiedCompany = async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         message: 'Authentication required',
         code: 'AUTH_REQUIRED'
       });
     }
 
-    // Check if user is verified
-    const isFullyVerified = req.user.isVerified;
-    const hasRequiredFields = req.user.companyInfo && 
+    // ============================================
+    // EMAIL VERIFICATION DISABLED (2025-11-29)
+    // ============================================
+    // Check only if user has complete company data
+    // const isFullyVerified = req.user.isVerified; // COMMENTED OUT
+
+    const hasRequiredFields = req.user.companyInfo &&
                               req.user.companyInfo.companyName &&
                               (req.user.companyInfo.address || req.user.companyInfo.companyAddress) &&
                               (req.user.companyInfo.taxNumber || req.user.companyInfo.companyTaxNumber) &&
                               req.user.companyManager &&
                               req.user.officialEmail;
 
-    if (!isFullyVerified || !hasRequiredFields) {
+    // Only check hasRequiredFields (isVerified check removed)
+    if (!hasRequiredFields) {
       return res.status(403).json({
         success: false,
-        message: 'Company verification required to access this feature',
-        code: 'VERIFICATION_REQUIRED',
+        message: 'Complete company data required to access this feature',
+        code: 'COMPANY_DATA_REQUIRED',
         details: {
-          isVerified: req.user.isVerified || false,
-          hasRequiredFields: hasRequiredFields || false,
-          verificationStatus: req.user.verificationStatus || 'pending'
+          // isVerified: req.user.isVerified || false, // COMMENTED OUT
+          hasRequiredFields: hasRequiredFields || false
         },
         requiredFields: {
           companyName: !!req.user.companyInfo?.companyName,
@@ -46,18 +53,24 @@ const requireVerifiedCompany = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Verification middleware error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error during verification check' 
+      message: 'Server error during verification check'
     });
   }
 };
 
-// Check if user has verified their email (but not necessarily approved by admin)
+// ============================================
+// EMAIL VERIFICATION DISABLED (2025-11-29)
+// ============================================
+// This middleware is no longer active
+// Email verification has been replaced with company data completeness check
 const requireEmailVerification = async (req, res, next) => {
+  /*
+  // COMMENTED OUT: Email verification check
   try {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         message: 'Authentication required',
         code: 'AUTH_REQUIRED'
@@ -79,11 +92,16 @@ const requireEmailVerification = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Email verification middleware error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error during email verification check' 
+      message: 'Server error during email verification check'
     });
   }
+  */
+
+  // Email verification disabled - proceed without checking
+  console.warn('⚠️ requireEmailVerification middleware is disabled. Email verification no longer required.');
+  next();
 };
 
 // Middleware that allows read access for unverified users but blocks write operations
@@ -106,20 +124,24 @@ const allowReadOnlyForUnverified = (req, res, next) => {
 };
 
 // Check verification status and add to response (for informational purposes)
+// UPDATED: Now checks company data completeness instead of isVerified
 const addVerificationStatus = async (req, res, next) => {
   try {
     if (req.user) {
+      const hasRequiredFields = !!(req.user.companyInfo?.companyName &&
+                                   (req.user.companyInfo?.address || req.user.companyInfo?.companyAddress) &&
+                                   (req.user.companyInfo?.taxNumber || req.user.companyInfo?.companyTaxNumber) &&
+                                   req.user.companyManager &&
+                                   req.user.officialEmail);
+
       req.verificationInfo = {
-        isVerified: req.user.isVerified || false,
-        verificationStatus: req.user.verificationStatus || 'pending',
-        hasRequiredFields: !!(req.user.companyInfo?.companyName && 
-                             (req.user.companyInfo?.address || req.user.companyInfo?.companyAddress) && 
-                             (req.user.companyInfo?.taxNumber || req.user.companyInfo?.companyTaxNumber) && 
-                             req.user.companyManager && 
-                             req.user.officialEmail),
-        canGenerateDocuments: req.user.isVerified,
-        canUseAI: req.user.isVerified,
-        canPost: req.user.isVerified
+        // isVerified: req.user.isVerified || false, // COMMENTED OUT - no longer primary check
+        // verificationStatus: req.user.verificationStatus || 'pending', // COMMENTED OUT
+        hasRequiredFields: hasRequiredFields,
+        // Access now based on company data completeness, not email verification
+        canGenerateDocuments: hasRequiredFields,
+        canUseAI: hasRequiredFields,
+        canPost: hasRequiredFields
       };
     }
     next();

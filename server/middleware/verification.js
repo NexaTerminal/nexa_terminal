@@ -1,10 +1,13 @@
 /**
  * Verification Middleware
- * Ensures only verified users can access certain features
+ * Ensures only users with complete company data can access certain features
+ *
+ * UPDATED: Email verification disabled - now checks only company data completeness
+ * All features accessible once required company fields are filled
  */
 
 /**
- * Require user verification
+ * Require complete company information (email verification disabled)
  */
 const requireVerification = (req, res, next) => {
   try {
@@ -16,7 +19,14 @@ const requireVerification = (req, res, next) => {
       });
     }
 
-    // Check if user is verified
+    // ============================================
+    // EMAIL VERIFICATION DISABLED (2025-11-29)
+    // ============================================
+    // Access now granted based on company data completeness only
+    // No email verification click required
+
+    /*
+    // COMMENTED OUT: Email verification check
     if (!req.user.isVerified) {
       return res.status(403).json({
         success: false,
@@ -24,13 +34,28 @@ const requireVerification = (req, res, next) => {
         requiresVerification: true
       });
     }
+    */
 
-    // Check if user has company info (required for marketplace features)
-    if (!req.user.companyInfo || !req.user.companyInfo.companyName) {
+    // Check if user has complete company info (all required fields)
+    const hasCompleteCompanyInfo = req.user.companyInfo &&
+                                   req.user.companyInfo.companyName &&
+                                   (req.user.companyInfo.companyAddress || req.user.companyInfo.address) &&
+                                   (req.user.companyInfo.companyTaxNumber || req.user.companyInfo.taxNumber) &&
+                                   req.user.companyManager &&
+                                   req.user.officialEmail;
+
+    if (!hasCompleteCompanyInfo) {
       return res.status(403).json({
         success: false,
-        message: 'Потребни се информации за компанијата за да пристапите до оваа функција',
-        requiresCompanyInfo: true
+        message: 'Пополнете ги сите задолжителни податоци за компанијата (име, адреса, даночен број, менаџер и email) за да пристапите до оваа функција',
+        requiresCompanyInfo: true,
+        missingFields: {
+          companyName: !req.user.companyInfo?.companyName,
+          address: !(req.user.companyInfo?.companyAddress || req.user.companyInfo?.address),
+          taxNumber: !(req.user.companyInfo?.companyTaxNumber || req.user.companyInfo?.taxNumber),
+          companyManager: !req.user.companyManager,
+          officialEmail: !req.user.officialEmail
+        }
       });
     }
 

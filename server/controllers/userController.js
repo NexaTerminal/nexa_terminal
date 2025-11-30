@@ -109,6 +109,36 @@ class UserController {
       // Get updated user data
       const updatedUser = await userService.findById(currentUser._id || currentUser.id);
 
+      // ============================================
+      // AUTO-VERIFICATION (2025-11-29)
+      // ============================================
+      // Check if all required company fields are complete
+      // If yes, automatically set isVerified to true
+      const hasCompleteCompanyInfo = updatedUser.companyInfo &&
+                                     updatedUser.companyInfo.companyName &&
+                                     (updatedUser.companyInfo.companyAddress || updatedUser.companyInfo.address) &&
+                                     (updatedUser.companyInfo.companyTaxNumber || updatedUser.companyInfo.taxNumber) &&
+                                     (updatedUser.companyInfo.companyManager || updatedUser.companyManager) &&
+                                     updatedUser.officialEmail;
+
+      if (hasCompleteCompanyInfo && !updatedUser.isVerified) {
+        console.log('✅ Auto-verifying user - all required company data is complete');
+        await userService.updateUser(currentUser._id || currentUser.id, {
+          isVerified: true,
+          verificationStatus: 'approved',
+          updatedAt: new Date()
+        });
+
+        // Refresh user data after auto-verification
+        const finalUser = await userService.findById(currentUser._id || currentUser.id);
+
+        return res.json({
+          message: 'Profile updated and verified successfully! You now have access to all features.',
+          user: finalUser,
+          autoVerified: true
+        });
+      }
+
       res.json({
         message: 'Profile updated successfully',
         user: updatedUser

@@ -31,7 +31,14 @@ router.post('/upload', authenticateJWT, verificationController.upload.fields([
   { name: 'additionalDocuments', maxCount: 5 }
 ]), verificationController.uploadDocument);
 
-// Email verification routes
+// ============================================
+// EMAIL VERIFICATION ROUTES DISABLED (2025-11-29)
+// ============================================
+// Email verification is no longer required
+// Users are auto-verified when they complete company data
+// Routes kept active but return friendly disabled messages
+
+// Email verification routes (disabled - return friendly messages)
 router.post('/send-verification-email', authenticateJWT, verificationController.sendVerificationEmail);
 router.get('/verify-email', verificationController.verifyEmail);
 router.post('/resend-verification', authenticateJWT, verificationController.resendVerificationEmail);

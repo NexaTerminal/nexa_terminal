@@ -626,6 +626,37 @@
     font-weight: 600;
   }
 
+  /* Disabled mobile menu item styles */
+  .mobileMenuItemDisabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    color: #9ca3af !important;
+    position: relative;
+  }
+
+  .mobileMenuItemDisabled:hover,
+  .mobileMenuItemDisabled:active {
+    background: transparent !important;
+    color: #9ca3af !important;
+  }
+
+  .mobileMenuItemDisabled .mobileMenuIcon {
+    opacity: 0.6;
+  }
+
+  /* Coming soon badge for mobile */
+  .comingSoonBadge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-radius: 6px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
   .mobileMenuIcon {
     font-size: 1.5rem;
     min-width: 32px;

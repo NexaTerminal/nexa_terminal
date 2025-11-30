@@ -16,7 +16,7 @@ const Sidebar = () => {
     { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
     // { path: '/terminal/profile', label: 'Профил', icon: '👤', noTranslate: true },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
-    { path: '/terminal/contact', label: 'Побарај понуда', icon: '💼', noTranslate: true },
+    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
   ];
 
@@ -36,18 +36,30 @@ const Sidebar = () => {
 
         <nav className={styles["dashboard-menu"]}>
           {/* Regular Menu Items */}
-          {regularMenuItems.map(({ path, label, icon, noTranslate }) => (
-            <Link
-              key={path}
-              to={path}
-              className={`${styles["menu-item"]} ${
-                location.pathname === path ? styles.active : ""
-              }`}
-            >
-              <span className={styles["menu-icon"]}>{icon}</span>
-              <h3>{noTranslate ? label : t(label)}</h3>
-            </Link>
-          ))}
+          {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+            disabled ? (
+              <div
+                key={path}
+                className={`${styles["menu-item"]} ${styles["menu-item-disabled"]}`}
+                title={comingSoon || 'Coming Soon'}
+              >
+                <span className={styles["menu-icon"]}>{icon}</span>
+                <h3>{noTranslate ? label : t(label)}</h3>
+                {comingSoon && <span className={styles["coming-soon-badge"]}>{comingSoon}</span>}
+              </div>
+            ) : (
+              <Link
+                key={path}
+                to={path}
+                className={`${styles["menu-item"]} ${
+                  location.pathname === path ? styles.active : ""
+                }`}
+              >
+                <span className={styles["menu-icon"]}>{icon}</span>
+                <h3>{noTranslate ? label : t(label)}</h3>
+              </Link>
+            )
+          )}
 
           {/* Admin Menu Items */}
           {currentUser?.role === 'admin' && (

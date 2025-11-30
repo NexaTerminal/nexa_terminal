@@ -91,6 +91,36 @@
   text-decoration: underline;
 }
 
+/* Disabled menu item styles */
+.menu-item-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: var(--color-text-light, #9ca3af) !important;
+  position: relative;
+}
+
+.menu-item-disabled:hover {
+  color: var(--color-text-light, #9ca3af) !important;
+  text-decoration: none;
+}
+
+.menu-item-disabled .menu-icon {
+  opacity: 0.6;
+}
+
+/* Coming soon badge */
+.coming-soon-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-primary-soft, rgba(59, 130, 246, 0.1));
+  color: var(--color-primary, #3b82f6);
+  border-radius: var(--border-radius-sm, 4px);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .menu-icon {
   font-size: 1.125rem;
   min-width: 24px;

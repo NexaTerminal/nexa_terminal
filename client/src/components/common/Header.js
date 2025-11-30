@@ -176,7 +176,7 @@ const Header = ({ isTerminal = false }) => {
     { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
     { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
-    { path: '/terminal/contact', label: 'Побарај понуда', icon: '💼', noTranslate: true },
+    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
   ];
 
@@ -428,17 +428,29 @@ const Header = ({ isTerminal = false }) => {
         )}
 
         <div className={styles['mobileMenuLinks']}>
-          {regularMenuItems.map(({ path, label, icon, noTranslate }) => (
-            <Link
-              key={path}
-              to={path}
-              className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className={styles['mobileMenuIcon']}>{icon}</span>
-              <span>{noTranslate ? label : t(label)}</span>
-            </Link>
-          ))}
+          {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+            disabled ? (
+              <div
+                key={path}
+                className={`${styles['mobileMenuItem']} ${styles['mobileMenuItemDisabled']}`}
+                title={comingSoon || 'Coming Soon'}
+              >
+                <span className={styles['mobileMenuIcon']}>{icon}</span>
+                <span>{noTranslate ? label : t(label)}</span>
+                {comingSoon && <span className={styles['comingSoonBadge']}>{comingSoon}</span>}
+              </div>
+            ) : (
+              <Link
+                key={path}
+                to={path}
+                className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className={styles['mobileMenuIcon']}>{icon}</span>
+                <span>{noTranslate ? label : t(label)}</span>
+              </Link>
+            )
+          )}
 
           {currentUser?.role === 'admin' && (
             <>

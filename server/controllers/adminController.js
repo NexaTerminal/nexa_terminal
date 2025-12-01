@@ -33,10 +33,26 @@ class AdminController {
         sortOrder = 'desc'
       } = req.query;
 
-      const db = req.app.locals.database;
+      console.log('🔍 Admin getUsers called with params:', { page, limit, search, status, verified, sortBy, sortOrder });
+
+      // Try both app.locals.database and app.locals.db for compatibility
+      const db = req.app.locals.database || req.app.locals.db;
+      console.log('🔍 Database connection:', db ? 'Connected' : 'NOT CONNECTED');
+      console.log('🔍 Database source:', req.app.locals.database ? 'app.locals.database' : (req.app.locals.db ? 'app.locals.db' : 'NONE'));
+
+      if (!db) {
+        console.error('❌ No database connection available');
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
+
       const userService = new UserService(db);
       const analyticsService = new UserAnalyticsService(db);
       const usersCollection = db.collection('users');
+
+      console.log('🔍 Users collection obtained');
 
       // Build search filter
       const filter = {};
@@ -70,11 +86,13 @@ class AdminController {
 
       // Count total for pagination
       const total = await usersCollection.countDocuments(filter);
-      
+      console.log('🔍 Total users matching filter:', total);
+      console.log('🔍 Filter applied:', JSON.stringify(filter, null, 2));
+
       // Get users with pagination and sorting
       const sort = {};
       sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-      
+
       const skip = (page - 1) * limit;
       const users = await usersCollection
         .find(filter)
@@ -82,6 +100,8 @@ class AdminController {
         .skip(skip)
         .limit(parseInt(limit))
         .toArray();
+
+      console.log('🔍 Users found after pagination:', users.length);
 
       // Get analytics for each user (last 30 days)
       const thirtyDaysAgo = new Date();
@@ -170,7 +190,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const analyticsService = new UserAnalyticsService(db);
       const usersCollection = db.collection('users');
 
@@ -248,7 +274,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
 
       // Calculate suspension end date
@@ -315,7 +347,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
 
       const updateResult = await usersCollection.updateOne(
@@ -383,7 +421,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
 
       const updateResult = await usersCollection.updateOne(
@@ -440,7 +484,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
 
       const updateResult = await usersCollection.updateOne(
@@ -496,7 +546,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const analyticsService = new UserAnalyticsService(db);
 
       const activityLogs = await analyticsService.getUserActivityLogs(
@@ -526,7 +582,13 @@ class AdminController {
     try {
       const { days = 30 } = req.query;
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const analyticsService = new UserAnalyticsService(db);
 
       const startDate = new Date();
@@ -601,7 +663,13 @@ class AdminController {
    */
   async getAdminDashboard(req, res) {
     try {
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const analyticsService = new UserAnalyticsService(db);
 
       // Get recent activity
@@ -644,7 +712,13 @@ class AdminController {
     try {
       const { format = 'csv' } = req.query;
       
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
 
       const users = await usersCollection.find({}).toArray();
@@ -704,7 +778,13 @@ class AdminController {
         });
       }
 
-      const db = req.app.locals.database;
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
       const usersCollection = db.collection('users');
       const objectIds = validObjectIds.map(id => new ObjectId(id));
 

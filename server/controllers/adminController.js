@@ -11,6 +11,7 @@ class AdminController {
     this.unsuspendUser = this.unsuspendUser.bind(this);
     this.updateUserRole = this.updateUserRole.bind(this);
     this.updateUserStatus = this.updateUserStatus.bind(this);
+    this.deleteUser = this.deleteUser.bind(this);
     this.getUserActivity = this.getUserActivity.bind(this);
     this.getPlatformAnalytics = this.getPlatformAnalytics.bind(this);
     this.getAdminDashboard = this.getAdminDashboard.bind(this);
@@ -33,7 +34,9 @@ class AdminController {
         sortOrder = 'desc'
       } = req.query;
 
-      console.log('🔍 Admin getUsers called with params:', { page, limit, search, status, verified, sortBy, sortOrder });
+      console.log('🔍 ============ Admin getUsers called ============');
+      console.log('🔍 Request params:', { page, limit, search, status, verified, sortBy, sortOrder });
+      console.log('🔍 Request user:', req.user ? { id: req.user._id, role: req.user.role } : 'NO USER');
 
       // Try both app.locals.database and app.locals.db for compatibility
       const db = req.app.locals.database || req.app.locals.db;
@@ -526,6 +529,81 @@ class AdminController {
       res.status(500).json({
         success: false,
         message: 'Failed to update user status',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Delete a user permanently (DESTRUCTIVE - USE WITH CAUTION)
+   */
+  async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid user ID'
+        });
+      }
+
+      // Prevent admin from deleting themselves
+      if (req.user.id.toString() === id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Cannot delete your own account'
+        });
+      }
+
+      const db = req.app.locals.database || req.app.locals.db;
+      if (!db) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection not available'
+        });
+      }
+      const usersCollection = db.collection('users');
+
+      // Get user info before deletion for logging
+      const userToDelete = await usersCollection.findOne({ _id: new ObjectId(id) });
+
+      if (!userToDelete) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Delete the user
+      const deleteResult = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+
+      if (deleteResult.deletedCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Log admin action
+      const analyticsService = new UserAnalyticsService(db);
+      await analyticsService.trackActivity(req.user.id, 'admin_delete_user', {
+        targetUserId: id,
+        targetUserEmail: userToDelete.email,
+        targetUserName: userToDelete.username
+      });
+
+      console.log(`🗑️ User deleted by admin: ${userToDelete.email} (ID: ${id}) by admin ${req.user.email}`);
+
+      res.json({
+        success: true,
+        message: 'User deleted permanently'
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete user',
         error: error.message
       });
     }

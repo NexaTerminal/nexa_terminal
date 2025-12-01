@@ -45,6 +45,44 @@ router.get('/test-offer-requests', async (req, res) => {
   }
 });
 
+// Test users route - direct database access
+router.get('/test-users', async (req, res) => {
+  console.log('🔍 Test users route called');
+  try {
+    // Direct database access to verify users exist
+    const { MongoClient } = require('mongodb');
+    const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/nexa';
+    const client = new MongoClient(url);
+    await client.connect();
+    const db = client.db();
+    const usersCollection = db.collection('users');
+
+    const totalUsers = await usersCollection.countDocuments({});
+    const users = await usersCollection.find({}).limit(5).toArray();
+
+    console.log(`Found ${totalUsers} total users in database`);
+
+    await client.close();
+
+    res.json({
+      success: true,
+      totalUsers,
+      sampleUsers: users.map(u => ({
+        _id: u._id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        isActive: u.isActive,
+        isVerified: u.isVerified,
+        createdAt: u.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Test users route error:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
 // All admin routes require authentication and admin privileges
 router.use(authenticateJWT, isAdmin);
 
@@ -55,6 +93,7 @@ router.post('/users/:id/suspend', adminController.suspendUser);
 router.post('/users/:id/unsuspend', adminController.unsuspendUser);
 router.patch('/users/:id/role', adminController.updateUserRole);
 router.patch('/users/:id/status', adminController.updateUserStatus);
+router.delete('/users/:id', adminController.deleteUser);
 router.get('/users/:id/activity', adminController.getUserActivity);
 
 // Platform Analytics

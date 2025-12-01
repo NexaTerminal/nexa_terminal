@@ -483,6 +483,31 @@
   transform: scale(1.05);
 }
 
+.deleteButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.deleteButton:hover {
+  background: #fecaca;
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+}
+
+.deleteButton:active {
+  transform: scale(0.98);
+}
+
 .roleSelect {
   padding: 0.25rem 0.5rem;
   border: 1px solid #d1d5db;

@@ -119,6 +119,10 @@ const EnhancedManageUsers = () => {
           endpoint = `/api/admin/users/${userId}/status`;
           method = 'PATCH';
           break;
+        case 'delete':
+          endpoint = `/api/admin/users/${userId}`;
+          method = 'DELETE';
+          break;
         default:
           throw new Error('Invalid action');
       }
@@ -489,6 +493,18 @@ const EnhancedManageUsers = () => {
                       title={user.isActive ? 'Deactivate' : 'Activate'}
                     >
                       {user.isActive ? '⏸️' : '▶️'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`⚠️ WARNING: Are you sure you want to PERMANENTLY DELETE this user?\n\nUser: ${user.username || user.email}\nEmail: ${user.email}\n\nThis action CANNOT be undone!`)) {
+                          handleUserAction(user._id, 'delete');
+                        }
+                      }}
+                      className={styles.deleteButton}
+                      title="Delete User Permanently"
+                    >
+                      🗑️
                     </button>
                   </div>
                 </td>

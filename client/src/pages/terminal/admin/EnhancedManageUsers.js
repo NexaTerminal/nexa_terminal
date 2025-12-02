@@ -7,6 +7,7 @@ import SuspendUserModal from '../../../components/admin/SuspendUserModal';
 import UserAnalytics from '../../../components/admin/UserAnalytics';
 import LiveMonitoringDashboard from '../../../components/admin/LiveMonitoringDashboard';
 import axios from 'axios';
+import ApiService from '../../../services/api';
 
 const EnhancedManageUsers = () => {
   const { token } = useAuth();
@@ -127,11 +128,20 @@ const EnhancedManageUsers = () => {
           throw new Error('Invalid action');
       }
 
+      // Get CSRF token for state-changing operations
+      const csrfToken = await ApiService.getCSRFToken();
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
+
       const response = await axios({
         method,
         url: endpoint,
         data,
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       });
 
       if (response.data.success) {
@@ -148,12 +158,21 @@ const EnhancedManageUsers = () => {
   // Bulk actions
   const handleBulkAction = async (action, params = {}) => {
     try {
+      // Get CSRF token for bulk actions
+      const csrfToken = await ApiService.getCSRFToken();
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
+
       const response = await axios.post('/api/admin/bulk-action', {
         action,
         userIds: Array.from(selectedUsers),
         params
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       });
 
       if (response.data.success) {

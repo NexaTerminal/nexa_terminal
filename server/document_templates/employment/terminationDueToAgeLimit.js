@@ -63,7 +63,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -72,7 +72,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: 'РЕШЕНИЕ', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         // Document subtitle
@@ -81,7 +81,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: 'за престанок за работен однос поради возраст', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Main decision content
@@ -113,7 +113,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Explanation section title
@@ -122,7 +122,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: 'Образложение', bold: false, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Detailed explanation
@@ -144,7 +144,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Legal remedy
@@ -156,7 +156,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Distribution list
@@ -165,7 +165,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: 'ДОСТАВЕНО ДО:', bold: true })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -181,7 +181,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: '- работникот', bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Decision date
@@ -199,21 +199,21 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

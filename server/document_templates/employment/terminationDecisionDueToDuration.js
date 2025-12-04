@@ -25,7 +25,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         
         // Title - ОДЛУКА
@@ -43,7 +43,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: 'за престанок на Договорот за вработување поради истек на времето за кое бил склучен', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
         
         // Main content paragraph
@@ -55,7 +55,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
         
         // Образложение title
@@ -64,7 +64,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: 'Образложение', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         
         // First paragraph of explanation
@@ -76,7 +76,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         
         // Second paragraph
@@ -85,7 +85,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: 'Согласно Договорот, е наведено дека истиот е склучен на определено времетраење.', bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         
         // Third paragraph - legal reference
@@ -94,7 +94,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: 'Согласно на ова, а врз основа на член 64 од Законот за работните односи со кој е предвидено дека:', bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         
         // Legal provision quote
@@ -106,7 +106,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
         
         // Concluding paragraph
@@ -118,7 +118,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
         
         // Date
@@ -127,7 +127,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: `${decisionDate} година.`, bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
         
         // Signature
@@ -136,21 +136,21 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

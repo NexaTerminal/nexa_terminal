@@ -32,7 +32,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         new Paragraph({
@@ -40,7 +40,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'О Д Л У К А', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -48,7 +48,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'за одобрување неплатено отсуство', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         new Paragraph({
@@ -56,7 +56,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Член 1', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -67,7 +67,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         new Paragraph({
@@ -78,7 +78,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         new Paragraph({
@@ -86,7 +86,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Член 2', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -97,7 +97,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         new Paragraph({
@@ -105,7 +105,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Член 3', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -124,7 +124,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Примерок од одлуката да се достави до:', bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -148,7 +148,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: '___________________________', bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
 
         new Paragraph({
@@ -156,7 +156,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: companyName, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
 
         new Paragraph({
@@ -164,7 +164,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
             new TextRun({ text: `Управител ${companyManager}`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

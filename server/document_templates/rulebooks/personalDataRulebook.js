@@ -853,21 +853,21 @@ function generatePersonalDataRulebookDoc(formData, user, company) {
             new TextRun({ text: '___________________________', size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

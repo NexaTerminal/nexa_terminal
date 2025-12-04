@@ -53,7 +53,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -62,7 +62,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             new TextRun({ text: 'РЕШЕНИЕ', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -70,7 +70,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             new TextRun({ text: 'За престанок на работен однос', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Main content - employee request details
@@ -97,7 +97,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Notice period compliance
@@ -109,7 +109,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Legal compliance statement
@@ -121,7 +121,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Legal instruction section
@@ -130,7 +130,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             new TextRun({ text: 'Правна поука:', bold: true })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -141,7 +141,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Decision date
@@ -159,21 +159,21 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
       ]

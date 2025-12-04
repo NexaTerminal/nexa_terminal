@@ -36,7 +36,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     new Paragraph({
@@ -44,7 +44,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "О Д Л У К А", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     new Paragraph({
@@ -52,7 +52,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "за исплата на надомест во случај на смрт", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     new Paragraph({
@@ -60,7 +60,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "на член на семејно домаќинство", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     new Paragraph({
@@ -68,7 +68,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "Член 1", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     new Paragraph({
@@ -78,7 +78,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     new Paragraph({
@@ -86,7 +86,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "Член 2", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     new Paragraph({
@@ -96,7 +96,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 600 }
+      spacing: { after: 600, line: 276 }
     }),
 
     new Paragraph({
@@ -104,7 +104,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "Одлуката да се достави до:" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     new Paragraph({
@@ -126,7 +126,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "- Архивата" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     new Paragraph({
@@ -134,7 +134,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "Управител" }),
       ],
       alignment: AlignmentType.RIGHT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
 
     // Signature section - using simple line format
@@ -143,7 +143,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
 
     new Paragraph({
@@ -151,7 +151,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: companyName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
 
     new Paragraph({
@@ -159,7 +159,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
         new TextRun({ text: companyManager }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     })
   ];
 

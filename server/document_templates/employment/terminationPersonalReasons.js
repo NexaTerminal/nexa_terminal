@@ -44,7 +44,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: `Бр. _____ од ${documentDate} година`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Legal basis introduction
@@ -76,7 +76,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -85,7 +85,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: 'ОДЛУКА', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -93,7 +93,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: 'за престанок на договор за вработување', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -101,7 +101,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: 'од лични причини на страна на работникот', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Decision content
@@ -138,7 +138,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Reasoning section
@@ -147,7 +147,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: 'О Б Р А З Л О Ж Е Н И Е', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Employment details
@@ -175,7 +175,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Personal reasons description
@@ -192,7 +192,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Legal basis
@@ -204,7 +204,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Final obligations and rights
@@ -216,7 +216,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Legal notice for appeal
@@ -225,7 +225,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: 'ПРАВНА ПОУКА', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         new Paragraph({
@@ -236,7 +236,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Date and location
@@ -245,7 +245,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: `Скопје, ${currentDate} година`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Employer signature
@@ -254,28 +254,28 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: "За работодавачот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Employee signature
@@ -284,21 +284,21 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             new TextRun({ text: "За работникот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: employeeName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Administrative note

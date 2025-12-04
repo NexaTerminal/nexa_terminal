@@ -569,58 +569,83 @@ function generateNDADoc(formData, user, company) {
     );
   }
 
+  // Symmetric signature table - professional format for two parties
   children.push(
-    // First Party signature
-    new Paragraph({
-      children: [
-        new TextRun({ text: "ПРВА ДОГОВОРНА СТРАНА:" }),
+    new Table({
+      width: { size: 100, type: 'pct' },
+      borders: {
+        top: { style: 'none' },
+        bottom: { style: 'none' },
+        left: { style: 'none' },
+        right: { style: 'none' },
+        insideHorizontal: { style: 'none' },
+        insideVertical: { style: 'none' },
+      },
+      rows: [
+        new TableRow({
+          children: [
+            // Left cell - First Party signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "ПРВА ДОГОВОРНА СТРАНА:" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 200, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 0, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: companyName })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 0, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: `Управител ${companyManager}` })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 300, line: 276 }
+                }),
+              ],
+            }),
+            // Right cell - Second Party signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "ВТОРА ДОГОВОРНА СТРАНА:" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 200, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 0, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: secondPartyName })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 300, line: 276 }
+                }),
+              ],
+            }),
+          ],
+        }),
       ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: companyName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: `Управител ${companyManager}` }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
-    }),
-
-    // Second Party signature
-    new Paragraph({
-      children: [
-        new TextRun({ text: "ВТОРА ДОГОВОРНА СТРАНА:" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: secondPartyName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
     })
   );
 

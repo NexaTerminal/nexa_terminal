@@ -35,7 +35,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -44,7 +44,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'О Д Л У К А', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         // Document subtitle
@@ -57,7 +57,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Main content paragraph
@@ -68,7 +68,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Payment date paragraph
@@ -79,7 +79,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Eligibility criteria paragraph
@@ -90,7 +90,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Funding source paragraph
@@ -110,7 +110,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Одлуката да се достави до:' })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -135,21 +135,21 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

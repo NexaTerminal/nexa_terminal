@@ -80,7 +80,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: `Бр. _____ од ${currentDate} година`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Legal basis introduction with proper Macedonian format
@@ -92,7 +92,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -101,7 +101,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'РЕШЕНИЕ', bold: true, size: 32 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -109,7 +109,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'за откажување на договорот за вработување поради', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -117,7 +117,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'кршење на работниот ред и дисциплина и работните обврски', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -125,7 +125,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: '(причина на вина)', bold: true, size: 20 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Main decision
@@ -137,7 +137,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // ОБРАЗЛОЖЕНИЕ section
@@ -146,7 +146,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'О Б Р А З Л О Ж Е Н И Е', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Employee relationship establishment
@@ -158,7 +158,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Specific case description from legal text
@@ -170,7 +170,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Include full article content if selected
@@ -184,7 +184,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
           })
         ] : []),
 
@@ -198,7 +198,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
           })
         ] : []),
 
@@ -211,7 +211,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Employment termination notice
@@ -223,7 +223,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Notice period requirements (only for Article 81)
@@ -236,7 +236,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
           })
         ] : []),
 
@@ -249,7 +249,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Legal rights notice
@@ -262,7 +262,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Signature section
@@ -271,7 +271,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: `Скопје, ${currentDate} година`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Employee signature
@@ -280,21 +280,21 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: "За работникот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: employeeName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Employer signature
@@ -303,28 +303,28 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: "За работодавачот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

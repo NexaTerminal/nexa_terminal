@@ -152,14 +152,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "ДОГОВОР", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ЗА ПРЕЗЕМАЊЕ НА ДОЛГ", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Contract introduction
@@ -170,7 +170,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // Original Creditor
@@ -179,7 +179,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "1) ДОВЕРИТЕЛ:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -190,7 +190,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // Original Debtor
@@ -199,7 +199,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "2) ПРВИЧЕН ДОЛЖНИК:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -210,7 +210,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // Assuming Party
@@ -219,7 +219,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "3) ПРЕЗЕМАЧ НА ДОЛГ:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -239,14 +239,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 1", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Предмет на договорот", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -255,7 +255,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -264,7 +264,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 2 - Debt Amount
@@ -273,14 +273,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 2", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Износ на долгот", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -289,7 +289,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -298,7 +298,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 3 - Type of Assumption
@@ -307,14 +307,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 3", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Вид на преземање", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -325,7 +325,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 4 - Release of Original Debtor
@@ -334,14 +334,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 4", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Ослободување на првичниот должник", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -352,7 +352,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 5 - Obligations of Assuming Party
@@ -361,14 +361,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 5", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Обврски на преземачот", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -377,7 +377,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -404,7 +404,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
   ];
 
@@ -415,14 +415,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 6", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Права и гаранции", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -431,7 +431,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -440,7 +440,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 7 - Notification and Communications
@@ -449,14 +449,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 7", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Известувања и комуникации", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -465,7 +465,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -474,7 +474,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Article 8 - Consequences of Default
@@ -483,14 +483,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 8", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Последици од неисполнување", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -499,7 +499,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -526,7 +526,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     })
   );
 
@@ -539,14 +539,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
           new TextRun({ text: "Член 9", bold: true }),
         ],
         alignment: AlignmentType.CENTER,
-        spacing: { after: 200 }
+        spacing: { after: 200, line: 276 }
       }),
       new Paragraph({
         children: [
           new TextRun({ text: "Дополнителни услови", bold: true }),
         ],
         alignment: AlignmentType.LEFT,
-        spacing: { after: 200 }
+        spacing: { after: 200, line: 276 }
       }),
       new Paragraph({
         children: [
@@ -555,7 +555,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
-        spacing: { after: 400 }
+        spacing: { after: 400, line: 276 }
       })
     );
   }
@@ -570,14 +570,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: `Член ${7 + finalArticleOffset}`, bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Добрата вера", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -586,7 +586,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Dispute Resolution Article
@@ -595,14 +595,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: `Член ${8 + finalArticleOffset}`, bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Решавање на спорови", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -611,7 +611,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Applicable Law Article
@@ -620,14 +620,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: `Член ${9 + finalArticleOffset}`, bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Применливо право", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -636,7 +636,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Copies Article
@@ -645,14 +645,14 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: `Член ${10 + finalArticleOffset}`, bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "Примероци", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -670,7 +670,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "ДОГОВОРНИ СТРАНИ", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Signatures in table format
@@ -683,7 +683,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         new TextRun({ text: "ПРЕЗЕМАЧ НА ДОЛГ:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -717,7 +717,7 @@ function generateDebtAssumptionAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     })
   );
 

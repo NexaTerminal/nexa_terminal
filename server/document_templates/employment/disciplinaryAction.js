@@ -31,111 +31,128 @@ function generateDisciplinaryActionDoc(formData, user, company) {
           children: [
             new TextRun({ text: `Врз основа на член 84, а во врска со член 81 од Законот за работни односи, Управителот на Друштвото ${companyName}, со седиште на ул. ${companyAddress}, ЕМБС: ${companyNumber}, на ден ${sanctionDate} година, го донесе следното:` })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: 'Р Е Ш Е Н И Е', bold: true })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: 'за изрекување дисциплинска мерка - парична казна', bold: true })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: `Врз основа на член 179 и 180 од Законот за работни односи (Службен весник на РМ бр. 167/15 - Пречистен текст), работодавачот ${companyName}, претставуван од управителот ${companyManager}, на ден ${sanctionDate} година, го донесе следното решение:` })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: `На работникот ${employeeName}, работна позиција ${jobPosition}, му се изрекува дисциплинска мерка - парична казна во висина од ${sanctionAmount}% од нето плата, за период од ${sanctionPeriod} месец/и.` })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: 'О б р а з л о ж е н и е', bold: true })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: `Работникот ${employeeName} има работна обврска: ${workTaskFailure}.` })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: `На ден ${employeeWrongdoingDate} година, работникот постапил спротивно на работната обврска на следниот начин: ${employeeWrongDoing}.` })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: 'Со ваквото постапување, работникот ја повредил работната дисциплина, поради што работодавачот смета дека е оправдано да му се изрече дисциплинска мерка.' })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: 'При одмерување висината на дисциплинската мерка, работодавачот ги зел предвид сите околности на случајот, тежината на повредата и досегашното однесување на работникот.' })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: 'Согласно член 180 од Законот за работни односи, паричната казна не може да биде повисока од 15% од нето платата на работникот и не може да се наплатува подолго од 6 месеци.' })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: 'Правна поука: Против ова решение работникот има право на приговор во рок од осум дена од денот на приемот на решението.' })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: 'Доставено до:' })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: '- работникот' })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: '- личен досие' })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: '- архива' })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
             new TextRun({ text: `${currentDate} година` })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),
@@ -143,19 +160,22 @@ function generateDisciplinaryActionDoc(formData, user, company) {
           children: [
             new TextRun({ text: 'За работодавачот' })
           ],
-          alignment: AlignmentType.RIGHT
+          alignment: AlignmentType.RIGHT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName })
           ],
-          alignment: AlignmentType.RIGHT
+          alignment: AlignmentType.RIGHT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: '_____________________' })
           ],
-          alignment: AlignmentType.RIGHT
+          alignment: AlignmentType.RIGHT,
+          spacing: { line: 276 }
         }),
         new Paragraph({
           children: [

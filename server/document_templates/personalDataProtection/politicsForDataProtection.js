@@ -322,7 +322,7 @@ ${companyManager}`;
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
           })
         );
         
@@ -335,7 +335,7 @@ ${companyManager}`;
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
           })
         );
       } else if (trimmedParagraph.startsWith('•')) {
@@ -348,7 +348,7 @@ ${companyManager}`;
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
           })
         );
       } else if (trimmedParagraph.startsWith('„') && trimmedParagraph.endsWith(';')) {
@@ -361,7 +361,7 @@ ${companyManager}`;
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
           })
         );
       } else {
@@ -374,7 +374,7 @@ ${companyManager}`;
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
           })
         );
       }
@@ -409,7 +409,7 @@ ${companyManager}`;
         })
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     })
   );
 

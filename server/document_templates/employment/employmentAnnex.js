@@ -449,58 +449,83 @@ function generateEmploymentAnnexDoc(formData, user, company) {
     })
   );
 
-  // Employer signature
+  // Symmetric signature table - professional format for two parties
   children.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: "За работодавачот:" }),
+    new Table({
+      width: { size: 100, type: 'pct' },
+      borders: {
+        top: { style: 'none' },
+        bottom: { style: 'none' },
+        left: { style: 'none' },
+        right: { style: 'none' },
+        insideHorizontal: { style: 'none' },
+        insideVertical: { style: 'none' },
+      },
+      rows: [
+        new TableRow({
+          children: [
+            // Left cell - Employer signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "За работодавачот:" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 0 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: companyName })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 0 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: companyManager })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 300 }
+                }),
+              ],
+            }),
+            // Right cell - Employee signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "За работникот:" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 0 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: employeeName })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 300 }
+                }),
+              ],
+            }),
+          ],
+        }),
       ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: companyName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: companyManager }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
-    }),
-
-    // Employee signature
-    new Paragraph({
-      children: [
-        new TextRun({ text: "За работникот:" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: employeeName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
     })
   );
 

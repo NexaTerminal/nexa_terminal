@@ -28,7 +28,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -36,7 +36,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ОДЛУКА", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -44,7 +44,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "за исплата на регресот за годишен одмор", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -54,7 +54,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -64,7 +64,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -72,7 +72,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ОБРАЗЛОЖЕНИЕ", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -82,7 +82,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -92,7 +92,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -102,7 +102,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -110,7 +110,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Прилог: Финансиски / сметководствен извештај;" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -120,7 +120,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -128,7 +128,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Прилог: Спогодба помеѓу работодавач и вработени;" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -136,7 +136,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Со донесената одлука се запознаени сите вработени и оваа одлуката стапува во сила со денот на нејзиното донесување." }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -144,7 +144,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: `${decisionDate} година.` }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 500 }
+      spacing: { after: 500, line: 276 }
     }),
     
     new Paragraph({
@@ -152,21 +152,21 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyManager }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // ===== PAGE BREAK TO DOCUMENT 2 =====
@@ -182,7 +182,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -190,7 +190,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ЗАПИСНИК", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -198,7 +198,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "за избор на претставник на вработените за преговори и договарање на висина на регрес за годишен одмор", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -208,7 +208,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -218,7 +218,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -226,7 +226,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ОДЛУКА", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -234,7 +234,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "За избор на претставник на вработените за преговори и договарање на висина на регрес за годишен одмор", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -242,7 +242,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 1", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -250,7 +250,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Врз основа на оваа одлука, се избира лицето:" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -258,7 +258,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: `- ${employeesRepresentative}`, bold: true }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -266,7 +266,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: `за претставник на вработените во ${companyName}.`, bold: true }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -274,7 +274,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 2", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -284,7 +284,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -294,7 +294,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -302,7 +302,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 3", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -312,7 +312,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -320,7 +320,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Потписи на вработени кои избираат претставник:", bold: true }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -333,7 +333,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
       children: [
         new TextRun({ text: "Име и презиме, краток потпис на вработен" }),
       ],
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -346,7 +346,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
       children: [
         new TextRun({ text: "Име и презиме, краток потпис на вработен" }),
       ],
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -354,7 +354,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Прилог: листа на вработени од АВРМ", bold: true }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // ===== PAGE BREAK TO DOCUMENT 3 =====
@@ -370,7 +370,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -380,7 +380,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -390,7 +390,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -398,7 +398,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ја потпишаа следната:" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -406,7 +406,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "СПОГОДБА", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -416,7 +416,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -426,7 +426,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -436,7 +436,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -444,7 +444,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 1", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -452,7 +452,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Предмет на оваа спогодба е утврдување на помал износ на регрес за годишен одмор." }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -460,7 +460,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 2", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -470,7 +470,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -478,7 +478,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 3", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -488,7 +488,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -496,7 +496,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Член 4", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -504,7 +504,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Оваа одлука ја претставува волјата на договорните страни и со истата одделно се запознати сите вработени кај работодавачот." }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 500 }
+      spacing: { after: 500, line: 276 }
     }),
     
     new Paragraph({
@@ -512,28 +512,28 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "За работодавачот:" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyManager }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -541,21 +541,21 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "За претставникот:" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: employeesRepresentative }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
 
     // ===== PAGE BREAK TO DOCUMENT 4 =====
@@ -569,7 +569,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ДО" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -577,7 +577,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: employeeUnion }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -585,7 +585,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: employeeUnionAddress }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -593,7 +593,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ОД:" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -601,7 +601,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: `${companyName},` }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -609,7 +609,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: companyAddress }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -620,7 +620,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -628,7 +628,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Почитувани," }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -638,7 +638,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -646,7 +646,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Од оваа причина, по претходна консултација со претставникот на вработените, беше донесена Одлука за исплата на регрес за годишен одмор во помал износ од предвидениот." }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -656,7 +656,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
     
     new Paragraph({
@@ -664,7 +664,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Прилог: Одлука за исплата на регресот за годишен одмор;" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     
     new Paragraph({
@@ -672,7 +672,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Записник и Одлука за избор на претставник на вработените за преговори и договарање на висина на регрес за годишен одмор;" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -680,7 +680,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "Со почит," }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
     
     new Paragraph({
@@ -688,7 +688,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: `${decisionDate} година.` }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 500 }
+      spacing: { after: 500, line: 276 }
     }),
     
     new Paragraph({
@@ -696,21 +696,21 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyManager }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     }),
   ];
 

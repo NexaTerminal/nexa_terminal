@@ -120,7 +120,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                         })
                     ],
                     alignment: AlignmentType.CENTER,
-                    spacing: { after: 400 }
+                    spacing: { after: 400, line: 276 }
                 }),
 
                 // Legal basis
@@ -131,7 +131,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                         })
                     ],
                     alignment: AlignmentType.JUSTIFIED,
-                    spacing: { after: 300 }
+                    spacing: { after: 300, line: 276 }
                 }),
 
                 // Section I
@@ -153,7 +153,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                         })
                     ],
                     alignment: AlignmentType.JUSTIFIED,
-                    spacing: { after: 200 }
+                    spacing: { after: 200, line: 276 }
                 }),
 
                 new Paragraph({
@@ -163,7 +163,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                         })
                     ],
                     alignment: AlignmentType.JUSTIFIED,
-                    spacing: { after: 200 }
+                    spacing: { after: 200, line: 276 }
                 }),
 
                 // Assessment type based on form data
@@ -175,7 +175,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                             })
                         ],
                         alignment: AlignmentType.JUSTIFIED,
-                        spacing: { after: 200 }
+                        spacing: { after: 200, line: 276 }
                     }),
                     new Paragraph({
                         children: [
@@ -185,7 +185,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                             })
                         ],
                         alignment: AlignmentType.JUSTIFIED,
-                        spacing: { after: 200 }
+                        spacing: { after: 200, line: 276 }
                     })
                 ] : []),
 
@@ -206,7 +206,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Спроведувањето на проценка на влијанието врз заштитата на личните податоци (DPIA) е императивно пред започнување на обработка, доколку постои реална веројатност истата да резултира со висок ризик за правата и слободите на физичките лица. Ова, без ограничување, ги вклучува следните категории на операции на обработка:")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -218,7 +218,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Обработка на лични податоци која опфаќа систематска и екстензивна евалуација на личните аспекти на физичките лица, која се базира на автоматизирана обработка, вклучувајќи профилирање, и врз основа на која се донесуваат одлуки што произведуваат правни последици или на сличен начин имаат значително влијание врз физичкото лице.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -230,7 +230,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Екстензивна обработка на посебни категории на лични податоци (на пример, здравствени досиеја на вработени).")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -242,7 +242,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Обемна и систематска обработка на лични податоци од јавно достапни локации, вклучително и преку средства за континуирано набљудување (на пример, системи за видео надзор) поставени на јавни површини.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -254,7 +254,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Кога се планира имплементација на нови технологии или се вршат значајни модификации на постоечките, кои воведуваат нови ризици.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -266,7 +266,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Обработка на лични податоци која вклучува поврзување, компарација или верификација на податоци добиени од различни системи, бази на податоци или обработувачи.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
         }),
 
         // Section III - Roles and Responsibilities  
@@ -288,7 +288,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                     bold: true
                 })
             ],
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -296,7 +296,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Контролорот, преку својот овластен претставник, иницира спроведување на проценка на влијанието врз заштитата на личните податоци и го одобрува предлогот за мерки за ублажување на идентификуваните ризици.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -306,7 +306,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                     bold: true
                 })
             ],
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -314,7 +314,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(`Офицерот за заштита на лични податоци (${formData?.responsiblePerson || '[Име на одговорното лице]'}) ги има следниве клучни одговорности:`)
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -338,7 +338,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("• Активно учествува во претходните консултации со Агенцијата за заштита на личните податоци.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -348,7 +348,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                     bold: true
                 })
             ],
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -356,7 +356,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(`За целите на ефективно спроведување на проценката на влијанието, Контролорот формира посебна работна група (тим) составена од: ${formData?.responsiblePerson || '[Одговорно лице]'} и други релевантни експерти.`)
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
         }),
 
         // Section IV - DPIA Phases
@@ -376,7 +376,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Процесот на проценка на влијанието врз заштитата на личните податоци се спроведува низ 4 (четири) етапи, во согласност со одредбите на Правилникот:")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         // Phase 1
@@ -387,7 +387,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                     bold: true
                 })
             ],
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -399,7 +399,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(formData?.processingPurpose || '[Цел на обработката]')
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -411,7 +411,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(getDataSubjectsText(formData?.dataSubjects))
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -423,7 +423,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(getDataCategoriesText(formData?.dataCategories))
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -435,7 +435,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun('Согласност на субјектот на податоци, легитимен интерес на контролорот, или друга правна основа согласно член 6 од ЗЗЛП')
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -447,7 +447,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun('Податоците се чуваат онолку долго колку што е потребно за постигнување на целта на обработката, но не подолго од роковите предвидени во закон')
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         // Phase 2
@@ -470,7 +470,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(`Ризикот се проценува како ${riskLevel} врз основа на веројатност (${formData?.probability || 'се определува'}) и влијание (${formData?.impactLevel || 'се определува'}).`)
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -478,7 +478,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Потребата за заштита на личните податоци се класифицира според скала која се состои од 3 (три) нивоа на влијание (ниско = вредност 1, средно = вредност 2, високо = вредност 3), врз основа на природата, обемот, контекстот и целта на обработката.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         // Phase 3
@@ -501,7 +501,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(getTechnicalMeasuresText(formData?.technicalMeasures))
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -513,7 +513,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(getOrganizationalMeasuresText(formData?.organizationalMeasures))
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -521,7 +521,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("За секој идентификуван висок ризик се дефинираат конкретни технички и организациски мерки со цел негово ублажување до прифатливо ниво. Овие мерки се преземаат од Правилата за технички и организациски мерки на Друштвото.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         // Phase 4
@@ -540,7 +540,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Во оваа фаза се врши целосно документирање на резултатите од проценката на влијанието, редовна ревизија на спроведените активности и консултации со релевантните засегнати страни, вклучително и надлежните регулаторни органи.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -548,7 +548,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(`Проценката се преиспитува на редовна основа, ${getReviewFrequencyText(formData?.reviewFrequency)} или веднаш по секоја значајна промена во обработката или системите кои ја засегаат безбедноста на личните податоци.`)
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
         }),
 
         // Section V - Final Provisions
@@ -568,7 +568,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Оваа Процедура е интегрален дел од системот за заштита на личните податоци на Друштвото. Сите вработени кои учествуваат во процеси на обработка со висок ризик се должни да бидат запознаени и да ги применуваат одредбите од оваа Процедура.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -576,7 +576,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("Оваа Процедура стапува на сила со денот на нејзиното донесување.")
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
         }),
 
         // Signature section
@@ -585,7 +585,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(`${currentDate} година.`)
             ],
             alignment: AlignmentType.LEFT,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
         }),
 
         new Paragraph({
@@ -593,7 +593,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun("___________________________")
             ],
             alignment: AlignmentType.LEFT,
-            spacing: { after: 0 }
+            spacing: { after: 0, line: 276 }
         }),
 
         new Paragraph({
@@ -601,7 +601,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(companyName)
             ],
             alignment: AlignmentType.LEFT,
-            spacing: { after: 0 }
+            spacing: { after: 0, line: 276 }
         }),
 
         new Paragraph({
@@ -609,7 +609,7 @@ function generateProcedureForEstimationDoc(formData, user, company) {
                 new TextRun(company?.manager || company?.companyManager || '[Овластено лице]')
             ],
             alignment: AlignmentType.LEFT,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
         })
             ]
         }]

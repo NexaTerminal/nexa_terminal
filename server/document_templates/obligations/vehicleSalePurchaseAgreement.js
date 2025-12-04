@@ -141,7 +141,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 1', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -159,7 +159,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 2', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -226,7 +226,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 3', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -254,7 +254,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 4', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -282,7 +282,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 5', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -301,7 +301,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 6', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -319,7 +319,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 7', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -338,7 +338,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 8', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [
@@ -356,7 +356,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
             new TextRun({ text: 'Член 9', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 240 }
+          spacing: { after: 240, line: 276 }
         }),
         new Paragraph({
           children: [

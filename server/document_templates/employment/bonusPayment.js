@@ -30,7 +30,8 @@ function generateBonusPaymentDoc(formData, user, company) {
               text: `Врз основа на член 105 од Законот за работните односи (Службен весник на Република Македонија бр.167/15 - Пречистен текст), ${companyName}, со седиште на ул. ${companyAddress}, со ЕМБС ${companyNumber}, претставувано од Управителот ${companyManager} (во понатамошниот текст: „работодавач/от"), на ден ${decisionDate}, ја донесе следната:`
             })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         
         new Paragraph({ text: '' }),
@@ -40,7 +41,8 @@ function generateBonusPaymentDoc(formData, user, company) {
           children: [
             new TextRun({ text: 'О Д Л У К А', bold: true, size: 28 })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         
         // Document subtitle
@@ -48,7 +50,8 @@ function generateBonusPaymentDoc(formData, user, company) {
           children: [
             new TextRun({ text: 'за исплата на работна успешност - бонус', bold: true, size: 24 })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         
         new Paragraph({ text: '' }),
@@ -60,7 +63,8 @@ function generateBonusPaymentDoc(formData, user, company) {
               text: `Врз основа на оваа одлука, на работникот ${employeeName}, вработен во ${companyName}, на работното место: ${employeeWorkPosition} во ${companyName}, му се определува и додаток на плата за работна успешност (бонус) во износ од ${bonusAmount} денари како нето износ.`
             })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         
         new Paragraph({ text: '' }),
@@ -70,7 +74,8 @@ function generateBonusPaymentDoc(formData, user, company) {
           children: [
             new TextRun({ text: 'Образложение', bold: true, italics: true })
           ],
-          alignment: AlignmentType.CENTER
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 276 }
         }),
         
         // Standard reasoning paragraph
@@ -80,7 +85,8 @@ function generateBonusPaymentDoc(formData, user, company) {
               text: 'Правото на додаток на плата за работна успешност на работникот му се определува земајќи го предвид неговиот домаќински однос, придонесот во квалитетот и обемот на извршената работа, како и во согласност со индивидуалниот придонес на работникот за деловниот успех на работодавачот.'
             })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         
         // Custom reasoning if provided
@@ -102,7 +108,8 @@ function generateBonusPaymentDoc(formData, user, company) {
               text: 'Следствено на погоре наведеното, работодавачот одлучи како во диспозитивот на оваа Одлука.'
             })
           ],
-          alignment: AlignmentType.JUSTIFIED
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { line: 276 }
         }),
         
         new Paragraph({ text: '' }),
@@ -112,7 +119,8 @@ function generateBonusPaymentDoc(formData, user, company) {
           children: [
             new TextRun({ text: 'Да се достави до: Работникот;' })
           ],
-          alignment: AlignmentType.LEFT
+          alignment: AlignmentType.LEFT,
+          spacing: { line: 276 }
         }),
         
         new Paragraph({ text: '' }),

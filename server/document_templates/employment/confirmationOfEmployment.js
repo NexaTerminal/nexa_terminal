@@ -85,28 +85,29 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
         new TextRun({ text: "За Друштвото" }),
       ],
       alignment: AlignmentType.RIGHT,
+      spacing: { after: 200 }
     }),
     new Paragraph({ text: "" }),
-    // Signature
+    // Signature - RIGHT aligned for single signature
     new Paragraph({
       children: [
         new TextRun({ text: "___________________________" }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 0 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyName }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 0 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: companyManager }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 300 }
     })
   );

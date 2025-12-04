@@ -36,7 +36,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Document title
@@ -45,7 +45,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'О Д Л У К А', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         // Document subtitle - dynamic based on bonus type
@@ -58,7 +58,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Article 1 - Main decision
@@ -67,7 +67,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Член 1', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -77,7 +77,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Article 2 - Effective date and period
@@ -86,7 +86,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Член 2', bold: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -96,7 +96,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Article 3 - Criteria (if provided)
@@ -106,7 +106,7 @@ function generateBonusDecisionDoc(formData, user, company) {
               new TextRun({ text: 'Член 3', bold: true })
             ],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
           }),
 
           new Paragraph({
@@ -116,7 +116,7 @@ function generateBonusDecisionDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
           })
         ] : []),
 
@@ -127,7 +127,7 @@ function generateBonusDecisionDoc(formData, user, company) {
               new TextRun({ text: `Член ${criteria ? '4' : '3'}`, bold: true })
             ],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 200 }
+            spacing: { after: 200, line: 276 }
           }),
 
           new Paragraph({
@@ -137,7 +137,7 @@ function generateBonusDecisionDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400 }
+            spacing: { after: 400, line: 276 }
           })
         ] : []),
 
@@ -150,7 +150,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
 
         new Paragraph({
@@ -169,7 +169,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: 'Образложение', bold: true, italics: true })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Standard reasoning paragraph
@@ -180,7 +180,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         }),
 
         // Custom reasoning if provided
@@ -192,7 +192,7 @@ function generateBonusDecisionDoc(formData, user, company) {
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 300 }
+            spacing: { after: 300, line: 276 }
           })
         ] : []),
 
@@ -204,7 +204,7 @@ function generateBonusDecisionDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Distribution notice
@@ -222,21 +222,21 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: "За работникот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: employeeName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 400 }
+          spacing: { after: 400, line: 276 }
         }),
 
         // Employer signature
@@ -245,28 +245,28 @@ function generateBonusDecisionDoc(formData, user, company) {
             new TextRun({ text: "За работодавачот:" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 200 }
+          spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 0 }
+          spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
-          spacing: { after: 300 }
+          spacing: { after: 300, line: 276 }
         })
       ]
     }]

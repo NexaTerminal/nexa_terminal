@@ -489,60 +489,87 @@ function generateRentAgreementDoc(formData, user, company) {
     }),
     new Paragraph({ text: "" }),
     new Paragraph({ text: "" }),
-    
+
     // Contract parties heading
     new Paragraph({
       children: [
         new TextRun({ text: "ДОГОВОРНИ СТРАНИ", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-    }),
-    new Paragraph({ text: "" }),
-    
-    // Landlord signature
-    new Paragraph({
-      children: [
-        new TextRun({ text: "ЗАКУПОДАВАЧ:" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: landlordName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
-    // Tenant signature
-    new Paragraph({
-      children: [
-        new TextRun({ text: "ЗАКУПЕЦ:" }),
+    // Symmetric signature table - professional format for two parties
+    new Table({
+      width: { size: 100, type: 'pct' },
+      borders: {
+        top: { style: 'none' },
+        bottom: { style: 'none' },
+        left: { style: 'none' },
+        right: { style: 'none' },
+        insideHorizontal: { style: 'none' },
+        insideVertical: { style: 'none' },
+      },
+      rows: [
+        new TableRow({
+          children: [
+            // Left cell - Landlord signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "ЗАКУПОДАВАЧ:" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 200, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 0, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: landlordName })],
+                  alignment: AlignmentType.LEFT,
+                  spacing: { after: 300, line: 276 }
+                }),
+              ],
+            }),
+            // Right cell - Tenant signature
+            new TableCell({
+              width: { size: 50, type: 'pct' },
+              borders: {
+                top: { style: 'none' },
+                bottom: { style: 'none' },
+                left: { style: 'none' },
+                right: { style: 'none' },
+              },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: "ЗАКУПЕЦ:" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 200, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: "___________________________" })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 0, line: 276 }
+                }),
+                new Paragraph({
+                  children: [new TextRun({ text: tenantName })],
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 300, line: 276 }
+                }),
+              ],
+            }),
+          ],
+        }),
       ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: "___________________________" }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: tenantName }),
-      ],
-      alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
     })
   );
 

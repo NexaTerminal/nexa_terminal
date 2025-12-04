@@ -128,7 +128,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 },
+      spacing: { after: 400, line: 276 },
     }),
 
     // Introduction
@@ -139,7 +139,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // First Party - Based on user role
@@ -157,14 +157,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "(во натамошниот текст: \"Посредникот\")" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     new Paragraph({
@@ -172,7 +172,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "и", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
 
     // Second Party
@@ -190,14 +190,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "(во натамошниот текст: \"Налогодавецот\")" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 400 },
+      spacing: { after: 400, line: 276 },
     }),
 
     new Paragraph({
@@ -205,7 +205,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Заеднички именувани како \"Договорните страни\"", bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 },
+      spacing: { after: 400, line: 276 },
     }),
 
     // Legal preamble
@@ -226,14 +226,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 1", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ДЕФИНИЦИЈА И ПРЕДМЕТ НА ДОГОВОРОТ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -242,7 +242,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -251,7 +251,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -260,7 +260,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 2 - Territory and Duration
@@ -269,14 +269,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 2", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ТЕРИТОРИЈАЛЕН ОПСЕГ И ВРЕМЕТРАЕЊЕ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -285,7 +285,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -294,7 +294,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -303,7 +303,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 3 - Obligations of Mediator (Art. 874-877)
@@ -312,14 +312,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 3", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ОБВРСКИ НА ПОСРЕДНИКОТ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -328,7 +328,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -382,7 +382,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 4 - Rights and Obligations of Principal (Art. 872-873, 878-882)
@@ -391,14 +391,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 4", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ПРАВА И ОБВРСКИ НА НАЛОГОДАВЕЦОТ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -407,7 +407,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -434,7 +434,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -443,7 +443,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -479,7 +479,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 5 - Commission Structure (Art. 878-881)
@@ -488,14 +488,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 5", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ПРОВИЗИЈА И НАДОМЕСТОК", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -504,7 +504,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -513,7 +513,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -522,7 +522,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     ...(fixedCommissionAmount ? [
       new Paragraph({
@@ -532,7 +532,7 @@ function generateMediationAgreementDoc(formData, user, company) {
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
-        spacing: { after: 200 },
+        spacing: { after: 200, line: 276 },
       })
     ] : []),
     ...(minimumCommission ? [
@@ -543,7 +543,7 @@ function generateMediationAgreementDoc(formData, user, company) {
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
-        spacing: { after: 200 },
+        spacing: { after: 200, line: 276 },
       })
     ] : []),
     ...(maximumCommission ? [
@@ -554,7 +554,7 @@ function generateMediationAgreementDoc(formData, user, company) {
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
-        spacing: { after: 200 },
+        spacing: { after: 200, line: 276 },
       })
     ] : []),
     new Paragraph({
@@ -564,7 +564,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -573,7 +573,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 6 - Cost Reimbursement (Art. 880)
@@ -582,14 +582,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 6", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "НАДОМЕСТ НА ТРОШОЦИ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -598,7 +598,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -625,7 +625,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 7 - Authorization and Documentation (Art. 871, 877)
@@ -634,14 +634,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 7", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ОВЛАСТУВАЊЕ И ДОКУМЕНТАЦИЈА", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -650,7 +650,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -659,7 +659,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 8 - Termination and Loss of Compensation Rights (Art. 872, 882)
@@ -668,14 +668,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 8", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "РАСКИНУВАЊЕ И ГУБЕЊЕ НА ПРАВОТО НА НАДОМЕСТОК", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -684,7 +684,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -693,7 +693,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
 
@@ -703,14 +703,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 9", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "РЕШАВАЊЕ НА СПОРОВИ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -719,7 +719,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -728,7 +728,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 300 },
+      spacing: { after: 300, line: 276 },
     }),
 
     // Article 10 - Final Provisions
@@ -737,14 +737,14 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "Член 10", bold: true, size: 24 }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "ЗАВРШНИ ОДРЕДБИ", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -753,7 +753,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -762,7 +762,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -771,7 +771,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200 },
+      spacing: { after: 200, line: 276 },
     }),
     new Paragraph({
       children: [
@@ -792,7 +792,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: `Место и датум: Скопје, ${agreementDate}`, bold: true }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Mediator signature
@@ -801,21 +801,21 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "ЗА ПОСРЕДНИКОТ:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: mediatorName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
@@ -836,7 +836,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: `Е-пошта: ${mediatorEmail}` }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 400 }
+      spacing: { after: 400, line: 276 }
     }),
 
     // Client signature
@@ -845,21 +845,21 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: "ЗА НАЛОГОДАВЕЦОТ:", bold: true }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 200 }
+      spacing: { after: 200, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: "___________________________" }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     new Paragraph({
       children: [
         new TextRun({ text: clientName }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 0 }
+      spacing: { after: 0, line: 276 }
     }),
     ...(isClientNatural ? [
       new Paragraph({
@@ -890,7 +890,7 @@ function generateMediationAgreementDoc(formData, user, company) {
         new TextRun({ text: `Е-пошта: ${clientEmail}` }),
       ],
       alignment: AlignmentType.LEFT,
-      spacing: { after: 300 }
+      spacing: { after: 300, line: 276 }
     })
   );
 

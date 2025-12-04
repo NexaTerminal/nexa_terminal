@@ -98,49 +98,83 @@ function generateWarningLetterDoc(formData, user, company) {
         }),
         new Paragraph({ text: '' }),
         new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: 'Потпис на работникот:' })
+
+        // Symmetric signature table - professional format for two parties
+        new Table({
+          width: { size: 100, type: 'pct' },
+          borders: {
+            top: { style: 'none' },
+            bottom: { style: 'none' },
+            left: { style: 'none' },
+            right: { style: 'none' },
+            insideHorizontal: { style: 'none' },
+            insideVertical: { style: 'none' },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                // Left cell - Employee signature
+                new TableCell({
+                  width: { size: 50, type: 'pct' },
+                  borders: {
+                    top: { style: 'none' },
+                    bottom: { style: 'none' },
+                    left: { style: 'none' },
+                    right: { style: 'none' },
+                  },
+                  children: [
+                    new Paragraph({
+                      children: [new TextRun({ text: 'Потпис на работникот:' })],
+                      alignment: AlignmentType.LEFT,
+                      spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: '___________________________' })],
+                      alignment: AlignmentType.LEFT,
+                      spacing: { after: 0 }
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: employeeName })],
+                      alignment: AlignmentType.LEFT,
+                      spacing: { after: 300 }
+                    }),
+                  ],
+                }),
+                // Right cell - Employer signature
+                new TableCell({
+                  width: { size: 50, type: 'pct' },
+                  borders: {
+                    top: { style: 'none' },
+                    bottom: { style: 'none' },
+                    left: { style: 'none' },
+                    right: { style: 'none' },
+                  },
+                  children: [
+                    new Paragraph({
+                      children: [new TextRun({ text: 'За работодавачот' })],
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: '___________________________' })],
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 0 }
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: companyName })],
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 0 }
+                    }),
+                    new Paragraph({
+                      children: [new TextRun({ text: `Управител ${companyManager}` })],
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 300 }
+                    }),
+                  ],
+                }),
+              ],
+            }),
           ],
-          alignment: AlignmentType.LEFT
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: '____________________' })
-          ],
-          alignment: AlignmentType.LEFT
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: `${employeeName}` })
-          ],
-          alignment: AlignmentType.LEFT
-        }),
-        new Paragraph({ text: '' }),
-        new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: 'За работодавачот' })
-          ],
-          alignment: AlignmentType.RIGHT
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: companyName })
-          ],
-          alignment: AlignmentType.RIGHT
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: '_____________________' })
-          ],
-          alignment: AlignmentType.RIGHT
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: `Управител ${companyManager}` })
-          ],
-          alignment: AlignmentType.RIGHT
         })
       ]
     }]

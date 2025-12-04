@@ -27,8 +27,8 @@ const requireVerifiedCompany = async (req, res, next) => {
                               req.user.companyInfo.companyName &&
                               (req.user.companyInfo.address || req.user.companyInfo.companyAddress) &&
                               (req.user.companyInfo.taxNumber || req.user.companyInfo.companyTaxNumber) &&
-                              req.user.companyManager &&
-                              req.user.officialEmail;
+                              (req.user.companyInfo.companyManager || req.user.companyManager) &&
+                              (req.user.officialEmail || req.user.email);
 
     // Only check hasRequiredFields (isVerified check removed)
     if (!hasRequiredFields) {
@@ -44,8 +44,8 @@ const requireVerifiedCompany = async (req, res, next) => {
           companyName: !!req.user.companyInfo?.companyName,
           address: !!(req.user.companyInfo?.address || req.user.companyInfo?.companyAddress),
           taxNumber: !!(req.user.companyInfo?.taxNumber || req.user.companyInfo?.companyTaxNumber),
-          companyManager: !!req.user.companyManager,
-          officialEmail: !!req.user.officialEmail
+          companyManager: !!(req.user.companyInfo?.companyManager || req.user.companyManager),
+          officialEmail: !!(req.user.officialEmail || req.user.email)
         }
       });
     }
@@ -131,8 +131,8 @@ const addVerificationStatus = async (req, res, next) => {
       const hasRequiredFields = !!(req.user.companyInfo?.companyName &&
                                    (req.user.companyInfo?.address || req.user.companyInfo?.companyAddress) &&
                                    (req.user.companyInfo?.taxNumber || req.user.companyInfo?.companyTaxNumber) &&
-                                   req.user.companyManager &&
-                                   req.user.officialEmail);
+                                   (req.user.companyInfo?.companyManager || req.user.companyManager) &&
+                                   (req.user.officialEmail || req.user.email));
 
       req.verificationInfo = {
         // isVerified: req.user.isVerified || false, // COMMENTED OUT - no longer primary check

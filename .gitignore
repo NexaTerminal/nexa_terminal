@@ -22,6 +22,7 @@ render-production.env
 *.log
 logs/
 server.log
+client.log
 
 # Runtime data
 pids/
@@ -96,3 +97,6 @@ blog/
 # Legal source documents (large files, not for git)
 server/legal sources/**/*.pdf
 server/legal sources/**/*.docx
+
+# Old markdown documents (replaced by DOCX templates)
+md_documents/

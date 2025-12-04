@@ -592,9 +592,7 @@ const CompanyVerificationSingle = () => {
       {!user?.isVerified && (
         <div className={styles.form}>
         <div className={styles.section}>
-          <h3>Основни информации (задолжително)</h3>
-          
-          <div className={styles.row}>
+          <div className={styles.singleColumn}>
             <div className={styles.field}>
               <label htmlFor="companyName">Име на компанија *</label>
               <input
@@ -607,7 +605,7 @@ const CompanyVerificationSingle = () => {
                 required
               />
             </div>
-            
+
             <div className={styles.field}>
               <label htmlFor="address">Адреса на компанија *</label>
               <input
@@ -620,9 +618,7 @@ const CompanyVerificationSingle = () => {
                 required
               />
             </div>
-          </div>
 
-          <div className={styles.row}>
             <div className={styles.field}>
               <label htmlFor="taxNumber">Даночен број *</label>
               <input
@@ -635,7 +631,7 @@ const CompanyVerificationSingle = () => {
                 required
               />
             </div>
-            
+
             <div className={styles.field}>
               <label htmlFor="companyManager">Менаџер/Одговорно лице *</label>
               <input
@@ -648,19 +644,19 @@ const CompanyVerificationSingle = () => {
                 required
               />
             </div>
-          </div>
 
-          <div className={styles.field}>
-            <label htmlFor="officialEmail">Службена email адреса *</label>
-            <input
-              type="email"
-              id="officialEmail"
-              name="officialEmail"
-              value={formData.officialEmail}
-              onChange={handleInputChange}
-              placeholder="company@example.com"
-              required
-            />
+            <div className={styles.field}>
+              <label htmlFor="officialEmail">Службена email адреса *</label>
+              <input
+                type="email"
+                id="officialEmail"
+                name="officialEmail"
+                value={formData.officialEmail}
+                onChange={handleInputChange}
+                placeholder="company@example.com"
+                required
+              />
+            </div>
           </div>
         </div>
 

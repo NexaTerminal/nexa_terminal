@@ -20,7 +20,7 @@ const VerificationRequired = ({ children, feature = "оваа функција" 
       currentUser.companyInfo?.companyAddress || currentUser.companyInfo?.address,
       currentUser.companyInfo?.companyTaxNumber || currentUser.companyInfo?.taxNumber,
       currentUser.companyInfo?.companyManager || currentUser.companyManager,
-      currentUser.officialEmail
+      currentUser.officialEmail || currentUser.email
     ];
     return requiredFields.every(field => field && field.trim());
   };

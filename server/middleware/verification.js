@@ -37,12 +37,13 @@ const requireVerification = (req, res, next) => {
     */
 
     // Check if user has complete company info (all required fields)
+    // Accept fields from either companyInfo or root level for backward compatibility
     const hasCompleteCompanyInfo = req.user.companyInfo &&
                                    req.user.companyInfo.companyName &&
                                    (req.user.companyInfo.companyAddress || req.user.companyInfo.address) &&
                                    (req.user.companyInfo.companyTaxNumber || req.user.companyInfo.taxNumber) &&
-                                   req.user.companyManager &&
-                                   req.user.officialEmail;
+                                   (req.user.companyInfo.companyManager || req.user.companyManager) &&
+                                   (req.user.officialEmail || req.user.email);
 
     if (!hasCompleteCompanyInfo) {
       return res.status(403).json({
@@ -53,8 +54,8 @@ const requireVerification = (req, res, next) => {
           companyName: !req.user.companyInfo?.companyName,
           address: !(req.user.companyInfo?.companyAddress || req.user.companyInfo?.address),
           taxNumber: !(req.user.companyInfo?.companyTaxNumber || req.user.companyInfo?.taxNumber),
-          companyManager: !req.user.companyManager,
-          officialEmail: !req.user.officialEmail
+          companyManager: !(req.user.companyInfo?.companyManager || req.user.companyManager),
+          officialEmail: !(req.user.officialEmail || req.user.email)
         }
       });
     }

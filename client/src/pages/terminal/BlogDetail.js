@@ -201,6 +201,16 @@ const BlogDetail = () => {
                   </div>
                 </header>
 
+                {blog.featuredImage && (
+                  <div className={styles.featuredImageContainer}>
+                    <img
+                      src={getImageUrl(blog)}
+                      alt={blog.title}
+                      className={styles.featuredImage}
+                    />
+                  </div>
+                )}
+
                 <div className={styles.blogContent}>
                   <div
                     dangerouslySetInnerHTML={{ __html: formatBlogContent(blog.content) }}

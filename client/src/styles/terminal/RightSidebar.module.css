@@ -1,19 +1,21 @@
 /* Right Sidebar Styles */
 .rightSidebar {
-  width: 336px;
+  width: 252px;
   background: var(--gradient-secondary);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: var(--color-text-primary);
   padding: var(--spacing-6) var(--spacing-5);
   border-left: 1px solid var(--color-accent-soft);
-  height: calc(100vh - 100px);
-  overflow: hidden;
   position: fixed;
+  top: 60px;
   right: 0;
+  height: calc(100vh - 60px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   text-align: center;
+  z-index: 10;
 }
 
 /* Marketing Carousel Container */
@@ -25,24 +27,6 @@
   padding: var(--spacing-4) 0;
 }
 
-.carouselTitle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--color-text-dark);
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--gradient-secondary);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.carouselIcon {
-  font-size: var(--font-size-xl);
-}
 
 /* Slot Machine Container */
 .slotMachineContainer {
@@ -248,12 +232,6 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1400px) {
-  .rightSidebar {
-    width: 336px;
-  }
-}
-
 @media (max-width: 1200px) {
   .rightSidebar {
     display: none;

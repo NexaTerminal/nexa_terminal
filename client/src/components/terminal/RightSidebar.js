@@ -61,11 +61,6 @@ const RightSidebar = () => {
   return (
     <aside className={styles.rightSidebar}>
       <div className={styles.marketingCarouselContainer}>
-        <div className={styles.carouselTitle}>
-          <span className={styles.carouselIcon}>📢</span>
-          Партнери и Спонзори
-        </div>
-
         <div
           ref={carouselRef}
           className={styles.slotMachineContainer}

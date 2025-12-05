@@ -166,51 +166,58 @@ const BlogDetail = () => {
 
             <article className={styles.blogArticle}>
 
-              <div className={styles.blogContentWrapper}>
-                <header className={styles.blogHeader}>
-                  <div className={styles.blogMeta}>
-                    <span className={styles.blogCategory}>{blog.category}</span>
-                    <span className={styles.blogDate}>{formatDate(blog.createdAt)}</span>
-                    {blog.views !== undefined && (
-                      <span className={styles.blogViews}>👁️ {blog.views} прегледи</span>
+              {/* Hero Section with Image and Overlaid Content */}
+              {blog.featuredImage && (
+                <div className={styles.heroSection}>
+                  <img
+                    src={getImageUrl(blog)}
+                    alt={blog.title}
+                    className={styles.heroImage}
+                  />
+                  <div className={styles.heroOverlay}></div>
+                  <div className={styles.heroContent}>
+                    <div className={styles.heroMeta}>
+                      <span className={styles.heroCategory}>{blog.category}</span>
+                      <span className={styles.heroDivider}>•</span>
+                      <span className={styles.heroDate}>{formatDate(blog.createdAt)}</span>
+                    </div>
+                    <h1 className={styles.heroTitle}>{blog.title}</h1>
+                    {blog.excerpt && (
+                      <p className={styles.heroExcerpt}>{blog.excerpt}</p>
                     )}
                   </div>
+                </div>
+              )}
 
-                  <h1 className={styles.blogTitle}>{blog.title}</h1>
+              {/* Content Section */}
+              <div className={styles.blogContentWrapper}>
 
-                  {blog.excerpt && (
-                    <p className={styles.blogExcerpt}>{blog.excerpt}</p>
+                {/* Author and Tags Section */}
+                <div className={styles.authorAndTags}>
+                  {blog.author && (
+                    <div className={styles.blogAuthor}>
+                      <span>Автор: {blog.author.name}</span>
+                    </div>
                   )}
 
-                  <div className={styles.authorAndTags}>
-                    {blog.author && (
-                      <div className={styles.blogAuthor}>
-                        <span>Автор: {blog.author.name}</span>
-                      </div>
-                    )}
+                  {blog.tags && Array.isArray(blog.tags) && blog.tags.length > 0 && (
+                    <div className={styles.blogTags}>
+                      {blog.tags.map((tag, index) => (
+                        <span key={index} className={styles.tag}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-                    {blog.tags && Array.isArray(blog.tags) && blog.tags.length > 0 && (
-                      <div className={styles.blogTags}>
-                        {blog.tags.map((tag, index) => (
-                          <span key={index} className={styles.tag}>
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </header>
+                  {blog.views !== undefined && (
+                    <div className={styles.blogViews}>
+                      <span>👁️ {blog.views} прегледи</span>
+                    </div>
+                  )}
+                </div>
 
-                {blog.featuredImage && (
-                  <div className={styles.featuredImageContainer}>
-                    <img
-                      src={getImageUrl(blog)}
-                      alt={blog.title}
-                      className={styles.featuredImage}
-                    />
-                  </div>
-                )}
-
+                {/* Main Content */}
                 <div className={styles.blogContent}>
                   <div
                     dangerouslySetInnerHTML={{ __html: formatBlogContent(blog.content) }}

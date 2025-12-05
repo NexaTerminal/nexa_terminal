@@ -33,7 +33,7 @@ const procedureForEstimationController = require('../controllers/autoDocuments/p
 const unpaidLeaveDecisionController = require('../controllers/autoDocuments/unpaidLeaveDecisionController');
 const annualLeaveBonusDecisionController = require('../controllers/autoDocuments/annualLeaveBonusDecisionController');
 const deathCompensationDecisionController = require('../controllers/autoDocuments/deathCompensationDecisionController');
-// const gdprCompanyPoliticsController = require('../controllers/autoDocuments/gdprCompanyPoliticsController');
+const gdprCompanyPoliticsController = require('../controllers/autoDocuments/gdprCompanyPoliticsController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -45,7 +45,7 @@ router.post('/politics-for-data-protection', authenticateJWT, requireVerifiedCom
 router.post('/procedure-for-estimation', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), procedureForEstimationController);
 
 // GDPR Company Politics (Политика за администрирање со правата на субјектите на персонални податоци)
-// router.post('/gdpr-company-politics', authenticateJWT, requireVerifiedCompany, gdprCompanyPoliticsController);
+router.post('/gdpr-company-politics', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), gdprCompanyPoliticsController);
 
 // Employment
 // Confirmation of Employment (Потврда за вработување)

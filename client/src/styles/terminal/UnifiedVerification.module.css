@@ -289,12 +289,15 @@
   font-size: var(--font-size-lg);
 }
 
-/* Form Grid - Uses standard .form-group from global.css */
+/* Form Grid - Single column layout for better alignment */
 .formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
   margin-bottom: var(--spacing-8);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Uses standard .form-group from global.css */
@@ -413,6 +416,10 @@
   justify-content: center;
   gap: var(--spacing-4);
   margin-top: var(--spacing-8);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .primaryButton {
@@ -429,6 +436,8 @@
   display: inline-block;
   text-align: center;
   min-height: 48px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .primaryButton:hover {
@@ -715,8 +724,8 @@
   }
 
   .formGrid {
-    grid-template-columns: 1fr;
     gap: var(--spacing-4);
+    padding: 0 var(--spacing-2);
   }
 
   .stepHeader {
@@ -738,7 +747,11 @@
   .primaryButton,
   .secondaryButton {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
+  }
+
+  .stepActions {
+    padding: 0 var(--spacing-2);
   }
 }
 

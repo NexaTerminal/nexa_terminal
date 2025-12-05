@@ -473,18 +473,6 @@ const evaluateCondition = (condition, formData) => {
   const { field, operator = '===', value } = condition;
   const fieldValue = formData[field];
 
-  // Debug logging for rent agreement conditional fields
-  if (field === 'otherPartyType') {
-    console.log('🔍 Evaluating condition for otherParty fields:', {
-      field,
-      operator,
-      value,
-      fieldValue,
-      formData: formData,
-      result: fieldValue === value
-    });
-  }
-
   switch (operator) {
     case '===':
       return fieldValue === value;

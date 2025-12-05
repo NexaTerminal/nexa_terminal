@@ -40,11 +40,7 @@ const OrganizationActPage = () => {
         ...formData,
         positions: positionsArray
       };
-      
-      console.log('Sending data:', formDataToSend);
-      console.log('Positions count:', positionsArray.length);
-      console.log('Positions type:', Array.isArray(positionsArray) ? 'array' : typeof positionsArray);
-      
+
       const response = await fetch('/api/auto-documents/organization-act', {
         method: 'POST',
         headers: {
@@ -307,10 +303,9 @@ const OrganizationAnalytics = ({ positions }) => {
           'Experience': pos.experienceRequirements || ''
         }));
         // Convert to CSV string and download
-        console.log('CSV export:', csvData);
         break;
       default:
-        console.log('PDF export not implemented yet');
+        // PDF export not implemented yet
     }
   };
 

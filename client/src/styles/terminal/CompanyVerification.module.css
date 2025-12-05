@@ -164,8 +164,10 @@
   border-radius: var(--border-radius-md);
   border: 1px solid var(--color-light-gray);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--spacing-xl);
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .section {
@@ -499,9 +501,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: var(--spacing-lg);
-  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
   border-top: 1px solid var(--color-light-gray);
+  width: 100%;
 }
 
 .saveButton {
@@ -509,12 +512,13 @@
   color: var(--color-white);
   border: none;
   padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   font-size: var(--font-size-medium);
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  min-width: 200px;
+  min-width: 250px;
+  box-shadow: var(--shadow-md);
 }
 
 .saveButton:hover:not(:disabled) {
@@ -592,4 +596,104 @@
 
 .singleColumn .field {
   width: 100%;
+}
+
+/* Verification status section */
+.verificationStatus {
+  background: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.verificationStatus p {
+  color: var(--color-neutral-700);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Verified badge */
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-green-100);
+  border: 1px solid var(--color-green-500);
+  color: var(--color-green-700);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-medium);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Pending badge */
+.pendingBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-orange-100);
+  border: 1px solid var(--color-orange-500);
+  color: var(--color-orange-700);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-medium);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Access features container */
+.accessFeatures {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-md);
+}
+
+/* Access button - minimal style with light background */
+.accessButton {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-300);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-medium);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 44px;
+}
+
+.accessButton:hover:not(:disabled) {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.accessButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+.accessButton:disabled {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.6;
+}
+
+/* Mobile responsive for access buttons */
+@media (max-width: 768px) {
+  .accessFeatures {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .accessButton {
+    width: 100%;
+    justify-content: center;
+  }
 }

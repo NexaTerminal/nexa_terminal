@@ -52,7 +52,7 @@ const ProcedureForEstimationPage = () => {
       setError(null);
       setSuccess(null);
 
-      const response = await fetch('/api/documents/procedure-for-estimation', {
+      const response = await fetch('/api/auto-documents/procedure-for-estimation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

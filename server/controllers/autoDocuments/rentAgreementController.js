@@ -13,7 +13,51 @@ const generateRentAgreementDoc = require('../../document_templates/contracts/ren
  * Custom validation function for rent agreement
  * Returns warnings instead of blocking errors to allow document generation
  */
-const validateFunction = null;
+const validateRentAgreement = (formData, user, company) => {
+  const warnings = [];
+  const errors = {};
+  const missing = [];
+
+  // Check basic required fields
+  if (!formData.contractDate) missing.push('Датум на договор');
+  if (!formData.contractTown) missing.push('Место на склучување');
+  if (!formData.userRole) missing.push('Ваша улога');
+  if (!formData.otherPartyType) missing.push('Тип на другата страна');
+
+  // Check other party data based on type
+  if (formData.otherPartyType === 'individual') {
+    if (!formData.otherPartyName) missing.push('Име на физичкото лице');
+    if (!formData.otherPartyAddress) missing.push('Адреса на физичкото лице');
+    if (!formData.otherPartyPIN) missing.push('ЕМБГ на другата страна');
+  } else if (formData.otherPartyType === 'company') {
+    if (!formData.otherPartyCompanyName) missing.push('Име на компанијата');
+    if (!formData.otherPartyCompanyAddress) missing.push('Адреса на компанијата');
+    if (!formData.otherPartyCompanyManager) missing.push('Управител на компанијата');
+    if (!formData.otherPartyCompanyTaxNumber) missing.push('Даночен број на компанијата');
+  }
+
+  // Check property data
+  if (!formData.propertyAddress) missing.push('Адреса на недвижност');
+  if (!formData.propertySize) missing.push('Површина на недвижност');
+  if (!formData.rentAmount) missing.push('Месечна закупнина');
+  if (!formData.bankAccount) missing.push('Број на жиро сметка');
+  if (!formData.bankName) missing.push('Име на банка');
+
+  // Convert missing fields to warnings instead of errors
+  if (missing.length > 0) {
+    missing.forEach(field => {
+      warnings.push(`Недостасува: ${field}`);
+    });
+  }
+
+  return {
+    isValid: true, // Always allow generation, but with warnings
+    warnings,
+    errors,
+    missing
+  };
+};
+
 /**
  * Preprocess form data before document generation
  */

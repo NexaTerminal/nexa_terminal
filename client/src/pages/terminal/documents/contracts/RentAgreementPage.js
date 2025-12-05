@@ -56,11 +56,6 @@ const RentAgreementPage = () => {
                 </strong>
               </div>
             )}
-            {/* Debug info */}
-            <div style={{backgroundColor: '#f0f0f0', padding: '10px', marginTop: '10px', fontSize: '12px'}}>
-              <strong>Debug:</strong> otherPartyType = "{formData.otherPartyType}" | 
-              userRole = "{formData.userRole}"
-            </div>
           </div>
         )}
         

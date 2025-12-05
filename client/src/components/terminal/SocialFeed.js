@@ -8,14 +8,16 @@ const SocialFeed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('legal');
+  const [filter, setFilter] = useState('all');
 
   // Fetch posts
   const fetchPosts = async () => {
     try {
       setLoading(true);
       // All posts now come from blogs collection with category filtering
-      const data = await ApiService.request(`/blogs?limit=10&page=1&category=${filter}`);
+      // If filter is 'all', fetch without category parameter to get all posts
+      const categoryParam = filter === 'all' ? '' : `&category=${filter}`;
+      const data = await ApiService.request(`/blogs?limit=10&page=1${categoryParam}`);
       setPosts(data?.blogs || []); // Use blogs data for all filters
     } catch (error) {
       setError('Настана грешка при вчитување на објавите. Обидете се повторно.');
@@ -64,6 +66,12 @@ const SocialFeed = () => {
       {/* Filter buttons */}
       <div className={styles.filterSection}>
         <button
+          className={`${styles.filterButton} ${filter === 'all' ? styles.active : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          Сите
+        </button>
+        <button
           className={`${styles.filterButton} ${filter === 'legal' ? styles.active : ''}`}
           onClick={() => setFilter('legal')}
         >
@@ -80,12 +88,6 @@ const SocialFeed = () => {
           onClick={() => setFilter('investments')}
         >
           Инвестиции
-        </button>
-        <button
-          className={`${styles.filterButton} ${filter === 'news' ? styles.active : ''}`}
-          onClick={() => setFilter('news')}
-        >
-          Вести
         </button>
         <button
           className={`${styles.filterButton} ${filter === 'marketing' ? styles.active : ''}`}

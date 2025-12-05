@@ -27,7 +27,7 @@ const AddBlog = () => {
   // Set category from URL parameter
   useEffect(() => {
     const categoryParam = searchParams.get('category');
-    if (categoryParam && ['legal', 'entrepreneurship', 'investments', 'news', 'marketing'].includes(categoryParam)) {
+    if (categoryParam && ['legal', 'entrepreneurship', 'investments', 'marketing'].includes(categoryParam)) {
       setFormData(prev => ({ ...prev, category: categoryParam }));
     }
   }, [searchParams]);
@@ -97,7 +97,6 @@ const AddBlog = () => {
     { value: 'legal', label: 'Правни прашања' },
     { value: 'entrepreneurship', label: 'Претприемништво' },
     { value: 'investments', label: 'Инвестиции' },
-    { value: 'news', label: 'Вести' },
     { value: 'marketing', label: 'Маркетинг' }
   ];
 

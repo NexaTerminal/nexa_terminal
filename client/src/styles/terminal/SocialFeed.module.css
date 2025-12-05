@@ -24,35 +24,53 @@
 /* Filter Section */
 .filterSection {
   display: flex;
-  gap: 10px;
+  gap: 2px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
-  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-400) transparent;
+}
+
+/* Custom scrollbar for webkit browsers */
+.filterSection::-webkit-scrollbar {
+  height: 4px;
+}
+
+.filterSection::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filterSection::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: 4px;
+}
+
+.filterSection::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
 }
 
 .filterButton {
-  padding: 8px 16px;
-  border: 1px solid var(--color-neutral-400);
-  background: var(--color-neutral-100);
-  color: var(--color-text-primary);
-  border-radius: 20px;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
   font-size: 14px;
-}
-
-.filterButton:hover {
-  background: var(--color-neutral-600);
-  border-color: var(--color-neutral-500);
-  color: var(--color-white);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 36px;
 }
 
 .filterButton.active {
-  background: #6b7280;
-  color: white;
-  border-color: #6b7280;
+  background: transparent;
+  color: #1f2937;
+  font-weight: 600;
 }
 
 /* Create Post Section */
@@ -566,15 +584,16 @@
   .socialFeed {
     padding: 10px;
   }
-  
+
   .filterSection {
-    gap: 5px;
-    text-align: center;
+    gap: 2px;
+    padding-bottom: 8px;
   }
-  
+
   .filterButton {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 2px 4px;
+    font-size: 14px;
+    min-height: 36px;
   }
   
   .postCard {

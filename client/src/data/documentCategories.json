@@ -161,7 +161,8 @@
         "name": "Акт за систематизација на работните места",
         "icon": "🏢",
         "description": "Правилник за систематизација на работните места со хиерархиска организациона структура.",
-        "route": "/terminal/documents/employment/organization-act"
+        "route": "/terminal/documents/employment/organization-act",
+        "comingSoon": true
       },
       {
         "id": "personalDataRulebook",

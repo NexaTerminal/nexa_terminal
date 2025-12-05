@@ -263,10 +263,16 @@ const DocumentGen = () => {
               {filteredDocuments.map((document) => (
                 <div
                   key={`${document.categoryId}-${document.id}`}
-                  className={styles['template-card']}
-                  onClick={() => selectTemplate(document)}
-                  style={{ borderLeft: `4px solid ${document.categoryColor}` }}
+                  className={`${styles['template-card']} ${document.comingSoon ? styles['coming-soon'] : ''}`}
+                  onClick={() => !document.comingSoon && selectTemplate(document)}
+                  style={{
+                    borderLeft: `4px solid ${document.categoryColor}`,
+                    cursor: document.comingSoon ? 'not-allowed' : 'pointer'
+                  }}
                 >
+                  {document.comingSoon && (
+                    <div className={styles['coming-soon-badge']}>Наскоро</div>
+                  )}
                   <div className={styles['template-header']}>
                     <div className={styles['template-icon']}>
                       {document.icon || '📄'}
@@ -381,9 +387,13 @@ const DocumentGen = () => {
           {filteredTemplates.map((template) => (
             <div
               key={template.id}
-              className={styles['template-card']}
-              onClick={() => selectTemplate(template)}
+              className={`${styles['template-card']} ${template.comingSoon ? styles['coming-soon'] : ''}`}
+              onClick={() => !template.comingSoon && selectTemplate(template)}
+              style={{ cursor: template.comingSoon ? 'not-allowed' : 'pointer' }}
             >
+              {template.comingSoon && (
+                <div className={styles['coming-soon-badge']}>Наскоро</div>
+              )}
               <div className={styles['template-icon']}>
                 {template.icon || '📄'}
               </div>
@@ -391,7 +401,7 @@ const DocumentGen = () => {
               {template.description && (
                 <p className={styles['template-description']}>{template.description}</p>
               )}
-              {template.fields && template.fields.length > 0 && (
+              {template.fields && template.fields.length > 0 && !template.comingSoon && (
                 <div className={styles['template-fields']}>
                   <strong>Потребни полиња:</strong>
                   <ul>
@@ -399,7 +409,7 @@ const DocumentGen = () => {
                       // Handle both old format (string) and new format (object)
                       const fieldName = typeof field === 'string' ? field : field.name;
                       const fieldLabel = typeof field === 'string' ? (fieldLabels[field] || field) : (field.label || field.name);
-                      
+
                       return (
                         <li key={index}>{fieldLabel}</li>
                       );

@@ -182,15 +182,19 @@ const BlogDetail = () => {
                       <span className={styles.heroDate}>{formatDate(blog.createdAt)}</span>
                     </div>
                     <h1 className={styles.heroTitle}>{blog.title}</h1>
-                    {blog.excerpt && (
-                      <p className={styles.heroExcerpt}>{blog.excerpt}</p>
-                    )}
                   </div>
                 </div>
               )}
 
               {/* Content Section */}
               <div className={styles.blogContentWrapper}>
+
+                {/* Excerpt Section */}
+                {blog.excerpt && (
+                  <div className={styles.excerptSection}>
+                    <p className={styles.excerpt}>{blog.excerpt}</p>
+                  </div>
+                )}
 
                 {/* Author and Tags Section */}
                 <div className={styles.authorAndTags}>

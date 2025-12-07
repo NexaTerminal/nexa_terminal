@@ -74,6 +74,11 @@ import MediationAgreementPage from './pages/terminal/documents/contracts/Mediati
 import DebtAssumptionAgreementPage from './pages/terminal/documents/contracts/DebtAssumptionAgreementPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
+import CashRegisterMaximumDecisionPage from './pages/terminal/documents/accounting/CashRegisterMaximumDecisionPage';
+import InvoiceSigningAuthorizationPage from './pages/terminal/documents/accounting/InvoiceSigningAuthorizationPage';
+import WriteOffDecisionPage from './pages/terminal/documents/accounting/WriteOffDecisionPage';
+import DividendPaymentDecisionPage from './pages/terminal/documents/accounting/DividendPaymentDecisionPage';
+import AnnualAccountsAdoptionPage from './pages/terminal/documents/accounting/AnnualAccountsAdoptionPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -211,7 +216,14 @@ function App() {
 
       {/* Rulebooks */}
       <Route path="/terminal/documents/rulebooks/personal-data-rulebook" element={<PrivateRoute><VerificationRequired feature="правилник за податоци"><PersonalDataRulebookPage/></VerificationRequired></PrivateRoute>} />
- 
+
+      {/* Accounting Documents */}
+      <Route path="/terminal/documents/accounting/cash-register-maximum-decision" element={<PrivateRoute><VerificationRequired feature="одлука за благајнички максимум"><CashRegisterMaximumDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/invoice-signing-authorization" element={<PrivateRoute><VerificationRequired feature="овластување за потпишување фактури"><InvoiceSigningAuthorizationPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/write-off-decision" element={<PrivateRoute><VerificationRequired feature="одлука за отпис"><WriteOffDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/dividend-payment-decision" element={<PrivateRoute><VerificationRequired feature="одлука за исплата на дивиденда"><DividendPaymentDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/annual-accounts-adoption" element={<PrivateRoute><VerificationRequired feature="одлука за усвојување на годишната сметка"><AnnualAccountsAdoptionPage/></VerificationRequired></PrivateRoute>} />
+
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />

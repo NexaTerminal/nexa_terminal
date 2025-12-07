@@ -35,15 +35,95 @@ const BlogDetail = () => {
     }
   }, [id, token]);
 
+  const translateCategory = (category) => {
+    const categoryTranslations = {
+      // Legal & Compliance
+      'LEGAL': 'ПРАВНО',
+      'Legal': 'Правно',
+      'COMPLIANCE': 'УСОГЛАСЕНОСТ',
+      'Compliance': 'Усогласеност',
+      'CONTRACTS': 'ДОГОВОРИ',
+      'Contracts': 'Договори',
+      'CORPORATE': 'КОРПОРАТИВНО ПРАВО',
+      'Corporate': 'Корпоративно право',
+      'TRADEMARK': 'ЖИГОВИ',
+      'Trademark': 'Жигови',
+
+      // Business & Management
+      'BUSINESS': 'БИЗНИС',
+      'Business': 'Бизнис',
+      'ENTREPRENEURSHIP': 'ПРЕТПРИЕМНИШТВО',
+      'Entrepreneurship': 'Претприемништво',
+      'STARTUP': 'СТАРТАПИ',
+      'Startup': 'Стартапи',
+      'MANAGEMENT': 'МЕНАЏМЕНТ',
+      'Management': 'Менаџмент',
+
+      // Finance & Investment
+      'FINANCE': 'ФИНАНСИИ',
+      'Finance': 'Финансии',
+      'INVESTMENT': 'ИНВЕСТИЦИИ',
+      'Investment': 'Инвестиции',
+      'TAX': 'ДАНОЦИ',
+      'Tax': 'Даноци',
+      'ACCOUNTING': 'СМЕТКОВОДСТВО',
+      'Accounting': 'Сметководство',
+
+      // HR & Employment
+      'HR': 'ЧР',
+      'EMPLOYMENT': 'ВРАБОТУВАЊЕ',
+      'Employment': 'Вработување',
+      'RECRUITMENT': 'РЕГРУТАЦИЈА',
+      'Recruitment': 'Регрутација',
+
+      // Marketing & Sales
+      'MARKETING': 'МАРКЕТИНГ',
+      'Marketing': 'Маркетинг',
+      'SALES': 'ПРОДАЖБА',
+      'Sales': 'Продажба',
+      'ADVERTISING': 'РЕКЛАМА',
+      'Advertising': 'Реклама',
+      'DIGITAL MARKETING': 'ДИГИТАЛЕН МАРКЕТИНГ',
+      'Digital Marketing': 'Дигитален маркетинг',
+
+      // Technology
+      'TECHNOLOGY': 'ТЕХНОЛОГИЈА',
+      'Technology': 'Технологија',
+      'AUTOMATION': 'АВТОМАТИЗАЦИЈА',
+      'Automation': 'Автоматизација',
+      'IT': 'ИТ',
+      'SOFTWARE': 'СОФТВЕР',
+      'Software': 'Софтвер',
+
+      // Other
+      'NEWS': 'ВЕСТИ',
+      'News': 'Вести',
+      'GENERAL': 'ОПШТО',
+      'General': 'Општо',
+      'RESIDENCE': 'ПРЕСТОЈ',
+      'Residence': 'Престој',
+      'EDUCATION': 'ОБРАЗОВАНИЕ',
+      'Education': 'Образование',
+      'TIPS': 'СОВЕТИ',
+      'Tips': 'Совети'
+    };
+    return categoryTranslations[category] || category;
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('mk-MK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const months = [
+      'јануари', 'февруари', 'март', 'април', 'мај', 'јуни',
+      'јули', 'август', 'септември', 'октомври', 'ноември', 'декември'
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day} ${month}, ${year} во ${hours}:${minutes}`;
   };
 
   const formatBlogContent = (content) => {
@@ -177,7 +257,7 @@ const BlogDetail = () => {
                   <div className={styles.heroOverlay}></div>
                   <div className={styles.heroContent}>
                     <div className={styles.heroMeta}>
-                      <span className={styles.heroCategory}>{blog.category}</span>
+                      <span className={styles.heroCategory}>{translateCategory(blog.category)}</span>
                       <span className={styles.heroDivider}>•</span>
                       <span className={styles.heroDate}>{formatDate(blog.createdAt)}</span>
                     </div>
@@ -195,31 +275,6 @@ const BlogDetail = () => {
                     <p className={styles.excerpt}>{blog.excerpt}</p>
                   </div>
                 )}
-
-                {/* Author and Tags Section */}
-                <div className={styles.authorAndTags}>
-                  {blog.author && (
-                    <div className={styles.blogAuthor}>
-                      <span>Автор: {blog.author.name}</span>
-                    </div>
-                  )}
-
-                  {blog.tags && Array.isArray(blog.tags) && blog.tags.length > 0 && (
-                    <div className={styles.blogTags}>
-                      {blog.tags.map((tag, index) => (
-                        <span key={index} className={styles.tag}>
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {blog.views !== undefined && (
-                    <div className={styles.blogViews}>
-                      <span>👁️ {blog.views} прегледи</span>
-                    </div>
-                  )}
-                </div>
 
                 {/* Main Content */}
                 <div className={styles.blogContent}>

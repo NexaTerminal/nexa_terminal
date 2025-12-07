@@ -9,19 +9,48 @@ import styles from '../../styles/website/Blog.module.css';
 
 // Category translation mapping (English -> Macedonian)
 const CATEGORY_MAP = {
-  'MARKETING': 'Маркетинг',
+  // Legal & Compliance
   'LEGAL': 'Право',
-  'BUSINESS': 'Бизнис',
-  'TRADEMARK': 'Жигови',
-  'EMPLOYMENT': 'Вработување',
-  'CORPORATE': 'Корпоративно право',
-  'RESIDENCE': 'Престој',
-  'AUTOMATION': 'Автоматизација',
   'COMPLIANCE': 'Усогласеност',
-  'STARTUP': 'Стартапи',
-  'TAX': 'Даноци',
   'CONTRACTS': 'Договори',
-  'ENTREPRENEURSHIP': 'Претприемништво'
+  'CORPORATE': 'Корпоративно право',
+  'TRADEMARK': 'Жигови',
+
+  // Business & Management
+  'BUSINESS': 'Бизнис',
+  'ENTREPRENEURSHIP': 'Претприемништво',
+  'STARTUP': 'Стартапи',
+  'MANAGEMENT': 'Менаџмент',
+
+  // Finance & Investment
+  'FINANCE': 'Финансии',
+  'INVESTMENT': 'Инвестиции',
+  'TAX': 'Даноци',
+  'ACCOUNTING': 'Сметководство',
+
+  // HR & Employment
+  'HR': 'ЧР',
+  'EMPLOYMENT': 'Вработување',
+  'RECRUITMENT': 'Регрутација',
+
+  // Marketing & Sales
+  'MARKETING': 'Маркетинг',
+  'SALES': 'Продажба',
+  'ADVERTISING': 'Реклама',
+  'DIGITAL MARKETING': 'Дигитален маркетинг',
+
+  // Technology
+  'TECHNOLOGY': 'Технологија',
+  'AUTOMATION': 'Автоматизација',
+  'IT': 'ИТ',
+  'SOFTWARE': 'Софтвер',
+
+  // Other
+  'NEWS': 'Вести',
+  'GENERAL': 'Општо',
+  'RESIDENCE': 'Престој',
+  'EDUCATION': 'Образование',
+  'TIPS': 'Совети'
 };
 
 // Get Macedonian category name
@@ -105,11 +134,16 @@ export default function Blog() {
   // Format date to Macedonian format
   function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('mk-MK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const months = [
+      'јануари', 'февруари', 'март', 'април', 'мај', 'јуни',
+      'јули', 'август', 'септември', 'октомври', 'ноември', 'декември'
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month}, ${year}`;
   }
 
   // Handle image load error

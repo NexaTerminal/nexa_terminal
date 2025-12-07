@@ -64,6 +64,13 @@ const documentHeadlines = {
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
 
+  // Accounting Documents
+  cashRegisterMaximumDecision: "ОДЛУКА ЗА БЛАГАЈНИЧКИ МАКСИМУМ",
+  invoiceSigningAuthorization: "ОВЛАСТУВАЊЕ ЗА ПОТПИШУВАЊЕ ФАКТУРИ",
+  writeOffDecision: "ОДЛУКА ЗА ОТПИС",
+  dividendPaymentDecision: "ОДЛУКА ЗА ИСПЛАТА НА ДИВИДЕНДА",
+  annualAccountsAdoption: "ОДЛУКА ЗА УСВОЈУВАЊЕ НА ГОДИШНАТА СМЕТКА",
+
   // ...add more as needed
 };
 
@@ -1020,6 +1027,169 @@ const documentSentences = {
         fields: []
       }
     ]
+  },
+
+  // Accounting Documents
+  cashRegisterMaximumDecision: {
+    title: "ОДЛУКА ЗА БЛАГАЈНИЧКИ МАКСИМУМ",
+    sentences: [
+      {
+        text: "Врз основа на член 20 од Законот за платниот промет, {companyName}, {companyAddress}, претставувани од Управителот {companyManager} на ден {decisionDate} година, донесе Одлука за благајнички максимум за {year} година.",
+        fields: ['companyName', 'companyAddress', 'companyManager', 'decisionDate', 'year']
+      },
+      {
+        text: "Се утврдува благајнички максимум за {year} година во износ од {amount} денари.",
+        fields: ['year', 'amount']
+      },
+      {
+        text: "Сите парични средства од дневниот пазар примени во готово по која и да било основа се уплатуваат на трансакциската сметка кај носителот на платен промет, истиот ден, а најдоцна наредниот работен ден од денот на наплатата.",
+        fields: []
+      },
+      {
+        text: "Оваа одлука се применува од денот на донесувањето и со стапување во сила на оваа одлука, престанува да важи Одлуката за благајнички максимум.",
+        fields: []
+      }
+    ]
+  },
+  invoiceSigningAuthorization: {
+    title: "ОВЛАСТУВАЊЕ ЗА ПОТПИШУВАЊЕ ФАКТУРИ",
+    sentences: [
+      {
+        text: "Врз основа на член {articleNumber} од Договорот / Изјавата за основање друштво, управителот на Друштвото {companyName}, го дава следново Овластување за потпишување фактури.",
+        fields: ['articleNumber', 'companyName']
+      },
+      {
+        text: "За потпишување на излезни фактури на друштвото {companyName}, во подружница {branchLocation}, го овластувам лицето {authorizedPerson} распоредено на работно место {position}.",
+        fields: ['companyName', 'branchLocation', 'authorizedPerson', 'position']
+      },
+      {
+        text: "Работното место согласно систематиацијата на работни места и договорот за вработување опфаќа и работни задачи поврзани со проверка на релевантната документација при издавањето на фактури.",
+        fields: []
+      },
+      {
+        text: "Овластениот работник е должен пред потпишувањето на секоја фактура да изврши увид во документите врз основа кои е изготвената фактурата.",
+        fields: []
+      },
+      {
+        text: "Овластениот работник е одговорен за секоја потпишана фактура за која ќе се утврди дека не е заснована на веродостојни документи.",
+        fields: []
+      },
+      {
+        text: "Ова овластување стапува на сила од {effectiveDate} година.",
+        fields: ['effectiveDate']
+      },
+      {
+        text: "Управител {companyManager}, Дата: {date}, {city}",
+        fields: ['companyManager', 'date', 'city']
+      }
+    ]
+  },
+  writeOffDecision: {
+    title: "ОДЛУКА ЗА ОТПИС",
+    sentences: [
+      {
+        text: "Врз основа на позитивните законски одредби и најдобрите расположиви проценки темелени на досегашните искуства, раководните лица на {companyName} со седиште на улица {companyAddress} од Скопје, Р. Македонија, донесоа одлука за отпис на сметки кои по својата економска суштина се {writeOffType}.",
+        fields: ['companyName', 'companyAddress', 'writeOffType']
+      },
+      {
+        text: "Одлуката се донесува на {date} година.",
+        fields: ['date']
+      },
+      {
+        text: "Одлуката да се достави и проследи до сите служби и надворешни деловни партнери (клиенти и добавувачи) кои се тангирани за понатамошна обработка.",
+        fields: []
+      },
+      {
+        text: "Град: {city}, Одговорно лице: {responsiblePerson}",
+        fields: ['city', 'responsiblePerson']
+      }
+    ]
+  },
+  dividendPaymentDecision: {
+    title: "ОДЛУКА ЗА ИСПЛАТА НА ДИВИДЕНДА",
+    sentences: [
+      {
+        text: "Согласно член 490 од Законот за трговските друштва (Службен весник на РМ бр. 28/04), содружниците на {companyName} со седиште на {companyAddress} на ден {decisionDate} ја донесоа оваа одлука за исплата на дивиденда.",
+        fields: ['companyName', 'companyAddress', 'decisionDate']
+      },
+      {
+        text: "Одлучија да исплатат дивиденда од акумулираната добивка од {accumulatedProfitYear} година во износ од {accumulatedProfitAmount} денари.",
+        fields: ['accumulatedProfitYear', 'accumulatedProfitAmount']
+      },
+      {
+        text: "Исто така, од тековната добивка за {currentProfitYear} година се исплаќа износ од {currentProfitAmount} денари.",
+        fields: ['currentProfitYear', 'currentProfitAmount']
+      },
+      {
+        text: "Вкупниот износ на дивиденда за исплата изнесува {totalDividendAmount} денари.",
+        fields: ['totalDividendAmount']
+      },
+      {
+        text: "Износот се распределува на содружниците пропорционално на нивните удели според Книгата на удели и тековната состојба од Централниот регистар.",
+        fields: []
+      },
+      {
+        text: "Дивидендата ќе се исплати на трансакциска сметка на содружниците во текот на {paymentYear} годината.",
+        fields: ['paymentYear']
+      },
+      {
+        text: "Одлуката ја потпишува претседавачот: {chairman}.",
+        fields: ['chairman']
+      },
+      {
+        text: "* Бруто износите на дивиденда се оданочуваат со 10% персонален данок на доход.",
+        fields: []
+      }
+    ]
+  },
+  annualAccountsAdoption: {
+    title: "ОДЛУКА ЗА УСВОЈУВАЊЕ НА ГОДИШНАТА СМЕТКА",
+    sentences: [
+      {
+        text: "Врз основа на член 215 став 1 точка 1) од ЗТД - кај друштвото со ограничена одговорност, и член {articleNumber} од Договорот за друштвото (односно Статутот), на седницата одржана на {meetingDate} година донесе ОДЛУКА за усвојување на годишната сметка.",
+        fields: ['articleNumber', 'meetingDate']
+      },
+      {
+        text: "Се усвојува годишната сметка, финансиските извештаи и годишниот извештај за работењето на друштвото за {year} на {companyName}.",
+        fields: ['year', 'companyName']
+      },
+      {
+        text: "1) Остварени приходи: {revenues} денари",
+        fields: ['revenues']
+      },
+      {
+        text: "2) Остварени расходи: {expenses} денари",
+        fields: ['expenses']
+      },
+      {
+        text: "3) Остварена добивка пред оданочување (1 - 2): {profitBeforeTax} денари",
+        fields: ['profitBeforeTax']
+      },
+      {
+        text: "4) Данок на непризнаени расходи: {taxOnExpenses} денари",
+        fields: ['taxOnExpenses']
+      },
+      {
+        text: "5) Остварена добивка по оданочување (3 - 4): {profitAfterTax} денари",
+        fields: ['profitAfterTax']
+      },
+      {
+        text: "Се одобрува работата на Управителот {managerName} (членовите на одборот на директорите, односно управниот и надзорниот одбор) во тековната година.",
+        fields: ['managerName']
+      },
+      {
+        text: "Составен дел на оваа одлука се: Билансот на успехот и Билансот на состојбата, Одлуката за одобрување на работата на управителот, Одлуката за распоредување на добивката (или покривање на загуба), Одлука за плаќање на дивиденда.",
+        fields: []
+      },
+      {
+        text: "Оваа одлука влегува во сила со денот на донесувањето.",
+        fields: []
+      },
+      {
+        text: "{city}  {date} - М.П - Собир на содружниците - Претседавач: {chairman}",
+        fields: ['city', 'date', 'chairman']
+      }
+    ]
   }
 };
 
@@ -1059,14 +1229,16 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
          'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
-         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate'].includes(fieldName)) {
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate'].includes(fieldName)) {
       return formatDate(value);
     }
 
     // Format currency amounts (Macedonia format: 1.000,00 денари)
-    if (['bonusAmount', 'netSalary', 'damageAmount', 'compensationAmount'].includes(fieldName)) {
+    if (['bonusAmount', 'netSalary', 'damageAmount', 'compensationAmount', 'amount',
+         'accumulatedProfitAmount', 'currentProfitAmount', 'totalDividendAmount',
+         'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax'].includes(fieldName)) {
       if (!value || isNaN(value)) return value || '';
-      return `${parseInt(value).toLocaleString('mk-MK')},00`;
+      return `${parseFloat(value).toLocaleString('mk-MK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
     // Handle bonus type field for bonus decision
@@ -1178,6 +1350,13 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     if (fieldName === 'paymentMethod') {
       if (value === 'notary_day') return 'на денот на заверката кај нотар';
       if (value === 'custom_date') return 'на определен датум';
+      return value;
+    }
+
+    // Handle write-off decision specific fields
+    if (fieldName === 'writeOffType') {
+      if (value === 'ПОБАРУВАЊА') return 'побарувања';
+      if (value === 'ОБВРСКИ') return 'обврски';
       return value;
     }
     

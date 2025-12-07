@@ -55,14 +55,95 @@ export default function BlogPost() {
     }
   }
 
+  // Translate category to Macedonian
+  function translateCategory(category) {
+    const categoryTranslations = {
+      // Legal & Compliance
+      'LEGAL': 'ПРАВНО',
+      'Legal': 'Правно',
+      'COMPLIANCE': 'УСОГЛАСЕНОСТ',
+      'Compliance': 'Усогласеност',
+      'CONTRACTS': 'ДОГОВОРИ',
+      'Contracts': 'Договори',
+      'CORPORATE': 'КОРПОРАТИВНО ПРАВО',
+      'Corporate': 'Корпоративно право',
+      'TRADEMARK': 'ЖИГОВИ',
+      'Trademark': 'Жигови',
+
+      // Business & Management
+      'BUSINESS': 'БИЗНИС',
+      'Business': 'Бизнис',
+      'ENTREPRENEURSHIP': 'ПРЕТПРИЕМНИШТВО',
+      'Entrepreneurship': 'Претприемништво',
+      'STARTUP': 'СТАРТАПИ',
+      'Startup': 'Стартапи',
+      'MANAGEMENT': 'МЕНАЏМЕНТ',
+      'Management': 'Менаџмент',
+
+      // Finance & Investment
+      'FINANCE': 'ФИНАНСИИ',
+      'Finance': 'Финансии',
+      'INVESTMENT': 'ИНВЕСТИЦИИ',
+      'Investment': 'Инвестиции',
+      'TAX': 'ДАНОЦИ',
+      'Tax': 'Даноци',
+      'ACCOUNTING': 'СМЕТКОВОДСТВО',
+      'Accounting': 'Сметководство',
+
+      // HR & Employment
+      'HR': 'ЧР',
+      'EMPLOYMENT': 'ВРАБОТУВАЊЕ',
+      'Employment': 'Вработување',
+      'RECRUITMENT': 'РЕГРУТАЦИЈА',
+      'Recruitment': 'Регрутација',
+
+      // Marketing & Sales
+      'MARKETING': 'МАРКЕТИНГ',
+      'Marketing': 'Маркетинг',
+      'SALES': 'ПРОДАЖБА',
+      'Sales': 'Продажба',
+      'ADVERTISING': 'РЕКЛАМА',
+      'Advertising': 'Реклама',
+      'DIGITAL MARKETING': 'ДИГИТАЛЕН МАРКЕТИНГ',
+      'Digital Marketing': 'Дигитален маркетинг',
+
+      // Technology
+      'TECHNOLOGY': 'ТЕХНОЛОГИЈА',
+      'Technology': 'Технологија',
+      'AUTOMATION': 'АВТОМАТИЗАЦИЈА',
+      'Automation': 'Автоматизација',
+      'IT': 'ИТ',
+      'SOFTWARE': 'СОФТВЕР',
+      'Software': 'Софтвер',
+
+      // Other
+      'NEWS': 'ВЕСТИ',
+      'News': 'Вести',
+      'GENERAL': 'ОПШТО',
+      'General': 'Општо',
+      'RESIDENCE': 'ПРЕСТОЈ',
+      'Residence': 'Престој',
+      'EDUCATION': 'ОБРАЗОВАНИЕ',
+      'Education': 'Образование',
+      'TIPS': 'СОВЕТИ',
+      'Tips': 'Совети'
+    };
+    return categoryTranslations[category] || category;
+  }
+
   // Format date to Macedonian format
   function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('mk-MK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const months = [
+      'јануари', 'февруари', 'март', 'април', 'мај', 'јуни',
+      'јули', 'август', 'септември', 'октомври', 'ноември', 'декември'
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month}, ${year}`;
   }
 
   // Extract tags as array
@@ -163,7 +244,7 @@ export default function BlogPost() {
         <header className={styles.header}>
           {post.category && (
             <span className={styles.category}>
-              {post.category}
+              {translateCategory(post.category)}
             </span>
           )}
           <h1 className={styles.title}>{post.title}</h1>
@@ -247,7 +328,7 @@ export default function BlogPost() {
                     <div className={styles.suggestedPostContent}>
                       {suggestedPost.category && (
                         <span className={styles.suggestedPostCategory}>
-                          {suggestedPost.category}
+                          {translateCategory(suggestedPost.category)}
                         </span>
                       )}
                       <h4 className={styles.suggestedPostTitle}>

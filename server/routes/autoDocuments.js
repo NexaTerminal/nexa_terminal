@@ -34,6 +34,11 @@ const unpaidLeaveDecisionController = require('../controllers/autoDocuments/unpa
 const annualLeaveBonusDecisionController = require('../controllers/autoDocuments/annualLeaveBonusDecisionController');
 const deathCompensationDecisionController = require('../controllers/autoDocuments/deathCompensationDecisionController');
 const gdprCompanyPoliticsController = require('../controllers/autoDocuments/gdprCompanyPoliticsController');
+const cashRegisterMaximumDecisionController = require('../controllers/autoDocuments/cashRegisterMaximumDecisionController');
+const invoiceSigningAuthorizationController = require('../controllers/autoDocuments/invoiceSigningAuthorizationController');
+const writeOffDecisionController = require('../controllers/autoDocuments/writeOffDecisionController');
+const dividendPaymentDecisionController = require('../controllers/autoDocuments/dividendPaymentDecisionController');
+const annualAccountsAdoptionController = require('../controllers/autoDocuments/annualAccountsAdoptionController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -130,6 +135,22 @@ router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompan
 // Rulebooks
 // Business Secret Rulebook (Правилник за заштита на деловна тајна)
 router.post('/business-secret-rulebook', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), personalDataRulebookController);
+
+// Accounting Documents
+// Cash Register Maximum Decision (Одлука за благајнички максимум)
+router.post('/cash-register-maximum-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), cashRegisterMaximumDecisionController);
+
+// Invoice Signing Authorization (Овластување за потпишување фактури)
+router.post('/invoice-signing-authorization', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), invoiceSigningAuthorizationController);
+
+// Write-off Decision (Одлука за отпис)
+router.post('/write-off-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), writeOffDecisionController);
+
+// Dividend Payment Decision (Одлука за исплата на дивиденда)
+router.post('/dividend-payment-decision', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), dividendPaymentDecisionController);
+
+// Annual Accounts Adoption Decision (Одлука за усвојување на годишната сметка)
+router.post('/annual-accounts-adoption', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), annualAccountsAdoptionController);
 
 // Add more document routes here as needed
 

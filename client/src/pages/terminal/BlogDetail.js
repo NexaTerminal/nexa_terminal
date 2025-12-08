@@ -235,7 +235,7 @@ const BlogDetail = () => {
       <Header isTerminal={true} />
       <div className={styles.layout}>
         <Sidebar />
-        <main className={styles.mainFullWidth}>
+        <main className={styles.main}>
           <div className={styles.blogContainer}>
             <button
               onClick={() => navigate('/terminal')}
@@ -288,6 +288,7 @@ const BlogDetail = () => {
             </article>
           </div>
         </main>
+        <RightSidebar />
       </div>
     </div>
   );

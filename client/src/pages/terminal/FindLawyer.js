@@ -4,6 +4,7 @@ import styles from '../../styles/terminal/Contact.module.css';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
+import CityAutocomplete from '../../components/common/CityAutocomplete';
 import { useAuth } from '../../contexts/AuthContext';
 
 const FindLawyer = () => {
@@ -103,21 +104,11 @@ const FindLawyer = () => {
     });
   };
 
-  const handleLocationChange = (city) => {
-    const currentLocations = formData.preferredLocations;
-    if (currentLocations.includes(city)) {
-      // Remove city if already selected
-      setFormData({
-        ...formData,
-        preferredLocations: currentLocations.filter(loc => loc !== city)
-      });
-    } else {
-      // Add city if not selected
-      setFormData({
-        ...formData,
-        preferredLocations: [...currentLocations, city]
-      });
-    }
+  const handleLocationChange = (newLocations) => {
+    setFormData({
+      ...formData,
+      preferredLocations: newLocations
+    });
   };
 
   const handleServiceSpecificChange = (field, value) => {
@@ -360,21 +351,20 @@ const FindLawyer = () => {
 
                 {/* Right Column */}
                 <div className={`${styles['form-column']} ${styles['form-column-right']}`}>
-                  {/* Preferred Locations - Multiple Checkboxes */}
+                  {/* Preferred Locations - Autocomplete */}
                   <div className={styles['form-group']}>
                     <label className={styles['form-label']}>Локации каде можете да примите услуги *</label>
-                    <div className={styles['checkbox-grid']}>
-                      {macedonianCities.map(city => (
-                        <label key={city} className={styles['checkbox-item']}>
-                          <input
-                            type="checkbox"
-                            checked={formData.preferredLocations.includes(city)}
-                            onChange={() => handleLocationChange(city)}
-                          />
-                          {city}
-                        </label>
-                      ))}
-                    </div>
+                    <CityAutocomplete
+                      cities={macedonianCities}
+                      selectedCities={formData.preferredLocations}
+                      onChange={handleLocationChange}
+                      placeholder="Внесете град (пр. Скопје, Прилеп...)"
+                    />
+                    {formData.preferredLocations.length === 0 && (
+                      <small style={{ display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                        Започнете да пишувате за да видите предлози
+                      </small>
+                    )}
                   </div>
                 </div>
 

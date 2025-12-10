@@ -231,141 +231,129 @@ const FindLawyer = () => {
 
             <form onSubmit={handleSubmit}>
               <div className={styles['form-grid']}>
-                {/* Left Column */}
-                <div className={`${styles['form-column']} ${styles['form-column-left']}`}>
-                  {/* Legal Matter Type */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="legalMatter" className={styles['form-label']}>Тип на правна материја *</label>
-                    <select
-                      id="legalMatter"
-                      className={styles['form-select']}
-                      value={formData.serviceSpecificFields.legalMatter}
-                      onChange={(e) => handleServiceSpecificChange('legalMatter', e.target.value)}
-                      required
-                    >
-                      <option value="">Избери тип на правна материја</option>
-                      {legalMatterTypes.map(matter => (
-                        <option key={matter.value} value={matter.value}>
-                          {matter.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Urgency */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="urgency" className={styles['form-label']}>Итност на случајот *</label>
-                    <select
-                      id="urgency"
-                      className={styles['form-select']}
-                      value={formData.serviceSpecificFields.urgency}
-                      onChange={(e) => handleServiceSpecificChange('urgency', e.target.value)}
-                      required
-                    >
-                      <option value="">Избери ниво на итност</option>
-                      {urgencyLevels.map(level => (
-                        <option key={level.value} value={level.value}>
-                          {level.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Documents Available */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
-                    <select
-                      id="documentsAvailable"
-                      className={styles['form-select']}
-                      value={formData.serviceSpecificFields.documentsAvailable}
-                      onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
-                    >
-                      <option value="">Избери статус на документи</option>
-                      {documentAvailabilityOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Row 1: Legal Matter Type | Locations */}
+                <div className={styles['form-group']}>
+                  <label htmlFor="legalMatter" className={styles['form-label']}>Тип на правна материја *</label>
+                  <select
+                    id="legalMatter"
+                    className={styles['form-select']}
+                    value={formData.serviceSpecificFields.legalMatter}
+                    onChange={(e) => handleServiceSpecificChange('legalMatter', e.target.value)}
+                    required
+                  >
+                    <option value="">Избери тип на правна материја</option>
+                    {legalMatterTypes.map(matter => (
+                      <option key={matter.value} value={matter.value}>
+                        {matter.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Right Column */}
-                <div className={`${styles['form-column']} ${styles['form-column-right']}`}>
-                  {/* Preferred Locations - Autocomplete */}
-                  <div className={styles['form-group']}>
-                    <label className={styles['form-label']}>Локации каде можете да примите услуги *</label>
-                    <CityAutocomplete
-                      cities={macedonianCities}
-                      selectedCities={formData.preferredLocations}
-                      onChange={handleLocationChange}
-                      placeholder="Внесете град (пр. Скопје, Прилеп...)"
-                    />
-                    {formData.preferredLocations.length === 0 && (
-                      <small style={{ display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
-                        Започнете да пишувате за да видите предлози
-                      </small>
-                    )}
-                  </div>
+                <div className={styles['form-group']}>
+                  <label className={styles['form-label']}>Локации каде можете да примите услуги *</label>
+                  <CityAutocomplete
+                    cities={macedonianCities}
+                    selectedCities={formData.preferredLocations}
+                    onChange={handleLocationChange}
+                    placeholder="Внесете град (пр. Скопје, Прилеп...)"
+                  />
+                </div>
 
-                  {/* Budget Range */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="budgetRange" className={styles['form-label']}>Буџет *</label>
-                    <select
-                      id="budgetRange"
-                      name="budgetRange"
-                      className={styles['form-select']}
-                      value={formData.budgetRange}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Избери буџет</option>
-                      {budgetRanges.map(budget => (
-                        <option key={budget.value} value={budget.value}>
-                          {budget.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Row 2: Urgency | Budget */}
+                <div className={styles['form-group']}>
+                  <label htmlFor="urgency" className={styles['form-label']}>Итност на случајот *</label>
+                  <select
+                    id="urgency"
+                    className={styles['form-select']}
+                    value={formData.serviceSpecificFields.urgency}
+                    onChange={(e) => handleServiceSpecificChange('urgency', e.target.value)}
+                    required
+                  >
+                    <option value="">Избери ниво на итност</option>
+                    {urgencyLevels.map(level => (
+                      <option key={level.value} value={level.value}>
+                        {level.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {/* Project Type */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="projectType" className={styles['form-label']}>Тип на проект *</label>
-                    <select
-                      id="projectType"
-                      name="projectType"
-                      className={styles['form-select']}
-                      value={formData.projectType}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      {projectTypeOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className={styles['form-group']}>
+                  <label htmlFor="budgetRange" className={styles['form-label']}>Буџет *</label>
+                  <select
+                    id="budgetRange"
+                    name="budgetRange"
+                    className={styles['form-select']}
+                    value={formData.budgetRange}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Избери буџет</option>
+                    {budgetRanges.map(budget => (
+                      <option key={budget.value} value={budget.value}>
+                        {budget.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {/* Timeline */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="timeline" className={styles['form-label']}>Временски рок *</label>
-                    <select
-                      id="timeline"
-                      name="timeline"
-                      className={styles['form-select']}
-                      value={formData.timeline}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Избери временски рок</option>
-                      {timelineOptions.map(timeline => (
-                        <option key={timeline.value} value={timeline.value}>
-                          {timeline.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Row 3: Documents Available | Project Type */}
+                <div className={styles['form-group']}>
+                  <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
+                  <select
+                    id="documentsAvailable"
+                    className={styles['form-select']}
+                    value={formData.serviceSpecificFields.documentsAvailable}
+                    onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
+                  >
+                    <option value="">Избери статус на документи</option>
+                    {documentAvailabilityOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label htmlFor="projectType" className={styles['form-label']}>Тип на проект *</label>
+                  <select
+                    id="projectType"
+                    name="projectType"
+                    className={styles['form-select']}
+                    value={formData.projectType}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    {projectTypeOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Row 4: Empty | Timeline */}
+                <div className={styles['form-group']}></div>
+
+                <div className={styles['form-group']}>
+                  <label htmlFor="timeline" className={styles['form-label']}>Временски рок *</label>
+                  <select
+                    id="timeline"
+                    name="timeline"
+                    className={styles['form-select']}
+                    value={formData.timeline}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Избери временски рок</option>
+                    {timelineOptions.map(timeline => (
+                      <option key={timeline.value} value={timeline.value}>
+                        {timeline.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Full-width items */}

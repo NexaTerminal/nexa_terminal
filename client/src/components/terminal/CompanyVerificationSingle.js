@@ -280,31 +280,8 @@ const CompanyVerificationSingle = () => {
                   ← Назад кон Dashboard
                 </button>
               </div>
-              <h2>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирање на профил на компанија' : 'Верификација на компанија'}</h2>
-              <p>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирајте ги информациите за вашата верификувана компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
-
-        {user?.isVerified && isCompanyInfoComplete() && (
-          <div className={styles.verificationStatus}>
-            <div className={styles.verifiedBadge}>
-              ✅ Компанијата е верификувана
-            </div>
-            <p>Честитки! Вашата компанија е успешно верификувана и имате пристап до сите функции.</p>
-            <div className={styles.accessFeatures}>
-              <button
-                onClick={() => navigate('/terminal/documents')}
-                className={styles.accessButton}
-              >
-                📄 Пристапи до Документи
-              </button>
-              <button
-                onClick={() => navigate('/terminal/ai-chat')}
-                className={styles.accessButton}
-              >
-                🤖 Користи AI Асистент
-              </button>
-            </div>
-          </div>
-        )}
+              <h2>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирање на профил' : 'Верификација на компанија'}</h2>
+              <p>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирајте ги информациите за вашата компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
 
         {user?.isVerified && !isCompanyInfoComplete() && (
           <div className={styles.verificationStatus}>
@@ -385,7 +362,7 @@ const CompanyVerificationSingle = () => {
                 />
               </div>
               
-              <div className={styles.field}>
+              <div className={styles.field} style={{opacity: 0.5}}>
                 <label htmlFor="taxNumber">Даночен број (не може да се менува)</label>
                 <input
                   type="text"
@@ -398,180 +375,8 @@ const CompanyVerificationSingle = () => {
                   title="Даночниот број не може да се менува по верификацијата согласно македонското право"
                 />
                 <small className={styles.legalNotice}>
-                  ⚖️ Даночниот број не може да се менува согласно Законот за трговски друштва
+                  ⚖️ Даночниот број не е променлив податок
                 </small>
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label htmlFor="businessActivity">Дејност на компанијата</label>
-                <input
-                  type="text"
-                  id="businessActivity"
-                  name="businessActivity"
-                  value={formData.businessActivity}
-                  onChange={handleInputChange}
-                  placeholder="Опишете ја дејноста"
-                />
-              </div>
-              
-              <div className={styles.field}>
-                <label htmlFor="industry">Индустрија</label>
-                <input
-                  type="text"
-                  id="industry"
-                  name="industry"
-                  value={formData.industry}
-                  onChange={handleInputChange}
-                  placeholder="Индустријски сектор"
-                />
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label htmlFor="companySize">Големина на компанија</label>
-                <select
-                  id="companySize"
-                  name="companySize"
-                  value={formData.companySize}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Изберете големина</option>
-                  <option value="1-10">1-10 вработени</option>
-                  <option value="11-50">11-50 вработени</option>
-                  <option value="51-200">51-200 вработени</option>
-                  <option value="201-1000">201-1000 вработени</option>
-                  <option value="1000+">Повеќе од 1000 вработени</option>
-                </select>
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="crnNumber">ЕДБ број</label>
-                <input
-                  type="text"
-                  id="crnNumber"
-                  name="crnNumber"
-                  value={formData.crnNumber}
-                  onChange={handleInputChange}
-                  placeholder="Единствен број во Централниот регистар"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.section}>
-            <h3>Контакт информации</h3>
-            
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label htmlFor="officialEmail">Службена email адреса *</label>
-                <input
-                  type="email"
-                  id="officialEmail"
-                  name="officialEmail"
-                  value={formData.officialEmail}
-                  onChange={handleInputChange}
-                  placeholder="company@example.com"
-                  required
-                />
-              </div>
-              
-              <div className={styles.field}>
-                <label htmlFor="contactEmail">Контакт email (дополнителна)</label>
-                <input
-                  type="email"
-                  id="contactEmail"
-                  name="contactEmail"
-                  value={formData.contactEmail}
-                  onChange={handleInputChange}
-                  placeholder="info@example.com"
-                />
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label htmlFor="phone">Телефон</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+389 XX XXX XXX"
-                />
-              </div>
-              
-              <div className={styles.field}>
-                <label htmlFor="website">Веб-страница</label>
-                <input
-                  type="url"
-                  id="website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.section}>
-            <h3>Опис и мисија</h3>
-            
-            <div className={styles.field}>
-              <label htmlFor="description">Опис на компанијата</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Краток опис на дејностите и активностите на компанијата"
-                rows={4}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="missionStatement">Мисија на компанијата</label>
-              <textarea
-                id="missionStatement"
-                name="missionStatement"
-                value={formData.missionStatement}
-                onChange={handleInputChange}
-                placeholder="Мисијата и визијата на компанијата"
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <div className={styles.section}>
-            <h3>Социјални мрежи</h3>
-            
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label htmlFor="facebook">Facebook профил</label>
-                <input
-                  type="url"
-                  id="facebook"
-                  name="facebook"
-                  value={formData.facebook}
-                  onChange={handleInputChange}
-                  placeholder="https://facebook.com/company"
-                />
-              </div>
-              
-              <div className={styles.field}>
-                <label htmlFor="linkedin">LinkedIn профил</label>
-                <input
-                  type="url"
-                  id="linkedin"
-                  name="linkedin"
-                  value={formData.linkedin}
-                  onChange={handleInputChange}
-                  placeholder="https://linkedin.com/company/company"
-                />
               </div>
             </div>
           </div>

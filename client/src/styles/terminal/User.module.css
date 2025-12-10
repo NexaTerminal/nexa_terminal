@@ -1,15 +1,13 @@
 /* Layout Styles for Terminal Pages */
 .dashboard-layout {
-  /* display: flex; */
   min-height: calc(100vh - 64px);
   background-color: var(--color-off-white);
 }
 
 .dashboard-main {
-  flex: 1;
   padding: var(--spacing-lg);
-  margin-left: 5rem;
-  max-width: calc(100% - 280px);
+  margin-left: 280px;
+  margin-right: 280px;
   background-color: var(--color-off-white);
   overflow-y: auto;
   min-height: calc(100vh - 64px);
@@ -200,29 +198,40 @@
 
 /* Mobile Responsive */
 @media (max-width: 1200px) {
+  .dashboard-main {
+    margin-left: 280px;
+    margin-right: 0;
+  }
+
   .credentialsForm {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
   }
-  
+
   .container {
     padding: var(--spacing-md);
   }
 }
 
 @media (max-width: 768px) {
+  .dashboard-main {
+    margin-left: 0;
+    margin-right: 0;
+    padding: var(--spacing-md);
+  }
+
   .container {
     padding: var(--spacing-md);
   }
-  
+
   .pageHeader h1 {
     font-size: var(--font-size-xl);
   }
-  
+
   .credentialsForm {
     gap: var(--spacing-sm);
   }
-  
+
   .submitBtn {
     min-width: 100%;
   }

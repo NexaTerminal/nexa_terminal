@@ -271,6 +271,43 @@ const FindLawyer = () => {
                     </select>
                   </div>
 
+                  {/* Documents Available */}
+                  <div className={styles['form-group']}>
+                    <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
+                    <select
+                      id="documentsAvailable"
+                      className={styles['form-select']}
+                      value={formData.serviceSpecificFields.documentsAvailable}
+                      onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
+                    >
+                      <option value="">Избери статус на документи</option>
+                      {documentAvailabilityOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className={`${styles['form-column']} ${styles['form-column-right']}`}>
+                  {/* Preferred Locations - Autocomplete */}
+                  <div className={styles['form-group']}>
+                    <label className={styles['form-label']}>Локации каде можете да примите услуги *</label>
+                    <CityAutocomplete
+                      cities={macedonianCities}
+                      selectedCities={formData.preferredLocations}
+                      onChange={handleLocationChange}
+                      placeholder="Внесете град (пр. Скопје, Прилеп...)"
+                    />
+                    {formData.preferredLocations.length === 0 && (
+                      <small style={{ display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                        Започнете да пишувате за да видите предлози
+                      </small>
+                    )}
+                  </div>
+
                   {/* Budget Range */}
                   <div className={styles['form-group']}>
                     <label htmlFor="budgetRange" className={styles['form-label']}>Буџет *</label>
@@ -291,7 +328,7 @@ const FindLawyer = () => {
                     </select>
                   </div>
 
-                  {/* Project Type - Dropdown */}
+                  {/* Project Type */}
                   <div className={styles['form-group']}>
                     <label htmlFor="projectType" className={styles['form-label']}>Тип на проект *</label>
                     <select
@@ -328,43 +365,6 @@ const FindLawyer = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Documents Available */}
-                  <div className={styles['form-group']}>
-                    <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
-                    <select
-                      id="documentsAvailable"
-                      className={styles['form-select']}
-                      value={formData.serviceSpecificFields.documentsAvailable}
-                      onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
-                    >
-                      <option value="">Избери статус на документи</option>
-                      {documentAvailabilityOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className={`${styles['form-column']} ${styles['form-column-right']}`}>
-                  {/* Preferred Locations - Autocomplete */}
-                  <div className={styles['form-group']}>
-                    <label className={styles['form-label']}>Локации каде можете да примите услуги *</label>
-                    <CityAutocomplete
-                      cities={macedonianCities}
-                      selectedCities={formData.preferredLocations}
-                      onChange={handleLocationChange}
-                      placeholder="Внесете град (пр. Скопје, Прилеп...)"
-                    />
-                    {formData.preferredLocations.length === 0 && (
-                      <small style={{ display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
-                        Започнете да пишувате за да видите предлози
-                      </small>
-                    )}
                   </div>
                 </div>
 

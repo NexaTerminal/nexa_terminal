@@ -298,24 +298,7 @@ const FindLawyer = () => {
                   </select>
                 </div>
 
-                {/* Row 3: Documents Available | Project Type */}
-                <div className={styles['form-group']}>
-                  <label htmlFor="documentsAvailable" className={styles['form-label']}>Достапни документи</label>
-                  <select
-                    id="documentsAvailable"
-                    className={styles['form-select']}
-                    value={formData.serviceSpecificFields.documentsAvailable}
-                    onChange={(e) => handleServiceSpecificChange('documentsAvailable', e.target.value)}
-                  >
-                    <option value="">Избери статус на документи</option>
-                    {documentAvailabilityOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+                {/* Row 3: Project Type | Timeline */}
                 <div className={styles['form-group']}>
                   <label htmlFor="projectType" className={styles['form-label']}>Тип на проект *</label>
                   <select
@@ -333,9 +316,6 @@ const FindLawyer = () => {
                     ))}
                   </select>
                 </div>
-
-                {/* Row 4: Empty | Timeline */}
-                <div className={styles['form-group']}></div>
 
                 <div className={styles['form-group']}>
                   <label htmlFor="timeline" className={styles['form-label']}>Временски рок *</label>

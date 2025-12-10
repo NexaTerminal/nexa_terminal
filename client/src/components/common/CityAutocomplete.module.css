@@ -69,7 +69,7 @@
 /* Input field */
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.3rem 0.75rem;
   border: 2px solid var(--color-light-gray, #e5e7eb);
   border-radius: var(--border-radius-md, 0.5rem);
   font-size: var(--font-size-medium, 1rem);

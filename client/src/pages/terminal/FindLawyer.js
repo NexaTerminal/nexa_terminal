@@ -221,8 +221,8 @@ const FindLawyer = () => {
 
           <div className={styles['contact-container']}>
             <div className={styles['contact-header']}>
-              <h1>Најди адвокат</h1>
-              <p>Поднесете барање за правна помош и поврзете се со соодветни адвокати и правни експерти.</p>
+              <h1 style={{fontSize: '1.5rem'}}>Најди адвокат</h1>
+              <p>Целосно анонимно, побарајте понуда за Вашите правни потреби преку нашата платформа.</p>
             </div>
 
           <div className={styles['contact-form']}>

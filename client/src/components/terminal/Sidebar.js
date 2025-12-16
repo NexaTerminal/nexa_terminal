@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,6 +8,9 @@ const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard', icon: '📊' },
@@ -29,7 +32,35 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className={styles["dashboard-sidebar"]}>
+      {/* Hamburger Button (Mobile Only) */}
+      <button
+        className={styles.hamburgerButton}
+        onClick={() => setIsMobileMenuOpen(true)}
+        aria-label="Open menu"
+      >
+        ☰
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className={styles.mobileOverlay}
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`${styles["dashboard-sidebar"]} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
+        {/* Close Button (Mobile Only) */}
+        <button
+          className={styles.closeButton}
+          onClick={closeMobileMenu}
+          aria-label="Close menu"
+        >
+          ×
+        </button>
+
         {/* <div className={styles["dashboard-welcome"]}>
           <h2>{t("dashboard.welcome")}, {currentUser?.fullName || t("common.user")}</h2>
         </div> */}
@@ -51,6 +82,7 @@ const Sidebar = () => {
               <Link
                 key={path}
                 to={path}
+                onClick={closeMobileMenu}
                 className={`${styles["menu-item"]} ${
                   location.pathname === path ? styles.active : ""
                 }`}
@@ -75,6 +107,7 @@ const Sidebar = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles["menu-item"]}
+                    onClick={closeMobileMenu}
                   >
                     <span className={styles["menu-icon"]}>{icon}</span>
                     <h3>{t(label)}</h3>
@@ -83,6 +116,7 @@ const Sidebar = () => {
                   <Link
                     key={path}
                     to={path}
+                    onClick={closeMobileMenu}
                     className={`${styles["menu-item"]} ${
                       location.pathname === path ? styles.active : ""
                     }`}

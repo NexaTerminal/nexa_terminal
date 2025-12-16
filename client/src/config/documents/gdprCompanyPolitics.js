@@ -1,6 +1,7 @@
 const gdprCompanyPoliticsConfig = {
   documentName: 'Политика за администрирање со правата на субјектите на персонални податоци',
   documentType: 'gdprCompanyPolitics',
+  endpoint: '/auto-documents/gdpr-company-politics',
   category: 'personalDataProtection',
   description: 'Комплетна политика за администрирање со правата на субјектите на персонални податоци според ЗЗЛП со прилагодување според дејноста на компанијата.',
   apiEndpoint: 'gdpr-company-politics',

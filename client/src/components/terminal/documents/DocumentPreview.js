@@ -125,12 +125,23 @@ const documentSentences = {
         fields: ['dailyWorkTime', 'placeOfWork', 'otherWorkPlace']
       },
       {
-        text: "Договорот е склучен на {agreementDurationType} {definedDuration}.",
-        fields: ['agreementDurationType', 'definedDuration']
+        text: "Договорот за вработување е склучен на {agreementDurationType}.",
+        fields: ['agreementDurationType']
       },
       {
-        text: "Конкурентска клаузула: {concurrentClause} со детали {concurrentClauseInput}.",
-        fields: ['concurrentClause', 'concurrentClauseInput']
+        text: "Договорот престанува да важи на {definedDuration}.",
+        fields: ['definedDuration'],
+        condition: (formData) => formData.agreementDurationType === 'определено времетраење'
+      },
+      {
+        text: "Конкурентска клаузула важи до {concurrentClauseDuration} со месечен надоместок од {concurrentClauseCompensation} денари.",
+        fields: ['concurrentClauseDuration', 'concurrentClauseCompensation'],
+        condition: (formData) => formData.concurrentClause === true
+      },
+      {
+        text: "Дополнителни услови: {concurrentClauseInput}",
+        fields: ['concurrentClauseInput'],
+        condition: (formData) => formData.concurrentClauseInput && formData.concurrentClauseInput.trim() !== ''
       }
     ]
   },
@@ -1229,14 +1240,14 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
          'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
-         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate'].includes(fieldName)) {
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration'].includes(fieldName)) {
       return formatDate(value);
     }
 
     // Format currency amounts (Macedonia format: 1.000,00 денари)
     if (['bonusAmount', 'netSalary', 'damageAmount', 'compensationAmount', 'amount',
          'accumulatedProfitAmount', 'currentProfitAmount', 'totalDividendAmount',
-         'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax'].includes(fieldName)) {
+         'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax', 'concurrentClauseCompensation'].includes(fieldName)) {
       if (!value || isNaN(value)) return value || '';
       return `${parseFloat(value).toLocaleString('mk-MK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
@@ -2030,11 +2041,13 @@ const renderLivePreview = ({ formData, company, documentType }) => {
       </div>
       
       <div className={styles.sentencePreview}>
-        {docTemplate.sentences.map((sentence, index) => (
-          <p key={index} className={styles.previewSentence}>
-            {renderSentence(sentence, index)}
-          </p>
-        ))}
+        {docTemplate.sentences
+          .filter(sentence => !sentence.condition || sentence.condition(formData))
+          .map((sentence, index) => (
+            <p key={index} className={styles.previewSentence}>
+              {renderSentence(sentence, index)}
+            </p>
+          ))}
       </div>
     </div>
   );

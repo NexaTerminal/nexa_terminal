@@ -21,6 +21,8 @@ function generateEmploymentAgreementDoc(formData, user, company) {
   const definedDuration = formData?.definedDuration ? moment(formData.definedDuration).format('DD.MM.YYYY') : '';
   const dailyWorkTime = formData?.otherWorkTime || formData?.dailyWorkTime || 'започнува од 08:00 часот, а завршува во 16:00 часот';
   const concurrentClauseInput = formData?.concurrentClauseInput || '';
+  const concurrentClauseDuration = formData?.concurrentClauseDuration ? moment(formData.concurrentClauseDuration).format('DD.MM.YYYY') : '';
+  const concurrentClauseCompensation = formData?.concurrentClauseCompensation || '';
 
   const children = [
     // Header
@@ -125,7 +127,7 @@ function generateEmploymentAgreementDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Договорот за вработување е склучен на ${agreementDurationType}${definedDuration ? `, и престанува да важи на ${definedDuration} година.` : ''}`,
+          text: `Договорот за вработување е склучен на ${agreementDurationType}${definedDuration ? `, заклучно до ${definedDuration} година)` : ''}`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
@@ -582,7 +584,7 @@ function generateEmploymentAgreementDoc(formData, user, company) {
   );
 
   // Add non-competition clause if specified
-  if (formData?.concurrentClause && concurrentClauseInput) {
+  if (formData?.concurrentClause) {
     children.push(
       // Section VII - Non-Competition
       new Paragraph({
@@ -592,7 +594,7 @@ function generateEmploymentAgreementDoc(formData, user, company) {
         alignment: AlignmentType.LEFT,
       }),
       new Paragraph({ text: "" }),
-      
+
       // Article 13
       new Paragraph({
         children: [
@@ -603,15 +605,46 @@ function generateEmploymentAgreementDoc(formData, user, company) {
       new Paragraph({
         children: [
           new TextRun({
-            text: `За времетраењето или по завршувањето на овој работен однос, а најдоцна за период од ${concurrentClauseInput}, работникот не смее да се јави како основач, партнер, управител, одговорно лице, вработен, надворешен соработник или на друг начин ангажирано лице во трговско друштво кое врши иста или слична дејност со дејноста на работодавецот.`,
+            text: `По завршувањето на овој работен однос${concurrentClauseDuration ? `, заклучно со ${concurrentClauseDuration} година` : ''}, работникот не смее да се јави како основач, партнер, управител, одговорно лице, вработен, надворешен соработник или на друг начин ангажирано лице во трговско друштво кое врши иста или слична дејност со дејноста на работодавецот.`,
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
-      }),
+      })
+    );
+
+    // Add compensation paragraph if amount is specified
+    if (concurrentClauseCompensation) {
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Работодавачот се обврзува за времетраењето на оваа забрана месечно да му исплатува на работникот паричен надоместок во износ од ${concurrentClauseCompensation} денари.`,
+            }),
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+        })
+      );
+    }
+
+    // Add additional conditions if specified
+    if (concurrentClauseInput) {
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: concurrentClauseInput,
+            }),
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+        })
+      );
+    }
+
+    children.push(
       new Paragraph({
         children: [
           new TextRun({
-            text: `Доколку работникот постапи спротивно на ставот 1 од овој член, се согласува да исплати договорна казна во висина од 12 бруто месечни плати.`,
+            text: `Доколку работникот постапи спротивно на одредбите од овој член, се согласува да му ја надомести штетата на работодавачот.`,
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,

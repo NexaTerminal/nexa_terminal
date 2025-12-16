@@ -23,36 +23,17 @@ const serviceProviderSchema = {
 
   // Service Information
   serviceCategory: String, // Single primary category
-  description: String, // Provider description
   specializations: [String], // Specific areas within category
 
-  // Location (from user.companyInfo)
-  location: {
-    city: String,
-    region: String,
-    country: String,
-    servesRemote: Boolean
-  },
+  // Location (from user.companyInfo) - simplified to city string only
+  location: String, // City name: "Скопје", "Битола", etc.
 
-  // Business Information (from user.companyInfo)
-  businessInfo: {
-    taxNumber: String, // From user.companyInfo.taxNumber
-    registrationNumber: String,
-    languagesSupported: [String] // ['mk', 'en']
-  },
-
-  // Simple Status Management
-  isActive: { type: Boolean, default: true }, // Admin can enable/disable
-  isVerified: { type: Boolean, default: true }, // Auto-true for verified users
+  // Admin tracking
+  createdBy: ObjectId, // Admin who created (if manually added)
 
   // Timestamps
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  lastActiveAt: Date,
-
-  // Analytics (simplified)
-  viewCount: { type: Number, default: 0 },
-  contactCount: { type: Number, default: 0 }
+  updatedAt: { type: Date, default: Date.now }
 };
 
 /**
@@ -138,8 +119,8 @@ const validators = {
       errors.push('Invalid service category');
     }
 
-    if (!providerData.location || !providerData.location.city) {
-      errors.push('Location city is required');
+    if (!providerData.location || typeof providerData.location !== 'string' || providerData.location.trim() === '') {
+      errors.push('Location (city) is required');
     }
 
     return errors;

@@ -405,9 +405,7 @@ class OfferRequestService {
       console.log(`🔍 Finding providers for: ${request.serviceType} (category: ${request.requestCategory || 'NOT SET'}) in locations: ${locationsList.length > 0 ? locationsList.join(', ') : 'any location'}`);
 
       // Build query to filter by request category and service type
-      const query = {
-        isActive: true
-      };
+      const query = {};
 
       // CRITICAL FIX: Handle missing requestCategory
       if (!request.requestCategory) {
@@ -433,8 +431,7 @@ class OfferRequestService {
       if (locationsList.length > 0 && !locationsList.includes('целосно-далечински')) {
         // First check if ANY providers have location data
         const providersWithLocation = await this.serviceProviders.countDocuments({
-          isActive: true,
-          'location.city': { $exists: true, $ne: null }
+          location: { $exists: true, $ne: null, $ne: '' }
         });
 
         console.log(`📍 Providers with location data: ${providersWithLocation}`);
@@ -442,10 +439,9 @@ class OfferRequestService {
         if (providersWithLocation > 0) {
           // Only filter by location if providers have location data
           query.$or = [
-            { 'location.city': { $in: locationsList } }, // Match any of the selected cities
-            { 'location.servesRemote': true },
-            { 'location.city': { $exists: false } }, // Include providers without location data
-            { 'location': { $exists: false } } // Include providers without location field
+            { location: { $in: locationsList } }, // Match any of the selected cities (string match)
+            { location: { $exists: false } }, // Include providers without location data
+            { location: '' } // Include providers with empty location
           ];
         } else {
           console.warn('⚠️ No providers have location data. Skipping location filter.');
@@ -454,31 +450,12 @@ class OfferRequestService {
 
       console.log('🔍 Provider query:', JSON.stringify(query, null, 2));
 
-      const providers = await this.serviceProviders.find(query).toArray();
+      const allMatchingProviders = await this.serviceProviders.find(query).toArray();
 
-      // Debug: Check all providers in database for comparison
-      const allProviders = await this.serviceProviders.find({ isActive: true }).toArray();
-      console.log(`\n📊 DATABASE ANALYSIS:`);
-      console.log(`   Total active providers: ${allProviders.length}`);
-      console.log(`   Providers matching query: ${providers.length}`);
+      console.log(`\n📊 PROVIDER MATCHING RESULTS:`);
+      console.log(`   Total providers matching criteria: ${allMatchingProviders.length}`);
 
-      console.log(`\n📋 ALL ACTIVE PROVIDERS IN DB:`);
-      allProviders.forEach(p => {
-        console.log(`   - ${p.name}:`);
-        console.log(`       Category: "${p.serviceCategory}"`);
-        console.log(`       Has Location: ${!!p.location}`);
-        console.log(`       City: ${p.location?.city || 'N/A'}`);
-        console.log(`       Serves Remote: ${p.location?.servesRemote || 'N/A'}`);
-      });
-
-      if (providers.length > 0) {
-        console.log(`\n✅ MATCHED PROVIDERS (${providers.length}):`);
-        providers.forEach(p => {
-          console.log(`   - ${p.name} (${p.email})`);
-          console.log(`       Category: ${p.serviceCategory}`);
-          console.log(`       Location: ${p.location?.city || 'No location data'}`);
-        });
-      } else {
+      if (allMatchingProviders.length === 0) {
         console.error(`\n❌ NO PROVIDERS MATCHED!`);
         console.error(`   Query was: ${JSON.stringify(query, null, 2)}`);
         console.error(`   Request category: ${request.requestCategory || 'MISSING'}`);
@@ -488,24 +465,41 @@ class OfferRequestService {
         // Return early with warning but don't throw error
         return {
           providerCount: 0,
+          totalMatched: 0,
           warning: 'No matching providers found',
-          query: query,
-          allProviders: allProviders.map(p => ({
-            name: p.name,
-            category: p.serviceCategory,
-            hasLocation: !!p.location
-          }))
+          query: query
         };
       }
 
-      // Update request with provider list
-      console.log(`\n📝 Updating request ${request._id} with ${providers.length} provider(s)...`);
-      const providerIds = providers.map(p => p._id);
+      // RANDOM SELECTION: Select maximum 10 providers randomly
+      const MAX_PROVIDERS_PER_REQUEST = 10;
+      let selectedProviders = [];
+
+      if (allMatchingProviders.length <= MAX_PROVIDERS_PER_REQUEST) {
+        // If we have 10 or fewer, send to all
+        selectedProviders = allMatchingProviders;
+        console.log(`   ✅ Sending to all ${selectedProviders.length} matching providers`);
+      } else {
+        // Randomly select 10 providers from the pool
+        const shuffled = [...allMatchingProviders].sort(() => Math.random() - 0.5);
+        selectedProviders = shuffled.slice(0, MAX_PROVIDERS_PER_REQUEST);
+        console.log(`   🎲 Randomly selected ${selectedProviders.length} providers from ${allMatchingProviders.length} matches`);
+      }
+
+      console.log(`\n✅ SELECTED PROVIDERS (${selectedProviders.length}):`);
+      selectedProviders.forEach((p, index) => {
+        console.log(`   ${index + 1}. ${p.name} (${p.email}) - ${p.location || 'No location'}`);
+      });
+
+      // Update request with selected provider list
+      console.log(`\n📝 Updating request ${request._id}...`);
+      const providerIds = selectedProviders.map(p => p._id);
       const updateResult = await this.offerRequests.updateOne(
         { _id: request._id },
         {
           $set: {
             sentTo: providerIds,
+            totalMatched: allMatchingProviders.length, // Store total matches for reference
             status: 'испратено',
             updatedAt: new Date()
           }
@@ -514,17 +508,18 @@ class OfferRequestService {
       console.log(`   Update result: ${updateResult.modifiedCount} document(s) modified`);
 
       // Generate interest tokens and send emails
-      console.log(`\n📧 Sending interest invitations to ${providers.length} provider(s)...`);
+      console.log(`\n📧 Sending interest invitations to ${selectedProviders.length} provider(s)...`);
       const ProviderInterestService = require('./providerInterestService');
       const providerInterestService = new ProviderInterestService(this.db);
 
-      const emailResult = await providerInterestService.sendInterestInvitations(request, providers);
+      const emailResult = await providerInterestService.sendInterestInvitations(request, selectedProviders);
       console.log(`   Email result:`, emailResult);
 
       console.log(`\n✅ ========== SEND TO PROVIDERS COMPLETED ==========\n`);
       return {
-        providerCount: providers.length,
-        providers,
+        providerCount: selectedProviders.length,
+        totalMatched: allMatchingProviders.length,
+        providers: selectedProviders,
         emailResult
       };
 

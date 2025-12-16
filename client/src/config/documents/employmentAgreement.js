@@ -208,19 +208,45 @@ export const employmentAgreementConfig = {
       name: 'concurrentClause',
       type: 'checkbox',
       label: 'Конкурентска клаузула',
-      required: false
+      required: false,
+      helpText: 'Конкурентска клаузула - договорна забрана на конкурентското дејствување (Член 37-39). Ако работникот при своето работење се здобива со технички, производни или деловни знаења и деловни врски, може во договорот за вработување да се договори забрана за вршење на конкурентско дејствување по престанувањето на работниот однос. Конкурентската клаузула може да се договори најдолго за период од две години по престанувањето на договорот за вработување и тоа само во случаите кога на работникот му престанува договорот за вработување по негова волја или вина. Работодавачот е должен да му исплатува паричен надоместок на работникот (најмалку половина од просечната плата во последните три месеца пред престанувањето).'
+    },
+    concurrentClauseDuration: {
+      name: 'concurrentClauseDuration',
+      type: 'date',
+      label: 'Времетраење на конкурентската клаузула (краен датум)',
+      required: false,
+      condition: {
+        field: 'concurrentClause',
+        operator: 'truthy'
+      },
+      helpText: 'Конкурентската клаузула може да се договори најдолго за период од две години по престанувањето на договорот за вработување. Изберете го крајниот датум до кој важи забраната за конкурентско дејствување.'
+    },
+    concurrentClauseCompensation: {
+      name: 'concurrentClauseCompensation',
+      type: 'text',
+      label: 'Месечен паричен надоместок (во денари)',
+      placeholder: 'пр. 25000',
+      required: false,
+      condition: {
+        field: 'concurrentClause',
+        operator: 'truthy'
+      },
+      inputMode: 'numeric',
+      helpText: 'Паричниот надоместок за почитување на конкурентската забрана мора да изнесува најмалку половина од просечната плата на работникот во последните три месеца пред престанувањето на договорот за вработување. Внесете го месечниот износ во денари.'
     },
     concurrentClauseInput: {
       name: 'concurrentClauseInput',
       type: 'textarea',
-      label: 'Опишете ја конкурентската клаузула',
-      placeholder: 'пр. Работникот се обврзува дека во периодот од 1 година...',
+      label: 'Дополнителни услови на конкурентската клаузула (опционално)',
+      placeholder: 'пр. Работникот се обврзува дека нема да работи за конкурентски компании во истата индустрија...',
       rows: 3,
       required: false,
       condition: {
         field: 'concurrentClause',
         operator: 'truthy'
-      }
+      },
+      helpText: 'Овде можете да додадете дополнителни специфични услови или ограничувања поврзани со конкурентската клаузула.'
     }
   },
 
@@ -242,6 +268,8 @@ export const employmentAgreementConfig = {
     dailyWorkTime: 'започнува од 08:00 часот, а завршува во 16:00 часот',
     otherWorkTime: '',
     concurrentClause: false,
+    concurrentClauseDuration: '',
+    concurrentClauseCompensation: '',
     concurrentClauseInput: '',
     acceptTerms: false
   },
@@ -258,7 +286,7 @@ export const getStepFields = (stepId) => {
     1: ['employeeName', 'employeeAddress', 'employeePIN', 'jobPosition'],
     2: ['workTasks', 'education', 'certification'],
     3: ['netSalary', 'agreementDate'],
-    4: ['placeOfWork', 'otherWorkPlace', 'agreementDurationType', 'definedDuration', 'dailyWorkTime', 'otherWorkTime', 'concurrentClause', 'concurrentClauseInput']
+    4: ['placeOfWork', 'otherWorkPlace', 'agreementDurationType', 'definedDuration', 'dailyWorkTime', 'otherWorkTime', 'concurrentClause', 'concurrentClauseDuration', 'concurrentClauseCompensation', 'concurrentClauseInput']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => employmentAgreementConfig.fields[fieldName]) || [];

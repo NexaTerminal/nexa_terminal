@@ -37,7 +37,6 @@ const ManageServiceProviders = () => {
   const [bulkJsonData, setBulkJsonData] = useState('');
   const [jsonValidation, setJsonValidation] = useState({ isValid: true, message: '', count: 0 });
   const [filters, setFilters] = useState({
-    active: '',
     category: '',
     search: ''
   });
@@ -50,14 +49,7 @@ const ManageServiceProviders = () => {
     website: '',
     serviceCategory: '',
     specializations: [],
-    description: '',
-    location: '',
-    servesRemote: false,
-    businessInfo: {
-      registrationNumber: '',
-      taxNumber: '',
-      languagesSupported: ['mk', 'en']
-    }
+    location: ''
   });
 
   useEffect(() => {
@@ -85,7 +77,6 @@ const ManageServiceProviders = () => {
 
     try {
       const queryParams = new URLSearchParams();
-      if (filters.active) queryParams.append('active', filters.active);
       if (filters.category) queryParams.append('category', filters.category);
       if (filters.search) queryParams.append('search', filters.search);
 
@@ -188,55 +179,6 @@ const ManageServiceProviders = () => {
     }
   };
 
-  const handleStatusChange = async (providerId, isActive) => {
-    try {
-      // Get CSRF token
-      const csrfUrl = buildApiUrl('/csrf-token');
-      console.log('[API Call] Fetching CSRF token from:', csrfUrl);
-      const csrfResponse = await fetch(csrfUrl, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (!csrfResponse.ok) {
-        throw new Error('Failed to get CSRF token');
-      }
-
-      const { csrfToken } = await csrfResponse.json();
-
-      const statusUrl = buildApiUrl(`/marketplace/providers/${providerId}/status`);
-      console.log('[handleStatusChange] Status change URL:', statusUrl);
-      const response = await fetch(statusUrl,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-            Authorization: `Bearer ${token}`
-          },
-          credentials: 'include',
-          body: JSON.stringify({ isActive })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Неуспешна промена на статус');
-      }
-
-      setSuccess(`Провајдерот е успешно ${isActive ? 'активиран' : 'деактивиран'}.`);
-      fetchProviders();
-
-      setTimeout(() => {
-        setSuccess('');
-      }, 3000);
-    } catch (err) {
-      setError(err.message);
-      setTimeout(() => {
-        setError('');
-      }, 3000);
-    }
-  };
-
   const handleDelete = async (providerId) => {
     if (!window.confirm('Дали сте сигурни дека сакате да го избришете овој провајдер?')) {
       return;
@@ -297,14 +239,7 @@ const ManageServiceProviders = () => {
       website: provider.website || '',
       serviceCategory: provider.serviceCategory || '',
       specializations: provider.specializations || [],
-      description: provider.description || '',
-      location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || ''),
-      servesRemote: provider.servesRemote || false,
-      businessInfo: {
-        registrationNumber: provider.businessInfo?.registrationNumber || '',
-        taxNumber: provider.businessInfo?.taxNumber || '',
-        languagesSupported: provider.businessInfo?.languagesSupported || ['mk', 'en']
-      }
+      location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || '')
     });
     setShowAddForm(true);
   };
@@ -317,14 +252,7 @@ const ManageServiceProviders = () => {
       website: '',
       serviceCategory: '',
       specializations: [],
-      description: '',
-      location: '',
-      servesRemote: false,
-      businessInfo: {
-        registrationNumber: '',
-        taxNumber: '',
-        languagesSupported: ['mk', 'en']
-      }
+      location: ''
     });
   };
 
@@ -446,13 +374,7 @@ const ManageServiceProviders = () => {
           website: provider.website || '',
           serviceCategory: provider.serviceCategory || '',
           specializations: provider.specializations || {},
-          description: provider.description || '',
-          location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || ''),
-          businessInfo: {
-            registrationNumber: provider.businessInfo?.registrationNumber || '',
-            taxNumber: provider.businessInfo?.taxNumber || '',
-            languagesSupported: provider.businessInfo?.languagesSupported || ['mk', 'en']
-          }
+          location: typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || '')
         };
 
         return processedProvider;
@@ -548,14 +470,6 @@ const ManageServiceProviders = () => {
     }
   };
 
-  const getStatusColor = (isActive) => {
-    return isActive ? '#22c55e' : '#ef4444';
-  };
-
-  const getStatusText = (isActive) => {
-    return isActive ? 'Активен' : 'Неактивен';
-  };
-
   if (loading) {
     return (
       <ProfileRequired>
@@ -601,15 +515,6 @@ const ManageServiceProviders = () => {
 
         {/* Filters */}
         <div className={styles.filters}>
-          <select
-            value={filters.active}
-            onChange={(e) => setFilters({ ...filters, active: e.target.value })}
-          >
-            <option value="">Сите статуси</option>
-            <option value="true">Активни</option>
-            <option value="false">Неактивни</option>
-          </select>
-
           <select
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
@@ -709,49 +614,20 @@ const ManageServiceProviders = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Опис</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                  />
-                </div>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label>Град *</label>
-                    <select
-                      value={formData.location}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        location: e.target.value
-                      })}
-                      required
-                    >
-                      <option value="">Изберете град</option>
-                      {macedonianTowns.map(town => (
-                        <option key={town} value={town}>{town}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    {/* Region removed - using town dropdown instead */}
-                  </div>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.checkbox}>
-                    <input
-                      type="checkbox"
-                      checked={formData.servesRemote}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        servesRemote: e.target.checked
-                      })}
-                    />
-                    Работи на далечина
-                  </label>
+                  <label>Град *</label>
+                  <select
+                    value={formData.location}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      location: e.target.value
+                    })}
+                    required
+                  >
+                    <option value="">Изберете град</option>
+                    {macedonianTowns.map(town => (
+                      <option key={town} value={town}>{town}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className={styles.formActions}>
@@ -841,14 +717,13 @@ const ManageServiceProviders = () => {
     "phone": "02/123-456",
     "website": "https://pravna.mk",
     "serviceCategory": "legal",
-    "description": "Правни услуги за компании",
     "location": "Скопје"
   },
   {
     "name": "Сметководствени услуги",
     "email": "contact@accounting.mk",
     "serviceCategory": "accounting",
-    "location": { "city": "Битола" }
+    "location": "Битола"
   }
 ]`}
                   </pre>
@@ -877,7 +752,6 @@ const ManageServiceProviders = () => {
   "phone": "070123456",
   "website": "https://example.com",
   "serviceCategory": "legal",
-  "description": "Опис на услугите",
   "location": "Скопје"
 }
 
@@ -943,8 +817,6 @@ const ManageServiceProviders = () => {
                   <th>Телефон</th>
                   <th>Град</th>
                   <th>Категорија</th>
-                  <th>Опис</th>
-                  <th>Статус</th>
                   <th>Акции</th>
                 </tr>
               </thead>
@@ -956,17 +828,6 @@ const ManageServiceProviders = () => {
                     <td>{provider.phone || 'Не е внесен'}</td>
                     <td>{typeof provider.location === 'string' ? provider.location : (provider.location?.city || provider.location?.town || 'Не е внесено')}</td>
                     <td>{serviceCategories.find(cat => cat.value === provider.serviceCategory)?.label || provider.serviceCategory}</td>
-                    <td className={styles.providerDescription}>
-                      {provider.description || 'Нема опис'}
-                    </td>
-                    <td>
-                      <span
-                        className={styles.statusBadge}
-                        style={{ backgroundColor: getStatusColor(provider.isActive) }}
-                      >
-                        {getStatusText(provider.isActive)}
-                      </span>
-                    </td>
                     <td className={styles.providerActions}>
                       <button
                         className={styles.actionButton}
@@ -975,23 +836,6 @@ const ManageServiceProviders = () => {
                       >
                         ✎
                       </button>
-                      {provider.isActive ? (
-                        <button
-                          className={styles.actionButton}
-                          onClick={() => handleStatusChange(provider._id, false)}
-                          title="Деактивирај"
-                        >
-                          ⏸
-                        </button>
-                      ) : (
-                        <button
-                          className={styles.actionButton}
-                          onClick={() => handleStatusChange(provider._id, true)}
-                          title="Активирај"
-                        >
-                          ▶
-                        </button>
-                      )}
                       <button
                         className={styles.actionButton}
                         onClick={() => handleDelete(provider._id)}

@@ -34,9 +34,10 @@ const EmploymentAgreementPage = () => {
                 onChange={handleInputChange}
                 error={errors[field.name]}
                 disabled={isGenerating}
+                formData={formData}
               />
             )}
-            
+
             {/* Conditional fields */}
             {field.condition && (
               <ConditionalField condition={field.condition} formData={formData}>
@@ -46,6 +47,7 @@ const EmploymentAgreementPage = () => {
                   onChange={handleInputChange}
                   error={errors[field.name]}
                   disabled={isGenerating}
+                  formData={formData}
                 />
               </ConditionalField>
             )}

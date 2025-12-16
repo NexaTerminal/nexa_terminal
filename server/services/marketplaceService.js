@@ -49,26 +49,11 @@ class MarketplaceService {
         phone: additionalData.phone || user.phone || '',
         website: additionalData.website || '',
         serviceCategory,
-        description: additionalData.description || '',
         specializations: additionalData.specializations || [],
-        location: {
-          city: user.companyInfo.address?.split(',')[0]?.trim() || '',
-          region: additionalData.region || '',
-          country: 'Macedonia',
-          servesRemote: additionalData.servesRemote || false
-        },
-        businessInfo: {
-          taxNumber: user.companyInfo.taxNumber,
-          registrationNumber: additionalData.registrationNumber || '',
-          languagesSupported: additionalData.languagesSupported || ['mk', 'en']
-        },
-        isActive: true,
-        isVerified: true,
+        location: user.companyInfo.address?.split(',')[0]?.trim() || '',
+        createdBy: null, // Auto-created from user verification
         createdAt: now,
-        updatedAt: now,
-        lastActiveAt: now,
-        viewCount: 0,
-        contactCount: 0
+        updatedAt: now
       };
 
       const result = await this.serviceProviders.insertOne(newProvider);
@@ -98,22 +83,12 @@ class MarketplaceService {
 
       const now = new Date();
 
-      // Handle location - if it's a string, convert to object
-      let locationData;
+      // Handle location - extract city string
+      let locationData = '';
       if (typeof providerData.location === 'string') {
-        locationData = {
-          city: providerData.location,
-          region: '',
-          country: 'Macedonia',
-          servesRemote: providerData.servesRemote || false
-        };
-      } else {
-        locationData = {
-          city: providerData.location?.city || '',
-          region: providerData.location?.region || '',
-          country: providerData.location?.country || 'Macedonia',
-          servesRemote: providerData.location?.servesRemote || providerData.servesRemote || false
-        };
+        locationData = providerData.location.trim();
+      } else if (providerData.location?.city) {
+        locationData = providerData.location.city.trim();
       }
 
       const newProvider = {
@@ -123,22 +98,11 @@ class MarketplaceService {
         phone: providerData.phone || '',
         website: providerData.website || '',
         serviceCategory: providerData.serviceCategory || 'other',
-        description: providerData.description || '',
         specializations: providerData.specializations || [],
         location: locationData,
-        businessInfo: {
-          taxNumber: providerData.businessInfo?.taxNumber || '',
-          registrationNumber: providerData.businessInfo?.registrationNumber || '',
-          languagesSupported: providerData.businessInfo?.languagesSupported || ['mk', 'en']
-        },
-        isActive: true,
-        isVerified: true,
         createdBy: adminId,
         createdAt: now,
-        updatedAt: now,
-        lastActiveAt: now,
-        viewCount: 0,
-        contactCount: 0
+        updatedAt: now
       };
 
       const result = await this.serviceProviders.insertOne(newProvider);
@@ -160,12 +124,11 @@ class MarketplaceService {
       }
 
       // Filter out fields that shouldn't be updated directly
-      const { _id, userId, createdAt, viewCount, contactCount, ...allowedUpdates } = updateData;
+      const { _id, userId, createdAt, createdBy, ...allowedUpdates } = updateData;
 
       const updateDoc = {
         ...allowedUpdates,
-        updatedAt: new Date(),
-        lastActiveAt: new Date()
+        updatedAt: new Date()
       };
 
       const result = await this.serviceProviders.updateOne(
@@ -186,17 +149,14 @@ class MarketplaceService {
   }
 
   /**
-   * Get providers by category with enhanced filtering
+   * Get providers by category
    */
-  async getProvidersByCategory(category, includeInactive = false) {
+  async getProvidersByCategory(category) {
     try {
       const query = { serviceCategory: category };
-      if (!includeInactive) {
-        query.isActive = true;
-      }
 
       const providers = await this.serviceProviders.find(query)
-        .sort({ viewCount: -1, updatedAt: -1 })
+        .sort({ updatedAt: -1 })
         .toArray();
 
       return providers;
@@ -223,29 +183,18 @@ class MarketplaceService {
       const query = {};
       console.log('Initial query:', query);
 
-      // Admins can see all providers, others see only active by default
-      if (filters.includeInactive !== true) {
-        query.isActive = true;
-      }
-
-      // Override with specific isActive filter if provided
-      if (filters.isActive !== undefined) {
-        query.isActive = filters.isActive;
-      }
-
       if (filters.serviceCategory) {
         query.serviceCategory = filters.serviceCategory;
       }
 
       if (filters.location) {
-        query['location.city'] = new RegExp(filters.location, 'i');
+        query.location = new RegExp(filters.location, 'i');
       }
 
       if (filters.search) {
         query.$or = [
           { name: new RegExp(filters.search, 'i') },
           { email: new RegExp(filters.search, 'i') },
-          { description: new RegExp(filters.search, 'i') },
           { specializations: { $in: [new RegExp(filters.search, 'i')] } }
         ];
       }
@@ -313,39 +262,6 @@ class MarketplaceService {
   }
 
   /**
-   * Update service provider status (enable/disable)
-   */
-  async updateProviderStatus(providerId, isActive, adminId, notes = '') {
-    try {
-      if (!ObjectId.isValid(providerId)) {
-        throw new Error('Invalid provider ID');
-      }
-
-      const now = new Date();
-      const updateDoc = {
-        isActive: isActive === true || isActive === 'true',
-        updatedAt: now,
-        lastActiveAt: now
-      };
-
-      const result = await this.serviceProviders.updateOne(
-        { _id: new ObjectId(providerId) },
-        { $set: updateDoc }
-      );
-
-      if (result.matchedCount === 0) {
-        throw new Error('Service provider not found');
-      }
-
-      return await this.getServiceProviderById(providerId);
-
-    } catch (error) {
-      console.error('Error updating provider status:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Delete service provider (admin only)
    */
   async deleteServiceProvider(providerId, adminId) {
@@ -373,31 +289,28 @@ class MarketplaceService {
   // ==================== ENHANCED DYNAMIC CATEGORY MANAGEMENT ====================
 
   /**
-   * Get active providers by category (for offer request distribution)
+   * Get providers by category (for offer request distribution)
    */
   async getActiveProvidersByCategory(category) {
     try {
       const providers = await this.serviceProviders.find({
-        serviceCategory: category,
-        isActive: true
+        serviceCategory: category
       }).toArray();
 
       return providers;
 
     } catch (error) {
-      console.error('Error getting active providers by category:', error);
+      console.error('Error getting providers by category:', error);
       throw error;
     }
   }
 
   /**
-   * Get only categories that have active providers (for dynamic dropdown)
+   * Get only categories that have providers (for dynamic dropdown)
    */
   async getActiveCategoriesOnly() {
     try {
-      const activeCategories = await this.serviceProviders.distinct('serviceCategory', {
-        isActive: true
-      });
+      const activeCategories = await this.serviceProviders.distinct('serviceCategory');
 
       // Map to include both English and Macedonian labels
       const categoriesWithLabels = activeCategories.map(category => {
@@ -412,7 +325,7 @@ class MarketplaceService {
       return categoriesWithLabels;
 
     } catch (error) {
-      console.error('Error getting active categories:', error);
+      console.error('Error getting categories:', error);
       return [];
     }
   }
@@ -443,35 +356,26 @@ class MarketplaceService {
       }
 
       const now = new Date();
+
+      // Extract city string from location
+      let locationString = '';
+      if (typeof providerData.location === 'string') {
+        locationString = providerData.location;
+      } else if (providerData.location?.city) {
+        locationString = providerData.location.city;
+      }
+
       const newProvider = {
         name: providerData.name,
         email: providerData.email,
         phone: providerData.phone || '',
         website: providerData.website || '',
         serviceCategory: providerData.serviceCategory,
-        description: providerData.description || '',
         specializations: providerData.specializations || [],
-        location: {
-          city: providerData.location?.city || '',
-          region: providerData.location?.region || '',
-          country: 'Macedonia',
-          servesRemote: providerData.location?.servesRemote || false
-        },
-        businessInfo: {
-          taxNumber: providerData.businessInfo?.taxNumber || '',
-          registrationNumber: providerData.businessInfo?.registrationNumber || '',
-          languagesSupported: providerData.businessInfo?.languagesSupported || ['mk']
-        },
-        isActive: true,
-        isVerified: true,
-        isManuallyAdded: true, // Flag to track manually added providers
-        addedBy: new ObjectId(adminId),
+        location: locationString,
+        createdBy: new ObjectId(adminId),
         createdAt: now,
-        updatedAt: now,
-        lastActiveAt: now,
-        viewCount: 0,
-        contactCount: 0,
-        adminNotes: providerData.adminNotes || ''
+        updatedAt: now
       };
 
       const result = await this.serviceProviders.insertOne(newProvider);
@@ -513,17 +417,16 @@ class MarketplaceService {
   }
 
   /**
-   * Check if category has active providers
+   * Check if category has providers
    */
   async isCategoryActive(categoryName) {
     try {
       const count = await this.serviceProviders.countDocuments({
-        serviceCategory: categoryName,
-        isActive: true
+        serviceCategory: categoryName
       });
       return count > 0;
     } catch (error) {
-      console.error('Error checking if category is active:', error);
+      console.error('Error checking if category has providers:', error);
       return false;
     }
   }
@@ -545,17 +448,6 @@ class MarketplaceService {
         };
       }
 
-      // Provider statistics
-      const providerStats = await this.serviceProviders.aggregate([
-        { $match: dateFilter },
-        {
-          $group: {
-            _id: '$isActive',
-            count: { $sum: 1 }
-          }
-        }
-      ]).toArray();
-
       // Category distribution
       const categoryStats = await this.serviceProviders.aggregate([
         {
@@ -567,27 +459,23 @@ class MarketplaceService {
         { $sort: { count: -1 } }
       ]).toArray();
 
-      // Most viewed providers
-      const topProviders = await this.serviceProviders
-        .find({ isActive: true })
-        .sort({ viewCount: -1 })
+      // Most recent providers
+      const recentProviders = await this.serviceProviders
+        .find({})
+        .sort({ createdAt: -1 })
         .limit(10)
         .toArray();
 
       return {
         providers: {
-          total: await this.serviceProviders.countDocuments(),
-          active: await this.serviceProviders.countDocuments({ isActive: true }),
-          inactive: await this.serviceProviders.countDocuments({ isActive: false }),
-          byStatus: providerStats
+          total: await this.serviceProviders.countDocuments()
         },
         categories: categoryStats,
-        topProviders: topProviders.map(p => ({
+        recentProviders: recentProviders.map(p => ({
           _id: p._id,
           name: p.name,
           category: p.serviceCategory,
-          viewCount: p.viewCount,
-          contactCount: p.contactCount
+          createdAt: p.createdAt
         }))
       };
 
@@ -611,67 +499,14 @@ class MarketplaceService {
       return {
         provider,
         metrics: {
-          viewCount: provider.viewCount || 0,
-          contactCount: provider.contactCount || 0,
           joinedDate: provider.createdAt,
-          lastActiveAt: provider.lastActiveAt,
-          isActive: provider.isActive
+          lastUpdated: provider.updatedAt
         }
       };
 
     } catch (error) {
       console.error('Error getting provider performance:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Increment view count for a provider
-   */
-  async incrementProviderViews(providerId) {
-    try {
-      if (!ObjectId.isValid(providerId)) {
-        throw new Error('Invalid provider ID');
-      }
-
-      await this.serviceProviders.updateOne(
-        { _id: new ObjectId(providerId) },
-        {
-          $inc: { viewCount: 1 },
-          $set: { lastActiveAt: new Date() }
-        }
-      );
-
-      return true;
-
-    } catch (error) {
-      console.error('Error incrementing provider views:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Increment contact count for a provider
-   */
-  async incrementProviderContacts(providerId) {
-    try {
-      if (!ObjectId.isValid(providerId)) {
-        throw new Error('Invalid provider ID');
-      }
-
-      await this.serviceProviders.updateOne(
-        { _id: new ObjectId(providerId) },
-        {
-          $inc: { contactCount: 1 },
-          $set: { lastActiveAt: new Date() }
-        }
-      );
-
-      return true;
-
-    } catch (error) {
-      console.error('Error incrementing provider contacts:', error);
-      return false;
     }
   }
 

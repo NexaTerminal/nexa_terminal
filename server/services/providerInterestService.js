@@ -123,7 +123,7 @@ class ProviderInterestService {
             name: 1,
             email: 1,
             serviceCategory: 1,
-            description: 1
+            location: 1
           }
         }
       );
@@ -196,7 +196,6 @@ class ProviderInterestService {
             name: 1,
             email: 1,
             serviceCategory: 1,
-            description: 1,
             phone: 1,
             location: 1
           }

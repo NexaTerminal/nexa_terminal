@@ -180,21 +180,157 @@
   transform: translateX(4px);
 }
 
-/* Mobile menu button - DISABLED (Header provides mobile menu now) */
+/* ========================================
+   HAMBURGER MENU STYLES
+   ======================================== */
+
+/* Hamburger Button - Mobile Only */
+.hamburgerButton {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-accent-soft);
+  border-radius: 8px;
+  font-size: 24px;
+  color: var(--color-dark);
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburgerButton:hover {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.hamburgerButton:active {
+  transform: scale(0.95);
+}
+
+/* Mobile Overlay */
+.mobileOverlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  cursor: pointer;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Close Button - Mobile Only */
+.closeButton {
+  display: none; /* Hidden on desktop */
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background-color: transparent;
+  border: none;
+  font-size: 32px;
+  color: var(--color-dark);
+  cursor: pointer;
+  z-index: 1002;
+  line-height: 1;
+  transition: all 0.2s ease;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.closeButton:active {
+  transform: scale(0.9);
+}
+
+/* ========================================
+   RESPONSIVE BEHAVIOR
+   ======================================== */
+
+/* Tablet and Mobile Responsive Behavior */
+@media (max-width: 1024px) {
+  /* Show hamburger button on mobile/tablet */
+  .hamburgerButton {
+    display: flex;
+  }
+
+  /* Show close button on mobile/tablet */
+  .closeButton {
+    display: flex;
+  }
+
+  /* Show overlay when menu is open */
+  .mobileOverlay {
+    display: block;
+  }
+
+  /* Sidebar: Hidden by default, slides in when open */
+  .dashboard-sidebar {
+    position: fixed;
+    left: -252px; /* Hidden off-screen */
+    top: 0; /* Cover full height including header */
+    height: 100vh;
+    width: 252px;
+    z-index: 1001; /* Above overlay */
+    transition: left 0.3s ease;
+    display: flex; /* Always rendered, just positioned off-screen */
+  }
+
+  /* Sidebar when mobile menu is open */
+  .dashboard-sidebar.mobileOpen {
+    left: 0; /* Slide in */
+  }
+
+  /* Main content takes full width */
+  .dashboard-main {
+    margin-left: 0;
+    max-width: 100%;
+  }
+
+  /* Menu items optimized for touch */
+  .menu-item {
+    min-height: 44px; /* Touch-friendly */
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+}
+
+/* Mobile-specific adjustments */
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
-  }
-  .dashboard-sidebar {
-    /* Hidden on mobile - Header provides mobile menu */
-    display: none;
   }
 
   .menu-item {
     font-size: 1.05rem;
     padding: var(--spacing-lg) var(--spacing-xl);
-    min-height: 48px; /* Touch-friendly minimum height */
+    min-height: 48px; /* Extra touch-friendly on smaller screens */
   }
+
   .dashboard-main {
     margin-left: 0;
     max-width: 100%;
@@ -202,10 +338,6 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard-sidebar {
-     /* Hidden on mobile - Header provides mobile menu */
-     display: none;
-  }
   .menu-item {
     font-size: 1.05rem;
     padding: var(--spacing-md) var(--spacing-lg);

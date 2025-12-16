@@ -11,14 +11,11 @@ class MarketplaceController {
     this.getServiceProviders = this.getServiceProviders.bind(this);
     this.getServiceProviderById = this.getServiceProviderById.bind(this);
     this.updateServiceProvider = this.updateServiceProvider.bind(this);
-    this.updateProviderStatus = this.updateProviderStatus.bind(this);
     this.deleteServiceProvider = this.deleteServiceProvider.bind(this);
     this.getServiceCategories = this.getServiceCategories.bind(this);
     this.getServiceCategory = this.getServiceCategory.bind(this);
     this.getMarketplaceAnalytics = this.getMarketplaceAnalytics.bind(this);
     this.getProviderPerformance = this.getProviderPerformance.bind(this);
-    this.incrementProviderViews = this.incrementProviderViews.bind(this);
-    this.incrementProviderContacts = this.incrementProviderContacts.bind(this);
     this.getActiveCategoriesOnly = this.getActiveCategoriesOnly.bind(this);
   }
 
@@ -43,9 +40,7 @@ class MarketplaceController {
         website,
         serviceCategory,
         specializations,
-        description,
-        location,
-        businessInfo
+        location
       } = req.body;
 
       // Minimal validation for admin creation
@@ -73,22 +68,11 @@ class MarketplaceController {
         website: website?.trim() || '',
         serviceCategory: serviceCategory?.trim() || 'legal',
         specializations: specializations || [],
-        description: description?.trim() || '',
         location: typeof location === 'string' ? location.trim() : (location?.city || location?.town || 'Скопје'),
-        businessInfo: {
-          registrationNumber: businessInfo?.registrationNumber?.trim() || '',
-          taxNumber: businessInfo?.taxNumber?.trim() || '',
-          languagesSupported: businessInfo?.languagesSupported || ['mk', 'en']
-        },
-        // Admin-created providers don't need userId (not linked to user accounts)
         userId: null,
-        isActive: true,
-        isVerified: true,
         createdBy: adminId,
         createdAt: new Date(),
-        updatedAt: new Date(),
-        viewCount: 0,
-        contactCount: 0
+        updatedAt: new Date()
       };
 
       const newProvider = await marketplaceService.createServiceProvider(providerData, adminId);
@@ -130,11 +114,9 @@ class MarketplaceController {
       const marketplaceService = new MarketplaceService(req.app.locals.db);
 
       const filters = {
-        isActive: req.query.active !== undefined ? req.query.active === 'true' : undefined,
         serviceCategory: req.query.category,
         location: req.query.location,
-        search: req.query.search,
-        includeInactive: req.user.isAdmin // Only admins can see inactive providers
+        search: req.query.search
       };
 
       const pagination = {
@@ -218,47 +200,6 @@ class MarketplaceController {
       res.status(400).json({
         success: false,
         message: error.message || 'Failed to update service provider'
-      });
-    }
-  }
-
-  /**
-   * Update service provider status (Admin only - simplified enable/disable)
-   */
-  async updateProviderStatus(req, res) {
-    try {
-      const marketplaceService = new MarketplaceService(req.app.locals.db);
-      const { id } = req.params;
-      const { isActive, status, notes } = req.body;
-      const adminId = req.user.id;
-
-      // Handle both isActive boolean and status string for flexibility
-      let activeStatus;
-      if (isActive !== undefined) {
-        activeStatus = isActive;
-      } else if (status !== undefined) {
-        // Convert status string to isActive boolean
-        activeStatus = status === 'approved' || status === 'active' || status === true;
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Either isActive or status is required'
-        });
-      }
-
-      const updatedProvider = await marketplaceService.updateProviderStatus(id, activeStatus, adminId, notes);
-
-      res.json({
-        success: true,
-        message: `Service provider ${activeStatus ? 'activated' : 'deactivated'} successfully`,
-        data: updatedProvider
-      });
-
-    } catch (error) {
-      console.error('Error in updateProviderStatus:', error);
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to update provider status'
       });
     }
   }
@@ -398,54 +339,6 @@ class MarketplaceController {
       res.status(404).json({
         success: false,
         message: error.message || 'Failed to get provider performance'
-      });
-    }
-  }
-
-  /**
-   * Increment provider view count
-   */
-  async incrementProviderViews(req, res) {
-    try {
-      const marketplaceService = new MarketplaceService(req.app.locals.db);
-      const { id } = req.params;
-
-      await marketplaceService.incrementProviderViews(id);
-
-      res.json({
-        success: true,
-        message: 'View count incremented'
-      });
-
-    } catch (error) {
-      console.error('Error in incrementProviderViews:', error);
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to increment view count'
-      });
-    }
-  }
-
-  /**
-   * Increment provider contact count
-   */
-  async incrementProviderContacts(req, res) {
-    try {
-      const marketplaceService = new MarketplaceService(req.app.locals.db);
-      const { id } = req.params;
-
-      await marketplaceService.incrementProviderContacts(id);
-
-      res.json({
-        success: true,
-        message: 'Contact count incremented'
-      });
-
-    } catch (error) {
-      console.error('Error in incrementProviderContacts:', error);
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to increment contact count'
       });
     }
   }

@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
+    "csv-parse": "^6.1.0",
     "docx": "^9.5.0",
     "docxtemplater": "^3.65.1",
     "dotenv": "^16.0.3",
@@ -50,7 +51,8 @@
     "pizzip": "^3.2.0",
     "resend": "^6.0.1",
     "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

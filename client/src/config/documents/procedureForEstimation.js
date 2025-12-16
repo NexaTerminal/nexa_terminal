@@ -1,11 +1,10 @@
+/**
+ * Configuration for Procedure For Estimation Document (Процедура за проценка на влијанието)
+ */
+
 export const procedureForEstimationConfig = {
-  id: 'procedureForEstimation',
-  title: 'Процедура за проценка на влијанието врз заштитата на личните податоци',
-  subtitle: 'DPIA процедура согласно ЗЗЛП',
   documentType: 'procedureForEstimation',
-  category: 'personalDataProtection',
-  apiEndpoint: 'procedure-for-estimation',
-  previewEnabled: true,
+  endpoint: '/auto-documents/procedure-for-estimation',
   steps: [
     {
       id: 1,
@@ -236,3 +235,22 @@ export const procedureForEstimationConfig = {
     }
   ]
 };
+
+/**
+ * Get fields for a specific step
+ */
+export const getStepFields = (stepId) => {
+  const step = procedureForEstimationConfig.steps.find(s => s.id === stepId);
+  return step ? step.fields : [];
+};
+
+/**
+ * Validate form data
+ */
+export const validateFormData = (formData) => {
+  const errors = {};
+  // Validation logic would go here
+  return errors;
+};
+
+export default procedureForEstimationConfig;

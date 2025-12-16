@@ -100,3 +100,6 @@ server/legal sources/**/*.docx
 
 # Old markdown documents (replaced by DOCX templates)
 md_documents/
+# Service provider source data files
+service_providers/
+server/migrations/missing_lawyers.json

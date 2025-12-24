@@ -18,6 +18,7 @@ const DocumentGen = () => {
   const [generatedDocument, setGeneratedDocument] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPrivacyNotice, setShowPrivacyNotice] = useState(true);
 
 
   // Convert documentCategoriesData array to object for backward compatibility
@@ -58,6 +59,15 @@ const DocumentGen = () => {
   useEffect(() => {
     fetchDocuments();
   }, [token]);
+
+  // Auto-hide privacy notice after 4.5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowPrivacyNotice(false);
+    }, 4500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchDocuments = async () => {
     try {
@@ -240,6 +250,16 @@ const DocumentGen = () => {
 
     return (
       <div className={styles['categories-container']}>
+        {/* Privacy Notice Toast - positioned relative to this container */}
+        {showPrivacyNotice && (
+          <div className={styles['privacy-notice']}>
+            <div className={styles['privacy-notice-content']}>
+              <span className={styles['privacy-icon']}>🔒</span>
+              <p>Во нашата база не се задржуваат било какви информации или податоци за документите кои ќе ги генерирате</p>
+            </div>
+          </div>
+        )}
+
         <div className={styles['document-header']}>
           <h1>Автоматизирани документи</h1>
           <p>{showSearchResults ? 'Резултати од пребарување' : 'Изберете категорија за да започнете'}</p>
@@ -603,7 +623,7 @@ const DocumentGen = () => {
   return (
     <div>
       <Header isTerminal={true} />
-      
+
       <div className={styles["dashboard-layout"]}>
         <Sidebar />
 

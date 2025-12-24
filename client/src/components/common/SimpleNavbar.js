@@ -35,17 +35,21 @@ export default function SimpleNavbar() {
           <span className={styles.hamburger}></span>
         </button>
 
-        {/* Navigation links */}
+        {/* Navigation links - All temporarily hidden, moved to footer */}
         <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
+          {/* Moved to footer - Блог link
           <a href="/blog" className={styles.navLink}>
             Блог
           </a>
+          */}
 
+          {/* Temporarily hidden - Теми link
           <a href="/topics" className={styles.navLink}>
             Теми
           </a>
+          */}
 
-          {/* Области - Dropdown */}
+          {/* Temporarily hidden - Области dropdown
           <div
             className={styles.dropdown}
             onMouseEnter={() => setDropdownOpen(true)}
@@ -57,7 +61,6 @@ export default function SimpleNavbar() {
 
             {dropdownOpen && (
               <>
-                {/* Invisible bridge to prevent gap */}
                 <div className={styles.dropdownBridge} />
 
                 <div className={styles.dropdownMenu}>
@@ -77,6 +80,7 @@ export default function SimpleNavbar() {
               </>
             )}
           </div>
+          */}
         </div>
       </div>
     </nav>

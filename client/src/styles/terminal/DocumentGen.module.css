@@ -824,8 +824,95 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .document-actions {
     margin-top: var(--spacing-sm);
+  }
+}
+
+/* Categories container needs relative positioning for the notice */
+.categories-container {
+  position: relative;
+}
+
+/* Privacy Notice Toast */
+.privacy-notice {
+  position: absolute;
+  top: 8.6%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 100;
+  animation: slideInDown 0.4s ease-out, fadeOut 0.5s ease-in 4s forwards;
+  max-width: 90%;
+  width: auto;
+}
+
+.privacy-notice-content {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-neutral-800);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.privacy-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.privacy-notice-content p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--color-neutral-700);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Mobile adjustments for privacy notice */
+@media (max-width: 768px) {
+  .privacy-notice {
+    max-width: 95%;
+  }
+
+  .privacy-notice-content {
+    min-width: auto;
+    padding: 0.875rem 1.25rem;
+    flex-direction: row;
+  }
+
+  .privacy-icon {
+    font-size: 1.25rem;
+  }
+
+  .privacy-notice-content p {
+    font-size: 0.85rem;
   }
 }

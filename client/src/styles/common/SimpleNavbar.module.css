@@ -24,12 +24,13 @@
 }
 
 .navbarContent {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   padding: 0.75rem 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  position: relative;
 }
 
 /* Logo */
@@ -55,8 +56,11 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-left: auto;
-  padding-right: 20px;
+  position: absolute;
+  right: 0;
+  width: 40%; /* Match the 2/5 login section width */
+  justify-content: flex-end;
+  padding-right: calc((100% - 400px) / 2 + 2rem); /* Align with right edge of 400px login container */
 }
 
 .navLink {
@@ -189,6 +193,14 @@
   background: var(--color-neutral-700);
 }
 
+/* Tablet responsive - adjust alignment */
+@media (max-width: 1024px) {
+  .navLinks {
+    width: 45%; /* Slightly wider for tablets */
+    padding-right: calc((100% - 380px) / 2 + 1.5rem); /* Adjust for smaller screens */
+  }
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .navbarContent {
@@ -201,6 +213,7 @@
 
   .mobileMenuButton {
     display: flex;
+    margin-left: auto;
   }
 
   .navLinks {
@@ -215,6 +228,8 @@
     align-items: stretch;
     gap: 0;
     padding: 1.5rem 0;
+    padding-right: 0; /* Reset padding for mobile menu */
+    justify-content: flex-start; /* Reset justify for mobile */
     transform: translateX(100%);
     opacity: 0;
     visibility: hidden;

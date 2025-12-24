@@ -159,11 +159,11 @@ const ShareholdersList = ({ shareholders, onChange, error, disabled }) => {
   };
 
   // Initialize with one empty shareholder if none exist
-  if (!shareholders || shareholders.length === 0) {
-    React.useEffect(() => {
+  React.useEffect(() => {
+    if (!shareholders || shareholders.length === 0) {
       addShareholder();
-    }, []);
-  }
+    }
+  }, []);
 
   const fieldConfig = dividendPaymentDecisionConfig.fields.shareholdersList;
 

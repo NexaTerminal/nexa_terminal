@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField from '../../../../components/forms/FormField';
 import { annualAccountsAdoptionConfig, getStepFields } from '../../../../config/documents/annualAccountsAdoption';
@@ -21,25 +21,23 @@ const AnnualAccountsAdoptionPage = () => {
     const stepConfig = annualAccountsAdoptionConfig.steps.find(s => s.id === currentStep);
 
     // Auto-calculate financial amounts whenever revenues, expenses, or taxOnExpenses change
-    useEffect(() => {
-      const revenues = parseFloat(formData.revenues) || 0;
-      const expenses = parseFloat(formData.expenses) || 0;
-      const taxOnExpenses = parseFloat(formData.taxOnExpenses) || 0;
+    const revenues = parseFloat(formData.revenues) || 0;
+    const expenses = parseFloat(formData.expenses) || 0;
+    const taxOnExpenses = parseFloat(formData.taxOnExpenses) || 0;
 
-      // Calculate profit before tax
-      const profitBeforeTax = revenues - expenses;
+    // Calculate profit before tax
+    const profitBeforeTax = revenues - expenses;
 
-      // Calculate profit after tax
-      const profitAfterTax = profitBeforeTax - taxOnExpenses;
+    // Calculate profit after tax
+    const profitAfterTax = profitBeforeTax - taxOnExpenses;
 
-      // Update calculated fields if they've changed
-      if (formData.profitBeforeTax !== profitBeforeTax) {
-        handleInputChange('profitBeforeTax', profitBeforeTax);
-      }
-      if (formData.profitAfterTax !== profitAfterTax) {
-        handleInputChange('profitAfterTax', profitAfterTax);
-      }
-    }, [formData.revenues, formData.expenses, formData.taxOnExpenses]);
+    // Update calculated fields if they've changed (this will be handled by the component)
+    if (formData.profitBeforeTax !== profitBeforeTax && currentStep === 2) {
+      handleInputChange('profitBeforeTax', profitBeforeTax);
+    }
+    if (formData.profitAfterTax !== profitAfterTax && currentStep === 2) {
+      handleInputChange('profitAfterTax', profitAfterTax);
+    }
 
     // Step 1: Basic Information
     if (currentStep === 1) {

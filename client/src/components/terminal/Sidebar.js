@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,9 +8,6 @@ const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard', icon: '📊' },
@@ -31,106 +28,74 @@ const Sidebar = () => {
   ];
 
   return (
-    <>
-      {/* Hamburger Button (Mobile Only) */}
-      <button
-        className={styles.hamburgerButton}
-        onClick={() => setIsMobileMenuOpen(true)}
-        aria-label="Open menu"
-      >
-        ☰
-      </button>
-
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className={styles.mobileOverlay}
-          onClick={closeMobileMenu}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`${styles["dashboard-sidebar"]} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
-        {/* Close Button (Mobile Only) */}
-        <button
-          className={styles.closeButton}
-          onClick={closeMobileMenu}
-          aria-label="Close menu"
-        >
-          ×
-        </button>
+    <aside className={styles["dashboard-sidebar"]}>
 
         {/* <div className={styles["dashboard-welcome"]}>
           <h2>{t("dashboard.welcome")}, {currentUser?.fullName || t("common.user")}</h2>
         </div> */}
 
-        <nav className={styles["dashboard-menu"]}>
-          {/* Regular Menu Items */}
-          {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
-            disabled ? (
-              <div
-                key={path}
-                className={`${styles["menu-item"]} ${styles["menu-item-disabled"]}`}
-                title={comingSoon || 'Coming Soon'}
-              >
-                <span className={styles["menu-icon"]}>{icon}</span>
-                <h3>{noTranslate ? label : t(label)}</h3>
-                {comingSoon && <span className={styles["coming-soon-badge"]}>{comingSoon}</span>}
-              </div>
-            ) : (
-              <Link
-                key={path}
-                to={path}
-                onClick={closeMobileMenu}
-                className={`${styles["menu-item"]} ${
-                  location.pathname === path ? styles.active : ""
-                }`}
-              >
-                <span className={styles["menu-icon"]}>{icon}</span>
-                <h3>{noTranslate ? label : t(label)}</h3>
-              </Link>
-            )
-          )}
-
-          {/* Admin Menu Items */}
-          {currentUser?.role === 'admin' && (
-            <div className={styles["admin-section"]}>
-              <div className={styles["section-divider"]}>
-                {t('dashboard.adminSection')}
-              </div>
-              {adminMenuItems.map(({ path, label, icon, external }) => (
-                external ? (
-                  <a
-                    key={path}
-                    href={path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles["menu-item"]}
-                    onClick={closeMobileMenu}
-                  >
-                    <span className={styles["menu-icon"]}>{icon}</span>
-                    <h3>{t(label)}</h3>
-                  </a>
-                ) : (
-                  <Link
-                    key={path}
-                    to={path}
-                    onClick={closeMobileMenu}
-                    className={`${styles["menu-item"]} ${
-                      location.pathname === path ? styles.active : ""
-                    }`}
-                  >
-                    <span className={styles["menu-icon"]}>{icon}</span>
-                    <h3>{t(label)}</h3>
-                  </Link>
-                )
-              ))}
+      <nav className={styles["dashboard-menu"]}>
+        {/* Regular Menu Items */}
+        {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+          disabled ? (
+            <div
+              key={path}
+              className={`${styles["menu-item"]} ${styles["menu-item-disabled"]}`}
+              title={comingSoon || 'Coming Soon'}
+            >
+              <span className={styles["menu-icon"]}>{icon}</span>
+              <h3>{noTranslate ? label : t(label)}</h3>
+              {comingSoon && <span className={styles["coming-soon-badge"]}>{comingSoon}</span>}
             </div>
-          )}
-        </nav>
-      </aside>
-    </>
+          ) : (
+            <Link
+              key={path}
+              to={path}
+              className={`${styles["menu-item"]} ${
+                location.pathname === path ? styles.active : ""
+              }`}
+            >
+              <span className={styles["menu-icon"]}>{icon}</span>
+              <h3>{noTranslate ? label : t(label)}</h3>
+            </Link>
+          )
+        )}
+
+        {/* Admin Menu Items */}
+        {currentUser?.role === 'admin' && (
+          <div className={styles["admin-section"]}>
+            <div className={styles["section-divider"]}>
+              {t('dashboard.adminSection')}
+            </div>
+            {adminMenuItems.map(({ path, label, icon, external }) => (
+              external ? (
+                <a
+                  key={path}
+                  href={path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles["menu-item"]}
+                >
+                  <span className={styles["menu-icon"]}>{icon}</span>
+                  <h3>{t(label)}</h3>
+                </a>
+              ) : (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${styles["menu-item"]} ${
+                    location.pathname === path ? styles.active : ""
+                  }`}
+                >
+                  <span className={styles["menu-icon"]}>{icon}</span>
+                  <h3>{t(label)}</h3>
+                </Link>
+              )
+            ))}
+          </div>
+        )}
+      </nav>
+    </aside>
   );
 };
 

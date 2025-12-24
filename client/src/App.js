@@ -14,6 +14,8 @@ import ResidencePage from './pages/website/ResidencePage';
 import EmploymentPage from './pages/website/EmploymentPage';
 import TrademarkPage from './pages/website/TrademarkPage';
 import CorporatePage from './pages/website/CorporatePage';
+import PrivacyPolicy from './pages/website/PrivacyPolicy';
+import TermsAndConditions from './pages/website/TermsAndConditions';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
@@ -39,6 +41,8 @@ import BlogDetail from './pages/terminal/BlogDetail';
 import Contact from './pages/terminal/Contact';
 import FindLawyer from './pages/terminal/FindLawyer';
 import Disclaimer from './pages/terminal/Disclaimer';
+import TerminalPrivacyPolicy from './pages/terminal/PrivacyPolicy';
+import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
 import EditProfile from './pages/terminal/EditProfile';
 import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
@@ -138,6 +142,10 @@ function App() {
       <Route path="/trademark" element={<TrademarkPage />} />
       <Route path="/corporate" element={<CorporatePage />} />
 
+      {/* Public Legal Pages */}
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-conditions" element={<TermsAndConditions />} />
+
       {/* Provider Response - Public (no auth required) */}
       <Route path="/provider-response/:token" element={<ProviderResponse />} />
 
@@ -171,14 +179,16 @@ function App() {
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
-      <Route path="/terminal/find-lawyer" element={<PrivateRoute><FindLawyer /></PrivateRoute>} />
+      <Route path="/terminal/find-lawyer" element={<PrivateRoute><VerificationRequired feature="пронајди адвокат"><FindLawyer /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
+      <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
+      <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
       <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
-      <Route path="/terminal/education" element={<PrivateRoute><Education /></PrivateRoute>} />
-      <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><CourseDetail /></PrivateRoute>} />
-      <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><CourseLesson /></PrivateRoute>} />
+      <Route path="/terminal/education" element={<PrivateRoute><VerificationRequired feature="едукација"><Education /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><VerificationRequired feature="едукација"><CourseDetail /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><VerificationRequired feature="едукација"><CourseLesson /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
       <Route path="/terminal/invite" element={<PrivateRoute><Invite /></PrivateRoute>} />
 

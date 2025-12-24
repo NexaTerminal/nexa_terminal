@@ -422,6 +422,10 @@ const Login = () => {
         <div className={styles.footerContent}>
           <span className={styles.footerText}>© 2025 Nexa Terminal. Сите права задржани.</span>
           <div className={styles.footerLinks}>
+            <a href="/privacy-policy" className={styles.footerLink}>Политика за приватност</a>
+            <span className={styles.footerDivider}>•</span>
+            <a href="/terms-conditions" className={styles.footerLink}>Услови за користење</a>
+            <span className={styles.footerDivider}>•</span>
             <a href="/blog" className={styles.footerLink}>Блог</a>
             <span className={styles.footerDivider}>•</span>
             <a href="mailto:info@nexa.mk" className={styles.footerLink}>info@nexa.mk</a>

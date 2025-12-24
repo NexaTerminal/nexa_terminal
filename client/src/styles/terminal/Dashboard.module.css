@@ -5,33 +5,17 @@
   position: relative;
 }
 
-.dashboard-sidebar {
-  width: 260px;
-  min-width: 200px;
-  background-color: var(--color-neutral-50);
-  border-right: 1px solid #e9ecef;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 100px;
-  left: 0;
-  height: calc(100vh - 100px);
-  overflow-y: auto;
-  z-index: 10;
-  transition: all 0.3s ease;
-}
-
 .dashboard-main {
   flex: 1 1 auto;
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  margin-left: 260px; /* Account for fixed left sidebar */
+  margin-left: 280px; /* Sidebar offset */
   margin-right: 300px; /* Account for fixed right sidebar */
   padding: var(--spacing-6) var(--spacing-8);
   background: var(--color-neutral-50);
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 60px);
+  /* margin-top: 60px; Account for fixed header */
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -49,9 +33,10 @@
   box-sizing: border-box;
 }
 
-/* Tablet: Hide right sidebar, adjust main content */
+/* Tablet: Hide sidebars, full width content */
 @media (max-width: 1024px) {
   .dashboard-main {
+    margin-left: 0; /* No left sidebar */
     margin-right: 0; /* No right sidebar */
     padding: var(--spacing-6) var(--spacing-6);
   }
@@ -60,15 +45,10 @@
   }
 }
 
-/* Mobile: Hide both sidebars on mobile, full width content */
+/* Mobile: Full width content */
 @media (max-width: 768px) {
-  .dashboard-sidebar {
-    /* Sidebar already handled by mobile drawer in Sidebar.js */
-    display: none;
-  }
-
   .dashboard-main {
-    margin-left: 0; /* No left sidebar on mobile */
+    margin-left: 0;
     margin-right: 0;
     width: 100%;
     padding: var(--spacing-4);

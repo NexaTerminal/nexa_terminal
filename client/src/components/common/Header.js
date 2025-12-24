@@ -11,7 +11,6 @@ const Header = ({ isTerminal = false }) => {
   const { currentUser, logout } = useAuth();
   const { credits, loading: creditsLoading } = useCredit();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const location = useLocation();
@@ -22,10 +21,6 @@ const Header = ({ isTerminal = false }) => {
   const [inviteEmails, setInviteEmails] = useState({ email1: '', email2: '', email3: '' });
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMessage, setInviteMessage] = useState(null); // { type: 'success' | 'error', text: string }
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
 
   const toggleProfileDropdown = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
@@ -149,43 +144,12 @@ const Header = ({ isTerminal = false }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.classList.add('body-no-scroll');
-    } else {
-      document.body.classList.remove('body-no-scroll');
-    }
-
-    // Cleanup function to remove the class when the component unmounts
-    return () => {
-      document.body.classList.remove('body-no-scroll');
-    };
-  }, [mobileMenuOpen]);
-
   // Close dropdown and modal on location change
   useEffect(() => {
     setProfileDropdownOpen(false);
-    setMobileMenuOpen(false);
     setCreditModalOpen(false);
   }, [location]);
 
-  // Navigation links for regular menu items
-  const regularMenuItems = [
-    { path: '/terminal', label: 'common.dashboard', icon: '📊' },
-    { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
-    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
-    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
-    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
-    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
-    { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
-  ];
-
-  const adminMenuItems = [
-    { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️', noTranslate: true },
-    { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
-    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪', noTranslate: true },
-    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝', noTranslate: true },
-  ];
 
   const renderNavLinks = () => {
     return isTerminal ? (
@@ -400,143 +364,15 @@ const Header = ({ isTerminal = false }) => {
     );
   };
 
-  // Mobile menu content with navigation links and logout
-  const renderMobileMenu = () => (
-    isTerminal ? (
-      <>
-        <div className={styles['mobileUserInfo']}>
-          <span className={styles['mobileUserIcon']}>👤</span>
-          <span className={styles['mobileUserName']}>
-            {currentUser?.companyInfo?.companyName || currentUser?.username || currentUser?.email}
-          </span>
-        </div>
-
-        {/* Credit display in mobile menu */}
-        {!creditsLoading && credits && (
-          <Link
-            to="/terminal/credits"
-            className={styles['mobileCreditBadge']}
-            onClick={() => setMobileMenuOpen(false)}
-            data-low={credits.balance <= 3 && credits.balance > 0}
-            data-depleted={credits.balance === 0}
-          >
-            <span className={styles['credit-icon']}>💳</span>
-            <span className={styles['mobileCreditText']}>
-              Кредити: <strong>{credits.balance}/{credits.weeklyAllocation}</strong>
-            </span>
-          </Link>
-        )}
-
-        <div className={styles['mobileMenuLinks']}>
-          {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
-            disabled ? (
-              <div
-                key={path}
-                className={`${styles['mobileMenuItem']} ${styles['mobileMenuItemDisabled']}`}
-                title={comingSoon || 'Coming Soon'}
-              >
-                <span className={styles['mobileMenuIcon']}>{icon}</span>
-                <span>{noTranslate ? label : t(label)}</span>
-                {comingSoon && <span className={styles['comingSoonBadge']}>{comingSoon}</span>}
-              </div>
-            ) : (
-              <Link
-                key={path}
-                to={path}
-                className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className={styles['mobileMenuIcon']}>{icon}</span>
-                <span>{noTranslate ? label : t(label)}</span>
-              </Link>
-            )
-          )}
-
-          {currentUser?.role === 'admin' && (
-            <>
-              <div className={styles['mobileDivider']}>
-                <span>{t('dashboard.adminSection')}</span>
-              </div>
-              {adminMenuItems.map(({ path, label, icon, noTranslate }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`${styles['mobileMenuItem']} ${location.pathname === path ? styles.active : ''}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className={styles['mobileMenuIcon']}>{icon}</span>
-                  <span>{noTranslate ? label : t(label)}</span>
-                </Link>
-              ))}
-            </>
-          )}
-        </div>
-
-        <div className={styles['mobileMenuFooter']}>
-          <Link
-            to="/terminal/verification"
-            className={styles['mobileMenuItem']}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <span className={styles['mobileMenuIcon']}>🏢</span>
-            <span>Профил</span>
-          </Link>
-          <Link
-            to="/terminal/user"
-            className={styles['mobileMenuItem']}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <span className={styles['mobileMenuIcon']}>👤</span>
-            <span>Корисник</span>
-          </Link>
-          <button
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleLogout();
-            }}
-            className={`${styles['mobileMenuItem']} ${styles['logoutButton']}`}
-          >
-            <span className={styles['mobileMenuIcon']}>🚪</span>
-            <span>{t('common.logout')}</span>
-          </button>
-        </div>
-      </>
-    ) : (
-      <>
-        <Link
-          to="/"
-          className={`${styles['mobileMenuItem']} ${location.pathname === '/' ? styles.active : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          {t('common.home')}
-        </Link>
-        <Link
-          to="/about"
-          className={`${styles['mobileMenuItem']} ${location.pathname === '/about' ? styles.active : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          {t('common.about')}
-        </Link>
-        <Link
-          to="/login"
-          className={`${styles['mobileMenuItem']} ${location.pathname === '/login' ? styles.active : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          {t('common.login')}
-        </Link>
-      </>
-    )
-  );
-
   return (
     <header className={styles.header}>
       <div className={styles['header-container']}>
         {/* Left section with logo */}
         <div className={styles['left-section']}>
           <Link to={isTerminal ? '/terminal' : '/'} className={`${styles.logo} ${isTerminal ? styles.logoTerminal : ''}`}>
-            <img 
-              src="/nexa-logo-navbar.png" 
-              alt="Nexa Terminal" 
+            <img
+              src="/nexa-logo-navbar.png"
+              alt="Nexa Terminal"
               className={styles['logo-image']}
             />
           </Link>
@@ -548,31 +384,6 @@ const Header = ({ isTerminal = false }) => {
             {renderNavLinks()}
           </nav>
           {/* <LanguageSwitcher /> DISABLED FOR NOW */}
-        </div>
-
-        {/* Mobile menu button */}
-        <button 
-          className={`${styles.mobileMenuButton} ${mobileMenuOpen ? styles.open : ''}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-          aria-expanded={mobileMenuOpen}
-        >
-          <div className={styles.hamburgerIcon}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </button>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && <div className={styles.backdrop} onClick={toggleMobileMenu}></div>}
-        <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
-          <nav className={styles.mobileNav}>
-            {renderMobileMenu()}
-            <div className={styles.mobileLangSwitcher}>
-              {/* <LanguageSwitcher /> DISABLED FOR NOW */}
-            </div>
-          </nav>
         </div>
       </div>
     </header>

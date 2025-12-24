@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import styles from "../../styles/terminal/Dashboard.module.css";
 import Header from "../../components/common/Header";
+import Sidebar from "../../components/terminal/Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
-import Sidebar from "../../components/terminal/Sidebar";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import SocialFeed from "../../components/terminal/SocialFeed";
 import ProfileReminderBanner from "../../components/terminal/ProfileReminderBanner";
@@ -41,20 +41,19 @@ const Dashboard = () => {
   }, [token]);
 
   return (
-    <div>
+    <>
+      <Header isTerminal={true} />
+      <Sidebar />
       {error && (
         <div className="text-center" style={{ color: "red", marginTop: 20 }}>
           {error}
         </div>
       )}
-      <Header isTerminal={true} />
 
       <div className={styles["dashboard-layout"]}>
-        <Sidebar />
-
         <main className={styles["dashboard-main"]}>
           <ProfileReminderBanner />
-          
+
           {/* Removed dashboard-header section - profile info now in header dropdown */}
 
           {loading ? (
@@ -68,7 +67,7 @@ const Dashboard = () => {
 
         <RightSidebar />
       </div>
-    </div>
+    </>
   );
 };
 

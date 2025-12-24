@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
+import TermsAcceptanceModal from './TermsAcceptanceModal';
 import styles from '../../styles/terminal/CompanyVerification.module.css';
 import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 import ApiService from '../../services/api';
@@ -35,6 +36,10 @@ const CompanyVerificationSingle = () => {
   // const [showSuccessOptions, setShowSuccessOptions] = useState(false); // REMOVED
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Terms & Conditions Modal
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Form data for all required fields
   const [formData, setFormData] = useState({
@@ -118,6 +123,9 @@ const CompanyVerificationSingle = () => {
         serviceDescription: user.marketplaceInfo?.description || ''
       }));
 
+      // Check if user has already accepted terms
+      setTermsAccepted(user.termsAccepted || false);
+
       // Email verification removed - no longer checking email sent status
       // setEmailSent(user.verificationStatus === 'email_sent' || false); // REMOVED
     }
@@ -152,6 +160,17 @@ const CompanyVerificationSingle = () => {
   const handleSaveProfile = async () => {
     if (!validateForm()) return;
 
+    // For unverified users, check if they've accepted terms
+    if (!user?.isVerified && !termsAccepted) {
+      setShowTermsModal(true);
+      return;
+    }
+
+    // Proceed with actual profile save
+    await performProfileSave();
+  };
+
+  const performProfileSave = async () => {
     setLoading(true);
     setError('');
     setSuccess('');
@@ -185,7 +204,8 @@ const CompanyVerificationSingle = () => {
             description: formData.serviceDescription
           } : undefined,
           officialEmail: formData.officialEmail,
-          profileComplete: true
+          profileComplete: true,
+          termsAccepted: termsAccepted
         })
       });
 
@@ -203,6 +223,18 @@ const CompanyVerificationSingle = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTermsAccept = async () => {
+    setShowTermsModal(false);
+    setTermsAccepted(true);
+    // Proceed with profile save after terms acceptance
+    await performProfileSave();
+  };
+
+  const handleTermsDecline = () => {
+    setShowTermsModal(false);
+    setError('Морате да ги прифатите Условите за користење за да продолжите со верификацијата.');
   };
 
   // ============================================
@@ -281,8 +313,7 @@ const CompanyVerificationSingle = () => {
                 </button>
               </div>
               <h2>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирање на профил' : 'Верификација на компанија'}</h2>
-              <p>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирајте ги информациите за вашата компанија' : 'Внесете ги информациите за вашата компанија и потврдете го email-от за верификација'}</p>
-
+              <p>{user?.isVerified && isCompanyInfoComplete() ? 'Ажурирајте ги информациите за вашата компанија' : 'Сите податоци кои ги внесувате се веќе јавно достапни. Лични или други податоци не се задржуваат во нашата база на податоци при употреба на било која од функциите на Nexa'}. Податоците за Вашата компанија преку пребарување може да ги добиете и од <a href="http://www.ujp.gov.mk" target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', color: '#1E4DB7', textDecoration: 'underline'}}> www.ujp.gov.mk </a> или <a href="https://www.crm.com.mk" target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', color: '#1E4DB7', textDecoration: 'underline'}}> www.crm.com.mk </a> </p>
         {user?.isVerified && !isCompanyInfoComplete() && (
           <div className={styles.verificationStatus}>
             <div className={styles.pendingBadge}>
@@ -525,9 +556,16 @@ const CompanyVerificationSingle = () => {
       )}
           </div>
         </main>
-        
+
         <RightSidebar />
       </div>
+
+      {/* Terms & Conditions Modal */}
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onAccept={handleTermsAccept}
+        onDecline={handleTermsDecline}
+      />
     </div>
   );
 };

@@ -52,7 +52,7 @@
 
 .header {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  /* margin-bottom: var(--spacing-lg); */
   padding-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--color-light-gray);
 }
@@ -188,13 +188,13 @@
   border: 1px solid var(--color-light-gray);
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-xl);
+  /* gap: var(--spacing-xl); */
   max-width: 800px;
   margin: 0 auto;
 }
 
 .section {
-  margin-bottom: var(--spacing-lg);
+  /* margin-bottom: var(--spacing-lg); */
   padding-bottom: var(--spacing-lg);
   border-bottom: none;
 }

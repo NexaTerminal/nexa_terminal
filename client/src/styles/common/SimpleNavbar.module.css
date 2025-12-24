@@ -212,7 +212,7 @@
   }
 
   .mobileMenuButton {
-    display: flex;
+    display: none;
     margin-left: auto;
   }
 

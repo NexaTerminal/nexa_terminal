@@ -3,7 +3,7 @@
   max-width: 920px;
   margin: 0 auto;
   margin-left: 4px;
-  padding: 20px;
+  padding: 0px 20px 20px 20px;
 }
 
 .loading {
@@ -25,14 +25,19 @@
 .filterSection {
   display: flex;
   gap: 2px;
+  margin-top: 0;
   margin-bottom: 20px;
   padding-bottom: 16px;
+  padding-top: 10px;
   border-bottom: 1px solid #e5e7eb;
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--color-neutral-400) transparent;
+  position: relative;
+  z-index: 10;
+  background: white;
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -65,12 +70,20 @@
   white-space: nowrap;
   flex-shrink: 0;
   min-height: 36px;
+  outline: none;
+}
+
+.filterButton:focus {
+  outline: none;
+  border: none;
 }
 
 .filterButton.active {
   background: transparent;
   color: #1f2937;
   font-weight: 600;
+  border: none;
+  outline: none;
 }
 
 /* Create Post Section */

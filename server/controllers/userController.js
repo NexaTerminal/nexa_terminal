@@ -47,8 +47,8 @@ class UserController {
       }
 
       // Handle both old format (direct fields) and new format (nested companyInfo)
-      const { companyInfo: incomingCompanyInfo, email, companyManager, officialEmail } = req.body;
-      
+      const { companyInfo: incomingCompanyInfo, email, companyManager, officialEmail, termsAccepted, marketplaceInfo } = req.body;
+
       // Prepare company info update - merge with existing data
       let companyInfoUpdate = {};
       
@@ -94,6 +94,24 @@ class UserController {
       if (officialEmail?.trim()) {
         userUpdatePayload.officialEmail = officialEmail.trim();
       }
+
+      // Add terms acceptance if provided
+      if (typeof termsAccepted === 'boolean') {
+        userUpdatePayload.termsAccepted = termsAccepted;
+        if (termsAccepted) {
+          userUpdatePayload.termsAcceptedAt = new Date();
+        }
+      }
+
+      // Add marketplace info if provided
+      if (marketplaceInfo) {
+        userUpdatePayload.marketplaceInfo = {
+          serviceCategory: marketplaceInfo.serviceCategory?.trim() || '',
+          description: marketplaceInfo.description?.trim() || '',
+          isServiceProvider: !!marketplaceInfo.serviceCategory
+        };
+      }
+
       // NOTE: companyManager is now handled within companyInfo object above
 
       console.log('📝 User update payload:', JSON.stringify(userUpdatePayload, null, 2));

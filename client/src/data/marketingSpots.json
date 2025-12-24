@@ -5,18 +5,13 @@
     "link": "https:vashprijatel.mk"
   },
   {
-    "companyName": "Digital Marketing Pro",
-    "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop",
-    "link": "https://example.com/digital-marketing"
+    "companyName": "Soho Coffee Station Prilep",
+    "image": "https://scontent-muc2-1.xx.fbcdn.net/v/t39.30808-6/473622418_601279759315041_6506639069362095746_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=VruaSpStuxcQ7kNvwELq6xS&_nc_oc=AdlQ22ojsbuIN5f1KgEcZra4iQUPPbDDZ8kku7xwzQF3sus8GrbA_3rnWueAOhwE7Dc&_nc_zt=23&_nc_ht=scontent-muc2-1.xx&_nc_gid=TRYK98mAw2NHfpcQK_J2PA&oh=00_AfmdVKwMePSjHz5WeqsD_fKFp7KMddCEBz3M1dgcy_mY7A&oe=6951C39E",
+    "link": "https://www.instagram.com/sohocoffeeshop.prilep/?hl=en"
   },
   {
-    "companyName": "Business Consulting Group",
-    "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
-    "link": "https://example.com/consulting"
-  },
-  {
-    "companyName": "E-Commerce Solutions",
-    "image": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop",
-    "link": "https://example.com/ecommerce"
+    "companyName": "Nexa",
+    "image": "https://www.nexa.mk/nexa-logo-navbar.png",
+    "link": "https://nexa.mk"
   }
 ]

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import documentService from '../../../../services/documentService';
 import DocumentPreview from '../../../../components/terminal/documents/DocumentPreview';
-import FormField from '../../../../components/forms/FormField';
+import FormField, { TermsField } from '../../../../components/forms/FormField';
 import gdprCompanyPoliticsConfig from '../../../../config/documents/gdprCompanyPolitics';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
@@ -12,6 +12,7 @@ const GdprCompanyPoliticsPage = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const steps = gdprCompanyPoliticsConfig.steps;
   const fields = gdprCompanyPoliticsConfig.fields;
@@ -187,6 +188,15 @@ const GdprCompanyPoliticsPage = () => {
             </div>
           </div>
 
+          {/* Terms and Conditions - Only show on last step */}
+          {currentStep === steps.length - 1 && (
+            <TermsField
+              value={acceptTerms}
+              onChange={(name, value) => setAcceptTerms(value)}
+              disabled={loading}
+            />
+          )}
+
           {/* Navigation buttons */}
           <div className={styles.navigationButtons}>
             <button
@@ -208,7 +218,7 @@ const GdprCompanyPoliticsPage = () => {
               <button
                 className={styles.generateButton}
                 onClick={generateDocument}
-                disabled={loading}
+                disabled={loading || !acceptTerms}
               >
                 {loading ? 'Се генерира...' : '📄 Генерирај политика'}
               </button>

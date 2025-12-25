@@ -103,12 +103,14 @@ const BaseDocumentPage = ({
                 </div>
               </div>
 
-              {/* Terms and Conditions */}
-              <TermsField
-                value={formData.acceptTerms}
-                onChange={handleInputChange}
-                disabled={isGenerating}
-              />
+              {/* Terms and Conditions - Only show on last step */}
+              {isLastStep && (
+                <TermsField
+                  value={formData.acceptTerms}
+                  onChange={handleInputChange}
+                  disabled={isGenerating}
+                />
+              )}
 
               {/* Form Actions */}
               <FormActions

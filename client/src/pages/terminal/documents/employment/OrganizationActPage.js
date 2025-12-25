@@ -3,7 +3,7 @@ import { useAuth } from "../../../../contexts/AuthContext";
 import Header from "../../../../components/common/Header";
 import Sidebar from "../../../../components/terminal/Sidebar";
 import ProfileReminderBanner from "../../../../components/terminal/ProfileReminderBanner";
-import FormField from '../../../../components/forms/FormField';
+import FormField, { TermsField } from '../../../../components/forms/FormField';
 import organizationActConfig from '../../../../config/documents/organizationAct';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
@@ -20,6 +20,7 @@ const OrganizationActPage = () => {
     positions: []
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -103,11 +104,18 @@ const OrganizationActPage = () => {
                   disabled={isGenerating}
                 />
               </div>
-              
-              <button 
+
+              {/* Terms and Conditions */}
+              <TermsField
+                value={acceptTerms}
+                onChange={(name, value) => setAcceptTerms(value)}
+                disabled={isGenerating}
+              />
+
+              <button
                 className={styles['generate-btn']}
                 onClick={handleGenerateDocument}
-                disabled={isGenerating || !formData.documentDate || formData.positions.length === 0}
+                disabled={isGenerating || !formData.documentDate || formData.positions.length === 0 || !acceptTerms}
               >
                 {isGenerating ? '⏳ Генерирање...' : '📄 Генерирај документ'}
               </button>

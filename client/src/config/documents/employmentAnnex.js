@@ -147,9 +147,11 @@ export const employmentAnnexConfig = {
       name: 'durationChangedArticle',
       type: 'text',
       label: 'Член кој се менува',
-      placeholder: 'пр. Член 3 од договорот за вработување',
+      placeholder: 'пр. 3',
       required: false, // Made dynamic based on changeType
-      helpText: 'Наведете го членот од договорот кој се однесува на времетраење',
+      inputMode: 'numeric',
+      pattern: /^\d+$/,
+      helpText: 'Внесете го бројот на членот (само број, пр. 3)',
       showWhen: (formData) => formData.changeType === 'agreementDuration'
     },
 
@@ -171,9 +173,11 @@ export const employmentAnnexConfig = {
       name: 'salaryChangedArticle',
       type: 'text',
       label: 'Член кој се менува',
-      placeholder: 'пр. Член 4 од договорот за вработување',
+      placeholder: 'пр. 4',
       required: false, // Made dynamic based on changeType
-      helpText: 'Наведете го членот од договорот кој се однесува на платата',
+      inputMode: 'numeric',
+      pattern: /^\d+$/,
+      helpText: 'Внесете го бројот на членот (само број, пр. 4)',
       showWhen: (formData) => formData.changeType === 'basicSalary'
     },
 
@@ -206,9 +210,11 @@ export const employmentAnnexConfig = {
       name: 'positionChangedArticle',
       type: 'text',
       label: 'Член кој се менува',
-      placeholder: 'пр. Член 2 од договорот за вработување',
+      placeholder: 'пр. 2',
       required: false, // Made dynamic based on changeType
-      helpText: 'Наведете го членот од договорот кој се однесува на работната позиција',
+      inputMode: 'numeric',
+      pattern: /^\d+$/,
+      helpText: 'Внесете го бројот на членот (само број, пр. 2)',
       showWhen: (formData) => formData.changeType === 'jobPosition'
     },
 
@@ -217,9 +223,11 @@ export const employmentAnnexConfig = {
       name: 'changedArticle',
       type: 'text',
       label: 'Член кој се менува',
-      placeholder: 'пр. Член 5 од договорот за вработување',
+      placeholder: 'пр. 5',
       required: false, // Made dynamic based on changeType
-      helpText: 'Наведете го членот или делот од договорот кој се менува',
+      inputMode: 'numeric',
+      pattern: /^\d+$/,
+      helpText: 'Внесете го бројот на членот (само број, пр. 5)',
       showWhen: (formData) => formData.changeType === 'otherAgreementChange'
     },
     otherAgreementChangeContent: {
@@ -310,6 +318,18 @@ export const employmentAnnexConfig = {
       condition: (formData) => formData.changeType === 'agreementDuration'
     },
     {
+      field: 'durationChangedArticle',
+      type: VALIDATION_TYPES.CUSTOM,
+      label: 'Член кој се менува (времетраење)',
+      validator: (value, formData) => {
+        if (formData.changeType !== 'agreementDuration' || !value) return true;
+        if (!/^\d+$/.test(value)) {
+          return 'Внесете само број (пр. 3)';
+        }
+        return true;
+      }
+    },
+    {
       field: 'endDate',
       type: VALIDATION_TYPES.CUSTOM,
       label: 'Нов датум на престанок на договорот',
@@ -335,6 +355,18 @@ export const employmentAnnexConfig = {
       type: VALIDATION_TYPES.CONDITIONAL_REQUIRED,
       label: 'Член кој се менува (плата)',
       condition: (formData) => formData.changeType === 'basicSalary'
+    },
+    {
+      field: 'salaryChangedArticle',
+      type: VALIDATION_TYPES.CUSTOM,
+      label: 'Член кој се менува (плата)',
+      validator: (value, formData) => {
+        if (formData.changeType !== 'basicSalary' || !value) return true;
+        if (!/^\d+$/.test(value)) {
+          return 'Внесете само број (пр. 4)';
+        }
+        return true;
+      }
     },
     {
       field: 'newBasicSalary',
@@ -368,10 +400,34 @@ export const employmentAnnexConfig = {
       condition: (formData) => formData.changeType === 'jobPosition'
     },
     {
+      field: 'positionChangedArticle',
+      type: VALIDATION_TYPES.CUSTOM,
+      label: 'Член кој се менува (позиција)',
+      validator: (value, formData) => {
+        if (formData.changeType !== 'jobPosition' || !value) return true;
+        if (!/^\d+$/.test(value)) {
+          return 'Внесете само број (пр. 2)';
+        }
+        return true;
+      }
+    },
+    {
       field: 'changedArticle',
       type: VALIDATION_TYPES.CONDITIONAL_REQUIRED,
       label: 'Член кој се менува',
       condition: (formData) => formData.changeType === 'otherAgreementChange'
+    },
+    {
+      field: 'changedArticle',
+      type: VALIDATION_TYPES.CUSTOM,
+      label: 'Член кој се менува',
+      validator: (value, formData) => {
+        if (formData.changeType !== 'otherAgreementChange' || !value) return true;
+        if (!/^\d+$/.test(value)) {
+          return 'Внесете само број (пр. 5)';
+        }
+        return true;
+      }
     },
     {
       field: 'otherAgreementChangeContent',

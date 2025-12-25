@@ -391,7 +391,7 @@ const DocumentGen = () => {
             ← Назад
           </button>
           <h1>{category.title}</h1>
-          <p>Изберете шаблон за документ</p>
+          <p>Не задржуваме било какви податоци кои ќе ги користите</p>
         </div>
         <div className={styles['search-bar-container']}>
           <input 

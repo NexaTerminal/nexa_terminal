@@ -29,7 +29,7 @@ function generateDisciplinaryActionDoc(formData, user, company) {
       children: [
         new Paragraph({
           children: [
-            new TextRun({ text: `Врз основа на член 84, а во врска со член 81 од Законот за работни односи, Управителот на Друштвото ${companyName}, со седиште на ул. ${companyAddress}, ЕМБС: ${companyNumber}, на ден ${sanctionDate} година, го донесе следното:` })
+            new TextRun({ text: `Врз основа на член 84, а во врска со член 81 од Законот за работни односи, работодавачот ${companyName}, со седиште на ${companyAddress}, ЕМБС: ${companyNumber}, претставуван преку Управителот ${companyManager}, на ден ${sanctionDate} година, го донесе следното:` })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { line: 276 }
@@ -52,14 +52,6 @@ function generateDisciplinaryActionDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
-            new TextRun({ text: `Врз основа на член 179 и 180 од Законот за работни односи (Службен весник на РМ бр. 167/15 - Пречистен текст), работодавачот ${companyName}, претставуван од управителот ${companyManager}, на ден ${sanctionDate} година, го донесе следното решение:` })
-          ],
-          alignment: AlignmentType.JUSTIFIED,
-          spacing: { line: 276 }
-        }),
-        new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
             new TextRun({ text: `На работникот ${employeeName}, работна позиција ${jobPosition}, му се изрекува дисциплинска мерка - парична казна во висина од ${sanctionAmount}% од нето плата, за период од ${sanctionPeriod} месец/и.` })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -76,14 +68,14 @@ function generateDisciplinaryActionDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
-            new TextRun({ text: `Работникот ${employeeName} има работна обврска: ${workTaskFailure}.` })
+            new TextRun({ text: `Работникот ${employeeName}, врз основа на договорот за вработување како и организациската поставеност на процесите и работните задачи кај работодавачот ${companyName}, има работна обврска: ${workTaskFailure}.` })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { line: 276 }
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: `На ден ${employeeWrongdoingDate} година, работникот постапил спротивно на работната обврска на следниот начин: ${employeeWrongDoing}.` })
+            new TextRun({ text: `Меѓутоа, на ден ${employeeWrongdoingDate} година, иако работникот ${employeeName} бил запознаен со своите обврски и надлежности, тој постапил спротивно на работната обврска на следниот начин: ${employeeWrongDoing}.` })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { line: 276 }

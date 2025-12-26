@@ -23,25 +23,6 @@ const EmployeeDamagesStatementPage = () => {
       <div className={styles['form-section']}>
         <h3>{stepConfig.title}</h3>
         {stepConfig.description && <p>{stepConfig.description}</p>}
-        
-        {/* Add informational note for step 1 */}
-        {currentStep === 1 && (
-          <div className={styles['info-box']} style={{ 
-            backgroundColor: '#e8f4fd', 
-            border: '1px solid #bee5eb', 
-            borderRadius: '6px', 
-            padding: '12px', 
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
-            <strong>ℹ️ Информации:</strong>
-            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-              <li>Внесете ги точните податоци за работникот кој дава изјава</li>
-              <li>Датумот на изјавата е важен за правната валидност</li>
-              <li>Работната позиција мора да одговара на договорот за вработување</li>
-            </ul>
-          </div>
-        )}
 
         {/* Add legal notice for step 2 */}
         {currentStep === 2 && (
@@ -93,25 +74,7 @@ const EmployeeDamagesStatementPage = () => {
           </React.Fragment>
         ))}
 
-        {/* Additional legal disclaimer for step 2 */}
-        {currentStep === 2 && (
-          <div className={styles['warning-box']} style={{ 
-            backgroundColor: '#f8d7da', 
-            border: '1px solid #f5c6cb', 
-            borderRadius: '6px', 
-            padding: '12px', 
-            marginTop: '20px',
-            fontSize: '13px',
-            color: '#721c24'
-          }}>
-            <strong>⚠️ Важно:</strong>
-            <p style={{ margin: '8px 0 0 0' }}>
-              Со потпишувањето на оваа изјава, работникот потврдува дека доброволно се согласува 
-              со намалување на платата за покривање на предизвиканата материјална штета.
-              Препорачуваме консултации со правен советник пред потпишување.
-            </p>
-          </div>
-        )}
+
       </div>
     );
   };

@@ -2029,15 +2029,21 @@ const renderLivePreview = ({ formData, company, documentType }) => {
       <h2 className={styles.title}>{docTemplate.title}</h2>
       
       <div className={styles.companyInfo}>
-        <p className={styles.greyedText}>
-          Друштво: <span className={styles.highlightedInput}>{company?.companyName || '[Име на компанија]'}</span>
-        </p>
-        <p className={styles.greyedText}>
-          Адреса: <span className={styles.highlightedInput}>{company?.address || '[Адреса на компанија]'}</span>
-        </p>
-        <p className={styles.greyedText}>
-          ЕДБ: <span className={styles.highlightedInput}>{company?.taxNumber || '[ЕДБ број]'}</span>
-        </p>
+        {company?.companyName && (
+          <p className={styles.greyedText}>
+            Друштво: <span className={styles.highlightedInput}>{company.companyName}</span>
+          </p>
+        )}
+        {company?.address && (
+          <p className={styles.greyedText}>
+            Адреса: <span className={styles.highlightedInput}>{company.address}</span>
+          </p>
+        )}
+        {company?.taxNumber && (
+          <p className={styles.greyedText}>
+            ЕДБ: <span className={styles.highlightedInput}>{company.taxNumber}</span>
+          </p>
+        )}
       </div>
       
       <div className={styles.sentencePreview}>

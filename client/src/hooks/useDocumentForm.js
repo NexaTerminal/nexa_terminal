@@ -64,7 +64,7 @@ export const useDocumentForm = (config) => {
    */
   const prevStep = useCallback(() => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep(prev => prev - 1);
     }
   }, [currentStep]);
 

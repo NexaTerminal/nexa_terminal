@@ -1,5 +1,6 @@
 const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, PageBreak } = require('docx');
 const moment = require('moment');
+const { formatMKD } = require('../../utils/documentUtils');
 
 function generateMandatoryBonusDoc(formData, user, company) {
   // Company data with defaults
@@ -11,7 +12,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
   // Form data with defaults
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const year = formData?.year || new Date().getFullYear().toString();
-  const amount = formData?.amount || '[Износ]';
+  const amount = formatMKD(formData?.amount, { fallback: '[Износ]', includeCurrency: false });
   const employeesRepresentative = formData?.employeesRepresentative || '[Претставник на вработените]';
   
   // Parse union data (format: "Name|Address")
@@ -50,7 +51,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({ 
-          text: `На сите вработени во ${companyName}, им се утврдува право на исплата на регрес за годишен одмор за ${year} година, во висина на надомест од ${amount},00 денари по вработен.`
+          text: `На сите вработени во ${companyName}, им се утврдува право на исплата на регрес за годишен одмор за ${year} година, во висина на надомест од ${amount} денари по вработен.`
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
@@ -290,7 +291,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({ 
-          text: `Претставникот на вработените од член 1 е овластен во име на вработените да преговара и со работодавачот да постигне спогодба за исплата на регрес за годишен одмор во износ од ${amount},00 денари по вработен.`
+          text: `Претставникот на вработените од член 1 е овластен во име на вработените да преговара и со работодавачот да постигне спогодба за исплата на регрес за годишен одмор во износ од ${amount} денари по вработен.`
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
@@ -466,7 +467,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({ 
-          text: `Кај работодавачот ${companyName} за ${year} година, на сите вработени кои се стекнале со право на регрес за годишен одмор согласно применливиот колективен договор, ќе биде исплатен износ од ${amount},00 денари на име регрес за годишен одмор.`
+          text: `Кај работодавачот ${companyName} за ${year} година, на сите вработени кои се стекнале со право на регрес за годишен одмор согласно применливиот колективен договор, ќе биде исплатен износ од ${amount} денари на име регрес за годишен одмор.`
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,

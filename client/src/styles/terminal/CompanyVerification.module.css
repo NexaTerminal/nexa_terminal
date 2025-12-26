@@ -194,7 +194,7 @@
 }
 
 .section {
-  /* margin-bottom: var(--spacing-lg); */
+    /* margin-bottom: var(--spacing-lg); */
   padding-bottom: var(--spacing-lg);
   border-bottom: none;
 }

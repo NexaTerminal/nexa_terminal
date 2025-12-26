@@ -94,9 +94,56 @@ function createSignatureBlock(signatoryName, signatoryTitle, printedNameLabel = 
   ];
 }
 
+/**
+ * Formats a number as Macedonian currency with proper thousand separators and decimals.
+ * Format: 1.000,00 денари (period as thousands separator, comma as decimal separator)
+ * @param {number|string} amount - The amount to format.
+ * @param {object} options - Formatting options.
+ * @param {boolean} options.includeCurrency - Whether to append " денари" (default: true).
+ * @param {string} options.fallback - Fallback text if amount is invalid (default: '[Износ]').
+ * @param {number} options.decimals - Number of decimal places (default: 2).
+ * @returns {string} Formatted amount string.
+ */
+function formatMKD(amount, options = {}) {
+  const {
+    includeCurrency = true,
+    fallback = '[Износ]',
+    decimals = 2
+  } = options;
+
+  // Handle null, undefined, or empty string
+  if (amount === null || amount === undefined || amount === '') {
+    return includeCurrency ? `${fallback} денари` : fallback;
+  }
+
+  // Clean the input: remove all non-digit characters except decimal separators
+  let cleanAmount = amount.toString().replace(/[^\d.,]/g, '');
+
+  // Replace comma with period for parsing (handle both European and US formats)
+  cleanAmount = cleanAmount.replace(',', '.');
+
+  // Parse to number
+  const num = parseFloat(cleanAmount);
+
+  // Check if valid number
+  if (isNaN(num)) {
+    return includeCurrency ? `${fallback} денари` : fallback;
+  }
+
+  // Format with Macedonian locale (period for thousands, comma for decimals)
+  const formatted = num.toLocaleString('mk-MK', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+
+  // Append currency if needed
+  return includeCurrency ? `${formatted} денари` : formatted;
+}
+
 module.exports = {
   getUserAndCompanyForDocument,
   saveDocumentRecord,
   createSectionHeader,
   createSignatureBlock,
+  formatMKD,
 };

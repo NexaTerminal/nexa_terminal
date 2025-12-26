@@ -1,5 +1,6 @@
 const { Document, Paragraph, TextRun, AlignmentType } = require('docx');
 const moment = require('moment');
+const { formatMKD } = require('../../utils/documentUtils');
 
 function generateMediationAgreementDoc(formData, user, company) {
   // Company data with defaults - using the standardized field mapping
@@ -23,9 +24,9 @@ function generateMediationAgreementDoc(formData, user, company) {
   // Financial terms
   const commissionRate = formData?.commissionRate || '[Стапка на комисија]';
   const commissionCalculation = formData?.commissionCalculation || '[Начин на пресметка]';
-  const fixedCommissionAmount = formData?.fixedCommissionAmount || '';
-  const minimumCommission = formData?.minimumCommission || '';
-  const maximumCommission = formData?.maximumCommission || '';
+  const fixedCommissionAmount = formData?.fixedCommissionAmount ? formatMKD(formData.fixedCommissionAmount, { includeCurrency: false }) : '';
+  const minimumCommission = formData?.minimumCommission ? formatMKD(formData.minimumCommission, { includeCurrency: false }) : '';
+  const maximumCommission = formData?.maximumCommission ? formatMKD(formData.maximumCommission, { includeCurrency: false }) : '';
   const paymentTiming = formData?.paymentTiming || '[Време на плаќање]';
 
   // Legal terms

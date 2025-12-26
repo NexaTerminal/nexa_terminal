@@ -1,5 +1,6 @@
 const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, HeadingLevel } = require('docx');
 const moment = require('moment');
+const { formatMKD } = require('../../utils/documentUtils');
 
 function generateRentAgreementDoc(formData, user, company) {
   // Company data (if landlord is company) - using the standardized field mapping
@@ -79,13 +80,13 @@ function generateRentAgreementDoc(formData, user, company) {
   const specificPurpose = formData?.specificPurpose || '[Намена на посебен дел]';
   
   // Rent data
-  const rentAmount = formData?.rentAmount || '[Износ на закупнина]';
+  const rentAmount = formatMKD(formData?.rentAmount, { fallback: '[Износ на закупнина]', includeCurrency: false });
   const rentPaymentDeadline = formData?.rentPaymentDeadline || 'до 5-ти во месецот за тековниот месец';
   const includesVAT = formData?.includesVAT ? 'со' : 'без';
-  
+
   // Deposit data
   const requiresDeposit = formData?.requiresDeposit || false;
-  const depositAmount = formData?.depositAmount || '[Износ на депозит]';
+  const depositAmount = formatMKD(formData?.depositAmount, { fallback: '[Износ на депозит]', includeCurrency: false });
   
   // Duration data
   const durationType = formData?.durationType || 'определено'; // 'определено' or 'неопределено'
@@ -230,7 +231,7 @@ function generateRentAgreementDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Висината на месечната закупнина ќе изнесува ЕУР ${rentAmount},00 Евра ${includesVAT} ДДВ, во денарска противвредност според средниот курс на НБРМ на денот на издавањето на фактурата.`,
+          text: `Висината на месечната закупнина ќе изнесува ЕУР ${rentAmount} Евра ${includesVAT} ДДВ, во денарска противвредност според средниот курс на НБРМ на денот на издавањето на фактурата.`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
@@ -262,7 +263,7 @@ function generateRentAgreementDoc(formData, user, company) {
       new Paragraph({
         children: [
           new TextRun({
-            text: `Закупецот е обврзан да плати депозит во висина од ЕУР ${depositAmount},00 Евра пред засновање на користењето на просторот. Депозитот ќе биде вратен на закупецот по истекот на договорот, доколку нема причинети штети на просторот.`,
+            text: `Закупецот е обврзан да плати депозит во висина од ЕУР ${depositAmount} Евра пред засновање на користењето на просторот. Депозитот ќе биде вратен на закупецот по истекот на договорот, доколку нема причинети штети на просторот.`,
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,

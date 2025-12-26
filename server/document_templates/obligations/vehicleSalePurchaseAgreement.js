@@ -1,5 +1,6 @@
 const { Document, Paragraph, TextRun, AlignmentType, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle } = require('docx');
 const moment = require('moment');
+const { formatMKD } = require('../../utils/documentUtils');
 
 function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
   // Extract company information
@@ -68,7 +69,7 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
   const registrationNumber = formData.registrationNumber || '[Регистарски таблички]';
   
   // Financial information
-  const price = formData.price || '[Цена]';
+  const price = formatMKD(formData.price, { fallback: '[Цена]', includeCurrency: false });
   const paymentMethod = formData.paymentMethod || 'notary_day';
   const paymentDate = formData.paymentDate ? moment(formData.paymentDate).format('DD.MM.YYYY') : '';
   
@@ -230,8 +231,8 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
         }),
         new Paragraph({
           children: [
-            new TextRun({ 
-              text: `Продавачот го продава, а купувачот го купува патничкото моторно возило попрецизно опишано во член 2 на овој договор, за вкупна договорена купопродажна цена во износ од ${price},00 денари.`,
+            new TextRun({
+              text: `Продавачот го продава, а купувачот го купува патничкото моторно возило попрецизно опишано во член 2 на овој договор, за вкупна договорена купопродажна цена во износ од ${price} денари.`,
               size: 22
             })
           ],

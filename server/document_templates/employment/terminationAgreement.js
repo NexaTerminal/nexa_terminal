@@ -37,7 +37,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: `1. ${companyName}, со седиште на ул. ${companyAddress}, ЕМБС: ${companyNumber}, Република Северна Македонија (во понатамошниот текст: Работодавачот); и`, bold: true })
+            new TextRun({ text: `1. ${companyName}, со седиште на ${companyAddress}, ЕМБС: ${companyNumber}, Република Северна Македонија (во понатамошниот текст: Работодавачот); и`, bold: true })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),

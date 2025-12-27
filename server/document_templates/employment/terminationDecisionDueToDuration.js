@@ -20,7 +20,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({ 
-              text: `Врз основа на член 46, член 62 став 1 точка 1 и член 64 од Законот за работните односи, (Службен весник на Република Македонија бр. 167/15 Пречистен текст и подоцнежните измени на законот), работодавачот, ${companyName}, со седиште на ул. ${companyAddress}, претставувано од ${companyManager}, на ден ${decisionDate} година, ја донесе следната:`,
+              text: `Врз основа на член 46, член 62 став 1 точка 1 и член 64 од Законот за работните односи, (Службен весник на Република Македонија бр. 167/15 Пречистен текст и подоцнежните измени на законот), работодавачот, ${companyName}, со седиште на ${companyAddress}, претставувано од ${companyManager}, на ден ${decisionDate} година, ја донесе следната:`,
               bold: false 
             })
           ],
@@ -135,21 +135,21 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
           children: [
             new TextRun({ text: "___________________________" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         })
       ]

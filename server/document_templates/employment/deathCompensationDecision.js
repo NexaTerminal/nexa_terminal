@@ -32,7 +32,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Врз основа на член 35 од Општиот колективен договор за приватниот сектор од областа на стопанството, ${companyName} со адреса на ул. ${companyAddress}, претставувано од страна на Управителот ${companyManager} на ${decisionDate} година, донесе`,
+          text: `Врз основа на член 35 од Општиот колективен договор за приватниот сектор од областа на стопанството, ${companyName} со адреса на ${companyAddress}, претставувано од страна на Управителот ${companyManager} на ${decisionDate} година, донесе`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,
@@ -142,7 +142,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
       children: [
         new TextRun({ text: "___________________________" }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 0, line: 276 }
     }),
 
@@ -150,7 +150,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
       children: [
         new TextRun({ text: companyName }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 0, line: 276 }
     }),
 
@@ -158,7 +158,7 @@ function generateDeathCompensationDecisionDoc(formData, user, company) {
       children: [
         new TextRun({ text: companyManager }),
       ],
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.RIGHT,
       spacing: { after: 300, line: 276 }
     })
   ];

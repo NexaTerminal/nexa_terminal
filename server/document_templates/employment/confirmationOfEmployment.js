@@ -20,7 +20,7 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Врз основа на одредбите од Законот за работните односи, ${companyName} со седиште на ул. ${companyAddress}, Република Северна Македонија, со ЕМБС ${companyNumber}, претставувано од ${companyManager}, како работодавач, на ден ${certificateDate} година, ја донесе следната:`,
+          text: `Врз основа на одредбите од Законот за работните односи, ${companyName} со седиште на ${companyAddress}, Република Северна Македонија, со ЕМБС ${companyNumber}, претставувано од ${companyManager}, како работодавач, на ден ${certificateDate} година, ја донесе следната:`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,

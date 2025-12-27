@@ -16,14 +16,10 @@ function generateBonusDecisionDoc(formData, user, company) {
   // Employee and bonus data
   const employeeName = formData?.employeeName || '[Име на работник]';
   const employeeWorkPosition = formData?.employeeWorkPosition || '[Работна позиција]';
-  const bonusType = formData?.bonusType || 'работна успешност';
   const bonusAmount = formData?.bonusAmount ? `${parseInt(formData.bonusAmount).toLocaleString('mk-MK')},00 денари` : '[Износ на бонус]';
   const bonusReason = formData?.bonusReason || '[Причина за бонус]';
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const effectiveDate = formData?.effectiveDate ? moment(formData.effectiveDate).format('DD.MM.YYYY') : decisionDate;
-  const bonusPeriod = formData?.bonusPeriod || '';
-  const isRecurring = formData?.isRecurring || false;
-  const criteria = formData?.criteria || '';
 
   const doc = new Document({
     sections: [{
@@ -48,11 +44,11 @@ function generateBonusDecisionDoc(formData, user, company) {
           spacing: { after: 200, line: 276 }
         }),
 
-        // Document subtitle - dynamic based on bonus type
+        // Document subtitle
         new Paragraph({
           children: [
             new TextRun({
-              text: `за доделување бонус за ${bonusType}`,
+              text: 'за доделување бонус',
               bold: true,
               size: 24
             })
@@ -73,14 +69,14 @@ function generateBonusDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Со оваа одлука, на работникот ${employeeName}, вработен во ${companyName}, на работното место: ${employeeWorkPosition}, му се доделува бонус за ${bonusType} во износ од ${bonusAmount} како нето износ.`
+              text: `Со оваа одлука, на работникот ${employeeName}, вработен во ${companyName}, на работното место: ${employeeWorkPosition}, му се доделува бонус во износ од ${bonusAmount} како нето износ.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { after: 400, line: 276 }
         }),
 
-        // Article 2 - Effective date and period
+        // Article 2 - Effective date
         new Paragraph({
           children: [
             new TextRun({ text: 'Член 2', bold: true })
@@ -92,62 +88,17 @@ function generateBonusDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Оваа одлука влегува во сила на ден ${effectiveDate}${bonusPeriod ? ` и се однесува на периодот: ${bonusPeriod}` : ''}.`
+              text: `Оваа одлука влегува во сила на ден ${effectiveDate}.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { after: 400, line: 276 }
         }),
 
-        // Article 3 - Criteria (if provided)
-        ...(criteria ? [
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Член 3', bold: true })
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 200, line: 276 }
-          }),
-
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Критериумите за доделување на бонусот се: ${criteria}.`
-              })
-            ],
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400, line: 276 }
-          })
-        ] : []),
-
-        // Article for recurring bonus (if applicable)
-        ...(isRecurring ? [
-          new Paragraph({
-            children: [
-              new TextRun({ text: `Член ${criteria ? '4' : '3'}`, bold: true })
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 200, line: 276 }
-          }),
-
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: 'Овој бонус се доделува на редовна основа според политиките на компанијата и може да биде предмет на ревизија врз основа на перформансите и деловните резултати.'
-              })
-            ],
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: { after: 400, line: 276 }
-          })
-        ] : []),
-
-        // Final article - Application
+        // Article 3 - Application
         new Paragraph({
           children: [
-            new TextRun({
-              text: `Член ${criteria && isRecurring ? '5' : criteria || isRecurring ? '4' : '3'}`,
-              bold: true
-            })
+            new TextRun({ text: 'Член 3', bold: true })
           ],
           alignment: AlignmentType.CENTER,
           spacing: { after: 200, line: 276 }
@@ -188,7 +139,7 @@ function generateBonusDecisionDoc(formData, user, company) {
           new Paragraph({
             children: [
               new TextRun({
-                text: `Конкретно, бонусот се доделува заради: ${bonusReason}.`
+                text: `Во конкретниот случај за работникот ${employeeName}, бонусот се доделува заради: ${bonusReason}.`
               })
             ],
             alignment: AlignmentType.JUSTIFIED,
@@ -216,56 +167,56 @@ function generateBonusDecisionDoc(formData, user, company) {
           spacing: { after: 600 }
         }),
 
-        // Employee signature
-        new Paragraph({
-          children: [
-            new TextRun({ text: "За работникот:" }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 200, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: "___________________________" }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: employeeName }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 400, line: 276 }
-        }),
+        // // Employee signature
+        // new Paragraph({
+        //   children: [
+        //     new TextRun({ text: "За работникот:" }),
+        //   ],
+        //   alignment: AlignmentType.LEFT,
+        //   spacing: { after: 200, line: 276 }
+        // }),
+        // new Paragraph({
+        //   children: [
+        //     new TextRun({ text: "___________________________" }),
+        //   ],
+        //   alignment: AlignmentType.LEFT,
+        //   spacing: { after: 0, line: 276 }
+        // }),
+        // new Paragraph({
+        //   children: [
+        //     new TextRun({ text: employeeName }),
+        //   ],
+        //   alignment: AlignmentType.LEFT,
+        //   spacing: { after: 400, line: 276 }
+        // }),
 
         // Employer signature
         new Paragraph({
           children: [
             new TextRun({ text: "За работодавачот:" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyName }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: companyManager }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         })
       ]

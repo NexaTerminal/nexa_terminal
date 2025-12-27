@@ -535,16 +535,16 @@ const documentSentences = {
         fields: []
       },
       {
-        text: "Член 1: Со оваа одлука, на работникот {employeeName}, вработен во [компанија], на работното место: {employeeWorkPosition}, му се доделува бонус за {bonusType} во износ од {bonusAmount} денари како нето износ.",
-        fields: ['employeeName', 'employeeWorkPosition', 'bonusType', 'bonusAmount']
+        text: "Член 1: Со оваа одлука, на работникот {employeeName}, вработен во [компанија], на работното место: {employeeWorkPosition}, му се доделува бонус во износ од {bonusAmount} денари како нето износ.",
+        fields: ['employeeName', 'employeeWorkPosition', 'bonusAmount']
       },
       {
-        text: "Член 2: Оваа одлука влегува во сила на ден {effectiveDate} и се однесува на периодот: {bonusPeriod}.",
-        fields: ['effectiveDate', 'bonusPeriod']
+        text: "Член 2: Оваа одлука влегува во сила на ден {effectiveDate}.",
+        fields: ['effectiveDate']
       },
       {
-        text: "Член 3: Критериумите за доделување на бонусот се: {criteria}.",
-        fields: ['criteria']
+        text: "Член 3: Оваа одлука се применува веднаш и се доставува до работникот за известување.",
+        fields: []
       },
       {
         text: "Образложение: Правото на бонус на работникот му се определува земајќи го предвид неговиот домаќински однос, придонесот во квалитетот и обемот на извршената работа, како и во согласност со индивидуалниот придонес на работникот за деловниот успех на работодавачот.",
@@ -1250,22 +1250,6 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax', 'concurrentClauseCompensation'].includes(fieldName)) {
       if (!value || isNaN(value)) return value || '';
       return `${parseFloat(value).toLocaleString('mk-MK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    // Handle bonus type field for bonus decision
-    if (fieldName === 'bonusType') {
-      const typeMapping = {
-        'работна успешност': 'работна успешност',
-        'квалитет на работа': 'квалитет на работа',
-        'навремено завршување проект': 'навремено завршување проект',
-        'надминување на цели': 'надминување на продажни/производни цели',
-        'иновации и подобрувања': 'иновации и подобрувања во работата',
-        'лојалност и посветеност': 'лојалност и посветеност кон компанијата',
-        'професионален развој': 'професионален развој и стекнување сертификати',
-        'тимска работа': 'исклучителна тимска работа и соработка',
-        'друго': 'друг тип на бонус'
-      };
-      return typeMapping[value] || value || '[Тип на бонус]';
     }
 
     // Handle family member field for death compensation decision

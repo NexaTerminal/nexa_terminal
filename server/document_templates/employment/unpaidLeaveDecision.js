@@ -27,7 +27,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Врз основа на член 147 од Законот за работните односи („Службен весник на РМ" број 62/05...25/13), и ${companyName}, со адреса ${companyAddress}, претставувано од Управителот ${companyManager} на барање на работникот ${employeeName}, на ден ${currentDate} година ја донесе следната`,
+              text: `Врз основа на член 147 од Законот за работните односи, и ${companyName}, со адреса ${companyAddress}, претставувано од Управителот ${companyManager} на барање на работникот ${employeeName}, на ден ${currentDate} година ја донесе следната:`,
               bold: false
             })
           ],
@@ -147,7 +147,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
           children: [
             new TextRun({ text: '___________________________', bold: false })
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
 
@@ -155,7 +155,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
           children: [
             new TextRun({ text: companyName, bold: false })
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
 
@@ -163,7 +163,7 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
           children: [
             new TextRun({ text: `Управител ${companyManager}`, bold: false })
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         })
       ]

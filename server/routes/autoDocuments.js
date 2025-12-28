@@ -39,6 +39,7 @@ const invoiceSigningAuthorizationController = require('../controllers/autoDocume
 const writeOffDecisionController = require('../controllers/autoDocuments/writeOffDecisionController');
 const dividendPaymentDecisionController = require('../controllers/autoDocuments/dividendPaymentDecisionController');
 const annualAccountsAdoptionController = require('../controllers/autoDocuments/annualAccountsAdoptionController');
+const saasAgreementController = require('../controllers/autoDocuments/saasAgreementController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -131,6 +132,9 @@ router.post('/vehicle-sale-purchase-agreement', authenticateJWT, requireVerified
 
 // Debt Assumption Agreement (Договор за преземање на долг)
 router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), debtAssumptionAgreementController);
+
+// SaaS Agreement (Договор за софтвер како услуга)
+router.post('/saas-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), saasAgreementController);
 
 // Rulebooks
 // Business Secret Rulebook (Правилник за заштита на деловна тајна)

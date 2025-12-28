@@ -40,7 +40,6 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
   
   // Extract basic employee information (all optional)
   const employeeName = formData?.employeeName || '[Име и презиме на работникот]';
-  const employeePIN = formData?.employeePIN || '[ЕМБГ на работникот]';
   const jobPosition = formData?.jobPosition || '[Работна позиција]';
   
   // Extract article case and factual situation
@@ -74,16 +73,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
   const doc = new Document({
     sections: [{
       children: [
-        // Document number and date (at the top)
-        new Paragraph({
-          children: [
-            new TextRun({ text: `Бр. _____ од ${currentDate} година`, bold: false })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 300, line: 276 }
-        }),
-
-        // Legal basis introduction with proper Macedonian format
+         // Legal basis introduction with proper Macedonian format
         new Paragraph({
           children: [
             new TextRun({ 
@@ -92,7 +82,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 400, line: 276 }
+          spacing: { after: 200, line: 276 }
         }),
 
         // Document title
@@ -101,7 +91,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'РЕШЕНИЕ', bold: true, size: 32 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200, line: 276 }
+          spacing: { after: 10, line: 200 }
         }),
 
         new Paragraph({
@@ -109,7 +99,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'за откажување на договорот за вработување поради', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200, line: 276 }
+          spacing: { after: 10, line: 200 }
         }),
 
         new Paragraph({
@@ -117,7 +107,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: 'кршење на работниот ред и дисциплина и работните обврски', bold: true, size: 24 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200, line: 276 }
+          spacing: { after: 10, line: 276 }
         }),
 
         new Paragraph({
@@ -125,7 +115,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
             new TextRun({ text: '(причина на вина)', bold: true, size: 20 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400, line: 276 }
+          spacing: { after: 100, line: 276 }
         }),
 
         // Main decision
@@ -274,10 +264,40 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
           spacing: { after: 400, line: 276 }
         }),
 
-        // Employee signature
+        // Employer signature (first)
         new Paragraph({
           children: [
-            new TextRun({ text: "За работникот:" }),
+            new TextRun({ text: "За работодавачот:" }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 200, line: 276 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: "___________________________" }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 0, line: 276 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyName }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 0, line: 276 }
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({ text: companyManager }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 400, line: 276 }
+        }),
+
+        // Employee signature (last)
+        new Paragraph({
+          children: [
+            new TextRun({ text: "За работникот, примил:" }),
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 200, line: 276 }
@@ -296,32 +316,9 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
           alignment: AlignmentType.LEFT,
           spacing: { after: 400, line: 276 }
         }),
-
-        // Employer signature
         new Paragraph({
           children: [
-            new TextRun({ text: "За работодавачот:" }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 200, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: "___________________________" }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: companyName }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: companyManager }),
+            new TextRun({ text: "Датум (своерачно) ____.____._______ година" }),
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 300, line: 276 }

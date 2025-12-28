@@ -469,7 +469,13 @@ export const ConditionalField = ({ condition, formData, children }) => {
 // Helper function to evaluate field conditions
 const evaluateCondition = (condition, formData) => {
   if (!condition) return true;
-  
+
+  // Handle function-based conditions
+  if (typeof condition === 'function') {
+    return condition(formData);
+  }
+
+  // Handle object-based conditions
   const { field, operator = '===', value } = condition;
   const fieldValue = formData[field];
 

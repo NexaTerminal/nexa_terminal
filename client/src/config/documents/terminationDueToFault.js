@@ -168,12 +168,32 @@ export const terminationDueToFaultConfig = {
       title: 'Одлука за Престанок Поради Вина на Работникот',
       description: 'Изберете го соодветниот член и случај од ЗРО и опишете ја фактичката ситуација',
       requiredFields: [],  // All fields optional
-      legalGuidance: 'Сите полиња се опциски. Можете да генерирате празен документ за рачно пополнување или да внесете само основни податоци.'
+      legalGuidance: 'Внесувањето во полињата е опционо и не е задолжително. Можете да генерирате празен документ за рачно пополнување или да внесете само основни податоци.'
     }
   ],
 
   // Simplified form fields - only 2 inputs
   fields: {
+    // Optional employee name for document header
+    employeeName: {
+      name: 'employeeName',
+      type: 'text',
+      label: 'Име и презиме на работникот',
+      placeholder: 'пр. Марко Петровски',
+      required: false,
+      helpText: 'Опционо: Можете да го внесете името или да го оставите празно за рачно внесување'
+    },
+
+    // Optional job position
+    jobPosition: {
+      name: 'jobPosition',
+      type: 'text',
+      label: 'Работна позиција',
+      placeholder: 'пр. Софтверски инженер',
+      required: false,
+      helpText: 'Опционо: Работната позиција како што е наведена во договорот за вработување'
+    },
+
     // Article and case selection (main legal basis)
     articleCase: {
       name: 'articleCase',
@@ -188,66 +208,24 @@ export const terminationDueToFaultConfig = {
     factualSituation: {
       name: 'factualSituation',
       type: 'textarea',
-      label: 'Опис на фактичката ситуација (опционо)',
-      placeholder: 'Опишете ја фактичката ситуација што довела до повредата...',
+      label: 'Опис на фактичката ситуација',
+      placeholder: 'Опишете ја фактичката ситуација што довела до повредата. Пример 1: На ден 15.03.2024, работникот не се појави на работа без претходно известување...; Пример 2: Работникот не ги почитуваше прописите за заштита при работа на ден 20.04.2024 и спротивно на упаствата...',
       required: false,
       rows: 6,
       maxLength: 2000,
-      helpText: 'Опционо: Можете да опишете ја фактичката ситуација или да оставите празно за рачно пополнување подоцна.'
-    },
-
-    // Optional employee name for document header
-    employeeName: {
-      name: 'employeeName',
-      type: 'text',
-      label: 'Име и презиме на работникот (опционо)',
-      placeholder: 'пр. Марко Петровски',
-      required: false,
-      helpText: 'Опционо: Можете да го внесете името или да го оставите празно за рачно внесување'
-    },
-
-    // Optional EMBG
-    employeePIN: {
-      name: 'employeePIN',
-      type: 'text',
-      label: 'ЕМБГ на работникот (опционо)',
-      placeholder: 'пр. 1234567890123',
-      required: false,
-      maxLength: 13,
-      pattern: '^[0-9]{13}$',
-      inputMode: 'numeric',
-      helpText: 'Опционо: ЕМБГ мора да содржи точно 13 цифри доколку го внесувате'
-    },
-
-    // Optional job position
-    jobPosition: {
-      name: 'jobPosition',
-      type: 'text',
-      label: 'Работна позиција (опционо)',
-      placeholder: 'пр. Софтверски инженер',
-      required: false,
-      helpText: 'Опционо: Работната позиција како што е наведена во договорот за вработување'
+      helpText: 'Важно: Опишаната фактичка состојба мора да биде реална и детално наведена. Сите околности кои се наведени во овој дел мора да бидат специфично посочени зошто претставуваат забрането дејствие на работникот и истите да можат да бидат докажани преку документација, снимки, маил, сведоци или друга форма на докази. Овој дел е од исклучителна важност и претставува фактичката состојба која доведува до законитост или противзаконитост на отказот на работникот.'
     }
   },
 
-  // Minimal validation - only EMBG pattern if provided
-  validationRules: [
-    {
-      field: 'employeePIN',
-      type: VALIDATION_TYPES.PATTERN,
-      label: 'ЕМБГ на работникот',
-      value: '^[0-9]{13}$',
-      message: 'ЕМБГ мора да содржи точно 13 цифри доколку го внесувате'
-    }
-  ],
+  // Minimal validation
+  validationRules: [],
 
   // Initial form data - minimal set
   initialFormData: {
-    articleCase: '',
-    factualSituation: '',
     employeeName: '',
-    employeePIN: '',
-    jobPosition: ''
+    jobPosition: '',
+    articleCase: '',
+    factualSituation: ''
   }
 };
 

@@ -60,6 +60,7 @@ const documentHeadlines = {
   // Obligations
   vehicleSalePurchaseAgreement: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
   debtAssumptionAgreement: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
+  saasAgreement: "ДОГОВОР ЗА СОФТВЕР КАКО УСЛУГА (SaaS Agreement)",
 
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
@@ -415,27 +416,23 @@ const documentSentences = {
     ]
   },
   terminationDueToFault: {
-    title: "ОДЛУКА ЗА ПРЕСТАНОК ПОРАДИ ВИНА НА РАБОТНИКОТ",
+    title: "РЕШЕНИЕ ЗА ОТКАЖУВАЊЕ НА ДОГОВОРОТ ЗА ВРАБОТУВАЊЕ",
     sentences: [
       {
-        text: "На работникот {employeeName} со ЕМБГ {employeePIN} на позицијата {jobPosition} му престанува работниот однос поради вина на работникот.",
-        fields: ['employeeName', 'employeePIN', 'jobPosition']
+        text: "Согласно {articleCase} од Законот за работни односи, {companyName} донесе следнава одлука:",
+        fields: ['articleCase', 'companyName']
       },
       {
-        text: "Типот на престанок: {terminationType} - според членовите 81 и 82 од ЗРО.",
-        fields: ['terminationType']
+        text: "На работникот {employeeName}, вработен во {companyName}, на работното место: {jobPosition}, МУ СЕ ОТКАЖУВА ДОГОВОРОТ ЗА ВРАБОТУВАЊЕ и му престанува работниот однос поради кршење на работниот ред и дисциплина и работните обврски.",
+        fields: ['employeeName', 'companyName', 'jobPosition']
       },
       {
-        text: "Опис на случувањето: {faultDescription}.",
-        fields: ['faultDescription']
+        text: "Фактичка ситуација: {factualSituation}",
+        fields: ['factualSituation']
       },
       {
-        text: "Информации за докази и прилози: {evidenceDescription}.",
-        fields: ['evidenceDescription']
-      },
-      {
-        text: "Работниот однос започнал на {employmentStartDate} и престанува на {terminationDate}.",
-        fields: ['employmentStartDate', 'terminationDate']
+        text: "Образложение: Работникот е ангажиран кај работодавачот врз основа на Договорот за вработување. Врз основа на утврдената фактичка состојба, работниот однос престанува поради вина на работникот.",
+        fields: []
       }
     ]
   },
@@ -680,6 +677,43 @@ const documentSentences = {
       {
         text: "За спорови надлежен е Основен граѓански суд {competentCourt}.",
         fields: ['competentCourt']
+      }
+    ]
+  },
+  saasAgreement: {
+    title: "ДОГОВОР ЗА СОФТВЕР КАКО УСЛУГА (SaaS Agreement)",
+    sentences: [
+      {
+        text: "Договорот е склучен на ден {agreementDate} година помеѓу давателот на услуга и клиентот.",
+        fields: ['agreementDate']
+      },
+      {
+        text: "Вашата компанија {companyName} во овој договор е {userRole} на софтверската услуга.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "Услугата која се обезбедува е {serviceName} – {serviceDescription} достапна на {serviceURL}.",
+        fields: ['serviceName', 'serviceDescription', 'serviceURL']
+      },
+      {
+        text: "Месечниот претплатен надоместок изнесува {subscriptionFee} {currency} {includesVAT}, плаќање до {paymentDay}-ти во месецот.",
+        fields: ['subscriptionFee', 'currency', 'includesVAT', 'paymentDay']
+      },
+      {
+        text: "Уплатата се врши на трансакциска сметка {bankAccount} кај {bankName}.",
+        fields: ['bankAccount', 'bankName']
+      },
+      {
+        text: "Системската достапност е минимум {systemAvailability}% месечно, со техничка поддршка во {supportHours}.",
+        fields: ['systemAvailability', 'supportHours']
+      },
+      {
+        text: "Договорот е склучен на {durationType} времетраење со отказен рок од {terminationNoticeDays} дена.",
+        fields: ['durationType', 'terminationNoticeDays']
+      },
+      {
+        text: "Договорот влегува во сила на {effectiveDateType} и е составен во согласност со законите на Република Северна Македонија.",
+        fields: ['effectiveDateType']
       }
     ]
   },
@@ -1240,14 +1274,14 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
          'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
-         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration'].includes(fieldName)) {
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration', 'specificEffectiveDate'].includes(fieldName)) {
       return formatDate(value);
     }
 
     // Format currency amounts (Macedonia format: 1.000,00 денари)
     if (['bonusAmount', 'netSalary', 'damageAmount', 'compensationAmount', 'amount',
          'accumulatedProfitAmount', 'currentProfitAmount', 'totalDividendAmount',
-         'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax', 'concurrentClauseCompensation'].includes(fieldName)) {
+         'revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax', 'concurrentClauseCompensation', 'subscriptionFee'].includes(fieldName)) {
       if (!value || isNaN(value)) return value || '';
       return `${parseFloat(value).toLocaleString('mk-MK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
@@ -1263,6 +1297,30 @@ const renderLivePreview = ({ formData, company, documentType }) => {
         'мајка': 'мајка'
       };
       return familyMapping[value] || value || '[Член на семејно домаќинство]';
+    }
+
+    // Handle articleCase field for termination due to fault
+    if (fieldName === 'articleCase') {
+      const articleMapping = {
+        'article_81_case_1': 'Член 81, точка 1',
+        'article_81_case_2': 'Член 81, точка 2',
+        'article_81_case_3': 'Член 81, точка 3',
+        'article_81_case_4': 'Член 81, точка 4',
+        'article_81_case_5': 'Член 81, точка 5',
+        'article_81_case_6': 'Член 81, точка 6',
+        'article_81_case_7': 'Член 81, точка 7',
+        'article_81_case_8': 'Член 81, точка 8',
+        'article_81_case_9': 'Член 81, точка 9',
+        'article_81_case_10': 'Член 81, точка 10',
+        'article_81_case_11': 'Член 81, точка 11',
+        'article_82_case_1': 'Член 82, точка 1',
+        'article_82_case_2': 'Член 82, точка 2',
+        'article_82_case_3': 'Член 82, точка 3',
+        'article_82_case_4': 'Член 82, точка 4',
+        'article_82_case_5': 'Член 82, точка 5',
+        'article_82_case_6': 'Член 82, точка 6'
+      };
+      return articleMapping[value] || '[Изберете член и случај]';
     }
 
     // Handle GDPR Company Politics specific boolean fields
@@ -1946,6 +2004,40 @@ const renderLivePreview = ({ formData, company, documentType }) => {
         return 'висок ризик';
       }
       return 'се определува во текот на процесот';
+    }
+
+    // Handle SaaS Agreement specific fields
+    if (fieldName === 'userRole') {
+      if (value === 'давател') return 'давател на SaaS услуга';
+      if (value === 'клиент') return 'клиент (корисник на услугата)';
+      return value;
+    }
+
+    if (fieldName === 'effectiveDateType') {
+      if (value === 'датум на склучување') return 'денот на потпишување од двете страни';
+      if (value === 'специфичен датум') return 'специфичен датум (наведен подолу)';
+      return value;
+    }
+
+    if (fieldName === 'currency') {
+      if (value === 'денари') return 'денари';
+      if (value === 'евра') return 'евра';
+      if (value === 'долари') return 'американски долари';
+      return value;
+    }
+
+    if (fieldName === 'supportHours') {
+      if (value === 'работни часови') return 'работни часови (09:00-17:00)';
+      if (value === '24/7') return '24/7 (секој ден, 24 часа)';
+      if (value === 'работни денови') return 'работни денови';
+      if (value === 'прилагодени') return 'прилагодени часови';
+      return value;
+    }
+
+    if (fieldName === 'durationType') {
+      if (value === 'неопределено') return 'неопределено време';
+      if (value === 'определено') return 'определено време';
+      return value;
     }
 
     return String(value || '');

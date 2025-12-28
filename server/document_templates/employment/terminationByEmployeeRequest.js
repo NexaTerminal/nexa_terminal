@@ -158,7 +158,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
           children: [
             new TextRun({ text: "___________________________" }),
           ],
-          alignment: AlignmentType.RIGHT
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({

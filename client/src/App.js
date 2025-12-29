@@ -84,6 +84,7 @@ import InvoiceSigningAuthorizationPage from './pages/terminal/documents/accounti
 import WriteOffDecisionPage from './pages/terminal/documents/accounting/WriteOffDecisionPage';
 import DividendPaymentDecisionPage from './pages/terminal/documents/accounting/DividendPaymentDecisionPage';
 import AnnualAccountsAdoptionPage from './pages/terminal/documents/accounting/AnnualAccountsAdoptionPage';
+import EmployeeStockPurchasePlanPage from './pages/terminal/documents/other/EmployeeStockPurchasePlanPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -235,6 +236,9 @@ function App() {
       <Route path="/terminal/documents/accounting/write-off-decision" element={<PrivateRoute><VerificationRequired feature="одлука за отпис"><WriteOffDecisionPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/accounting/dividend-payment-decision" element={<PrivateRoute><VerificationRequired feature="одлука за исплата на дивиденда"><DividendPaymentDecisionPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/accounting/annual-accounts-adoption" element={<PrivateRoute><VerificationRequired feature="одлука за усвојување на годишната сметка"><AnnualAccountsAdoptionPage/></VerificationRequired></PrivateRoute>} />
+
+      {/* Other Business Documents */}
+      <Route path="/terminal/documents/other/employee-stock-purchase-plan" element={<PrivateRoute><VerificationRequired feature="план за купување акции"><EmployeeStockPurchasePlanPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

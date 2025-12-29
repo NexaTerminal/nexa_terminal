@@ -40,6 +40,7 @@ const writeOffDecisionController = require('../controllers/autoDocuments/writeOf
 const dividendPaymentDecisionController = require('../controllers/autoDocuments/dividendPaymentDecisionController');
 const annualAccountsAdoptionController = require('../controllers/autoDocuments/annualAccountsAdoptionController');
 const saasAgreementController = require('../controllers/autoDocuments/saasAgreementController');
+const employeeStockPurchasePlanController = require('../controllers/autoDocuments/employeeStockPurchasePlanController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -155,6 +156,10 @@ router.post('/dividend-payment-decision', authenticateJWT, requireVerifiedCompan
 
 // Annual Accounts Adoption Decision (Одлука за усвојување на годишната сметка)
 router.post('/annual-accounts-adoption', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), annualAccountsAdoptionController);
+
+// Other Business Documents
+// Employee Stock Purchase Plan (План за купување акции од страна на вработени)
+router.post('/employee-stock-purchase-plan', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), employeeStockPurchasePlanController);
 
 // Add more document routes here as needed
 

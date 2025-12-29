@@ -71,6 +71,7 @@ const documentHeadlines = {
   writeOffDecision: "ОДЛУКА ЗА ОТПИС",
   dividendPaymentDecision: "ОДЛУКА ЗА ИСПЛАТА НА ДИВИДЕНДА",
   annualAccountsAdoption: "ОДЛУКА ЗА УСВОЈУВАЊЕ НА ГОДИШНАТА СМЕТКА",
+  employeeStockPurchasePlan: "ПЛАН ЗА КУПУВАЊЕ АКЦИИ ОД СТРАНА НА ВРАБОТЕНИ (ESPP)",
 
   // ...add more as needed
 };
@@ -1235,6 +1236,59 @@ const documentSentences = {
         fields: ['city', 'date', 'chairman']
       }
     ]
+  },
+  employeeStockPurchasePlan: {
+    title: "{planTitle}",
+    sentences: [
+      {
+        text: "{planIntro}",
+        fields: ['planIntro']
+      },
+      {
+        text: "ЦЕЛА: {purpose}",
+        fields: ['purpose']
+      },
+      {
+        text: "УСЛОВИ ЗА УЧЕСТВО: Вработените се квалификувани доколку се вработени најмалку {minimumServiceMonths} месеци и работат минимум {minimumWorkHours} часа неделно.",
+        fields: ['minimumServiceMonths', 'minimumWorkHours']
+      },
+      {
+        text: "МАКСИМАЛНА СОПСТВЕНОСТ: {ownershipSummary}",
+        fields: ['ownershipSummary']
+      },
+      {
+        text: "ЦЕНА НА СТЕКНУВАЊЕ: Вработените можат да стекнуваат сопственост на {purchasePricePercentage}% од пазарната вредност (попуст од {discountPercentage}%). Цената се пресметува како пониската вредност помеѓу датумот на запишување и датумот на извршување.",
+        fields: ['purchasePricePercentage', 'discountPercentage']
+      },
+      {
+        text: "ПЕРИОДИ НА ПОНУДА: Планот се имплементира преку последователни периоди на понуда со времетраење од {offeringPeriodMonths} месеци. Датуми на запишување: {enrollmentDates}.",
+        fields: ['offeringPeriodMonths', 'enrollmentDates']
+      },
+      {
+        text: "ОДБИВАЊА ОД ПЛАТА: Вработените избираат одбивање од плата до максимум {maxPayrollDeductionPercentage}% од својата нето плата месечно.",
+        fields: ['maxPayrollDeductionPercentage']
+      },
+      {
+        text: "АДМИНИСТРАЦИЈА: Планот го администрира {committeeName} кој има овластување да го толкува и спроведува планот.",
+        fields: ['committeeName']
+      },
+      {
+        text: "ГОТОВИНСКИ ПРИДОНЕСИ: {allowsCashContributionsText}",
+        fields: ['allowsCashContributions']
+      },
+      {
+        text: "ВРЕМЕТРАЕЊЕ НА ПЛАНОТ: Овој план продолжува за период од {termPeriod} {termUnit} и може да биде изменет или прекинат од страна на Одборот.",
+        fields: ['termPeriod', 'termUnit']
+      },
+      {
+        text: "{taxObligationsText}",
+        fields: ['taxObligationsText']
+      },
+      {
+        text: "{adjustmentsText}",
+        fields: ['adjustmentsText']
+      }
+    ]
   }
 };
 
@@ -1264,6 +1318,112 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     if (fieldName === 'companyName') return company?.companyName || '[Име на компанија]';
     if (fieldName === 'companyAddress') return company?.address || '[Адреса на компанија]';
     if (fieldName === 'companyTaxNumber') return company?.taxNumber || '[ЕДБ]';
+
+    // Handle ESPP purpose field - combine all selected checkboxes
+    if (fieldName === 'purpose') {
+      const ownershipType = formData?.ownershipType || 'акции';
+      const ownershipTerm = ownershipType === 'удели' ? 'удели' : 'акции';
+      const ownersTerm = ownershipType === 'удели' ? 'членови' : 'акционери';
+
+      const purposeParts = [];
+      if (formData?.purposeOwnership) purposeParts.push(`да им овозможи на вработените да станат сопственици на ${ownershipTerm} на компанијата`);
+      if (formData?.purposeMotivation) purposeParts.push('да ги мотивира вработените');
+      if (formData?.purposeRetention) purposeParts.push('да ги задржи квалитетните кадри');
+      if (formData?.purposeAlignment) purposeParts.push(`да ги усогласи интересите на вработените со ${ownersTerm}те`);
+      if (formData?.purposeReward) purposeParts.push('да ги наградува вработените за успехот на компанијата');
+      if (formData?.purposeAttract) purposeParts.push('да привлече нови квалитетни кадри');
+
+      return purposeParts.length > 0
+        ? purposeParts.join(', ')
+        : '[Изберете барем една цел на планот]';
+    }
+
+    // Handle ESPP ownership summary - conditional based on ownership type
+    if (fieldName === 'ownershipSummary') {
+      const ownershipType = formData?.ownershipType || '';
+      const isShares = ownershipType === 'удели';
+
+      if (!ownershipType) {
+        return 'Изберете го типот на друштво за да видите ги деталите за максимална сопственост.';
+      }
+
+      if (isShares) {
+        const percentage = formData?.maximumSharesPercentage;
+        return percentage
+          ? `Според овој план, максималниот процент на удели достапен за стекнување изнесува ${percentage}% од вкупните удели.`
+          : 'Според овој план, максималниот процент на удели достапен за стекнување е [Процент на удели].';
+      } else {
+        const number = formData?.maximumSharesNumber;
+        return number
+          ? `Според овој план, максималниот број акции достапни за стекнување изнесува ${number} обични акции.`
+          : 'Според овој план, максималниот број акции достапни за стекнување е [Број на акции].';
+      }
+    }
+
+    // Handle ESPP plan title - dynamic based on ownership type
+    if (fieldName === 'planTitle') {
+      const ownershipType = formData?.ownershipType || '';
+      const isShares = ownershipType === 'удели';
+
+      if (!ownershipType) {
+        return 'ПЛАН ЗА СТЕКНУВАЊЕ СОПСТВЕНОСТ ОД СТРАНА НА ВРАБОТЕНИ';
+      }
+
+      if (isShares) {
+        return 'ПЛАН ЗА СТЕКНУВАЊЕ УДЕЛИ ОД СТРАНА НА ВРАБОТЕНИ';
+      } else {
+        return 'ПЛАН ЗА КУПУВАЊЕ АКЦИИ ОД СТРАНА НА ВРАБОТЕНИ (ESPP)';
+      }
+    }
+
+    // Handle ESPP plan intro - dynamic based on ownership type
+    if (fieldName === 'planIntro') {
+      const ownershipType = formData?.ownershipType || '';
+      const isShares = ownershipType === 'удели';
+      const effectiveDate = formData?.effectiveDate ? formatDate(formData.effectiveDate) : '[Датум]';
+
+      if (!ownershipType) {
+        return `Овој план е донесен на ${effectiveDate} од страна на [компанија] со седиште во Република Северна Македонија со цел да им обезбеди на вработените можност да стекнуваат сопственост.`;
+      }
+
+      if (isShares) {
+        return `Овој план е донесен на ${effectiveDate} од страна на [компанија] со седиште во Република Северна Македонија со цел да им обезбеди на вработените можност да стекнуваат удели по поволни услови.`;
+      } else {
+        return `Овој план е донесен на ${effectiveDate} од страна на [компанија] со седиште во Република Северна Македонија со цел да им обезбеди на вработените можност да купуваат акции по дисконтна цена.`;
+      }
+    }
+
+    // Handle ESPP tax obligations text - dynamic based on ownership type
+    if (fieldName === 'taxObligationsText') {
+      const ownershipType = formData?.ownershipType || '';
+      const isShares = ownershipType === 'удели';
+
+      if (!ownershipType) {
+        return 'ДАНОЧНИ ОБВРСКИ: При стекнување или отуѓување на сопственоста, вработените мора да обезбедат соодветни средства за даночни обврски според македонското законодавство.';
+      }
+
+      if (isShares) {
+        return 'ДАНОЧНИ ОБВРСКИ: При стекнување или отуѓување на уделите, вработените мора да обезбедат соодветни средства за даночни обврски според македонското законодавство.';
+      } else {
+        return 'ДАНОЧНИ ОБВРСКИ: При извршување на опцијата или отуѓување на акциите, вработените мора да обезбедат соодветни средства за даночни обврски според македонското законодавство.';
+      }
+    }
+
+    // Handle ESPP adjustments text - dynamic based on ownership type
+    if (fieldName === 'adjustmentsText') {
+      const ownershipType = formData?.ownershipType || '';
+      const isShares = ownershipType === 'удели';
+
+      if (!ownershipType) {
+        return 'ПРИЛАГОДУВАЊА: Во случај на промени во капитализацијата, распуштање, ликвидација, спојување или продажба на средства, Одборот има право да врши прилагодувања на планот.';
+      }
+
+      if (isShares) {
+        return 'ПРИЛАГОДУВАЊА: Во случај на промени во капиталот на друштвото, распуштање, ликвидација, спојување или продажба на средства, Собранието на членови има право да врши прилагодувања на планот.';
+      } else {
+        return 'ПРИЛАГОДУВАЊА: Во случај на промени во капитализацијата, распуштање, ликвидација, спојување или продажба на средства, Собранието на акционери има право да врши прилагодувања на планот.';
+      }
+    }
 
     const value = formData[fieldName];
     if (!value || value === '') return `[${fieldName}]`;
@@ -2040,6 +2200,22 @@ const renderLivePreview = ({ formData, company, documentType }) => {
       return value;
     }
 
+    // Handle Employee Stock Purchase Plan specific fields
+    if (fieldName === 'allowsCashContributions' || fieldName === 'allowsCashContributionsText') {
+      if (value === 'да' || value === true) return 'Дозволени се готовински придонеси покрај одбивањата од плата';
+      if (value === 'не' || value === false) return 'Не се дозволени готовински придонеси - само одбивања од плата';
+      return '[Дозволени готовински придонеси]';
+    }
+
+    if (fieldName === 'discountPercentage') {
+      const purchasePrice = formData['purchasePricePercentage'];
+      if (purchasePrice) {
+        const discount = 100 - parseFloat(purchasePrice);
+        return `${discount}%`;
+      }
+      return '[Попуст]';
+    }
+
     return String(value || '');
   };
   
@@ -2067,8 +2243,18 @@ const renderLivePreview = ({ formData, company, documentType }) => {
         
         // Add the field value (highlighted if user input exists)
         const value = getFieldValue(field);
-        const hasUserInput = formData[field] || (field === 'companyName' && company?.companyName) || (field === 'companyAddress' && company?.address);
-        
+
+        // Computed fields (fields that don't exist in formData but are calculated dynamically)
+        const computedFields = ['purpose', 'ownershipSummary', 'planTitle', 'planIntro',
+                                'taxObligationsText', 'adjustmentsText', 'discountPercentage',
+                                'allowsCashContributionsText'];
+        const isComputedField = computedFields.includes(field);
+
+        const hasUserInput = formData[field] ||
+                            (field === 'companyName' && company?.companyName) ||
+                            (field === 'companyAddress' && company?.address) ||
+                            isComputedField;
+
         if (hasUserInput && value && !String(value).startsWith('[')) {
           parts.push(
             <span key={`value-${field}-${index}`} className={styles.highlightedInput}>
@@ -2100,9 +2286,27 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     return parts;
   };
   
+  // Process title to replace placeholders
+  const processTitle = (title) => {
+    if (!title) return '[Наслов на документ]';
+
+    // Extract all placeholders from title
+    const placeholderRegex = /\{([^}]+)\}/g;
+    let processedTitle = title;
+    let match;
+
+    while ((match = placeholderRegex.exec(title)) !== null) {
+      const fieldName = match[1];
+      const value = getFieldValue(fieldName);
+      processedTitle = processedTitle.replace(`{${fieldName}}`, value);
+    }
+
+    return processedTitle;
+  };
+
   return (
     <div className={styles.document}>
-      <h2 className={styles.title}>{docTemplate.title}</h2>
+      <h2 className={styles.title}>{processTitle(docTemplate.title)}</h2>
       
       <div className={styles.companyInfo}>
         {company?.companyName && (

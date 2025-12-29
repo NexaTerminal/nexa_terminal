@@ -4,7 +4,7 @@
 
 export const annexEmploymentAgreementConfig = {
   documentType: 'annexEmploymentAgreement',
-  endpoint: '/documents/generate/employment-annex',
+  apiEndpoint: 'employment-annex',
   steps: [
     {
       id: 1,

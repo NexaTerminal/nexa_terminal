@@ -4,7 +4,7 @@
 
 export const politicsForDataProtectionConfig = {
   documentType: 'politicsForDataProtection',
-  endpoint: '/auto-documents/politics-for-data-protection',
+  apiEndpoint: 'politics-for-data-protection',
   steps: [
     {
       id: 1,

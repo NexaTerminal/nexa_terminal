@@ -45,24 +45,6 @@ const CashRegisterMaximumDecisionPage = () => {
           </ul>
         </div>
 
-        {/* Legal reference note */}
-        <div className={styles['info-box']} style={{
-          backgroundColor: '#e8f4fd',
-          border: '1px solid #bee5eb',
-          borderRadius: '6px',
-          padding: '12px',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}>
-          <strong>⚖️ Правна основа:</strong>
-          <p style={{ margin: '8px 0' }}>
-            Според член 20 од Законот за платниот промет, компаниите се обврзани да донесат одлука
-            за благајнички максимум која го дефинира максималниот износ на готовински средства кои
-            можат да се чуваат во благајната. Ова е дел од финансиската дисциплина и транспарентноста
-            во работењето на правните субјекти.
-          </p>
-        </div>
-
         {stepFields.map(field => (
           <FormField
             key={field.name}

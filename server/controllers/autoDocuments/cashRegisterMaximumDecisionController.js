@@ -15,11 +15,6 @@ const generateCashRegisterMaximumDecisionDoc = require('../../document_templates
 const preprocessCashRegisterData = (formData, user, company) => {
   const processed = { ...formData };
 
-  // Clean company manager name
-  if (processed.companyManager) {
-    processed.companyManager = processed.companyManager.trim();
-  }
-
   // Clean year
   if (processed.year) {
     processed.year = processed.year.toString().trim();

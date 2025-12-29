@@ -16,20 +16,12 @@ export const cashRegisterMaximumDecisionConfig = {
       id: 1,
       title: 'Одлука за благајнички максимум',
       description: 'Внесете ги потребните податоци за утврдување на благајничкиот максимум',
-      requiredFields: ['companyManager', 'year', 'amount']
+      requiredFields: ['year', 'amount']
     }
   ],
 
   // Form fields configuration
   fields: {
-    companyManager: {
-      name: 'companyManager',
-      type: 'text',
-      label: 'Име на управител',
-      placeholder: 'пр. Марко Петровски',
-      required: true,
-      helpText: 'Внесете го целото име и презиме на управителот/директорот на компанијата кој ја потпишува оваа одлука. Ова лице мора да има овластување да донесува одлуки според Законот за трговски друштва.'
-    },
     decisionDate: {
       name: 'decisionDate',
       type: 'date',
@@ -64,11 +56,6 @@ export const cashRegisterMaximumDecisionConfig = {
   // Validation rules
   validationRules: [
     {
-      field: 'companyManager',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Име на управител'
-    },
-    {
       field: 'year',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Година на важење'
@@ -82,7 +69,6 @@ export const cashRegisterMaximumDecisionConfig = {
 
   // Initial form data
   initialFormData: {
-    companyManager: '',
     decisionDate: '',
     year: new Date().getFullYear(),
     amount: '',
@@ -93,7 +79,7 @@ export const cashRegisterMaximumDecisionConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['companyManager', 'decisionDate', 'year', 'amount']
+    1: ['decisionDate', 'year', 'amount']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => cashRegisterMaximumDecisionConfig.fields[fieldName]) || [];

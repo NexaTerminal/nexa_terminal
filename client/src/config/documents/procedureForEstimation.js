@@ -4,7 +4,7 @@
 
 export const procedureForEstimationConfig = {
   documentType: 'procedureForEstimation',
-  endpoint: '/auto-documents/procedure-for-estimation',
+  apiEndpoint: 'procedure-for-estimation',
   steps: [
     {
       id: 1,

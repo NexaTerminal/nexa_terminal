@@ -16,6 +16,11 @@ function generateConsentForPersonalDataProcessingDoc(formData, user, company) {
     const companyManager = company?.companyManager || company?.manager || '[Управител]';
     const currentDate = moment().format('DD.MM.YYYY');
 
+    // Get employee data from form
+    const employeeName = formData?.employeeName || '[Име и презиме на вработен]';
+    const employeeAddress = formData?.employeeAddress || '[Адреса на вработен]';
+    const employeePosition = formData?.employeeWorkPosition || formData?.employeePosition || '[Позиција на работа]';
+
     // Create the simplest possible document with minimal formatting
     const doc = new Document({
         sections: [{

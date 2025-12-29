@@ -16,26 +16,12 @@ export const annualAccountsAdoptionConfig = {
       id: 1,
       title: 'Основни податоци за одлуката',
       description: 'Внесете ги основните податоци за усвојување на годишната сметка',
-      requiredFields: ['articleNumber', 'meetingDate', 'year', 'managerName', 'city', 'date', 'chairman']
-    },
-    {
-      id: 2,
-      title: 'Финансиски резултати',
-      description: 'Внесете ги финансиските резултати од работењето на друштвото',
-      requiredFields: ['revenues', 'expenses', 'taxOnExpenses']
+      requiredFields: ['meetingDate', 'year', 'date', 'chairman']
     }
   ],
 
   // Form fields configuration
   fields: {
-    articleNumber: {
-      name: 'articleNumber',
-      type: 'text',
-      label: 'Број на член од Договорот/Статутот',
-      placeholder: 'пр. 12',
-      required: true,
-      helpText: 'Внесете го бројот на членот од Договорот за друштво или Статутот кој ги регулира надлежностите на собранието на содружниците. Согласно член 215 став 1 точка 1 од Законот за трговските друштва, собранието има исклучива надлежност за усвојување на годишната сметка и финансиските извештаи.'
-    },
     meetingDate: {
       name: 'meetingDate',
       type: 'date',
@@ -48,76 +34,12 @@ export const annualAccountsAdoptionConfig = {
       name: 'year',
       type: 'number',
       label: 'Година на извештајот',
-      placeholder: '2024',
+      placeholder: '2025',
       min: 2000,
       max: 2099,
       step: 1,
       required: true,
       helpText: 'Внесете ја деловната година за која се усвојуваат годишната сметка и финансиските извештаи. Овој податок се однесува на извештајниот период за кој се составени финансиските извештаи во согласност со Законот за трговските друштва и меѓународните сметководствени стандарди.'
-    },
-    revenues: {
-      name: 'revenues',
-      type: 'number',
-      label: 'Остварени приходи (денари)',
-      placeholder: '1000000',
-      min: 0,
-      step: 1,
-      required: true,
-      helpText: 'Внесете ги вкупните остварени приходи од работењето на друштвото за извештајната година во денари. Податокот мора да одговара со податоците од Билансот на успех и да биде подготвен согласно меѓународните сметководствени стандарди. Форматот ќе биде: 1.000,00 денари.'
-    },
-    expenses: {
-      name: 'expenses',
-      type: 'number',
-      label: 'Остварени расходи (денари)',
-      placeholder: '800000',
-      min: 0,
-      step: 1,
-      required: true,
-      helpText: 'Внесете ги вкупните остварени расходи од работењето на друштвото за извештајната година во денари. Податокот мора да одговара со податоците од Билансот на успех и да биде подготвен согласно меѓународните сметководствени стандарди. Форматот ќе биде: 1.000,00 денари.'
-    },
-    profitBeforeTax: {
-      name: 'profitBeforeTax',
-      type: 'number',
-      label: 'Остварена добивка пред оданочување (денари)',
-      placeholder: 'Автоматски пресметано',
-      readOnly: true,
-      required: false,
-      helpText: 'Оваа вредност се пресметува автоматски како разлика помеѓу остварените приходи и расходи (приходи - расходи). Претставува финансиски резултат пред примена на оданочување согласно Законот за данокот на добивка.'
-    },
-    taxOnExpenses: {
-      name: 'taxOnExpenses',
-      type: 'number',
-      label: 'Данок на непризнаени расходи (денари)',
-      placeholder: '50000',
-      min: 0,
-      step: 1,
-      required: true,
-      helpText: 'Внесете го износот на данокот на добивка кој произлегува од непризнаени расходи согласно Законот за данокот на добивка. Ова се расходи кои не се признати како даночно признаени трошоци и се облагаат со данок на добивка. Форматот ќе биде: 1.000,00 денари.'
-    },
-    profitAfterTax: {
-      name: 'profitAfterTax',
-      type: 'number',
-      label: 'Остварена добивка по оданочување (денари)',
-      placeholder: 'Автоматски пресметано',
-      readOnly: true,
-      required: false,
-      helpText: 'Оваа вредност се пресметува автоматски како разлика помеѓу добивката пред оданочување и данокот на непризнаени расходи (добивка пред оданочување - данок). Претставува нето добивка која е достапна за распределба или акумулација согласно Законот за трговските друштва.'
-    },
-    managerName: {
-      name: 'managerName',
-      type: 'text',
-      label: 'Име на Управител/Директор',
-      placeholder: 'пр. Марко Петровски',
-      required: true,
-      helpText: 'Внесете го целото име и презиме на управителот, односно членовите на одборот на директорите (управниот и надзорниот одбор) чија работа се одобрува со оваа одлука. Согласно член 215 став 1 точка 1 од Законот за трговските друштва, собранието има надлежност да ја одобри работата на управните органи.'
-    },
-    city: {
-      name: 'city',
-      type: 'text',
-      label: 'Град',
-      placeholder: 'Скопје',
-      required: true,
-      helpText: 'Внесете го името на градот каде се донесува одлуката. Стандардно е тоа седиштето на друштвото. Овој податок е дел од формалниот потпис на одлуката и треба да одговара со податоците од Централниот регистар.'
     },
     date: {
       name: 'date',
@@ -140,11 +62,6 @@ export const annualAccountsAdoptionConfig = {
   // Validation rules
   validationRules: [
     {
-      field: 'articleNumber',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Број на член од Договорот/Статутот'
-    },
-    {
       field: 'meetingDate',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Датум на седница'
@@ -153,31 +70,6 @@ export const annualAccountsAdoptionConfig = {
       field: 'year',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Година на извештајот'
-    },
-    {
-      field: 'revenues',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Остварени приходи'
-    },
-    {
-      field: 'expenses',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Остварени расходи'
-    },
-    {
-      field: 'taxOnExpenses',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Данок на непризнаени расходи'
-    },
-    {
-      field: 'managerName',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Име на Управител/Директор'
-    },
-    {
-      field: 'city',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Град'
     },
     {
       field: 'date',
@@ -193,16 +85,8 @@ export const annualAccountsAdoptionConfig = {
 
   // Initial form data
   initialFormData: {
-    articleNumber: '',
     meetingDate: '',
     year: new Date().getFullYear() - 1, // Previous year by default
-    revenues: '',
-    expenses: '',
-    profitBeforeTax: '',
-    taxOnExpenses: '',
-    profitAfterTax: '',
-    managerName: '',
-    city: 'Скопје',
     date: '',
     chairman: '',
     acceptTerms: false
@@ -212,8 +96,7 @@ export const annualAccountsAdoptionConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['articleNumber', 'meetingDate', 'year', 'managerName', 'city', 'date', 'chairman'],
-    2: ['revenues', 'expenses', 'profitBeforeTax', 'taxOnExpenses', 'profitAfterTax']
+    1: ['meetingDate', 'year', 'date', 'chairman']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => annualAccountsAdoptionConfig.fields[fieldName]) || [];

@@ -16,7 +16,7 @@ export const writeOffDecisionConfig = {
       id: 1,
       title: 'Основни податоци за одлуката',
       description: 'Внесете ги основните податоци за одлуката за отпис',
-      requiredFields: ['writeOffType', 'responsiblePerson', 'date']
+      requiredFields: ['writeOffType', 'date']
     },
     {
       id: 2,
@@ -39,14 +39,6 @@ export const writeOffDecisionConfig = {
       required: true,
       helpText: 'Изберете дали ги отпишувате побарувањата (ненаплатени долгови од клиенти заради очекувана ненаплативост) или обврските (застарени обврски кон добавувачи). Одлуката мора да биде темелена на позитивните законски одредби и најдобрите расположиви проценки според досегашните искуства.'
     },
-    responsiblePerson: {
-      name: 'responsiblePerson',
-      type: 'text',
-      label: 'Име на одговорно лице',
-      placeholder: 'пр. Марко Петровски',
-      required: true,
-      helpText: 'Внесете го целото име и презиме на одговорното лице (управител/директор) кое ја донесува и потпишува оваа одлука. Ова лице мора да има овластување да донесува одлуки согласно Законот за трговски друштва и внатрешните акти на компанијата.'
-    },
     date: {
       name: 'date',
       type: 'date',
@@ -54,14 +46,6 @@ export const writeOffDecisionConfig = {
       placeholder: '',
       required: true,
       helpText: 'Внесете го датумот кога се донесува одлуката за отпис. Овој датум е правно релевантен за евидентирање на отписот во сметководствената документација и мора да одговара со периодот на финансиско известување.'
-    },
-    city: {
-      name: 'city',
-      type: 'text',
-      label: 'Град',
-      placeholder: 'Скопје',
-      required: false,
-      helpText: 'Внесете го градот каде што се донесува одлуката. Ако не се внесе, автоматски ќе се користи Скопје како стандарден град на седиште на компанијата.'
     },
     writeOffItems: {
       name: 'writeOffItems',
@@ -109,11 +93,6 @@ export const writeOffDecisionConfig = {
       label: 'Тип на отпис'
     },
     {
-      field: 'responsiblePerson',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Име на одговорно лице'
-    },
-    {
       field: 'date',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Датум на одлуката'
@@ -129,9 +108,7 @@ export const writeOffDecisionConfig = {
   // Initial form data
   initialFormData: {
     writeOffType: 'ПОБАРУВАЊА',
-    responsiblePerson: '',
     date: '',
-    city: 'Скопје',
     writeOffItems: [
       {
         partnerName: '',
@@ -146,7 +123,7 @@ export const writeOffDecisionConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['writeOffType', 'responsiblePerson', 'date', 'city'],
+    1: ['writeOffType', 'date'],
     2: ['writeOffItems']
   };
 

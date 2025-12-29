@@ -11,13 +11,15 @@ function generateWriteOffDecisionDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Одговорно лице]';
+
+  // Extract city from company address (take last part after comma, or use full address)
+  const city = companyAddress.includes(',') ? companyAddress.split(',').pop().trim() : companyAddress;
 
   // Form data
   const writeOffType = formData?.writeOffType || 'ПОБАРУВАЊА';
   const writeOffItems = formData?.writeOffItems || [];
-  const date = formData?.date ? moment(formData.date).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
-  const responsiblePerson = formData?.responsiblePerson || '[Одговорно лице]';
-  const city = formData?.city || 'Скопје';
+  const date = formData?.date ? moment(formData.date) : moment();
 
   // Determine type text for document
   const typeText = writeOffType === 'ПОБАРУВАЊА' ? 'побарувања' : 'обврски';
@@ -122,6 +124,15 @@ function generateWriteOffDecisionDoc(formData, user, company) {
   const doc = new Document({
     sections: [{
       children: [
+          new Paragraph({
+          children: [
+            new TextRun({
+              text: `Врз основа на Законот за данокот на добивка и останатата даночна регулатива, Друштвото ${companyName} со седиште на улица ${companyAddress}, на ден ${date.format('DD.MM.YYYY')} донесува следнава:`,
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 300, line: 276 }
+        }),
         // Document title
         new Paragraph({
           children: [
@@ -187,7 +198,7 @@ function generateWriteOffDecisionDoc(formData, user, company) {
         // Date and location
         new Paragraph({
           children: [
-            new TextRun({ text: `${city}  ${date}` })
+            new TextRun({ text: `${city}  ${date.format('DD.MM.YYYY')}` })
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 400, line: 276 }
@@ -198,21 +209,21 @@ function generateWriteOffDecisionDoc(formData, user, company) {
           children: [
             new TextRun({ text: "Одговорно лице:" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: responsiblePerson }),
+            new TextRun({ text: companyManager }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         })
       ]

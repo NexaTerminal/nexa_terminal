@@ -1,0 +1,938 @@
+{
+  "testDate": "2025-12-29T17:16:50.308Z",
+  "totalDocuments": 39,
+  "passed": 39,
+  "failed": 0,
+  "successRate": 100,
+  "duration": "0.8s",
+  "results": [
+    {
+      "documentKey": "termination-warning",
+      "status": "PASSED",
+      "fileSize": 9677,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9677,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: decisionDate, fixingDeadline"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3309,
+        "wordCount": 476
+      },
+      "duration": 77
+    },
+    {
+      "documentKey": "warning-letter",
+      "status": "PASSED",
+      "fileSize": 8714,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8714,
+        "errors": [],
+        "warnings": [],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1358,
+        "wordCount": 193
+      },
+      "duration": 12
+    },
+    {
+      "documentKey": "confirmation-of-employment",
+      "status": "PASSED",
+      "fileSize": 8408,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8408,
+        "errors": [],
+        "warnings": [],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 917,
+        "wordCount": 128
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "disciplinary-action",
+      "status": "PASSED",
+      "fileSize": 8853,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8853,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: sanctionDate, employeeWrongdoingDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1847,
+        "wordCount": 283
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "employment-agreement",
+      "status": "PASSED",
+      "fileSize": 11834,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 11834,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: education, certification, salary, agreementDate, employmentStartDate, concurrentDescription"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 8035,
+        "wordCount": 1215
+      },
+      "duration": 15
+    },
+    {
+      "documentKey": "employment-annex",
+      "status": "PASSED",
+      "fileSize": 8665,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8665,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: annexDate, changeType, newSalary, salaryChangeReason"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 988,
+        "wordCount": 138
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "termination-by-employee-request",
+      "status": "PASSED",
+      "fileSize": 8684,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8684,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: employeePin, employeeAddress, requestDate, employmentEndDate, terminationReason, contractStartDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1241,
+        "wordCount": 188
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "termination-personal-reasons",
+      "status": "PASSED",
+      "fileSize": 9397,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9397,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: contractStartDate, terminationDate, documentDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 2520,
+        "wordCount": 377
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "termination-due-to-age-limit",
+      "status": "PASSED",
+      "fileSize": 8604,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8604,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: decisionDate, employmentEndDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1068,
+        "wordCount": 162
+      },
+      "duration": 9
+    },
+    {
+      "documentKey": "termination-due-to-fault",
+      "status": "PASSED",
+      "fileSize": 9148,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9148,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: employeePin, employeeAddress, terminationReason, documentDate, terminationDate, justificationDescription"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 2122,
+        "wordCount": 312
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "termination-decision-due-to-duration",
+      "status": "PASSED",
+      "fileSize": 8676,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8676,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: employmentEndDate, decisionDate, agreementDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1493,
+        "wordCount": 217
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "termination-agreement",
+      "status": "PASSED",
+      "fileSize": 9882,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9882,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: endDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3722,
+        "wordCount": 560
+      },
+      "duration": 9
+    },
+    {
+      "documentKey": "annual-leave-decision",
+      "status": "PASSED",
+      "fileSize": 8995,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8995,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: annualLeaveStart, annualLeaveEnd"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 2271,
+        "wordCount": 344
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "bonus-payment",
+      "status": "PASSED",
+      "fileSize": 8616,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8616,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: bonusAmount"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1249,
+        "wordCount": 181
+      },
+      "duration": 81
+    },
+    {
+      "documentKey": "bonus-decision",
+      "status": "PASSED",
+      "fileSize": 8705,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8705,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: bonusAmount"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1305,
+        "wordCount": 191
+      },
+      "duration": 15
+    },
+    {
+      "documentKey": "mandatory-bonus",
+      "status": "PASSED",
+      "fileSize": 10581,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 10581,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: decisionDate, amount"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 7617,
+        "wordCount": 1149
+      },
+      "duration": 11
+    },
+    {
+      "documentKey": "annual-leave-bonus",
+      "status": "PASSED",
+      "fileSize": 8353,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8353,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: bonusAmount, paymentDate, decisionDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 831,
+        "wordCount": 136
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "unpaid-leave-decision",
+      "status": "PASSED",
+      "fileSize": 8458,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8458,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: startingDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1044,
+        "wordCount": 165
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "death-compensation-decision",
+      "status": "PASSED",
+      "fileSize": 8379,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8379,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: familyMember, decisionDate, paymentDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 852,
+        "wordCount": 134
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "rent-agreement",
+      "status": "PASSED",
+      "fileSize": 10130,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 10130,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: contractDate, userRole, otherPartyType, rentAmount"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3909,
+        "wordCount": 589
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "vehicle-sale-purchase-agreement",
+      "status": "PASSED",
+      "fileSize": 9759,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9759,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: contractDate, otherPartyType, price, paymentMethod"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3122,
+        "wordCount": 485
+      },
+      "duration": 9
+    },
+    {
+      "documentKey": "mediation-agreement",
+      "status": "PASSED",
+      "fileSize": 10415,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 10415,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: agreementDate, userRole, clientTypeForMediator"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 4809,
+        "wordCount": 707
+      },
+      "duration": 12
+    },
+    {
+      "documentKey": "debt-assumption-agreement",
+      "status": "PASSED",
+      "fileSize": 9807,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9807,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: contractDate, userRole, originalDebtorType, otherPartyType, debtAmount, debtCurrency, assumptionType"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3566,
+        "wordCount": 523
+      },
+      "duration": 9
+    },
+    {
+      "documentKey": "saas-agreement",
+      "status": "PASSED",
+      "fileSize": 11308,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 11308,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: agreementDate, effectiveDateType, userRole, subscriptionFee"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 6319,
+        "wordCount": 957
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "master-services-agreement",
+      "status": "PASSED",
+      "fileSize": 12272,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 12272,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: agreementDate, effectiveDateType, userRole, serviceScope, serviceDeliveryTerms, durationType, liabilityLimitType"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 8404,
+        "wordCount": 1264
+      },
+      "duration": 11
+    },
+    {
+      "documentKey": "nda",
+      "status": "PASSED",
+      "fileSize": 12720,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 12720,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: agreementDate, otherPartyCompanyName, otherPartyCompanyAddress, otherPartyCompanyTaxNumber, otherPartyCompanyManager"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 10984,
+        "wordCount": 1610
+      },
+      "duration": 11
+    },
+    {
+      "documentKey": "employee-damages-statement",
+      "status": "PASSED",
+      "fileSize": 8855,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8855,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: employeePIN, employeeAddress, damageDate, damageDescription, damageAmount, statementDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1834,
+        "wordCount": 278
+      },
+      "duration": 7
+    },
+    {
+      "documentKey": "organization-act",
+      "status": "PASSED",
+      "fileSize": 9286,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9286,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: documentDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 3132,
+        "wordCount": 461
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "invoice-signing-authorization",
+      "status": "PASSED",
+      "fileSize": 8491,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8491,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: effectiveDate, date"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 995,
+        "wordCount": 155
+      },
+      "duration": 7
+    },
+    {
+      "documentKey": "write-off-decision",
+      "status": "PASSED",
+      "fileSize": 8682,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8682,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: writeOffType, date"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 852,
+        "wordCount": 123
+      },
+      "duration": 9
+    },
+    {
+      "documentKey": "dividend-payment-decision",
+      "status": "PASSED",
+      "fileSize": 9014,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 9014,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: decisionDate, accumulatedProfitAmount, currentProfitAmount, totalDividendAmount"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1569,
+        "wordCount": 250
+      },
+      "duration": 14
+    },
+    {
+      "documentKey": "annual-accounts-adoption",
+      "status": "PASSED",
+      "fileSize": 8700,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8700,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: meetingDate, date, revenues, expenses, taxOnExpenses"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1528,
+        "wordCount": 215
+      },
+      "duration": 8
+    },
+    {
+      "documentKey": "cash-register-maximum-decision",
+      "status": "PASSED",
+      "fileSize": 8325,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8325,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: amount, decisionDate"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 765,
+        "wordCount": 122
+      },
+      "duration": 7
+    },
+    {
+      "documentKey": "consent-for-personal-data-processing",
+      "status": "PASSED",
+      "fileSize": 8491,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 8491,
+        "errors": [],
+        "warnings": [],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 1173,
+        "wordCount": 164
+      },
+      "duration": 7
+    },
+    {
+      "documentKey": "gdpr-company-politics",
+      "status": "PASSED",
+      "fileSize": 12155,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 12155,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: businessHours, preferredContactLanguages, complianceMonitoring"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 9097,
+        "wordCount": 1240
+      },
+      "duration": 10
+    },
+    {
+      "documentKey": "politics-for-data-protection",
+      "status": "PASSED",
+      "fileSize": 17658,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 17658,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: dataGroups"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 26043,
+        "wordCount": 3835
+      },
+      "duration": 20
+    },
+    {
+      "documentKey": "procedure-for-estimation",
+      "status": "PASSED",
+      "fileSize": 11215,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 11215,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: dpiaDate, protectionLevel, riskLevel, implementationTimeline"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 6421,
+        "wordCount": 913
+      },
+      "duration": 13
+    },
+    {
+      "documentKey": "employee-stock-purchase-plan",
+      "status": "PASSED",
+      "fileSize": 12759,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 12759,
+        "errors": [],
+        "warnings": [
+          "Some form fields not found: effectiveDate, planName, eligibilityCriteria, vestingSchedule, taxObligations, adjustmentsPolicy"
+        ],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 10340,
+        "wordCount": 1597
+      },
+      "duration": 11
+    },
+    {
+      "documentKey": "business-secret-rulebook",
+      "status": "PASSED",
+      "fileSize": 13602,
+      "validationDetails": {
+        "isValid": true,
+        "fileSize": 13602,
+        "errors": [],
+        "warnings": [],
+        "checks": {
+          "sizeCheck": true,
+          "structureValid": true,
+          "hasContent": true,
+          "hasCompanyName": true,
+          "hasCyrillic": true,
+          "sufficientContent": true
+        },
+        "extractedTextLength": 13304,
+        "wordCount": 2060
+      },
+      "duration": 11
+    }
+  ]
+}

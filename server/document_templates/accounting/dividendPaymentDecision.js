@@ -11,16 +11,17 @@ function generateDividendPaymentDecisionDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Претседавач]';
+
+  // Calculate years automatically
+  const currentYear = new Date().getFullYear();
+  const profitYear = currentYear - 1; // Previous year
+  const paymentYear = currentYear; // Current year
 
   // Form data
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
-  const accumulatedProfitYear = formData?.accumulatedProfitYear || '[Година]';
-  const accumulatedProfitAmount = formData?.accumulatedProfitAmount ? `${parseInt(formData.accumulatedProfitAmount).toLocaleString('mk-MK')},00` : '[Износ]';
-  const currentProfitYear = formData?.currentProfitYear || '[Година]';
-  const currentProfitAmount = formData?.currentProfitAmount ? `${parseInt(formData.currentProfitAmount).toLocaleString('mk-MK')},00` : '[Износ]';
+  const profitAmount = formData?.profitAmount ? `${parseInt(formData.profitAmount).toLocaleString('mk-MK')},00` : '[Износ]';
   const totalDividendAmount = formData?.totalDividendAmount ? `${parseInt(formData.totalDividendAmount).toLocaleString('mk-MK')},00` : '[Вкупен износ]';
-  const paymentYear = formData?.paymentYear || '[Година]';
-  const chairman = formData?.chairman || '[Претседавач]';
 
   // Shareholders list
   const shareholdersList = formData?.shareholdersList || [];
@@ -140,7 +141,7 @@ function generateDividendPaymentDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Содружниците на Друштвото ${companyName} одлучија да го исплатат како дивиденда делот од акумулираната добивка од ${accumulatedProfitYear} година наменет за исплата на дивиденда на содружниците на друштвото во вкупен износ од ${accumulatedProfitAmount} денари и добивката за ${currentProfitYear} година наменетa за исплата на дивиденда или износ од ${currentProfitAmount} денари.`
+              text: `Содружниците на Друштвото ${companyName} одлучија да исплатат дивиденда од остварената добивка за ${profitYear} година во износ од ${profitAmount} денари.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -150,7 +151,7 @@ function generateDividendPaymentDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Износот кој ќе се исплаќа како дивиденда изнесува вкупно ${totalDividendAmount} денари.`
+              text: `Вкупниот износ наменет за исплата на дивиденда изнесува ${totalDividendAmount} денари.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -284,7 +285,7 @@ function generateDividendPaymentDecisionDoc(formData, user, company) {
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: chairman }),
+            new TextRun({ text: companyManager }),
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 0, line: 276 }

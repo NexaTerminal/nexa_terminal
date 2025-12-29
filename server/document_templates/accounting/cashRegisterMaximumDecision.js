@@ -11,7 +11,7 @@ function generateCashRegisterMaximumDecisionDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
-  const companyManager = formData?.companyManager || company?.companyManager || company?.manager || '[Управител]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
 
   // Form data
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
@@ -25,7 +25,7 @@ function generateCashRegisterMaximumDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Врз основа на член 20 од Законот за платниот промет, ${companyName}, ${companyAddress}, претставувани од Управителот ${companyManager} на ден ${decisionDate} година, донесе`
+              text: `Врз основа на член 20 од Законот за платниот промет, ${companyName}, ${companyAddress}, претставувани од Управителот ${companyManager} на ден ${decisionDate} година, донесе:`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -123,7 +123,7 @@ function generateCashRegisterMaximumDecisionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: 'Со стапување во сила на оваа одлука, престанува да важи Одлуката за благајнички максимум.'
+              text: 'Со стапување во сила на оваа одлука, престанува да важи претходно донесената Одлука за благајнички максимум.'
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -135,14 +135,14 @@ function generateCashRegisterMaximumDecisionDoc(formData, user, company) {
           children: [
             new TextRun({ text: "Управителот:" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 200, line: 276 }
         }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 0, line: 276 }
         }),
         new Paragraph({

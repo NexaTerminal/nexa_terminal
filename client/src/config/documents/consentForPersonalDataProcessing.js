@@ -4,7 +4,7 @@
 
 export const consentForPersonalDataProcessingConfig = {
   documentType: 'consentForPersonalDataProcessing',
-  endpoint: '/auto-documents/consent-for-personal-data-processing',
+  apiEndpoint: 'consent-for-personal-data-processing',
   steps: [
     {
       id: 1,

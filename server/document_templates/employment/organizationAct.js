@@ -1,204 +1,511 @@
-const PizZip = require("pizzip");
-const Docxtemplater = require("docxtemplater");
-const fs = require("fs");
-const path = require("path");
-const moment = require("moment");
+const { Document, Paragraph, TextRun, AlignmentType } = require('docx');
+const moment = require('moment');
 
 /**
  * Generate Organizational Systematization Act Document
  * Creates a comprehensive organizational structure document with hierarchical positions
- * 
+ *
  * @param {Object} formData - Form data containing positions and document details
- * @param {Object} user - User information  
+ * @param {Object} user - User information
  * @param {Object} company - Company information
- * @returns {Object} - Generated document object
+ * @returns {Object} - Generated document object with doc property
  */
 function generateOrganizationActDoc(formData, user, company) {
-  try {
-    // Load the template
-    const templatePath = path.join(__dirname, '../templates/organization-act-template.docx');
-    
-    // For now, we'll create a basic template since we don't have the DOCX file
-    // This will be replaced with actual DOCX template loading
-    const content = fs.readFileSync(templatePath);
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true
-    });
+  // Get company data with defaults
+  const companyName = company?.companyName || '[Име на компанија]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyTaxNumber = company?.companyTaxNumber || company?.taxNumber || '[Даночен број]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
 
-    // Format document date
-    const documentDate = formData.documentDate 
-      ? moment(formData.documentDate).format('DD.MM.YYYY')
-      : moment().format('DD.MM.YYYY');
-
-    // Process positions and generate member numbering
-    const processedPositions = processPositionsWithMembers(formData.positions || []);
-
-    // Prepare template data
-    const templateData = {
-      // Company information
-      companyName: company?.companyName || '',
-      address: company?.address || '',
-      taxNumber: company?.taxNumber || '',
-      manager: company?.manager || '',
-      
-      // Document details
-      documentDate: documentDate,
-      
-      // Position data for Section II
-      positions: processedPositions,
-      positionsList: (formData.positions || []).map(p => p.positionName).join('\n'),
-      
-      // Dynamic member numbering starts from member 6
-      startingMemberNumber: 6
-    };
-
-    // Render the document
-    doc.render(templateData);
-
-    // Generate the document buffer
-    const buffer = doc.getZip().generate({
-      type: "nodebuffer",
-      compression: "DEFLATE"
-    });
-
-    // Return document object
-    return {
-      doc: buffer,
-      filename: `Akt-za-sistematizacija-${company?.companyName?.replace(/[^a-zA-Z0-9]/g, '-')}-${moment().format('YYYY-MM-DD')}.docx`,
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    };
-
-  } catch (error) {
-    console.error('Error generating Organization Act document:', error);
-    
-    // Fallback: Create a simple text-based document
-    return createFallbackDocument(formData, user, company);
-  }
-}
-
-/**
- * Process positions and assign proper member numbers for the document
- */
-function processPositionsWithMembers(positions) {
-  let memberCounter = 6; // Starting from Member 6 as per template
-  
-  return positions.map(position => {
-    const processedPosition = {
-      ...position,
-      memberNumbers: {
-        count: memberCounter,      // Member X: Number of employees
-        conditions: memberCounter + 1,  // Member X+1: Special conditions  
-        reporting: memberCounter + 2,   // Member X+2: Reporting structure
-        responsibilities: memberCounter + 3, // Member X+3: Job responsibilities
-        subordinates: memberCounter + 4     // Member X+4: Subordinate positions
-      }
-    };
-    
-    // Increment by 5 for next position (each position takes 5 members)
-    memberCounter += 5;
-    
-    return processedPosition;
-  });
-}
-
-/**
- * Create fallback text document when DOCX template is not available
- */
-function createFallbackDocument(formData, user, company) {
-  const documentDate = formData.documentDate 
+  // Format document date
+  const documentDate = formData.documentDate
     ? moment(formData.documentDate).format('DD.MM.YYYY')
     : moment().format('DD.MM.YYYY');
 
-  let documentContent = `Врз основа на член 30, член 31, член 34 од Законот за работните односи како и врз основа на основачкиот акт, работодавачот ${company?.companyName || '[КОМПАНИЈА]'}, со седиште на ул. ${company?.address || '[АДРЕСА]'}, Република Северна Македонија, со ЕДБ ${company?.taxNumber || '[ДАНОЧЕН БРОЈ]'}, претставувано од Управителот ${company?.manager || '[УПРАВИТЕЛ]'}, на ден ${documentDate} година, го донесе следниот:
+  // Get positions array (normalize field names)
+  const positions = (formData.positions || []).map(position => ({
+    positionName: position.positionName || position.title || '[Позиција]',
+    numberOfEmployees: position.numberOfEmployees || '1',
+    educationRequirements: position.educationRequirements || 'Соодветно образование за позицијата',
+    experienceRequirements: position.experienceRequirements || '',
+    reportsTo: position.reportsTo || position.reports || 'Управителот на друштвото',
+    responsibilities: Array.isArray(position.responsibilities)
+      ? position.responsibilities
+      : (position.responsibilities ? [position.responsibilities] : ['Да се извршуваат работните задачи согласно упатствата']),
+    subordinates: Array.isArray(position.subordinates) ? position.subordinates : []
+  }));
 
-ПРАВИЛНИК
-за систематизација на работните места во ${company?.companyName || '[КОМПАНИЈА]'}
+  // Generate document paragraphs
+  const paragraphs = [];
 
-I. Основни одредби
+  // Header
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Врз основа на член 30, член 31, член 34 од Законот за работните односи како и врз основа на основачкиот акт, работодавачот ${companyName}, со седиште на ул. ${companyAddress}, Република Северна Македонија, со ЕДБ ${companyTaxNumber}, претставувано од Управителот ${companyManager}, на ден ${documentDate} година, го донесе следниот:`
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
 
-Член 1
-Со овој акт се утврдува вкупниот број на вработени во ${company?.companyName || '[КОМПАНИЈА]'}, потребни за извршување на работите и задачите за одделни работни места, како и описот на работните места дефиниран согласно со овој Правилник.
+  paragraphs.push(new Paragraph({ text: '' }));
 
-Член 2
-Работните места и работите се поделени согласно со нивната сродност, обем, степен за сложеност и потребни квалификации за вршење на истите.
+  // Title
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'ПРАВИЛНИК', bold: true })
+      ],
+      alignment: AlignmentType.CENTER
+    })
+  );
 
-Член 3
-Работите и задачите опишани и утврдени со овој Правилник претставуваат основа за вработување и распоредување на вработените во ${company?.companyName || '[КОМПАНИЈА]'}.
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: `за систематизација на работните места во ${companyName}`, bold: true })
+      ],
+      alignment: AlignmentType.CENTER
+    })
+  );
 
-Член 4
-Општи услови утврдени со Законот, кои треба да се исполнат од работниците се:
-- да е државјанин на Република Македонија,
-- активно да го користи македонскиот јазик,
-- да е полнолетен,
-- да има општа здравствена способност за работното место и
-- со правосилна судска пресуда да не му е изречена казна забрана на вршење професија, дејност или должност.
+  paragraphs.push(new Paragraph({ text: '' }));
 
-II. Распоред и опис на вработени
+  // Section I - Basic Provisions
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'I. Основни одредби', bold: true })
+      ],
+      alignment: AlignmentType.LEFT
+    })
+  );
 
-Член 5
-Кај работодавачот се врши вработување и работат вработени лица на следните позиции:
-${(formData.positions || []).map(p => `• ${p.positionName}`).join('\n')}
+  paragraphs.push(new Paragraph({ text: '' }));
 
-`;
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Член 1', bold: true })
+      ]
+    })
+  );
 
-  // Generate sections for each position
-  let memberCounter = 6;
-  (formData.positions || []).forEach(position => {
-    documentContent += `\n${position.positionName}\n\nБрој на вработени\n\nЧлен ${memberCounter}`;
-    documentContent += `\nВкупниот број на вработени на позиција ${position.positionName} кај работодавачот е ${position.numberOfEmployees || '1 (еден)'} извршители.\n`;
-    
-    memberCounter++;
-    documentContent += `\nПосебни услови\n\nЧлен ${memberCounter}`;
-    documentContent += `\nПосебни услови за работното место „${position.positionName}" кои треба да се исполнуваат од вработениот или кандидатот за вработување се:\n`;
-    documentContent += `${position.educationRequirements || 'Да има завршено соодветно образование'}\n`;
-    if (position.experienceRequirements) {
-      documentContent += `\n${position.experienceRequirements}\n`;
-    }
-    
-    memberCounter++;
-    documentContent += `\nЧлен ${memberCounter}`;
-    const reportsToText = position.reportsTo && position.reportsTo.length > 0 
-      ? position.reportsTo.join(', ') 
-      : 'Управителот на друштвото';
-    documentContent += `\n${position.positionName} добива напаства за работа и одговара за извршените работи и работни задачи пред ${reportsToText}.\n`;
-    
-    memberCounter++;
-    documentContent += `\nЧлен ${memberCounter}`;
-    documentContent += `\nРаботните обврски и задачи за позицијата „${position.positionName}" се следните:\n`;
-    if (position.responsibilities && position.responsibilities.length > 0) {
-      position.responsibilities.forEach(resp => {
-        documentContent += `• ${resp}\n`;
-      });
-    } else {
-      documentContent += `• [Да се дефинираат работните обврски]\n`;
-    }
-    
-    memberCounter++;
-    if (position.subordinates && position.subordinates.length > 0) {
-      documentContent += `\nЧлен ${memberCounter}`;
-      documentContent += `\nЛицето вработено на позицијата „${position.positionName}" е надреден вработен на следните работни позиции:\n`;
-      position.subordinates.forEach(sub => {
-        documentContent += `• ${sub}\n`;
-      });
-    }
-    
-    memberCounter++;
-    documentContent += `\n`;
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Со овој акт се утврдува вкупниот број на вработени во ${companyName}, потребни за извршување на работите и задачите за одделни работни места, како и описот на работните места дефиниран согласно со овој Правилник.`
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Член 2', bold: true })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Работните места и работите се поделени согласно со нивната сродност, обем, степен за сложеност и потребни квалификации за вршење на истите.'
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Член 3', bold: true })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Работите и задачите опишани и утврдени со овој Правилник претставуваат основа за вработување и распоредување на вработените во ${companyName}.`
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Член 4', bold: true })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Општи услови утврдени со Законот, кои треба да се исполнат од работниците се:'
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  const generalConditions = [
+    '- да е државјанин на Република Македонија,',
+    '- активно да го користи македонскиот јазик,',
+    '- да е полнолетен,',
+    '- да има општа здравствена способност за работното место и',
+    '- со правосилна судска пресуда да не му е изречена казна забрана на вршење професија, дејност или должност.'
+  ];
+
+  generalConditions.forEach(condition => {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: condition })]
+      })
+    );
   });
 
-  documentContent += `\nIII. Останати одредби\n\nЧлен ${memberCounter}`;
-  documentContent += `\nОвој акт влегува во сила од денот на неговото донесување.\nСо влегување во сила на овој правилник лицата кои се опфатени со истиот се должни да ги извршуваат покрај прецизно определените работни обврски и задачи со договорот за вработување и одредбите кои им се зададени согласно овој правилник.\n`;
+  paragraphs.push(new Paragraph({ text: '' }));
 
-  // Convert to buffer (simulate DOCX)
-  const buffer = Buffer.from(documentContent, 'utf8');
+  // Section II - Position Details
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'II. Распоред и опис на вработени', bold: true })
+      ],
+      alignment: AlignmentType.LEFT
+    })
+  );
 
-  return {
-    doc: buffer,
-    filename: `Akt-za-sistematizacija-${company?.companyName?.replace(/[^a-zA-Z0-9]/g, '-')}-${moment().format('YYYY-MM-DD')}.docx`,
-    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  };
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Член 5', bold: true })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Кај работодавачот се врши вработување и работат вработени лица на следните позиции:'
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  // List all positions
+  positions.forEach(position => {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: `• ${position.positionName}` })]
+      })
+    );
+  });
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  // Generate detailed sections for each position
+  let memberCounter = 6;
+
+  positions.forEach(position => {
+    // Position name as header
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: position.positionName, bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(new Paragraph({ text: '' }));
+
+    // Number of employees
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Број на вработени', bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(new Paragraph({ text: '' }));
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Член ${memberCounter}`, bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Вкупниот број на вработени на позиција ${position.positionName} кај работодавачот е ${position.numberOfEmployees} извршители.`
+          })
+        ],
+        alignment: AlignmentType.JUSTIFIED
+      })
+    );
+
+    paragraphs.push(new Paragraph({ text: '' }));
+    memberCounter++;
+
+    // Special conditions
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Посебни услови', bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(new Paragraph({ text: '' }));
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Член ${memberCounter}`, bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Посебни услови за работното место „${position.positionName}" кои треба да се исполнуваат од вработениот или кандидатот за вработување се:`
+          })
+        ],
+        alignment: AlignmentType.JUSTIFIED
+      })
+    );
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: position.educationRequirements })
+        ]
+      })
+    );
+
+    if (position.experienceRequirements) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: position.experienceRequirements })
+          ]
+        })
+      );
+    }
+
+    paragraphs.push(new Paragraph({ text: '' }));
+    memberCounter++;
+
+    // Reporting structure
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Член ${memberCounter}`, bold: true })
+        ]
+      })
+    );
+
+    const reportsToText = Array.isArray(position.reportsTo)
+      ? position.reportsTo.join(', ')
+      : position.reportsTo;
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `${position.positionName} добива напаства за работа и одговара за извршените работи и работни задачи пред ${reportsToText}.`
+          })
+        ],
+        alignment: AlignmentType.JUSTIFIED
+      })
+    );
+
+    paragraphs.push(new Paragraph({ text: '' }));
+    memberCounter++;
+
+    // Job responsibilities
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Член ${memberCounter}`, bold: true })
+        ]
+      })
+    );
+
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Работните обврски и задачи за позицијата „${position.positionName}" се следните:`
+          })
+        ],
+        alignment: AlignmentType.JUSTIFIED
+      })
+    );
+
+    position.responsibilities.forEach(resp => {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun({ text: `• ${resp}` })]
+        })
+      );
+    });
+
+    paragraphs.push(new Paragraph({ text: '' }));
+    memberCounter++;
+
+    // Subordinates (if any)
+    if (position.subordinates && position.subordinates.length > 0) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `Член ${memberCounter}`, bold: true })
+          ]
+        })
+      );
+
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Лицето вработено на позицијата „${position.positionName}" е надреден вработен на следните работни позиции:`
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED
+        })
+      );
+
+      position.subordinates.forEach(sub => {
+        paragraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: `• ${sub}` })]
+          })
+        );
+      });
+
+      paragraphs.push(new Paragraph({ text: '' }));
+      memberCounter++;
+    }
+  });
+
+  // Section III - Final Provisions
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'III. Останати одредби', bold: true })
+      ],
+      alignment: AlignmentType.LEFT
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: `Член ${memberCounter}`, bold: true })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Овој акт влегува во сила од денот на неговото донесување.'
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Со влегување во сила на овој правилник лицата кои се опфатени со истиот се должни да ги извршуваат покрај прецизно определените работни обврски и задачи со договорот за вработување и одредбите кои им се зададени согласно овој правилник.'
+        })
+      ],
+      alignment: AlignmentType.JUSTIFIED
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  // Signature section
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: `Датум: ${documentDate}` })
+      ]
+    })
+  );
+
+  paragraphs.push(new Paragraph({ text: '' }));
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Управител:' })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: '___________________________' })
+      ]
+    })
+  );
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: companyManager })
+      ]
+    })
+  );
+
+  // Create document
+  const doc = new Document({
+    sections: [{
+      children: paragraphs
+    }]
+  });
+
+  return { doc };
 }
 
 module.exports = generateOrganizationActDoc;

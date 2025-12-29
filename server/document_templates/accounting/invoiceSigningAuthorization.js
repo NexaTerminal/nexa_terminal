@@ -10,16 +10,18 @@ const moment = require('moment');
 function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
-  const companyManager = formData?.companyManager || company?.companyManager || company?.manager || '[Управител]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса]';
+  const companyTaxNumber = company?.taxNumber || '[ЕДБ]';
+
+  // Extract city from company address (take first part before comma, or use full address)
+  const city = companyAddress.includes(',') ? companyAddress.split(',').pop().trim() : companyAddress;
 
   // Form data
-  const articleNumber = formData?.articleNumber || '[Број на член]';
   const authorizedPerson = formData?.authorizedPerson || '[Име на овластено лице]';
-  const branchLocation = formData?.branchLocation || '[Локација на подружница]';
   const position = formData?.position || '[Работно место]';
   const effectiveDate = formData?.effectiveDate ? moment(formData.effectiveDate).format('DD.MM.YYYY') : '[Датум]';
   const documentDate = formData?.date ? moment(formData.date).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
-  const city = formData?.city || 'Скопје';
 
   const doc = new Document({
     sections: [{
@@ -28,7 +30,7 @@ function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Врз основа на член ${articleNumber} од Договорот / Изјавата за основање друштво, управителот на Друштвото ${companyName}, го дава следново`
+              text: `Друштвото ${companyName}, со седиште на ${companyAddress} и со ЕДБ ${company?.taxNumber || '[ЕДБ]'}, претставувано од Управителот ${companyManager}, на ден ${documentDate} година, го дава следново`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -41,7 +43,7 @@ function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
             new TextRun({ text: 'О В Л А С Т У В А Њ Е', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200, line: 276 }
+          spacing: { after: 50, line: 276 }
         }),
 
         // Document subtitle
@@ -61,7 +63,7 @@ function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `1) За потпишување на излезни фактури на друштвото ${companyName}, во подружница ${branchLocation}, го овластувам лицето ${authorizedPerson} распоредено на работно место ${position} (работно место кое согласно систематиацијата на работни места и договорот за вработување опфаќа и работни задачи поврзани со проверка на релевантната документација при издавањето на фактури).`
+              text: `1) За потпишување на излезни фактури на друштвото ${companyName}, со седиште на ${companyAddress} и со ЕДБ ${company?.taxNumber || '[ЕДБ]'} го овластувам лицето ${authorizedPerson} распоредено на работно место ${position} (работно место кое согласно систематиацијата на работни места и договорот за вработување опфаќа и работни задачи поврзани со проверка на релевантната документација при издавањето на фактури).`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -72,7 +74,7 @@ function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: '2) Овластениот работник е должен пред потпишувањето на секоја фактура да изврши увид во документите врз основа кои е изготвената фактурата.'
+              text: '2) Овластениот работник е должен пред потпишувањето на секоја фактура да изврши увид во документите врз основа кои е изготвената фактурата. Издадената фактура овластеното лице задолжително ја евидентира во сметководствената евиденција на друштвото.'
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -102,27 +104,35 @@ function generateInvoiceSigningAuthorizationDoc(formData, user, company) {
         }),
 
         // Signature section - simple line format
+         new Paragraph({
+          children: [
+            new TextRun({ text: "За Друштвото" }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 300, line: 276 }
+        }),
         new Paragraph({
+          children: [
+            new TextRun({ text: "___________________" }),
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 10, line: 276 }
+        }),
+               new Paragraph({
           children: [
             new TextRun({ text: `Управител ${companyManager}` }),
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 200, line: 276 }
         }),
-        new Paragraph({
+             new Paragraph({
           children: [
             new TextRun({ text: `Дата: ${documentDate}` }),
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 0, line: 276 }
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: city }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 300, line: 276 }
         })
+
       ]
     }]
   });

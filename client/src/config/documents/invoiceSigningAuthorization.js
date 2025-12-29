@@ -16,20 +16,12 @@ export const invoiceSigningAuthorizationConfig = {
       id: 1,
       title: 'Овластување за потпишување фактури',
       description: 'Внесете ги потребните податоци за издавање овластување за потпишување на излезни фактури',
-      requiredFields: ['articleNumber', 'authorizedPerson', 'branchLocation', 'position', 'effectiveDate', 'companyManager', 'date', 'city']
+      requiredFields: ['authorizedPerson', 'position', 'effectiveDate', 'date']
     }
   ],
 
   // Form fields configuration
   fields: {
-    articleNumber: {
-      name: 'articleNumber',
-      type: 'text',
-      label: 'Број на член од договорот/изјавата за основање',
-      placeholder: 'пр. 15',
-      required: true,
-      helpText: 'Внесете го бројот на членот од Договорот или Изјавата за основање на друштвото кој ги регулира овластувањата на управителот да делегира права. Овој член мора да биде законски валиден според Законот за трговски друштва и да овозможува делегирање на потписнички права.'
-    },
     authorizedPerson: {
       name: 'authorizedPerson',
       type: 'text',
@@ -37,14 +29,6 @@ export const invoiceSigningAuthorizationConfig = {
       placeholder: 'пр. Петар Јовановски',
       required: true,
       helpText: 'Внесете го целото име и презиме на работникот кој се овластува за потпишување на излезни фактури. Ова лице мора да биде вработено во компанијата и да има соодветна стручна компетентност за работа со финансиска документација според Законот за сметководство.'
-    },
-    branchLocation: {
-      name: 'branchLocation',
-      type: 'text',
-      label: 'Локација на подружница/филијала',
-      placeholder: 'пр. Скопје, Ц.Т. Аеродром',
-      required: true,
-      helpText: 'Внесете ја точната локација (град и општина) на подружницата или филијалата каде работи овластеното лице. Оваа информација е важна за јасно дефинирање на географскиот опсег на овластувањето и мора да одговара со официјалната адреса на деловната единица регистрирана во Централен Регистар.'
     },
     position: {
       name: 'position',
@@ -62,14 +46,6 @@ export const invoiceSigningAuthorizationConfig = {
       required: true,
       helpText: 'Внесете го датумот од кој овластувањето стапува на правна сила. Од овој датум овластеното лице може законски да потпишува излезни фактури во име на компанијата. Датумот мора да биде внимателно избран со оглед на процедурите за пренесување на одговорности и обуката на лицето.'
     },
-    companyManager: {
-      name: 'companyManager',
-      type: 'text',
-      label: 'Име и презиме на управител/директор',
-      placeholder: 'пр. Марко Петровски',
-      required: true,
-      helpText: 'Внесете го целото име и презиме на управителот или директорот на компанијата кој го потпишува ова овластување. Ова лице мора да има законско право да делегира потписнички овластувања според Законот за трговски друштва и статутарните документи на компанијата (Договор/Изјава за основање, Статут).'
-    },
     date: {
       name: 'date',
       type: 'date',
@@ -77,33 +53,15 @@ export const invoiceSigningAuthorizationConfig = {
       placeholder: '',
       required: true,
       helpText: 'Внесете го датумот кога се издава овластувањето. Ова е официјалниот датум на донесување на документот и мора да биде ист или пред датумот на стапување на сила. Овој датум е важен за правното евидентирање на овластувањето во книгата на акти на компанијата.'
-    },
-    city: {
-      name: 'city',
-      type: 'text',
-      label: 'Место на издавање',
-      placeholder: 'Скопје',
-      required: true,
-      helpText: 'Внесете го градот каде се издава овластувањето. Обично ова е седиштето на компанијата регистрирано во Централен Регистар. Ова е важна информација за правната валидност на документот и мора да одговара со официјалната адреса на главната канцеларија или подружницата.'
     }
   },
 
   // Validation rules
   validationRules: [
     {
-      field: 'articleNumber',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Број на член од договорот/изјавата'
-    },
-    {
       field: 'authorizedPerson',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Име на овластено лице'
-    },
-    {
-      field: 'branchLocation',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Локација на подружница'
     },
     {
       field: 'position',
@@ -116,32 +74,18 @@ export const invoiceSigningAuthorizationConfig = {
       label: 'Датум на стапување на сила'
     },
     {
-      field: 'companyManager',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Име на управител'
-    },
-    {
       field: 'date',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Датум на издавање'
-    },
-    {
-      field: 'city',
-      type: VALIDATION_TYPES.REQUIRED_TEXT,
-      label: 'Место на издавање'
     }
   ],
 
   // Initial form data
   initialFormData: {
-    articleNumber: '',
     authorizedPerson: '',
-    branchLocation: '',
     position: '',
     effectiveDate: '',
-    companyManager: '',
     date: '',
-    city: 'Скопје',
     acceptTerms: false
   }
 };
@@ -149,7 +93,7 @@ export const invoiceSigningAuthorizationConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['articleNumber', 'authorizedPerson', 'branchLocation', 'position', 'effectiveDate', 'companyManager', 'date', 'city']
+    1: ['authorizedPerson', 'position', 'effectiveDate', 'date']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => invoiceSigningAuthorizationConfig.fields[fieldName]) || [];

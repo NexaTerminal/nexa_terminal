@@ -4,7 +4,7 @@
 
 export const terminationDecisionDueToDurationConfig = {
   documentType: 'terminationDecisionDueToDuration',
-  endpoint: '/auto-documents/termination-decision-due-to-duration',
+  apiEndpoint: 'termination-decision-due-to-duration',
   steps: [
     {
       id: 1,

@@ -96,6 +96,13 @@ const getOrganizationalMeasuresText = (measures) => {
     return measures ? measures.map(m => mapping[m] || m).join(', ') : '';
 };
 
+// Review frequency text helper
+const getReviewFrequencyText = (frequency) => {
+    if (!frequency) return 'на годишна основа';
+    // Return the frequency as-is if it's already in Macedonian, or provide default
+    return frequency;
+};
+
 function generateProcedureForEstimationDoc(formData, user, company) {
     // Get data with fallbacks
     const companyName = company?.companyName || '[Име на компанија]';

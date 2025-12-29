@@ -32,7 +32,6 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.0",
     "langchain": "^1.0.3",
-    "mammoth": "^1.11.0",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
     "mongodb": "^5.1.0",
@@ -55,6 +54,9 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "cli-progress": "^3.12.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.11.0",
     "nodemon": "^2.0.22"
   }
 }

@@ -10,27 +10,17 @@ const moment = require('moment');
 function generateAnnualAccountsAdoptionDoc(formData, user, company) {
   // Company data with defaults
   const companyName = company?.companyName || '[Име на компанија]';
+  const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
+  const companyManager = company?.companyManager || company?.manager || '[Управител]';
+
+  // Extract city from company address
+  const city = companyAddress.includes(',') ? companyAddress.split(',').pop().trim() : companyAddress;
 
   // Form data
-  const articleNumber = formData?.articleNumber || '[Број на член]';
   const meetingDate = formData?.meetingDate ? moment(formData.meetingDate).format('DD.MM.YYYY') : '[Датум]';
   const year = formData?.year || '[Година]';
-  const managerName = formData?.managerName || '[Име на управител]';
-  const city = formData?.city || 'Скопје';
   const date = formData?.date ? moment(formData.date).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const chairman = formData?.chairman || '[Претседавач]';
-
-  // Financial amounts - format as Macedonian currency (1.000,00 денари)
-  const formatAmount = (amount) => {
-    const num = parseFloat(amount) || 0;
-    return num.toLocaleString('mk-MK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
-  const revenues = formatAmount(formData?.revenues || 0);
-  const expenses = formatAmount(formData?.expenses || 0);
-  const profitBeforeTax = formatAmount(formData?.profitBeforeTax || 0);
-  const taxOnExpenses = formatAmount(formData?.taxOnExpenses || 0);
-  const profitAfterTax = formatAmount(formData?.profitAfterTax || 0);
 
   const doc = new Document({
     sections: [{
@@ -39,7 +29,7 @@ function generateAnnualAccountsAdoptionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Врз основа на член 215 став 1 точка 1) од ЗТД - кај друштвото со ограничена одговорност, и член ${articleNumber} од Договорот за друштвото (односно Статутот), на седницата одржана на ${meetingDate} година донесе`
+              text: `Врз основа на член 215 став 1 точка 1) од ЗТД - кај друштвото со ограничена одговорност, и од Договорот за друштвото (односно Статутот), на седницата одржана на ${meetingDate} година донесе`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -85,56 +75,10 @@ function generateAnnualAccountsAdoptionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Се усвојува годишната сметка, финансиските извештаи и годишниот извештај за работењето на друштвото за ${year} на ${companyName} со остварен финансиски резултат од работењето:`
+              text: `Се усвојува годишната сметка, финансиските извештаи и годишниот извештај за работењето на друштвото за ${year} година на ${companyName}.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 300, line: 276 }
-        }),
-
-        // Financial results table (numbered list)
-        new Paragraph({
-          children: [
-            new TextRun({ text: `1) Остварени приходи` }),
-            new TextRun({ text: `                                    ${revenues} денари` })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 150, line: 276 }
-        }),
-
-        new Paragraph({
-          children: [
-            new TextRun({ text: `2) Остварени расходи` }),
-            new TextRun({ text: `                                    ${expenses} денари` })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 150, line: 276 }
-        }),
-
-        new Paragraph({
-          children: [
-            new TextRun({ text: `3) Остварена добивка пред оданочување (1 - 2)` }),
-            new TextRun({ text: `          ${profitBeforeTax} денари` })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 150, line: 276 }
-        }),
-
-        new Paragraph({
-          children: [
-            new TextRun({ text: `4) Данок на непризнаени расходи` }),
-            new TextRun({ text: `                         ${taxOnExpenses} денари` })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 150, line: 276 }
-        }),
-
-        new Paragraph({
-          children: [
-            new TextRun({ text: `5) Остварена добивка по оданочување (3 - 4)` }),
-            new TextRun({ text: `          ${profitAfterTax} денари` })
-          ],
-          alignment: AlignmentType.LEFT,
           spacing: { after: 400, line: 276 }
         }),
 
@@ -150,7 +94,7 @@ function generateAnnualAccountsAdoptionDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Се одобрува работата на Управителот ${managerName}, (членовите на одборот на директорите, односно управниот и надзорниот одбор) во тековната година.`
+              text: `Се одобрува работата на Управителот ${companyManager}, (членовите на одборот на директорите, односно управниот и надзорниот одбор) во тековната година.`
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -235,9 +179,9 @@ function generateAnnualAccountsAdoptionDoc(formData, user, company) {
 
         new Paragraph({
           children: [
-            new TextRun({ text: '                        М.П     Собир на содружниците' })
+            new TextRun({ text: '                        М.П     Собир на содружници' })
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 200, line: 276 }
         }),
 
@@ -245,15 +189,15 @@ function generateAnnualAccountsAdoptionDoc(formData, user, company) {
           children: [
             new TextRun({ text: `Претседавач: ${chairman}` })
           ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0, line: 276 }
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 100, line: 276 }
         }),
 
         new Paragraph({
           children: [
             new TextRun({ text: '______________________' })
           ],
-          alignment: AlignmentType.LEFT,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         })
       ]

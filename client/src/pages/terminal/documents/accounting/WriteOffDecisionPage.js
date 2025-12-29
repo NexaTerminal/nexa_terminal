@@ -139,7 +139,7 @@ const WriteOffDecisionPage = () => {
                               onClick={() => {
                                 const newItems = [...formData[field.name]];
                                 newItems.splice(index, 1);
-                                handleInputChange({ target: { name: field.name, value: newItems } });
+                                handleInputChange(field.name, newItems);
                               }}
                               className={styles['remove-item-btn']}
                               style={{
@@ -162,13 +162,13 @@ const WriteOffDecisionPage = () => {
                             key={`${field.name}-${index}-${itemField.name}`}
                             field={itemField}
                             value={item[itemField.name] || ''}
-                            onChange={(e) => {
+                            onChange={(fieldName, newValue) => {
                               const newItems = [...formData[field.name]];
                               newItems[index] = {
                                 ...newItems[index],
-                                [itemField.name]: e.target.value
+                                [fieldName]: newValue
                               };
-                              handleInputChange({ target: { name: field.name, value: newItems } });
+                              handleInputChange(field.name, newItems);
                             }}
                             error={errors[`${field.name}[${index}].${itemField.name}`]}
                             disabled={isGenerating}
@@ -185,12 +185,7 @@ const WriteOffDecisionPage = () => {
                         field.itemFields.forEach(itemField => {
                           newItem[itemField.name] = '';
                         });
-                        handleInputChange({
-                          target: {
-                            name: field.name,
-                            value: [...formData[field.name], newItem]
-                          }
-                        });
+                        handleInputChange(field.name, [...formData[field.name], newItem]);
                       }}
                       className={styles['add-item-btn']}
                       disabled={isGenerating}

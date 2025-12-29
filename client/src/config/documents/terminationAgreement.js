@@ -4,7 +4,7 @@
 
 export const terminationAgreementConfig = {
   documentType: 'terminationAgreement',
-  endpoint: '/auto-documents/termination-agreement',
+  apiEndpoint: 'termination-agreement',
   steps: [
     {
       id: 1,

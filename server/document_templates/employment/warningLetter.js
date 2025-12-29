@@ -1,4 +1,4 @@
-const { Document, Paragraph, TextRun, AlignmentType } = require('docx');
+const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, WidthType, BorderStyle } = require('docx');
 const moment = require('moment');
 
 function generateWarningLetterDoc(formData, user, company) {

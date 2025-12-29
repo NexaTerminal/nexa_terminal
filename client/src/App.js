@@ -21,6 +21,7 @@ import TermsAndConditions from './pages/website/TermsAndConditions';
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import ManageServiceProviders from './pages/terminal/admin/ManageServiceProviders';
 import ManageOfferRequests from './pages/terminal/admin/ManageOfferRequests';
+import ManageChatbot from './pages/terminal/admin/ManageChatbot';
 import AddBlog from './pages/terminal/admin/AddBlog';
 
 // Terminal Pages
@@ -247,6 +248,7 @@ function App() {
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />
+      <Route path="/terminal/admin/chatbot" element={<PrivateRoute><ManageChatbot /></PrivateRoute>} />
     </Routes>
   );
 }

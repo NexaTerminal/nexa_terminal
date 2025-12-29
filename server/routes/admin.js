@@ -1,10 +1,45 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 const { authenticateJWT, isAdmin } = require('../middleware/auth');
 const adminController = require('../controllers/adminController');
 
 // Global controller instances (will be initialized by server.js)
 let offerRequestController;
+let adminChatbotController;
+
+// Multer configuration for chatbot document uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'legal sources');
+  },
+  filename: (req, file, cb) => {
+    // Keep original filename
+    cb(null, file.originalname);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only PDF and DOCX files are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: fileFilter
+});
 
 // Test route (no auth required for debugging)
 router.get('/test', (req, res) => {
@@ -282,13 +317,256 @@ router.put('/offer-requests/:id/reject', async (req, res, next) => {
   }
 });
 
-// Initialize controller (to be called by server.js)
+// ========================================
+// Chatbot Management Routes
+// ========================================
+
+// Document Management
+router.get('/chatbot/documents', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/documents - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getDocuments(req, res);
+  } catch (error) {
+    console.error('Admin get documents route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.post('/chatbot/documents/upload', upload.single('document'), async (req, res, next) => {
+  console.log('🔍 POST /admin/chatbot/documents/upload - Admin route called');
+  console.log('File:', req.file ? req.file.originalname : 'No file');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.uploadDocument(req, res);
+  } catch (error) {
+    console.error('Admin upload document route error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error'
+    });
+  }
+});
+
+router.delete('/chatbot/documents/:documentName', async (req, res, next) => {
+  console.log('🔍 DELETE /admin/chatbot/documents/:documentName - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.deleteDocument(req, res);
+  } catch (error) {
+    console.error('Admin delete document route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/chatbot/documents/stats', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/documents/stats - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getDocumentStats(req, res);
+  } catch (error) {
+    console.error('Admin document stats route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Conversation Management
+router.get('/chatbot/conversations', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/conversations - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getAllConversations(req, res);
+  } catch (error) {
+    console.error('Admin get conversations route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/chatbot/conversations/:id', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/conversations/:id - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getConversationDetails(req, res);
+  } catch (error) {
+    console.error('Admin conversation details route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.patch('/chatbot/conversations/:id/flag', async (req, res, next) => {
+  console.log('🔍 PATCH /admin/chatbot/conversations/:id/flag - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.flagConversation(req, res);
+  } catch (error) {
+    console.error('Admin flag conversation route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.delete('/chatbot/conversations/:id', async (req, res, next) => {
+  console.log('🔍 DELETE /admin/chatbot/conversations/:id - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.deleteConversation(req, res);
+  } catch (error) {
+    console.error('Admin delete conversation route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Analytics
+router.get('/chatbot/analytics', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/analytics - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getChatbotAnalytics(req, res);
+  } catch (error) {
+    console.error('Admin chatbot analytics route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/chatbot/analytics/usage', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/analytics/usage - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getUsageStats(req, res);
+  } catch (error) {
+    console.error('Admin usage stats route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/chatbot/analytics/queries', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/analytics/queries - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getPopularQueries(req, res);
+  } catch (error) {
+    console.error('Admin popular queries route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+router.get('/chatbot/analytics/credits', async (req, res, next) => {
+  console.log('🔍 GET /admin/chatbot/analytics/credits - Admin route called');
+  try {
+    if (!adminChatbotController) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chatbot controller not initialized'
+      });
+    }
+    await adminChatbotController.getCreditUsage(req, res);
+  } catch (error) {
+    console.error('Admin credit usage route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Initialize controllers (to be called by server.js)
 const initializeOfferRequestController = (database) => {
   const OfferRequestController = require('../controllers/offerRequestController');
   offerRequestController = new OfferRequestController(database);
 };
 
+const initializeAdminChatbotController = (database, qdrantClient, chatBotService) => {
+  const AdminChatbotController = require('../controllers/adminChatbotController');
+  adminChatbotController = new AdminChatbotController(database, qdrantClient, chatBotService);
+  console.log('✅ Admin Chatbot Controller initialized');
+};
+
 module.exports = {
   router,
-  initializeOfferRequestController
+  initializeOfferRequestController,
+  initializeAdminChatbotController
 };

@@ -277,8 +277,9 @@ async function initializeServices(database) {
       // Connect conversation service to chatbot service
       chatBotService.setConversationService(conversationService);
 
-      // Make conversation service available to routes via app.locals
+      // Make services available to routes via app.locals
       app.locals.conversationService = conversationService;
+      app.locals.chatBotService = chatBotService;
 
       console.log('✅ AI Chatbot with conversation history initialized');
     }
@@ -544,11 +545,29 @@ function registerRoutes() {
   // Admin routes
   if (settings.isRouteEnabled('admin')) {
     try {
-      const { router: adminRouter, initializeOfferRequestController } = require('./routes/admin');
+      const { router: adminRouter, initializeOfferRequestController, initializeAdminChatbotController } = require('./routes/admin');
 
       // Initialize admin offer request controller
       if (initializeOfferRequestController) {
         initializeOfferRequestController(db);
+      }
+
+      // Initialize admin chatbot controller (if chatbot feature is enabled)
+      console.log('🔍 Checking admin chatbot controller initialization...');
+      console.log('   initializeAdminChatbotController exists:', !!initializeAdminChatbotController);
+      console.log('   app.locals.chatBotService exists:', !!app.locals.chatBotService);
+
+      if (initializeAdminChatbotController && app.locals.chatBotService) {
+        console.log('🤖 Initializing Admin Chatbot Controller...');
+        initializeAdminChatbotController(
+          db,
+          app.locals.chatBotService.qdrantClient,
+          app.locals.chatBotService
+        );
+      } else {
+        console.log('⚠️ Skipping admin chatbot controller initialization');
+        if (!initializeAdminChatbotController) console.log('   Reason: initializeAdminChatbotController not found');
+        if (!app.locals.chatBotService) console.log('   Reason: chatBotService not available');
       }
 
       app.use('/api/admin', adminRouter);

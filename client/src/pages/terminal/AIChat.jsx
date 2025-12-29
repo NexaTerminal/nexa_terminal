@@ -327,22 +327,6 @@ const AIChat = () => {
                     <div className={styles.messageContent}>
                       {message.content}
                     </div>
-
-                    {/* Show sources for AI messages */}
-                    {message.type === 'ai' && message.sources && message.sources.length > 0 && (
-                      <div className={styles.sources}>
-                        <p className={styles.sourcesTitle}>📚 Извори:</p>
-                        <ul className={styles.sourcesList}>
-                          {message.sources.map((source, idx) => (
-                            <li key={idx} className={styles.sourceItem}>
-                              {source.documentName}
-                              {source.article && ` - ${source.article}`}
-                              {source.pageNumber && ` (Страна ${source.pageNumber})`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 ))}
 

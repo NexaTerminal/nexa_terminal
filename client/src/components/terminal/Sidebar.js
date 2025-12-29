@@ -25,6 +25,7 @@ const Sidebar = () => {
     { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪' },
     { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝' },
+    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot', icon: '🤖' },
   ];
 
   return (

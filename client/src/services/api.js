@@ -263,6 +263,108 @@ class ApiService {
     }
   }
 
+  // ==================== CHATBOT ADMIN METHODS ====================
+
+  /**
+   * Get all documents from Qdrant database
+   */
+  static async getChatbotDocuments() {
+    console.log('🔍 [API SERVICE] getChatbotDocuments() called');
+    console.log('🔍 [API SERVICE] Endpoint: /admin/chatbot/documents');
+    console.log('🔍 [API SERVICE] Full URL:', `${API_BASE_URL}/admin/chatbot/documents`);
+    return this.get('/admin/chatbot/documents');
+  }
+
+  /**
+   * Upload a new document (PDF/DOCX) for chatbot processing
+   */
+  static async uploadChatbotDocument(file) {
+    const formData = new FormData();
+    formData.append('document', file);
+
+    // Upload without JSON Content-Type header
+    return this.request('/admin/chatbot/documents/upload', {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type - browser will set it with boundary for multipart/form-data
+      headers: {}
+    });
+  }
+
+  /**
+   * Delete a document from Qdrant database
+   */
+  static async deleteChatbotDocument(documentName) {
+    return this.delete(`/admin/chatbot/documents/${encodeURIComponent(documentName)}`);
+  }
+
+  /**
+   * Get document statistics from Qdrant
+   */
+  static async getChatbotDocumentStats() {
+    return this.get('/admin/chatbot/documents/stats');
+  }
+
+  /**
+   * Get all conversations with pagination and filtering
+   */
+  static async getChatbotConversations(page = 1, limit = 20, filter = 'all') {
+    const params = new URLSearchParams({ page, limit, filter });
+    return this.get(`/admin/chatbot/conversations?${params}`);
+  }
+
+  /**
+   * Get details of a specific conversation
+   */
+  static async getChatbotConversationDetails(conversationId) {
+    return this.get(`/admin/chatbot/conversations/${conversationId}`);
+  }
+
+  /**
+   * Flag or unflag a conversation
+   */
+  static async flagChatbotConversation(conversationId, flagged, reason = '') {
+    return this.request(`/admin/chatbot/conversations/${conversationId}/flag`, {
+      method: 'PATCH',
+      body: JSON.stringify({ flagged, reason })
+    });
+  }
+
+  /**
+   * Delete a conversation
+   */
+  static async deleteChatbotConversation(conversationId) {
+    return this.delete(`/admin/chatbot/conversations/${conversationId}`);
+  }
+
+  /**
+   * Get overall chatbot analytics
+   */
+  static async getChatbotAnalytics() {
+    return this.get('/admin/chatbot/analytics');
+  }
+
+  /**
+   * Get usage statistics (top users, questions per user)
+   */
+  static async getChatbotUsageStats() {
+    return this.get('/admin/chatbot/analytics/usage');
+  }
+
+  /**
+   * Get popular queries (top 20 most asked questions)
+   */
+  static async getPopularQueries() {
+    return this.get('/admin/chatbot/analytics/queries');
+  }
+
+  /**
+   * Get credit usage statistics
+   */
+  static async getCreditUsage() {
+    return this.get('/admin/chatbot/analytics/credits');
+  }
+
 }
 
 export default ApiService;

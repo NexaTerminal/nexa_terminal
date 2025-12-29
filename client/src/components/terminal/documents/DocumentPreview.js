@@ -71,7 +71,10 @@ const documentHeadlines = {
   writeOffDecision: "ОДЛУКА ЗА ОТПИС",
   dividendPaymentDecision: "ОДЛУКА ЗА ИСПЛАТА НА ДИВИДЕНДА",
   annualAccountsAdoption: "ОДЛУКА ЗА УСВОЈУВАЊЕ НА ГОДИШНАТА СМЕТКА",
+
+  // Other Business Documents
   employeeStockPurchasePlan: "ПЛАН ЗА КУПУВАЊЕ АКЦИИ ОД СТРАНА НА ВРАБОТЕНИ (ESPP)",
+  masterServicesAgreement: "РАМКОВЕН ДОГОВОР ЗА УСЛУГИ (Master Services Agreement)",
 
   // ...add more as needed
 };
@@ -1287,6 +1290,75 @@ const documentSentences = {
       {
         text: "{adjustmentsText}",
         fields: ['adjustmentsText']
+      }
+    ]
+  },
+  masterServicesAgreement: {
+    title: "РАМКОВЕН ДОГОВОР ЗА УСЛУГИ (Master Services Agreement)",
+    sentences: [
+      {
+        text: "Договорот е склучен на ден {agreementDate} година помеѓу давателот на услуга и клиентот согласно Законот за облигациони односи на РСМ.",
+        fields: ['agreementDate']
+      },
+      {
+        text: "Вашата компанија {companyName} во овој рамковен договор е {userRole} на услугите.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "Предмет на договорот се {serviceType} што вклучуваат {serviceDescription}.",
+        fields: ['serviceType', 'serviceDescription']
+      },
+      {
+        text: "Обемот на услугите е дефиниран како {serviceScope}, а конкретните проекти се дефинираат преку посебни SOW (Statement of Work) документи.",
+        fields: ['serviceScope']
+      },
+      {
+        text: "Услугите ќе се извршуваат {serviceLocation} согласно {serviceDeliveryTerms}.",
+        fields: ['serviceLocation', 'serviceDeliveryTerms']
+      },
+      {
+        text: "Стандардите за квалитет на услугите се {qualityStandards} во согласност со применливите закони и прописи.",
+        fields: ['qualityStandards']
+      },
+      {
+        text: "Плаќањето се врши {paymentTerms} преку {paymentMethod} во валута {currency}.",
+        fields: ['paymentTerms', 'paymentMethod', 'currency']
+      },
+      {
+        text: "Структурата на надоместок е дефинирана како {feeStructure} со износ од {feeAmount}.",
+        fields: ['feeStructure', 'feeAmount']
+      },
+      {
+        text: "Максималниот број на часови изнесува {hoursLimit} со стапка за прекувремена работа од {overtimeRate}.",
+        fields: ['hoursLimit', 'overtimeRate']
+      },
+      {
+        text: "Во случај на доцнење во плаќањето, клиентот плаќа законска затезна камата и давателот може да ги суспендира услугите доколку задоцнувањето е повеќе од 15 дена.",
+        fields: []
+      },
+      {
+        text: "Секоја нова интелектуална сопственост создадена во текот на извршување на услугите станува сопственост на клиентот, освен ако поинаку не е договорено во посебен SOW.",
+        fields: []
+      },
+      {
+        text: "Двете страни се согласуваат да ги чуваат како доверливи сите информации добиени од другата страна, вклучувајќи деловни планови, финансиски информации, технички податоци и маркетинг стратегии.",
+        fields: []
+      },
+      {
+        text: "Максималната одговорност на давателот на услуга не може да го надмине {liabilityLimitType} износ платен од страна на клиентот за услугите во период од 12 месеци пред настанот што предизвикал штета.",
+        fields: ['liabilityLimitType']
+      },
+      {
+        text: "Договорот е склучен на {durationType} времетраење и влегува во сила на {effectiveDateType}.",
+        fields: ['durationType', 'effectiveDateType']
+      },
+      {
+        text: "Секоја страна може да го раскине договорот со писмено известување од {terminationNoticePeriod}. Активните SOW проекти продолжуваат и по раскинување на рамковниот договор.",
+        fields: ['terminationNoticePeriod']
+      },
+      {
+        text: "Договорот се толкува и применува во согласност со Законот за облигациони односи и другите закони на Република Северна Македонија, а спорови се решаваат пред надлежен суд во Скопје.",
+        fields: []
       }
     ]
   }

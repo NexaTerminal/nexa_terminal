@@ -41,6 +41,7 @@ const dividendPaymentDecisionController = require('../controllers/autoDocuments/
 const annualAccountsAdoptionController = require('../controllers/autoDocuments/annualAccountsAdoptionController');
 const saasAgreementController = require('../controllers/autoDocuments/saasAgreementController');
 const employeeStockPurchasePlanController = require('../controllers/autoDocuments/employeeStockPurchasePlanController');
+const masterServicesAgreementController = require('../controllers/autoDocuments/masterServicesAgreementController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -160,6 +161,9 @@ router.post('/annual-accounts-adoption', authenticateJWT, requireVerifiedCompany
 // Other Business Documents
 // Employee Stock Purchase Plan (План за купување акции од страна на вработени)
 router.post('/employee-stock-purchase-plan', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), employeeStockPurchasePlanController);
+
+// Master Services Agreement (Рамковен договор за услуги)
+router.post('/master-services-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), masterServicesAgreementController);
 
 // Add more document routes here as needed
 

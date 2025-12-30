@@ -113,6 +113,57 @@ const FormField = ({
           </select>
         );
 
+      case 'select-with-text':
+        return (
+          <div className={styles['select-with-text-group']}>
+            <label className={styles['helper-label']}>Изберете пример:</label>
+            <select
+              id={`${name}_helper`}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleChange(e.target.value);
+                  e.target.value = ''; // Reset dropdown after selection
+                }
+              }}
+              disabled={disabled}
+              className={styles['helper-select']}
+            >
+              <option value="">Изберете пример...</option>
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <label className={styles['helper-label']} style={{ marginTop: '10px' }}>
+              Уредете го текстот:
+            </label>
+            <input
+              type="text"
+              id={name}
+              placeholder={placeholder || 'Внесете или изберете од горе'}
+              value={value || ''}
+              onChange={(e) => handleChange(e.target.value)}
+              className={error ? styles.error : ''}
+              disabled={disabled}
+              maxLength={maxLength}
+            />
+          </div>
+        );
+
+      case 'checkbox-with-text':
+        return (
+          <CheckboxWithText
+            name={name}
+            options={options}
+            value={value || ''}
+            onChange={handleChange}
+            disabled={disabled}
+            placeholder={placeholder}
+            rows={rows}
+          />
+        );
+
       case 'searchable-select':
         return (
           <SearchableSelect
@@ -451,6 +502,97 @@ export const TermsField = ({ value, onChange, disabled = false }) => {
           </span>
           {' '}* (задолжително)
         </label>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Checkbox with Text Component
+ * Multiple checkboxes that populate an editable textarea with combined descriptions
+ */
+const CheckboxWithText = ({ name, options, value, onChange, disabled, placeholder, rows = 6 }) => {
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [textValue, setTextValue] = useState(value || '');
+
+  // Initialize selected options from value
+  useEffect(() => {
+    if (value) {
+      // Try to match text to existing options
+      const selected = [];
+      options.forEach(option => {
+        if (value.includes(option.description || option.label)) {
+          selected.push(option.value);
+        }
+      });
+      setSelectedOptions(selected);
+      setTextValue(value);
+    }
+  }, []);
+
+  const handleCheckboxChange = (optionValue, isChecked) => {
+    let newSelected;
+    if (isChecked) {
+      newSelected = [...selectedOptions, optionValue];
+    } else {
+      newSelected = selectedOptions.filter(v => v !== optionValue);
+    }
+    setSelectedOptions(newSelected);
+
+    // Build combined text from all selected options
+    const selectedTexts = newSelected
+      .map(val => {
+        const option = options.find(opt => opt.value === val);
+        return option?.description || option?.label || '';
+      })
+      .filter(text => text.length > 0);
+
+    const combinedText = selectedTexts.join('\n\n');
+    setTextValue(combinedText);
+    onChange(combinedText);
+  };
+
+  const handleTextChange = (e) => {
+    const newText = e.target.value;
+    setTextValue(newText);
+    onChange(newText);
+  };
+
+  return (
+    <div className={styles['checkbox-with-text-group']}>
+      <div className={styles['checkbox-options']}>
+        <label className={styles['helper-label']}>Изберете опции:</label>
+        {options.map((option) => (
+          <div key={option.value} className={styles['checkbox-option']}>
+            <input
+              type="checkbox"
+              id={`${name}_${option.value}`}
+              checked={selectedOptions.includes(option.value)}
+              onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
+              disabled={disabled}
+            />
+            <label htmlFor={`${name}_${option.value}`}>
+              <strong>{option.label}</strong>
+              {option.hint && <div className={styles['option-hint']}>{option.hint}</div>}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <div className={styles['text-area-section']}>
+        <label className={styles['helper-label']}>Уредете го текстот:</label>
+        <textarea
+          id={name}
+          placeholder={placeholder || 'Изберете опции од горе или внесете сопствен текст'}
+          value={textValue}
+          onChange={handleTextChange}
+          disabled={disabled}
+          rows={rows}
+          className={styles['editable-textarea']}
+        />
+        <div className={styles['textarea-hint']}>
+          💡 Изберете една или повеќе опции од горе, или уредете го текстот директно
+        </div>
       </div>
     </div>
   );

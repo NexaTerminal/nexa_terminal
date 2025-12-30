@@ -37,9 +37,9 @@ export const rentAgreementConfig = {
     },
     {
       id: 5,
-      title: 'Дополнителни услови',
-      description: 'Банковни податоци и посебни обврски',
-      requiredFields: ['bankAccount', 'bankName']
+      title: 'Дополнителни услови и примопредавање',
+      description: 'Банковни податоци, посебни обврски и записник за примопредавање',
+      requiredFields: ['bankAccount', 'bankName', 'handoverDate']
     }
   ],
 
@@ -399,11 +399,24 @@ export const rentAgreementConfig = {
     },
     bankName: {
       name: 'bankName',
-      type: 'text',
+      type: 'select',
       label: 'Име на банка',
-      placeholder: 'пр. Комерцијална банка АД',
+      options: [
+        { value: 'Комерцијална банка АД Скопје', label: 'Комерцијална банка АД Скопје' },
+        { value: 'Стопанска банка АД Скопје', label: 'Стопанска банка АД Скопје' },
+        { value: 'НЛБ банка АД Скопје', label: 'НЛБ банка АД Скопје' },
+        { value: 'Охридска банка АД Скопје', label: 'Охридска банка АД Скопје' },
+        { value: '停банка АД Скопје', label: 'Силк роуд банка АД Скопје' },
+        { value: 'Уни банка АД Скопје', label: 'Уни банка АД Скопје' },
+        { value: 'Халк банка АД Скопје', label: 'Халк банка АД Скопје' },
+        { value: 'ТТК банка АД Скопје', label: 'ТТК банка АД Скопје' },
+        { value: 'Шпаркасе банка Македонија АД Скопје', label: 'Шпаркасе банка Македонија АД Скопје' },
+        { value: 'ПроКредит банка АД Скопје', label: 'ПроКредит банка АД Скопје' },
+        { value: 'Centralna Kooperativna Banka AD Skopje', label: 'Централна Кооперативна Банка АД Скопје' },
+        { value: 'Штедилница Банка АД Скопје', label: 'Штедилница Банка АД Скопје' }
+      ],
       required: true,
-      helpText: 'Внесете го целосното име на банката каде е отворена сметката.'
+      helpText: 'Изберете ја банката каде е отворена сметката за уплата на закупнина.'
     },
     requiresInsurance: {
       name: 'requiresInsurance',
@@ -422,6 +435,31 @@ export const rentAgreementConfig = {
       type: 'checkbox',
       label: 'Закупнината се зголемува секоја година во јануари за индексот на официјалниот индекс на потрошувачките цени',
       required: false
+    },
+
+    // Step 5: Handover Minutes
+    handoverDate: {
+      name: 'handoverDate',
+      type: 'date',
+      label: 'Датум на примопредавање',
+      required: true,
+      helpText: 'Внесете го датумот кога недвижноста е предадена на закупецот. Ова е датумот на записникот за примопредавање.'
+    },
+    propertyConditionNotes: {
+      name: 'propertyConditionNotes',
+      type: 'textarea',
+      label: 'Забелешки за состојба на недвижноста (опционално)',
+      placeholder: 'пр. Сите апарати се во исправна состојба, мебелот е во добра состојба',
+      rows: 3,
+      required: false,
+      helpText: 'Внесете забелешки за состојбата на недвижноста, мебелот или апаратите (доколку има нешто важно да се забележи).'
+    },
+    isFurnished: {
+      name: 'isFurnished',
+      type: 'checkbox',
+      label: 'Недвижноста е целосно опремена со мебел и апарати',
+      required: false,
+      helpText: 'Означете доколку недвижноста се предава опремена со мебел и апарати за домаќинство.'
     }
   },
 
@@ -460,10 +498,13 @@ export const rentAgreementConfig = {
     durationValue: '',
     endDate: '',
     bankAccount: '',
-    bankName: '',
+    bankName: 'Комерцијална банка АД Скопје',
     requiresInsurance: false,
     allowsQuarterlyInspection: false,
     hasAnnualIncrease: false,
+    handoverDate: '',
+    propertyConditionNotes: '',
+    isFurnished: false,
     acceptTerms: false
   },
 
@@ -491,6 +532,7 @@ export const rentAgreementConfig = {
     { field: 'durationType', type: VALIDATION_TYPES.REQUIRED, label: 'Времетраење на договор' },
     { field: 'bankAccount', type: VALIDATION_TYPES.REQUIRED, label: 'Број на жиро сметка' },
     { field: 'bankName', type: VALIDATION_TYPES.REQUIRED, label: 'Име на банка' },
+    { field: 'handoverDate', type: VALIDATION_TYPES.REQUIRED, label: 'Датум на примопредавање' },
 
     // PIN validations
     { field: 'otherPartyPIN', type: VALIDATION_TYPES.PIN, label: 'ЕМБГ на другата страна' },
@@ -566,7 +608,7 @@ export const getStepFields = (stepId) => {
     2: ['userRole', 'otherPartyType', 'otherPartyName', 'otherPartyAddress', 'otherPartyPIN', 'otherPartyCompanyName', 'otherPartyCompanyAddress', 'otherPartyCompanyManager', 'otherPartyCompanyTaxNumber'],
     3: ['propertyAddress', 'cadastralParcelNumber', 'cadastralMunicipality', 'propertySheetNumber', 'propertySize', 'propertyType', 'buildingNumber', 'propertyPurpose', 'entrance', 'floor', 'apartmentNumber', 'specificPurpose'],
     4: ['rentAmount', 'includesVAT', 'rentPaymentDeadline', 'requiresDeposit', 'depositAmount', 'customDepositAmount', 'durationType', 'durationValue', 'endDate'],
-    5: ['bankAccount', 'bankName', 'requiresInsurance', 'allowsQuarterlyInspection', 'hasAnnualIncrease']
+    5: ['bankAccount', 'bankName', 'requiresInsurance', 'allowsQuarterlyInspection', 'hasAnnualIncrease', 'handoverDate', 'propertyConditionNotes', 'isFurnished']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => rentAgreementConfig.fields[fieldName]) || [];

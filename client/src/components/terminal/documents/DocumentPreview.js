@@ -272,6 +272,18 @@ const documentSentences = {
       {
         text: "Посебни обврски: осигурување {requiresInsurance}, квартална инспекција {allowsQuarterlyInspection}, годишно зголемување {hasAnnualIncrease}.",
         fields: ['requiresInsurance', 'allowsQuarterlyInspection', 'hasAnnualIncrease']
+      },
+      {
+        text: "📋 ЗАПИСНИК ЗА ПРИМОПРЕДАВАЊЕ: Недвижноста е предадена на {handoverDate} со клучеви (за рачно пополнување).",
+        fields: ['handoverDate']
+      },
+      {
+        text: "Состојба на броила при примопредавање ќе се пополни рачно на денот на предавањето.",
+        fields: []
+      },
+      {
+        text: "Забелешки за состојба: {propertyConditionNotes}. Недвижноста е опремена со мебел: {isFurnished}.",
+        fields: ['propertyConditionNotes', 'isFurnished']
       }
     ]
   },
@@ -1552,7 +1564,7 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
          'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
-         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration', 'specificEffectiveDate'].includes(fieldName)) {
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration', 'specificEffectiveDate', 'handoverDate'].includes(fieldName)) {
       return formatDate(value);
     }
 
@@ -1709,6 +1721,10 @@ const renderLivePreview = ({ formData, company, documentType }) => {
     
     if (fieldName === 'hasAnnualIncrease') {
       return value === true ? 'со годишно зголемување' : value === false ? 'без годишно зголемување' : '';
+    }
+
+    if (fieldName === 'isFurnished') {
+      return value === true ? 'да, целосно опремена' : value === false ? 'не, неопремена' : '';
     }
 
     // Handle GDPR Company Politics boolean fields

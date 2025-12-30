@@ -160,6 +160,8 @@ class AdminChatbotController {
     try {
       const { documentName } = req.params;
 
+      console.log('\n🗑️ [DELETE] Delete request received for:', documentName);
+
       if (!documentName) {
         return res.status(400).json({
           success: false,
@@ -168,54 +170,77 @@ class AdminChatbotController {
       }
 
       // Log admin action
-      const analyticsService = new UserAnalyticsService(this.db);
-      analyticsService.trackActivity(req.user.id, 'admin_delete_chatbot_document', {
-        documentName
-      });
+      try {
+        const analyticsService = new UserAnalyticsService(this.db);
+        await analyticsService.trackActivity(req.user.id, 'admin_delete_chatbot_document', {
+          documentName
+        });
+        console.log('✓ [DELETE] Activity tracked');
+      } catch (analyticsError) {
+        console.warn('⚠️ [DELETE] Failed to track activity:', analyticsError.message);
+        // Continue with deletion even if analytics fails
+      }
 
       // Find all points with this document name and delete them
-      // Use "should" (OR) to match either old or new document name fields
+      // Scroll through all documents (without filter) and check manually
       let deletedCount = 0;
       let offset = null;
+      let iteration = 0;
+      const pointsToDelete = [];
+
+      console.log('🔍 [DELETE] Searching for document chunks in Qdrant...');
 
       do {
+        iteration++;
+        console.log(`  [DELETE] Iteration ${iteration}, offset:`, offset);
+
         const response = await this.qdrantClient.scroll(this.collectionName, {
           limit: 100,
           offset: offset,
           with_payload: true,
-          with_vector: false,
-          filter: {
-            should: [
-              {
-                key: 'metadata.documentName',
-                match: { value: documentName }
-              },
-              {
-                key: 'metadata.source',
-                match: { value: documentName }
-              },
-              {
-                key: 'source',
-                match: { value: documentName }
-              }
-            ]
-          }
+          with_vector: false
         });
 
-        if (response.points.length > 0) {
-          const pointIds = response.points.map(p => p.id);
+        console.log(`  [DELETE] Scanning ${response.points.length} chunks in this batch`);
 
-          await this.qdrantClient.delete(this.collectionName, {
-            points: pointIds
-          });
+        // Check each point to see if it matches the document name
+        response.points.forEach(point => {
+          const payload = point.payload;
+          const docName = payload.metadata?.documentName ||
+                         payload.metadata?.source ||
+                         payload.source ||
+                         payload.documentName ||
+                         'Unknown';
 
-          deletedCount += pointIds.length;
-        }
+          if (docName === documentName) {
+            pointsToDelete.push(point.id);
+            console.log(`    ✓ Matched: ${docName}`);
+          }
+        });
 
         offset = response.next_page_offset;
       } while (offset !== null && offset !== undefined);
 
+      console.log(`📊 [DELETE] Scan complete. Found ${pointsToDelete.length} chunks to delete`);
+
+      // Delete all matching points in batches of 100
+      if (pointsToDelete.length > 0) {
+        for (let i = 0; i < pointsToDelete.length; i += 100) {
+          const batch = pointsToDelete.slice(i, i + 100);
+
+          await this.qdrantClient.delete(this.collectionName, {
+            points: batch
+          });
+
+          deletedCount += batch.length;
+          console.log(`  [DELETE] Deleted batch of ${batch.length} chunks (total: ${deletedCount}/${pointsToDelete.length})`);
+        }
+      }
+
+      console.log(`✅ [DELETE] Deletion complete. Total chunks deleted: ${deletedCount}`);
+
       if (deletedCount === 0) {
+        console.warn(`⚠️ [DELETE] Document not found: ${documentName}`);
         return res.status(404).json({
           success: false,
           message: 'Document not found'
@@ -231,7 +256,8 @@ class AdminChatbotController {
         }
       });
     } catch (error) {
-      console.error('Error deleting document:', error);
+      console.error('❌ [DELETE] Error deleting document:', error);
+      console.error('❌ [DELETE] Error stack:', error.stack);
       return res.status(500).json({
         success: false,
         message: 'Failed to delete document',

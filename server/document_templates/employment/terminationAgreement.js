@@ -19,36 +19,38 @@ function generateTerminationAgreementDoc(formData, user, company) {
       children: [
         new Paragraph({
           children: [
-            new TextRun({ text: `Врз основа на член 62 став 1 точка 4 и член 69 од Законот за работни односи (Сл. Весник на РМ бр. 167/15 – Пречистен текст), на ден ${endDate} година, се склучи:`, bold: true })
+            new TextRun({ text: `Врз основа на член 62 став 1 точка 4 и член 69 од Законот за работни односи (Сл. Весник на РМ бр. 167/15 – Пречистен текст), на ден ${endDate} година, се склучи:`, bold: false, margin: { bottom: 100 } })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
-            new TextRun({ text: 'СПОГОДБА ЗА ПРЕСТАНОК НА РАБОТЕН ОДНОС', bold: true, margin: { top: 100 } })
+            new TextRun({ text: 'СПОГОДБА ЗА ПРЕСТАНОК НА РАБОТЕН ОДНОС', bold: true, margin: { top: 200 } })
           ],
           alignment: AlignmentType.CENTER
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: `Склучена помеѓу:`, bold: true })
+            new TextRun({ text: `помеѓу:`, bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: `1. ${companyName}, со седиште на ${companyAddress}, ЕМБС: ${companyNumber}, Република Северна Македонија (во понатамошниот текст: Работодавачот); и`, bold: true })
+            new TextRun({ text: `1. ${companyName}, со седиште на ${companyAddress}, ЕМБС: ${companyNumber}, Република Северна Македонија (во понатамошниот текст: Работодавачот); и`, bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
           children: [
-            new TextRun({ text: `2. ${employeeName}, со ЕМБГ ${employeePIN}, со адреса ${employeeAddress} (во понатамошниот текст: Работникот)`, bold: true })
+            new TextRun({ text: `2. ${employeeName}, со ЕМБГ ${employeePIN}, со адреса ${employeeAddress} (во понатамошниот текст: Работникот)`, bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 1', bold: true })
           ],
@@ -61,8 +63,9 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
-            new TextRun({ text: 'Член 2', bold: true })
+            new TextRun({ text: 'Член 2', bold: true, margin: { top: 200 } })
           ],
           alignment: AlignmentType.CENTER
         }),
@@ -73,6 +76,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 3', bold: true })
           ],
@@ -85,6 +89,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 4', bold: true })
           ],
@@ -97,18 +102,21 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 5', bold: true })
           ],
           alignment: AlignmentType.CENTER
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Работникот се обврзува сите доверливи информации и документи стекнати за време на извршувањето на задачите за време на работниот однос кај Работодавачот да не ги користи за себе или да не ги достави до трета страна.', bold: false })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 6', bold: true })
           ],
@@ -145,6 +153,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 7', bold: true })
           ],
@@ -157,6 +166,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 8', bold: true })
           ],
@@ -169,6 +179,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 9', bold: true })
           ],
@@ -181,6 +192,7 @@ function generateTerminationAgreementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         }),
         new Paragraph({
+          spacing: { before: 200 },
           children: [
             new TextRun({ text: 'Член 10', bold: true })
           ],

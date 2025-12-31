@@ -190,8 +190,15 @@ const validateMediationAgreementData = (formData) => {
 
   const isValid = missing.length === 0;
 
+  // Log missing fields for debugging
+  if (!isValid) {
+    console.log('[Mediation Agreement] Validation failed. Missing fields:', missing);
+    console.log('[Mediation Agreement] Received formData keys:', Object.keys(formData));
+  }
+
   return {
     isValid,
+    message: isValid ? 'Validation passed' : `Недостасуваат полиња: ${missing.join(', ')}`,
     warnings,
     errors,
     missing

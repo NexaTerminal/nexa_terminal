@@ -6,6 +6,7 @@
 export const VALIDATION_TYPES = {
   REQUIRED: 'required',
   CONDITIONAL: 'conditional',
+  CONDITIONAL_REQUIRED: 'conditional_required', // Required if condition is met
   ARRAY: 'array',
   EMAIL: 'email',
   NUMBER: 'number',
@@ -32,6 +33,14 @@ export const createValidator = (validationRules) => {
         case VALIDATION_TYPES.CONDITIONAL:
           const conditionMet = evaluateCondition(rule.condition, formData);
           if (conditionMet && (!value || (typeof value === 'string' && !value.trim()))) {
+            missing.push(rule.label);
+            errors[rule.field] = `${rule.label} е задолжително поле`;
+          }
+          break;
+
+        case VALIDATION_TYPES.CONDITIONAL_REQUIRED:
+          const conditionMetRequired = evaluateCondition(rule.condition, formData);
+          if (conditionMetRequired && (!value || (typeof value === 'string' && !value.trim()))) {
             missing.push(rule.label);
             errors[rule.field] = `${rule.label} е задолжително поле`;
           }

@@ -13,9 +13,11 @@ const Header = ({ isTerminal = false }) => {
   const navigate = useNavigate();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const dropdownRef = useRef(null);
   const creditModalRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Invitation form state
   const [inviteEmails, setInviteEmails] = useState({ email1: '', email2: '', email3: '' });
@@ -28,6 +30,10 @@ const Header = ({ isTerminal = false }) => {
 
   const toggleCreditModal = () => {
     setCreditModalOpen(!creditModalOpen);
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   const handleLogout = async () => {
@@ -124,7 +130,7 @@ const Header = ({ isTerminal = false }) => {
     }
   };
 
-  // Close dropdown and modal when clicking outside
+  // Close dropdown, modal, and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -132,6 +138,9 @@ const Header = ({ isTerminal = false }) => {
       }
       if (creditModalRef.current && !creditModalRef.current.contains(event.target)) {
         setCreditModalOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
       }
     };
 
@@ -144,12 +153,32 @@ const Header = ({ isTerminal = false }) => {
     };
   }, []);
 
-  // Close dropdown and modal on location change
+  // Close dropdown, modal, and mobile menu on location change
   useEffect(() => {
     setProfileDropdownOpen(false);
     setCreditModalOpen(false);
+    setMobileMenuOpen(false);
   }, [location]);
 
+
+  // Sidebar navigation items (for mobile menu)
+  const regularMenuItems = [
+    { path: '/terminal', label: 'common.dashboard', icon: '📊' },
+    { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
+    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
+    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
+    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
+    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
+    { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
+  ];
+
+  const adminMenuItems = [
+    { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️', noTranslate: true },
+    { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
+    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪', noTranslate: true },
+    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝', noTranslate: true },
+    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot', icon: '🤖', noTranslate: true },
+  ];
 
   const renderNavLinks = () => {
     return isTerminal ? (
@@ -385,7 +414,127 @@ const Header = ({ isTerminal = false }) => {
           </nav>
           {/* <LanguageSwitcher /> DISABLED FOR NOW */}
         </div>
+
+        {/* Mobile hamburger button (terminal only) */}
+        {isTerminal && (
+          <button
+            className={styles['mobile-menu-button']}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            <span className={`${styles['hamburger-icon']} ${mobileMenuOpen ? styles['hamburger-open'] : ''}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        )}
       </div>
+
+      {/* Mobile Menu Drawer (terminal only) */}
+      {isTerminal && (
+        <div
+          ref={mobileMenuRef}
+          className={`${styles['mobile-menu']} ${mobileMenuOpen ? styles['mobile-menu-open'] : ''}`}
+        >
+          <div className={styles['mobile-menu-header']}>
+            <div className={styles['mobile-user-info']}>
+              <span className={styles['mobile-user-icon']}>👤</span>
+              <span className={styles['mobile-user-name']}>
+                {currentUser?.companyInfo?.companyName || currentUser?.username || currentUser?.email}
+              </span>
+            </div>
+            {!creditsLoading && credits && (
+              <div className={styles['mobile-credit-badge']}>
+                {credits.balance}/{credits.weeklyAllocation}
+              </div>
+            )}
+          </div>
+
+          <nav className={styles['mobile-menu-nav']}>
+            {/* Regular Menu Items */}
+            {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+              disabled ? (
+                <div
+                  key={path}
+                  className={`${styles['mobile-menu-item']} ${styles['mobile-menu-item-disabled']}`}
+                >
+                  <span className={styles['mobile-menu-icon']}>{icon}</span>
+                  <span>{noTranslate ? label : t(label)}</span>
+                  {comingSoon && <span className={styles['mobile-coming-soon']}>{comingSoon}</span>}
+                </div>
+              ) : (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${styles['mobile-menu-item']} ${
+                    location.pathname === path ? styles['mobile-menu-item-active'] : ''
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className={styles['mobile-menu-icon']}>{icon}</span>
+                  <span>{noTranslate ? label : t(label)}</span>
+                </Link>
+              )
+            )}
+
+            {/* Admin Menu Items */}
+            {currentUser?.role === 'admin' && (
+              <>
+                <div className={styles['mobile-menu-divider']}>
+                  {t('dashboard.adminSection')}
+                </div>
+                {adminMenuItems.map(({ path, label, icon, noTranslate }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`${styles['mobile-menu-item']} ${
+                      location.pathname === path ? styles['mobile-menu-item-active'] : ''
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span className={styles['mobile-menu-icon']}>{icon}</span>
+                    <span>{noTranslate ? label : t(label)}</span>
+                  </Link>
+                ))}
+              </>
+            )}
+
+            {/* User Actions Divider */}
+            <div className={styles['mobile-menu-divider']}>
+              Корисник
+            </div>
+
+            {/* User Profile Links */}
+            <Link
+              to="/terminal/verification"
+              className={styles['mobile-menu-item']}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className={styles['mobile-menu-icon']}>🏢</span>
+              <span>Профил</span>
+            </Link>
+            <Link
+              to="/terminal/user"
+              className={styles['mobile-menu-item']}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className={styles['mobile-menu-icon']}>👤</span>
+              <span>Корисник</span>
+            </Link>
+            <button
+              className={styles['mobile-menu-item']}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleLogout();
+              }}
+            >
+              <span className={styles['mobile-menu-icon']}>🚪</span>
+              <span>{t('common.logout')}</span>
+            </button>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

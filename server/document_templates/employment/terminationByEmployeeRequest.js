@@ -62,12 +62,12 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
             new TextRun({ text: 'РЕШЕНИЕ', bold: true, size: 28 })
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 200, line: 276 }
+          spacing: { after: 60, line: 276 }
         }),
 
         new Paragraph({
           children: [
-            new TextRun({ text: 'За престанок на работен однос', bold: true, size: 24 })
+            new TextRun({ text: 'за престанок на работен однос', bold: true, size: 22 })
           ],
           alignment: AlignmentType.CENTER,
           spacing: { after: 400, line: 276 }
@@ -104,7 +104,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({ 
-              text: `От денот на поднесување на барањето на работникот до денот на донесување на ова Решение изминат е отказниот рок договорен со Договорот за вработување, што согласно Законот за работните односи претставува отказниот рок кој работникот е должен да го почитува.`, 
+              text: `Од денот на поднесување на барањето на работникот до денот на донесување на ова Решение изминат е отказниот рок договорен со Договорот за вработување, што согласно Законот за работните односи претставува отказниот рок кој работникот е должен да го почитува.`, 
               bold: false 
             })
           ],
@@ -147,13 +147,20 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
         // Decision date
         new Paragraph({
           children: [
-            new TextRun({ text: `${decisionDate} година.`, bold: false })
+            new TextRun({ text: `Датум: ${decisionDate} година.`, bold: false })
           ],
           alignment: AlignmentType.LEFT,
           spacing: { after: 600 }
         }),
 
         // Signature
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Работодавач:', bold: false })
+          ],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 180, line: 276 }
+        }),
         new Paragraph({
           children: [
             new TextRun({ text: "___________________________" }),
@@ -175,6 +182,26 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
           alignment: AlignmentType.RIGHT,
           spacing: { after: 300, line: 276 }
         }),
+
+      
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Примил - работник', bold: false })
+          ],
+          spacing: { after: 500 }
+        }), 
+            new Paragraph({
+          children: [
+            new TextRun({ text: '______________ ___/___/________', bold: false })
+          ],
+          spacing: { after: 100 }
+        }), 
+                 new Paragraph({
+          children: [
+            new TextRun({ text: '(име и презиме, потпис, датум)', bold: false })
+          ],
+          spacing: { after: 100 }
+        })
 
       ]
     }]

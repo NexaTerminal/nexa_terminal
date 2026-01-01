@@ -581,17 +581,17 @@ export const mediationAgreementConfig = {
     // Mediation subject
     agreementDuration: '',
     territoryScope: 'Република Северна Македонија',
-    typeOfMediation: '',
+    typeOfMediation: 'Продажба на недвижен имот',
     specificContractType: '',
     targetContractValueRange: '',
 
     // Financial terms
     commissionRate: '',
-    commissionCalculation: '',
+    commissionCalculation: 'Процент од вредноста на договорот',
     fixedCommissionAmount: '',
     minimumCommission: '',
     maximumCommission: '',
-    paymentTiming: '',
+    paymentTiming: 'По исполнување на договорот',
 
     // Cost reimbursement
     costReimbursement: false,

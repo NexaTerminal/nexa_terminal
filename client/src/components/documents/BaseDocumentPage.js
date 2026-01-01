@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../common/Header';
 import Sidebar from '../terminal/Sidebar';
@@ -49,17 +49,22 @@ const BaseDocumentPage = ({
     steps
   } = useDocumentForm(config);
 
+  // Scroll to top on component mount (fixes mobile auto-scroll issue)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   // Create preview data with fallbacks
   const previewData = React.useMemo(() => {
     const preview = { ...formData };
-    
+
     // Add fallbacks for preview
     Object.keys(preview).forEach(key => {
       if (!preview[key] || (typeof preview[key] === 'string' && !preview[key].trim())) {
         preview[key] = `[${getFallbackLabel(key)}]`;
       }
     });
-    
+
     return preview;
   }, [formData]);
 

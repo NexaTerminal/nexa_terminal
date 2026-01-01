@@ -101,59 +101,21 @@ const preprocessMediationAgreementData = (formData, user, company) => {
   return processed;
 };
 
-// Enhanced validation function for comprehensive legal compliance
+// Simplified validation function - only check absolute essentials
 const validateMediationAgreementData = (formData) => {
   const errors = {};
   const warnings = [];
   const missing = [];
 
-  // Basic validations
+  // Only check absolutely essential fields
   if (!formData.agreementDate) missing.push('agreementDate');
   if (!formData.userRole) missing.push('userRole');
-  if (!formData.agreementDuration) missing.push('agreementDuration');
-  if (!formData.territoryScope) missing.push('territoryScope');
 
-  // Role-specific validations
-  if (formData.userRole === 'client') {
-    if (!formData.clientType) missing.push('clientType');
-    if (!formData.mediatorCompanyName) missing.push('mediatorCompanyName');
-    if (!formData.mediatorCompanyAddress) missing.push('mediatorCompanyAddress');
-    if (!formData.mediatorCompanyTaxNumber) missing.push('mediatorCompanyTaxNumber');
-    if (!formData.mediatorCompanyManager) missing.push('mediatorCompanyManager');
-    if (!formData.mediatorCompanyPhone) missing.push('mediatorCompanyPhone');
-    if (!formData.mediatorCompanyEmail) missing.push('mediatorCompanyEmail');
-  } else if (formData.userRole === 'mediator') {
-    if (!formData.clientTypeForMediator) missing.push('clientTypeForMediator');
-
-    if (formData.clientTypeForMediator === 'natural') {
-      if (!formData.naturalClientName) missing.push('naturalClientName');
-      if (!formData.naturalClientAddress) missing.push('naturalClientAddress');
-      if (!formData.naturalClientPin) missing.push('naturalClientPin');
-      if (!formData.naturalClientPhone) missing.push('naturalClientPhone');
-      if (!formData.naturalClientEmail) missing.push('naturalClientEmail');
-
-      // PIN validation
-      if (formData.naturalClientPin && !/^\d{13}$/.test(formData.naturalClientPin)) {
-        warnings.push('ЕМБГ мора да содржи точно 13 цифри');
-      }
-    } else if (formData.clientTypeForMediator === 'legal') {
-      if (!formData.legalClientName) missing.push('legalClientName');
-      if (!formData.legalClientAddress) missing.push('legalClientAddress');
-      if (!formData.legalClientTaxNumber) missing.push('legalClientTaxNumber');
-      if (!formData.legalClientManager) missing.push('legalClientManager');
-      if (!formData.legalClientPhone) missing.push('legalClientPhone');
-      if (!formData.legalClientEmail) missing.push('legalClientEmail');
-    }
+  // Optional warnings for quality (won't prevent generation)
+  if (formData.naturalClientPin && !/^\d{13}$/.test(formData.naturalClientPin)) {
+    warnings.push('ЕМБГ мора да содржи точно 13 цифри');
   }
 
-  // Service and financial terms validations
-  if (!formData.typeOfMediation) missing.push('typeOfMediation');
-  if (!formData.specificContractType) missing.push('specificContractType');
-  if (!formData.commissionRate) missing.push('commissionRate');
-  if (!formData.commissionCalculation) missing.push('commissionCalculation');
-  if (!formData.paymentTiming) missing.push('paymentTiming');
-
-  // Commission rate validation
   if (formData.commissionRate) {
     const rate = parseFloat(formData.commissionRate);
     if (isNaN(rate) || rate < 0.1 || rate > 50) {
@@ -161,17 +123,7 @@ const validateMediationAgreementData = (formData) => {
     }
   }
 
-  // Fixed commission validation when required
-  if (formData.commissionCalculation === 'Фиксен износ' && !formData.fixedCommissionAmount) {
-    missing.push('fixedCommissionAmount');
-  }
-
-  // Legal terms validations
-  if (!formData.confidentialityPeriod) missing.push('confidentialityPeriod');
-  if (!formData.earlyTerminationNoticePeriod) missing.push('earlyTerminationNoticePeriod');
-  if (!formData.disputeResolution) missing.push('disputeResolution');
-
-  // Email validations
+  // Email format warnings (won't prevent generation)
   const emailFields = ['mediatorCompanyEmail', 'naturalClientEmail', 'legalClientEmail'];
   emailFields.forEach(field => {
     if (formData[field] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData[field])) {
@@ -179,26 +131,21 @@ const validateMediationAgreementData = (formData) => {
     }
   });
 
-  // Legal compliance warnings
-  if (!formData.mediatorDiaryRequired) {
-    warnings.push('Дневникот на посредување е законски задолжителен според член 877 од ЗОО');
-  }
-
-  if (formData.dualRepresentationAllowed && formData.exclusiveMediation) {
-    warnings.push('Двојното застапување и ексклузивното посредување се контрадикторни');
-  }
-
   const isValid = missing.length === 0;
 
-  // Log missing fields for debugging
+  // Log for debugging
   if (!isValid) {
     console.log('[Mediation Agreement] Validation failed. Missing fields:', missing);
     console.log('[Mediation Agreement] Received formData keys:', Object.keys(formData));
   }
 
+  if (warnings.length > 0) {
+    console.log('[Mediation Agreement] Warnings:', warnings);
+  }
+
   return {
     isValid,
-    message: isValid ? 'Validation passed' : `Недостасуваат полиња: ${missing.join(', ')}`,
+    message: isValid ? 'Validation passed' : `Недостасуваат задолжителни полиња: ${missing.join(', ')}`,
     warnings,
     errors,
     missing

@@ -13,6 +13,7 @@ const BlogDetail = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [blog, setBlog] = useState(null);
+  const [suggestedBlogs, setSuggestedBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -272,7 +273,9 @@ const BlogDetail = () => {
                 {/* Excerpt Section */}
                 {blog.excerpt && (
                   <div className={styles.excerptSection}>
-                    <p className={styles.excerpt}>{blog.excerpt}</p>
+                    {blog.excerpt.split('\n').filter(para => para.trim()).map((paragraph, index) => (
+                      <p key={index} className={styles.excerpt}>{paragraph.trim()}</p>
+                    ))}
                   </div>
                 )}
 

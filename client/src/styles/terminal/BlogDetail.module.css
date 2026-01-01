@@ -170,12 +170,21 @@
 }
 
 .excerpt {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   line-height: 1.8;
-  color: #4b5563;
+  color: #2d3748;
   font-weight: 400;
-  margin: 0;
-  font-style: italic;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: 0.025em;
+  margin: 0 0 24px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: left;
+  word-spacing: 0.05em;
+}
+
+.excerpt:last-child {
+  margin-bottom: 0;
 }
 
 .blogAuthor {
@@ -390,7 +399,7 @@
     font-size: 2.5rem;
   }
   .excerpt {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
   }
 }
 
@@ -420,7 +429,7 @@
     font-size: 2rem;
   }
   .excerpt {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
   }
 }
 
@@ -469,8 +478,12 @@
     padding-bottom: 24px;
   }
   .excerpt {
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  .excerpt:last-child {
+    margin-bottom: 0;
   }
 }
 
@@ -540,7 +553,11 @@
     padding-bottom: 20px;
   }
   .excerpt {
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .excerpt:last-child {
+    margin-bottom: 0;
   }
 } 

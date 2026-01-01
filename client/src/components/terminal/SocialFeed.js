@@ -178,12 +178,6 @@ const BlogCard = ({ blog, formatDate }) => {
                 ))}
               </div>
             )}
-
-
-            {/* Read More Indicator */}
-            <div className={styles.blogReadMore}>
-              <span>Прочитај повеќе →</span>
-            </div>
           </div>
         </div>
       </a>

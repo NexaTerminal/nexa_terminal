@@ -36,6 +36,45 @@ const BlogDetail = () => {
     }
   }, [id, token]);
 
+  // Fetch suggested blogs based on category
+  useEffect(() => {
+    const fetchSuggestedBlogs = async () => {
+      if (!blog) return;
+
+      try {
+        console.log('🔍 Fetching suggested blogs for category:', blog.category);
+
+        // Fetch all blogs and filter by same category (case-insensitive), excluding current blog
+        const allBlogs = await ApiService.request('/blogs');
+        console.log('📚 Total blogs fetched:', allBlogs.length);
+
+        const currentCategory = blog.category?.toUpperCase() || '';
+        const related = allBlogs
+          .filter(b => {
+            const blogCategory = b.category?.toUpperCase() || '';
+            const isNotCurrent = b._id !== blog._id;
+            const isSameCategory = blogCategory === currentCategory;
+
+            if (isNotCurrent && isSameCategory) {
+              console.log('✅ Match found:', b.title.substring(0, 50));
+            }
+
+            return isNotCurrent && isSameCategory;
+          })
+          .sort(() => 0.5 - Math.random()) // Randomize
+          .slice(0, 3); // Get 3 suggested blogs
+
+        console.log('🎯 Related blogs found:', related.length);
+        setSuggestedBlogs(related);
+      } catch (error) {
+        console.error('❌ Error fetching suggested blogs:', error);
+        setSuggestedBlogs([]);
+      }
+    };
+
+    fetchSuggestedBlogs();
+  }, [blog]);
+
   const translateCategory = (category) => {
     const categoryTranslations = {
       // Legal & Compliance
@@ -286,12 +325,70 @@ const BlogDetail = () => {
                     className={styles.content}
                   />
                 </div>
+
+                {/* Suggested Blogs Section */}
+                {suggestedBlogs.length > 0 && (
+                  <div className={styles.suggestedSection}>
+                    <h2 className={styles.suggestedTitle}>Слични теми</h2>
+                    <div className={styles.suggestedGrid}>
+                      {suggestedBlogs.map((suggestedBlog) => (
+                        <SuggestedBlogCard
+                          key={suggestedBlog._id}
+                          blog={suggestedBlog}
+                          navigate={navigate}
+                          translateCategory={translateCategory}
+                          formatDate={formatDate}
+                          getImageUrl={getImageUrl}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
             </article>
           </div>
         </main>
         <RightSidebar />
+      </div>
+    </div>
+  );
+};
+
+// Suggested Blog Card Component
+const SuggestedBlogCard = ({ blog, navigate, translateCategory, formatDate, getImageUrl }) => {
+  const handleClick = () => {
+    navigate(`/terminal/blogs/${blog._id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className={styles.suggestedCard} onClick={handleClick}>
+      {blog.featuredImage && (
+        <div className={styles.suggestedImageWrapper}>
+          <img
+            src={getImageUrl(blog)}
+            alt={blog.title}
+            className={styles.suggestedImage}
+          />
+          <div className={styles.suggestedOverlay}></div>
+        </div>
+      )}
+      <div className={styles.suggestedContent}>
+        <div className={styles.suggestedMeta}>
+          <span className={styles.suggestedCategory}>
+            {translateCategory(blog.category)}
+          </span>
+        </div>
+        <h3 className={styles.suggestedCardTitle}>{blog.title}</h3>
+        {blog.excerpt && (
+          <p className={styles.suggestedExcerpt}>
+            {blog.excerpt.length > 100
+              ? `${blog.excerpt.substring(0, 100)}...`
+              : blog.excerpt}
+          </p>
+        )}
+        <span className={styles.suggestedReadMore}>Прочитај повеќе →</span>
       </div>
     </div>
   );

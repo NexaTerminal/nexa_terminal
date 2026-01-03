@@ -12,9 +12,8 @@ function generatePersonalDataRulebookDoc(formData, user, company) {
   const effectiveDate = formData.effectiveDate ? moment(formData.effectiveDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const productNameProtected = formData.productNameProtected || '[назив на производ/услуга]';
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         // Document header
         new Paragraph({
           children: [
@@ -870,10 +869,11 @@ function generatePersonalDataRulebookDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+  }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generatePersonalDataRulebookDoc;

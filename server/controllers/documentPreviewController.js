@@ -47,6 +47,28 @@ class DocumentPreviewController {
 
     // Obligations
     this.registerTemplate('vehicleSalePurchaseAgreement', require('../document_templates/obligations/vehicleSalePurchaseAgreement'));
+
+    // Accounting
+    this.registerTemplate('annualAccountsAdoption', require('../document_templates/accounting/annualAccountsAdoption'));
+    this.registerTemplate('cashRegisterMaximumDecision', require('../document_templates/accounting/cashRegisterMaximumDecision'));
+    this.registerTemplate('dividendPaymentDecision', require('../document_templates/accounting/dividendPaymentDecision'));
+    this.registerTemplate('invoiceSigningAuthorization', require('../document_templates/accounting/invoiceSigningAuthorization'));
+    this.registerTemplate('writeOffDecision', require('../document_templates/accounting/writeOffDecision'));
+
+    // Personal Data Protection
+    this.registerTemplate('consentForPersonalDataProcessing', require('../document_templates/personalDataProtection/consentForPersonalDataProcessing'));
+    this.registerTemplate('gdprCompanyPolitics', require('../document_templates/personalDataProtection/gdprCompanyPolitics'));
+    this.registerTemplate('politicsForDataProtection', require('../document_templates/personalDataProtection/politicsForDataProtection'));
+    this.registerTemplate('procedureForEstimation', require('../document_templates/personalDataProtection/procedureForEstimation'));
+
+    // Rulebooks
+    const personalDataRulebookTemplate = require('../document_templates/rulebooks/personalDataRulebook');
+    this.registerTemplate('personalDataRulebook', personalDataRulebookTemplate);
+    this.registerTemplate('businessSecretRulebook', personalDataRulebookTemplate); // Same template, different name in client config
+
+    // Other
+    this.registerTemplate('employeeStockPurchasePlan', require('../document_templates/other/employeeStockPurchasePlan'));
+    this.registerTemplate('masterServicesAgreement', require('../document_templates/other/masterServicesAgreement'));
   }
 
   /**

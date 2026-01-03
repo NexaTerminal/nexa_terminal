@@ -346,7 +346,11 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
         <span className={styles['preview-icon']}>👁️</span>
         <h4 className={styles['preview-title']}>Преглед на податоци</h4>
       </div>
+            <p className={styles['preview-description']}>
+        Споделете го линкот за преглед на внесените податоци или отворете го во нов прозорец.
+      </p>
       <div className={styles['preview-content']}>
+        
         <input
           type="text"
           value={previewUrl}
@@ -367,9 +371,6 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
           Отвори
         </button>
       </div>
-      <p className={styles['preview-description']}>
-        Споделете го линкот за преглед на внесените податоци или отворете го во нов прозорец.
-      </p>
     </div>
   );
 };

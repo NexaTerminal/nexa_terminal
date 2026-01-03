@@ -7,6 +7,8 @@ import Login from './pages/website/Login';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
 import ProviderResponse from './pages/public/ProviderResponse';
+import SharedDocument from './pages/public/SharedDocument';
+import DocumentPreviewPage from './pages/public/DocumentPreviewPage';
 import Blog from './pages/website/Blog';
 import BlogPost from './pages/website/BlogPost';
 import TopicsPage from './pages/website/TopicsPage';
@@ -152,6 +154,12 @@ function App() {
 
       {/* Provider Response - Public (no auth required) */}
       <Route path="/provider-response/:token" element={<ProviderResponse />} />
+
+      {/* Shared Document Viewer - Public (no auth required) */}
+      <Route path="/shared/:shareToken" element={<SharedDocument />} />
+
+      {/* Document Preview - Public (no auth required) */}
+      <Route path="/preview/:documentType" element={<DocumentPreviewPage />} />
 
       {/* Private Terminal Routes */}
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

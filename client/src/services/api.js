@@ -263,6 +263,81 @@ class ApiService {
     }
   }
 
+  // ==================== PUBLIC SHARED DOCUMENTS METHODS ====================
+  // These methods do NOT require authentication and are accessible to third parties
+
+  /**
+   * Get shared document metadata (PUBLIC - no authentication required)
+   * @param {string} shareToken - The share token from the URL
+   */
+  static async getSharedDocument(shareToken) {
+    const response = await fetch(`${API_BASE_URL}/shared-documents/${shareToken}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to fetch document' }));
+      throw new Error(error.message || 'Failed to fetch document');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Download shared document (PUBLIC - no authentication required)
+   * @param {string} shareToken - The share token from the URL
+   */
+  static async downloadSharedDocument(shareToken) {
+    window.location.href = `${API_BASE_URL}/shared-documents/${shareToken}/download`;
+  }
+
+  /**
+   * Confirm shared document (PUBLIC - no authentication required)
+   * @param {string} shareToken - The share token from the URL
+   * @param {string} confirmedBy - Name or email of the person confirming
+   */
+  static async confirmSharedDocument(shareToken, confirmedBy) {
+    const response = await fetch(`${API_BASE_URL}/shared-documents/${shareToken}/confirm`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ confirmedBy })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to confirm document' }));
+      throw new Error(error.message || 'Failed to confirm document');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Add comment to shared document (PUBLIC - no authentication required)
+   * @param {string} shareToken - The share token from the URL
+   * @param {object} commentData - Comment data with name, email (optional), and comment
+   */
+  static async addCommentToSharedDocument(shareToken, { name, email, comment }) {
+    const response = await fetch(`${API_BASE_URL}/shared-documents/${shareToken}/comment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, email, comment })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to add comment' }));
+      throw new Error(error.message || 'Failed to add comment');
+    }
+
+    return response.json();
+  }
+
   // ==================== CHATBOT ADMIN METHODS ====================
 
   /**

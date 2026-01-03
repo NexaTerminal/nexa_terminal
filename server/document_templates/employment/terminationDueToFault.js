@@ -70,8 +70,7 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
   }
 
   // Create the document
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
          // Legal basis introduction with proper Macedonian format
         new Paragraph({
@@ -324,10 +323,11 @@ function generateTerminationDueToFaultDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationDueToFaultDoc;

@@ -529,13 +529,13 @@ function generateEmploymentAnnexDoc(formData, user, company) {
     })
   );
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: children
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateEmploymentAnnexDoc;

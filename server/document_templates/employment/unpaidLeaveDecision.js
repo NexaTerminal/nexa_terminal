@@ -21,9 +21,8 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
 
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         new Paragraph({
           children: [
             new TextRun({
@@ -167,10 +166,11 @@ function generateUnpaidLeaveDecisionDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateUnpaidLeaveDecisionDoc;

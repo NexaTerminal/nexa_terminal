@@ -13,9 +13,8 @@ function generateAnnualLeaveDecisionDoc(formData, user, company) {
   const annualLeaveEnd = formData.annualLeaveEnd ? moment(formData.annualLeaveEnd).format('DD.MM.YYYY') : '[Крај на одмор]';
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         new Paragraph({
           children: [
             new TextRun({ text: `Врз основа на член 137, член 138 став 1 и член 139 од Законот за работните односи (Службен Весник на РМ бр. 167/2016 – Пречистен текст; 27/2016 и 135/2016) Работодавачот ${companyName}, со седиште на ул. ${companyAddress}, со ЕМБС ${companyNumber}, претсавувано од Управител ${companyManager}, на ден ${currentDate} година, го донесе следното:`, bold: false })
@@ -244,9 +243,11 @@ function generateAnnualLeaveDecisionDoc(formData, user, company) {
           alignment: AlignmentType.RIGHT
         })
       ]
-    }]
-  });
-  return { doc };
+    }];
+
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateAnnualLeaveDecisionDoc; 

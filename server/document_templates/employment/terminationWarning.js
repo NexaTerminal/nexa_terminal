@@ -28,8 +28,7 @@ function generateTerminationWarningDoc(formData, user, company) {
   
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Header section with company information
         // new Paragraph({
@@ -299,10 +298,11 @@ function generateTerminationWarningDoc(formData, user, company) {
           indent: { left: 200, right: 200 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationWarningDoc;

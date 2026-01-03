@@ -97,6 +97,10 @@ app.use('/api/provider-response', require('./routes/providerResponse'));
 // Mount public blog routes BEFORE CSRF middleware (public API for SEO)
 app.use('/api/blog', require('./routes/blog'));
 
+// Mount shared documents routes BEFORE CSRF middleware (public + authenticated API)
+// Route registration is deferred until after controller initialization
+// See registerRoutes() function for actual mounting
+
 // CSRF Protection setup (conditional)
 if (settings.isMiddlewareEnabled('csrf') && setCSRFToken) {
   app.use(setCSRFToken); // Set CSRF tokens for all requests
@@ -297,6 +301,22 @@ async function initializeServices(database) {
 
     // Create referral service instance
     const referralService = new ReferralService(database, userService, creditService);
+
+    // Initialize Shared Documents Service
+    console.log('📄 Initializing Shared Documents Service...');
+    const SharedDocumentsController = require('./controllers/sharedDocumentsController');
+    const sharedDocumentsController = new SharedDocumentsController(database);
+    await sharedDocumentsController.createIndexes(); // Create MongoDB indexes
+    app.locals.sharedDocumentsController = sharedDocumentsController;
+    console.log('✅ Shared Documents Service initialized');
+
+    // Initialize Document Preview Service
+    console.log('👁️  Initializing Document Preview Service...');
+    const DocumentPreviewController = require('./controllers/documentPreviewController');
+    const documentPreviewController = new DocumentPreviewController();
+    app.locals.documentPreviewController = documentPreviewController;
+    console.log('✅ Document Preview Service initialized');
+
     app.locals.referralService = referralService;
 
     // Create and start credit scheduler
@@ -402,8 +422,16 @@ function registerRoutes() {
     /^\/credits\/.*$/,                     // All credit sub-routes (JWT protected)
     '/referrals',                          // Referral system endpoints (JWT protected)
     /^\/referrals\/.*$/,                   // All referral sub-routes (JWT protected)
+    '/shared-documents/create',            // Create shareable link (JWT protected)
+    '/shared-documents/my-documents',      // List user's shared documents (JWT protected)
+    /^\/shared-documents\/[^\/]+\/revoke$/, // Revoke link (JWT protected)
+    /^\/shared-documents\/[^\/]+$/,        // Get shared document metadata (PUBLIC)
+    /^\/shared-documents\/[^\/]+\/download$/, // Download shared document (PUBLIC)
+    /^\/shared-documents\/[^\/]+\/confirm$/,  // Confirm document (PUBLIC)
+    /^\/shared-documents\/[^\/]+\/comment$/,  // Add comment (PUBLIC)
+    /^\/document-preview\/[^\/]+$/,           // Generate document preview (PUBLIC)
   ];
-  
+
   // Apply CSRF exemptions only if CSRF is enabled
   if (settings.isMiddlewareEnabled('csrf') && exemptCSRF) {
     app.use('/api/', exemptCSRF(csrfExemptRoutes));
@@ -479,6 +507,26 @@ function registerRoutes() {
     console.log('✅ Credit and Referral routes loaded successfully');
   } catch (error) {
     console.error('❌ Credit routes error:', error.message);
+  }
+
+  // Shared Documents routes (always enabled)
+  try {
+    const initializeSharedDocumentsRoutes = require('./routes/sharedDocuments');
+    const sharedDocumentsRouter = initializeSharedDocumentsRoutes(app.locals.sharedDocumentsController);
+    app.use('/api/shared-documents', sharedDocumentsRouter);
+    console.log('✅ Shared Documents routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Shared Documents routes error:', error.message);
+  }
+
+  // Document Preview routes (public - always enabled)
+  try {
+    const initializeDocumentPreviewRoutes = require('./routes/documentPreview');
+    const documentPreviewRouter = initializeDocumentPreviewRoutes(app.locals.documentPreviewController);
+    app.use('/api/document-preview', documentPreviewRouter);
+    console.log('✅ Document Preview routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Document Preview routes error:', error.message);
   }
 
   // Conditional feature routes (disabled by default in current settings)

@@ -13,8 +13,7 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : '[Датум на одлука]';
   const agreementDate = formData?.agreementDate ? moment(formData.agreementDate).format('DD.MM.YYYY') : '[Датум на договор]';
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Header paragraph with legal basis
         new Paragraph({
@@ -153,10 +152,11 @@ function generateTerminationDecisionDueToDurationDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
-  
-  return { doc };
+    }];
+
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationDecisionDueToDurationDoc;

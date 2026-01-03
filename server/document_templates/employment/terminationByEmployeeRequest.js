@@ -26,8 +26,7 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
   const employmentEndDate = employmentEndDateObj.format('DD.MM.YYYY');
   const decisionDate = decisionDateObj.format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Legal basis and opening statement
         new Paragraph({
@@ -204,10 +203,11 @@ function generateTerminationByEmployeeRequestDoc(formData, user, company) {
         })
 
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationByEmployeeRequestDoc;

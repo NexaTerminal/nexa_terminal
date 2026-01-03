@@ -26,8 +26,7 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
   
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Legal basis paragraph
         new Paragraph({
@@ -216,10 +215,11 @@ function generateTerminationDueToAgeLimitDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationDueToAgeLimitDoc;

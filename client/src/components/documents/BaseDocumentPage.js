@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../common/Header';
 import Sidebar from '../terminal/Sidebar';
 import ProfileReminderBanner from '../terminal/ProfileReminderBanner';
 import DocumentPreview from '../terminal/documents/DocumentPreview';
 import FormField, { TermsField } from '../forms/FormField';
+import DocumentSuccessModal from './DocumentSuccessModal';
 import { useDocumentForm } from '../../hooks/useDocumentForm';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
 
@@ -30,21 +31,24 @@ const BaseDocumentPage = ({
     showMissingFieldsModal,
     missingFields,
     currentStepData,
+    shareData,
+    showSuccessModal,
 
     // Computed values
     isLastStep,
     isFirstStep,
-    
+
     // Actions
     handleInputChange,
     nextStep,
     prevStep,
     handleSubmit,
     forceGeneration,
-    
+    closeSuccessModal,
+
     // Modal controls
     setShowMissingFieldsModal,
-    
+
     // Steps configuration
     steps
   } = useDocumentForm(config);
@@ -110,11 +114,18 @@ const BaseDocumentPage = ({
 
               {/* Terms and Conditions - Only show on last step */}
               {isLastStep && (
-                <TermsField
-                  value={formData.acceptTerms}
-                  onChange={handleInputChange}
-                  disabled={isGenerating}
-                />
+                <>
+                  <TermsField
+                    value={formData.acceptTerms}
+                    onChange={handleInputChange}
+                    disabled={isGenerating}
+                  />
+
+                  {/* Live Preview Link - Only visible when terms are accepted */}
+                  {formData.acceptTerms && (
+                    <LivePreviewLink formData={formData} documentType={config.documentType} currentUser={currentUser} />
+                  )}
+                </>
               )}
 
               {/* Form Actions */}
@@ -126,6 +137,11 @@ const BaseDocumentPage = ({
                 onNextStep={nextStep}
                 onSubmit={handleSubmit}
               />
+
+              {/* Shareable Link Section - Shows after document is generated */}
+              {shareData && shareData.shareUrl && (
+                <ShareableLinkSection shareUrl={shareData.shareUrl} />
+              )}
             </div>
 
             {/* Preview Section */}
@@ -154,6 +170,21 @@ const BaseDocumentPage = ({
         isGenerating={isGenerating}
         onCancel={() => setShowMissingFieldsModal(false)}
         onConfirm={forceGeneration}
+      />
+
+      {/* Success Modal with Shareable Link */}
+      <DocumentSuccessModal
+        isOpen={showSuccessModal}
+        shareUrl={shareData?.shareUrl}
+        fileName={shareData?.fileName}
+        expiresAt={shareData?.expiresAt}
+        onClose={closeSuccessModal}
+        onDownloadAgain={() => {
+          if (shareData?.shareUrl) {
+            // Trigger download again using the shared document endpoint
+            window.location.href = shareData.shareUrl.replace('/shared/', '/api/shared-documents/') + '/download';
+          }
+        }}
       />
     </div>
   );
@@ -247,6 +278,156 @@ const FormActions = ({
     </div>
   </div>
 );
+
+/**
+ * Live Preview Link Component
+ * Always visible - allows users to preview/share form data before generating
+ */
+const LivePreviewLink = ({ formData, documentType, currentUser }) => {
+  const [copied, setCopied] = useState(false);
+
+  // Generate preview URL with encoded form data + user company info
+  const generatePreviewUrl = () => {
+    const baseUrl = window.location.origin;
+
+    // Merge formData with company info from authenticated user
+    const dataWithCompanyInfo = {
+      ...formData,
+      // Add company info for preview (if user is authenticated)
+      companyName: currentUser?.companyInfo?.companyName,
+      companyAddress: currentUser?.companyInfo?.address,
+      companyTaxNumber: currentUser?.companyInfo?.taxNumber,
+      companyRepresentative: currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role,
+      companyManager: currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role
+    };
+
+    // Debug logging
+    console.log('[LivePreviewLink] Company data being encoded:', {
+      companyName: dataWithCompanyInfo.companyName,
+      companyAddress: dataWithCompanyInfo.companyAddress,
+      companyManager: dataWithCompanyInfo.companyManager,
+      hasCurrentUser: !!currentUser,
+      hasCompanyInfo: !!currentUser?.companyInfo
+    });
+
+    const encodedData = btoa(encodeURIComponent(JSON.stringify(dataWithCompanyInfo)));
+    return `${baseUrl}/preview/${documentType}?data=${encodedData}`;
+  };
+
+  const previewUrl = generatePreviewUrl();
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(previewUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = previewUrl;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    }
+  };
+
+  const openPreview = () => {
+    window.open(previewUrl, '_blank');
+  };
+
+  return (
+    <div className={styles['live-preview-section']}>
+      <div className={styles['preview-header']}>
+        <span className={styles['preview-icon']}>👁️</span>
+        <h4 className={styles['preview-title']}>Преглед на податоци</h4>
+      </div>
+      <div className={styles['preview-content']}>
+        <input
+          type="text"
+          value={previewUrl}
+          readOnly
+          className={styles['preview-input']}
+          onClick={(e) => e.target.select()}
+        />
+        <button
+          onClick={copyToClipboard}
+          className={`${styles['copy-preview-btn']} ${copied ? styles['copied'] : ''}`}
+        >
+          {copied ? '✓ Копирано' : 'Копирај'}
+        </button>
+        <button
+          onClick={openPreview}
+          className={styles['open-preview-btn']}
+        >
+          Отвори
+        </button>
+      </div>
+      <p className={styles['preview-description']}>
+        Споделете го линкот за преглед на внесените податоци или отворете го во нов прозорец.
+      </p>
+    </div>
+  );
+};
+
+/**
+ * Shareable Link Section Component
+ * Displays the shareable link with copy button after document generation
+ */
+const ShareableLinkSection = ({ shareUrl }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = shareUrl;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    }
+  };
+
+  return (
+    <div className={styles['shareable-link-section']}>
+      <div className={styles['shareable-link-header']}>
+        <span className={styles['link-icon']}>🔗</span>
+        <h4 className={styles['link-title']}>Линк за споделување</h4>
+      </div>
+      <div className={styles['shareable-link-content']}>
+        <input
+          type="text"
+          value={shareUrl}
+          readOnly
+          className={styles['link-input']}
+          onClick={(e) => e.target.select()}
+        />
+        <button
+          onClick={copyToClipboard}
+          className={`${styles['copy-link-btn']} ${copied ? styles['copied'] : ''}`}
+        >
+          {copied ? '✓ Копирано' : 'Копирај'}
+        </button>
+      </div>
+      <p className={styles['link-description']}>
+        Споделете го овој линк со други лица за да можат да го прегледаат, симнат и коментираат документот.
+      </p>
+    </div>
+  );
+};
 
 /**
  * Missing Fields Modal Component

@@ -24,8 +24,7 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
     moment(formData.decisionDate).format('DD.MM.YYYY') :
     moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Legal basis header
         new Paragraph({
@@ -152,10 +151,11 @@ function generateAnnualLeaveBonusDecisionDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateAnnualLeaveBonusDecisionDoc;

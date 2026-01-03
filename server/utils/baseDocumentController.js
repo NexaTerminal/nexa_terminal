@@ -1,8 +1,21 @@
 const { Packer } = require('docx');
+const { v4: uuidv4 } = require('uuid');
+const { ObjectId } = require('mongodb');
+const DocumentStorageService = require('../services/documentStorageService');
 
 /**
  * Base Document Controller Factory
  * Creates reusable document controllers with common error handling, validation, and response logic
+ *
+ * AUTOMATIC SHAREABLE LINK CREATION:
+ * Every generated document automatically gets a shareable link that:
+ * - Expires in 7 days
+ * - Allows third parties to view, download, confirm, and comment
+ * - Can be revoked by the document owner
+ *
+ * The shareable link is returned in response headers:
+ * - X-Share-Token: The unique share token
+ * - X-Share-URL: The full shareable URL
  */
 const createDocumentController = (config) => {
   const { 
@@ -117,7 +130,65 @@ const createDocumentController = (config) => {
 
       // Generate filename
       const filename = generateFilename(documentName, processedData);
-      
+
+      // ===== AUTOMATIC SHAREABLE LINK CREATION =====
+      // Create a shareable link for this document that third parties can access
+      try {
+        const db = req.app.locals.db;
+
+        if (db) {
+          // Generate unique share token
+          const shareToken = uuidv4();
+
+          // Initialize document storage service
+          const documentStorageService = new DocumentStorageService(db);
+
+          // Store document in GridFS
+          const fileId = await documentStorageService.storeDocument(buffer, {
+            fileName: filename,
+            userId: user._id,
+            documentType: documentName,
+            shareToken
+          });
+
+          // Create shared document record in MongoDB
+          await db.collection('shared_documents').insertOne({
+            shareToken,
+            userId: new ObjectId(user._id),
+            documentType: documentName,
+            fileName: filename,
+            fileId,
+            formData: processedData,
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+            isRevoked: false,
+            viewCount: 0,
+            downloadCount: 0,
+            isConfirmed: false,
+            confirmedAt: null,
+            confirmedBy: null,
+            comments: []
+          });
+
+          // Build shareable URL
+          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+          const shareUrl = `${frontendUrl}/shared/${shareToken}`;
+
+          // Add shareable link info to response headers
+          res.setHeader('X-Share-Token', shareToken);
+          res.setHeader('X-Share-URL', shareUrl);
+
+          console.log(`[${documentName}] ✅ Shareable link created: ${shareUrl}`);
+        } else {
+          console.log(`[${documentName}] ⚠️  Database not available - skipping shareable link creation`);
+        }
+      } catch (shareError) {
+        // Log error but don't fail the document generation
+        console.error(`[${documentName}] ⚠️  Error creating shareable link:`, shareError.message);
+        // Continue with document download even if share link creation fails
+      }
+      // ===== END SHAREABLE LINK CREATION =====
+
       // Set response headers for file download
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
       res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
@@ -125,7 +196,7 @@ const createDocumentController = (config) => {
 
       // Log success
       console.log(`[${documentName}] Document generated successfully. Size: ${buffer.length} bytes`);
-      
+
       // Send the file
       res.send(buffer);
 

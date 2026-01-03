@@ -987,6 +987,243 @@
   border-radius: 0 0 8px 8px;
 }
 
+/* ========================================
+   LIVE PREVIEW LINK SECTION (Always visible)
+   ======================================== */
+
+.live-preview-section {
+  margin-bottom: 1rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.preview-header {
+  display: none;
+}
+
+.preview-icon {
+  display: none;
+}
+
+.preview-title {
+  display: none;
+}
+
+.preview-content {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.preview-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-neutral-300, #D4D4D4);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--color-neutral-600, #525252);
+  background: var(--color-neutral-50, #FAFAFA);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preview-input:hover {
+  border-color: var(--color-neutral-400, #A3A3A3);
+  background: var(--color-neutral-100, #F5F5F5);
+}
+
+.preview-input:focus {
+  outline: none;
+  border-color: var(--color-neutral-500, #737373);
+  background: #FFFFFF;
+}
+
+.copy-preview-btn,
+.open-preview-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--color-neutral-300, #D4D4D4);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--color-neutral-700, #404040);
+}
+
+.copy-preview-btn:hover,
+.open-preview-btn:hover {
+  background: var(--color-neutral-100, #F5F5F5);
+  border-color: var(--color-neutral-400, #A3A3A3);
+  color: var(--color-neutral-900, #171717);
+}
+
+.copy-preview-btn:active,
+.open-preview-btn:active {
+  background: var(--color-neutral-200, #E5E5E5);
+}
+
+.copy-preview-btn.copied {
+  background: var(--color-neutral-100, #F5F5F5);
+  border-color: var(--color-neutral-400, #A3A3A3);
+  color: var(--color-neutral-700, #404040);
+}
+
+.preview-description {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-neutral-500, #737373);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .preview-content {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .copy-preview-btn,
+  .open-preview-btn {
+    width: 100%;
+    padding: 10px 16px;
+  }
+
+  .preview-input {
+    font-size: 11px;
+  }
+
+  .preview-description {
+    font-size: 10px;
+  }
+}
+
+/* ========================================
+   SHAREABLE LINK SECTION (After generation)
+   ======================================== */
+
+.shareable-link-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px solid #bae6fd;
+  border-radius: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shareable-link-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.link-icon {
+  font-size: 24px;
+}
+
+.link-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.shareable-link-content {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.link-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #7dd3fc;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #0c4a6e;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.link-input:hover {
+  border-color: #38bdf8;
+}
+
+.link-input:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.copy-link-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+.copy-link-btn:hover {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+.copy-link-btn:active {
+  transform: translateY(0);
+}
+
+.copy-link-btn.copied {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.link-description {
+  margin: 0;
+  font-size: 13px;
+  color: #0c4a6e;
+  line-height: 1.5;
+}
+
+/* Responsive adjustments for shareable link */
+@media (max-width: 768px) {
+  .shareable-link-content {
+    flex-direction: column;
+  }
+
+  .copy-link-btn {
+    width: 100%;
+  }
+
+  .link-input {
+    font-size: 12px;
+  }
+}
+
 .navigation-buttons {
   display: flex;
   gap: 12px; /* Minimum spacing between buttons for touch targets */

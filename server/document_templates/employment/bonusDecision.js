@@ -21,9 +21,8 @@ function generateBonusDecisionDoc(formData, user, company) {
   const decisionDate = formData?.decisionDate ? moment(formData.decisionDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const effectiveDate = formData?.effectiveDate ? moment(formData.effectiveDate).format('DD.MM.YYYY') : decisionDate;
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         // Header with legal basis
         new Paragraph({
           children: [
@@ -220,10 +219,11 @@ function generateBonusDecisionDoc(formData, user, company) {
           spacing: { after: 300, line: 276 }
         })
       ]
-    }]
-  });
+  }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateBonusDecisionDoc;

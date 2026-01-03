@@ -36,7 +36,7 @@ class DocumentService {
       }
 
       const blob = await response.blob();
-      
+
       // Check for warnings in response headers
       const warningsHeader = response.headers.get('X-Generation-Warnings');
       let warnings = [];
@@ -50,10 +50,22 @@ class DocumentService {
           console.warn('Could not parse warnings from response headers');
         }
       }
-      
+
+      // Extract shareable link data from response headers
+      const shareToken = response.headers.get('X-Share-Token');
+      const shareUrl = response.headers.get('X-Share-URL');
+
+      // Download the file
       this.downloadFile(blob, `${fileName}.docx`);
-      
-      onSuccess({ warnings });
+
+      // Call success callback with warnings and share data
+      onSuccess({
+        warnings,
+        shareToken,
+        shareUrl,
+        fileName: `${fileName}.docx`,
+        expiresAt: shareToken ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null
+      });
     } catch (error) {
       onError(error);
       this.showErrorMessage(error.message);

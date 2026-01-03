@@ -902,11 +902,11 @@ function generateRentAgreementDoc(formData, user, company) {
     })
   );
 
-  const doc = new Document({
-    sections: [{ children }],
-  });
+  const sections = [{ children }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateRentAgreementDoc;

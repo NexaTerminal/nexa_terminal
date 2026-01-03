@@ -28,6 +28,10 @@ export const useDocumentForm = (config) => {
   const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
 
+  // Shareable link state
+  const [shareData, setShareData] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   // Create validators
   const validator = useMemo(() => createValidator(validationRules), [validationRules]);
   const stepValidator = useMemo(() => createStepValidator(steps), [steps]);
@@ -114,9 +118,20 @@ export const useDocumentForm = (config) => {
     await documentService.generateDocument(apiEndpoint, formData, {
       fileName: generatedFileName,
       onStart: () => setIsGenerating(true),
-      onSuccess: () => {
+      onSuccess: (result) => {
         setIsGenerating(false);
         refreshCredits(); // Refresh credits on success
+
+        // Extract share data from response headers
+        if (result && result.shareToken && result.shareUrl) {
+          setShareData({
+            shareToken: result.shareToken,
+            shareUrl: result.shareUrl,
+            fileName: result.fileName || generatedFileName,
+            expiresAt: result.expiresAt
+          });
+          setShowSuccessModal(true);
+        }
       },
       onError: (error) => {
         setIsGenerating(false);
@@ -148,6 +163,14 @@ export const useDocumentForm = (config) => {
   }, [generateDocument]);
 
   /**
+   * Close success modal
+   */
+  const closeSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+    setShareData(null);
+  }, []);
+
+  /**
    * Reset form to initial state
    */
   const resetForm = useCallback(() => {
@@ -157,6 +180,8 @@ export const useDocumentForm = (config) => {
     setIsGenerating(false);
     setShowMissingFieldsModal(false);
     setMissingFields([]);
+    setShowSuccessModal(false);
+    setShareData(null);
   }, [initialFormData]);
 
   /**
@@ -196,12 +221,14 @@ export const useDocumentForm = (config) => {
     showMissingFieldsModal,
     missingFields,
     currentStepData,
+    shareData,
+    showSuccessModal,
 
     // Computed values
     isLastStep,
     isFirstStep,
     progressPercentage,
-    
+
     // Actions
     handleInputChange,
     nextStep,
@@ -211,14 +238,15 @@ export const useDocumentForm = (config) => {
     forceGeneration,
     resetForm,
     validateForm,
-    
+    closeSuccessModal,
+
     // Validation helpers
     isStepCompleted,
     isCurrentStepValid,
-    
+
     // Modal controls
     setShowMissingFieldsModal,
-    
+
     // Steps configuration
     steps
   };

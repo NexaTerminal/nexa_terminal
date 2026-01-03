@@ -13,8 +13,7 @@ function generateEmployeeDamagesStatementDoc(formData, user, company) {
   const damages = formData?.damages || '[Опис на штетата]';
   const amount = formData?.amount || '[Износ]';
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         new Paragraph({
           children: [
@@ -149,10 +148,11 @@ function generateEmployeeDamagesStatementDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateEmployeeDamagesStatementDoc;

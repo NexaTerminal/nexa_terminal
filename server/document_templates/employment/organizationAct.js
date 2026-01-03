@@ -499,13 +499,13 @@ function generateOrganizationActDoc(formData, user, company) {
   );
 
   // Create document
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: paragraphs
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateOrganizationActDoc;

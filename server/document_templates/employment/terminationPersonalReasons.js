@@ -35,8 +35,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
   const employmentDurationYears = Math.floor(employmentDurationMonths / 12);
   const remainingMonths = employmentDurationMonths % 12;
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Document header with number and date
         new Paragraph({
@@ -323,10 +322,11 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
           indent: { left: 200, right: 200 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationPersonalReasonsDoc;

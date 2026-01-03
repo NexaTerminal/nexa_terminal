@@ -88,8 +88,7 @@ function generateSaasAgreementDoc(formData, user, company) {
   // Termination notice
   const terminationNoticeDays = formData?.terminationNoticeDays || '30';
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         // Document title
         new Paragraph({
@@ -735,10 +734,11 @@ function generateSaasAgreementDoc(formData, user, company) {
           spacing: { after: 300 }
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateSaasAgreementDoc;

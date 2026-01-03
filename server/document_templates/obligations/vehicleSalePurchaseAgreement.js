@@ -77,9 +77,8 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
     ? 'на денот на спроведувањето на заверката на овој договор пред надлежен нотар'
     : paymentDate;
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         // Document title
         new Paragraph({
           children: [
@@ -561,10 +560,11 @@ function generateVehicleSalePurchaseAgreementDoc(formData, user, company) {
           ],
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateVehicleSalePurchaseAgreementDoc;

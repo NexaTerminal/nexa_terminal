@@ -895,23 +895,23 @@ function generateMediationAgreementDoc(formData, user, company) {
     })
   );
 
-  const doc = new Document({
-    sections: [{
-      children,
-      properties: {
-        page: {
-          margin: {
-            top: 1440,    // 1 inch
-            right: 1440,  // 1 inch
-            bottom: 1440, // 1 inch
-            left: 1440,   // 1 inch
-          },
+  const sections = [{
+    children,
+    properties: {
+      page: {
+        margin: {
+          top: 1440,    // 1 inch
+          right: 1440,  // 1 inch
+          bottom: 1440, // 1 inch
+          left: 1440,   // 1 inch
         },
       },
-    }],
-  });
+    },
+  }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateMediationAgreementDoc;

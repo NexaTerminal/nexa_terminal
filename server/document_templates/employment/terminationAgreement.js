@@ -14,9 +14,8 @@ function generateTerminationAgreementDoc(formData, user, company) {
   const employeeAddress = formData?.employeeAddress || '[Адреса на вработен]';
   const endDate = formData?.endDate ? moment(formData.endDate).format('DD.MM.YYYY') : currentDate;
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         new Paragraph({
           children: [
             new TextRun({ text: `Врз основа на член 62 став 1 точка 4 и член 69 од Законот за работни односи (Сл. Весник на РМ бр. 167/15 – Пречистен текст), на ден ${endDate} година, се склучи:`, bold: false, margin: { bottom: 100 } })
@@ -285,9 +284,11 @@ function generateTerminationAgreementDoc(formData, user, company) {
           ],
         })
       ]
-    }]
-  });
-  return { doc };
+    }];
+
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateTerminationAgreementDoc; 

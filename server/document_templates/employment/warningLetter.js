@@ -17,9 +17,8 @@ function generateWarningLetterDoc(formData, user, company) {
   
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
-      children: [
+  const sections = [{
+    children: [
         new Paragraph({
           children: [
             new TextRun({ text: `Врз основа на член 180 од Законот за работни односи, работодавачот ${companyName}, со седиште на ул. ${companyAddress}, ЕМБС: ${companyNumber}, на ден ${warningDate} година, издава следната:` })
@@ -177,10 +176,11 @@ function generateWarningLetterDoc(formData, user, company) {
           ],
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateWarningLetterDoc;

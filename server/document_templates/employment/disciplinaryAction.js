@@ -24,8 +24,7 @@ function generateDisciplinaryActionDoc(formData, user, company) {
   
   const currentDate = moment().format('DD.MM.YYYY');
 
-  const doc = new Document({
-    sections: [{
+  const sections = [{
       children: [
         new Paragraph({
           children: [
@@ -176,10 +175,11 @@ function generateDisciplinaryActionDoc(formData, user, company) {
           alignment: AlignmentType.RIGHT
         })
       ]
-    }]
-  });
+    }];
 
-  return { doc };
+  const doc = new Document({ sections });
+
+  return { doc, sections };
 }
 
 module.exports = generateDisciplinaryActionDoc;

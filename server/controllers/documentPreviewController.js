@@ -44,6 +44,7 @@ class DocumentPreviewController {
     this.registerTemplate('mediationAgreement', require('../document_templates/contracts/mediationAgreement'));
     this.registerTemplate('debtAssumptionAgreement', require('../document_templates/contracts/debtAssumptionAgreement'));
     this.registerTemplate('saasAgreement', require('../document_templates/contracts/saasAgreement'));
+    this.registerTemplate('servicesContract', require('../document_templates/contracts/servicesContract'));
 
     // Obligations
     this.registerTemplate('vehicleSalePurchaseAgreement', require('../document_templates/obligations/vehicleSalePurchaseAgreement'));

@@ -61,6 +61,7 @@ const documentHeadlines = {
   vehicleSalePurchaseAgreement: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
   debtAssumptionAgreement: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
   saasAgreement: "ДОГОВОР ЗА СОФТВЕР КАКО УСЛУГА (SaaS Agreement)",
+  servicesContract: "ДОГОВОР ЗА УСЛУГИ (Services Contract)",
 
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
@@ -730,6 +731,63 @@ const documentSentences = {
       {
         text: "Договорот влегува во сила на {effectiveDateType} и е составен во согласност со законите на Република Северна Македонија.",
         fields: ['effectiveDateType']
+      }
+    ]
+  },
+  servicesContract: {
+    title: "ДОГОВОР ЗА УСЛУГИ (Services Contract)",
+    sentences: [
+      {
+        text: "Договорот за услуги е склучен на ден {contractDate} година во {contractLocation} помеѓу давателот и корисникот на услугата.",
+        fields: ['contractDate', 'contractLocation']
+      },
+      {
+        text: "Вашата компанија {companyName} во овој договор е {userRole} на услугата.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "Вид на услуга: {serviceType} со опис: {serviceDescription}",
+        fields: ['serviceType', 'serviceDescription']
+      },
+      {
+        text: "Очекувани резултати: {deliverables}",
+        fields: ['deliverables']
+      },
+      {
+        text: "Рокови: Почеток {startDate}, завршување до {deadline}. Работата се изведува на локација: {executionLocation}.",
+        fields: ['startDate', 'deadline', 'executionLocation']
+      },
+      {
+        text: "Надзор на корисникот: {supervisionRights} согласно Член 622 од ЗОО.",
+        fields: ['supervisionRights']
+      },
+      {
+        text: "Плаќање: {paymentStructure} со рок за плаќање од {paymentDeadline} дена. Казнена камата: {latePaymentPenalty}% дневно.",
+        fields: ['paymentStructure', 'paymentDeadline', 'latePaymentPenalty']
+      },
+      {
+        text: "Банкарски детали: Сметка {bankAccount} кај {bankName}. ДДВ: {includesVAT}.",
+        fields: ['bankAccount', 'bankName', 'includesVAT']
+      },
+      {
+        text: "Материјали: {materialProvider}. {materialsDescription}",
+        fields: ['materialProvider', 'materialsDescription']
+      },
+      {
+        text: "Стандарди за квалитет: {qualityStandards}",
+        fields: ['qualityStandards']
+      },
+      {
+        text: "Примопредавање: {acceptanceProcedure}. Инспекција во рок од {inspectionPeriod} дена, гаранција {warrantyPeriod} месеци (Членови 633-640 од ЗОО).",
+        fields: ['acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod']
+      },
+      {
+        text: "Раскинување: Отказен рок {terminationNotice} дена. Доверливост: {confidentiality}. Спорови: {disputeResolution}.",
+        fields: ['terminationNotice', 'confidentiality', 'disputeResolution']
+      },
+      {
+        text: "Договорот е составен во согласност со Законот за облигациони односи (Членови 619-648 - Договор за дело).",
+        fields: []
       }
     ]
   },

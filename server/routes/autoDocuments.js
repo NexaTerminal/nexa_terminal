@@ -42,6 +42,7 @@ const annualAccountsAdoptionController = require('../controllers/autoDocuments/a
 const saasAgreementController = require('../controllers/autoDocuments/saasAgreementController');
 const employeeStockPurchasePlanController = require('../controllers/autoDocuments/employeeStockPurchasePlanController');
 const masterServicesAgreementController = require('../controllers/autoDocuments/masterServicesAgreementController');
+const servicesContractController = require('../controllers/autoDocuments/servicesContractController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -137,6 +138,9 @@ router.post('/debt-assumption-agreement', authenticateJWT, requireVerifiedCompan
 
 // SaaS Agreement (Договор за софтвер како услуга)
 router.post('/saas-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), saasAgreementController);
+
+// Services Contract (Договор за услуги)
+router.post('/services-contract', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), servicesContractController);
 
 // Rulebooks
 // Business Secret Rulebook (Правилник за заштита на деловна тајна)

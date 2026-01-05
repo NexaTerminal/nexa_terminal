@@ -136,13 +136,13 @@ export const servicesContractConfig = {
   apiEndpoint: 'services-contract',
   fileName: null, // Will be auto-generated
 
-  // Multi-step form configuration (7 steps)
+  // Multi-step form configuration (6 steps)
   steps: [
     {
       id: 1,
-      title: 'Вид на услуга',
-      description: 'Изберете го видот на услуга и основни податоци',
-      requiredFields: ['serviceType', 'contractDate', 'contractLocation', 'userRole']
+      title: 'Вид на услуга и опис',
+      description: 'Изберете го видот на услуга и опишете ја детално',
+      requiredFields: ['serviceType', 'serviceDescription', 'contractDate', 'contractLocation', 'userRole']
     },
     {
       id: 2,
@@ -152,9 +152,9 @@ export const servicesContractConfig = {
     },
     {
       id: 3,
-      title: 'Детали за извршување',
-      description: 'Опис на услугата, резултати и рокови',
-      requiredFields: ['serviceDescription', 'deliverables', 'startDate', 'deadline']
+      title: 'Резултати и рокови',
+      description: 'Очекувани резултати, датуми и локација на извршување',
+      requiredFields: ['deliverables', 'startDate', 'deadline']
     },
     {
       id: 4,
@@ -164,18 +164,12 @@ export const servicesContractConfig = {
     },
     {
       id: 5,
-      title: 'Материјали и ресурси',
-      description: 'Обезбедување на материјали и опрема',
-      requiredFields: ['materialProvider']
+      title: 'Материјали и квалитет',
+      description: 'Обезбедување на материјали, стандарди и гаранција',
+      requiredFields: ['materialProvider', 'qualityStandards', 'acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod']
     },
     {
       id: 6,
-      title: 'Квалитет и примопредавање',
-      description: 'Стандарди, инспекција и гаранција',
-      requiredFields: ['qualityStandards', 'acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod']
-    },
-    {
-      id: 7,
       title: 'Завршни одредби',
       description: 'Раскинување, доверливост и решавање на спорови',
       requiredFields: ['disputeResolution']
@@ -718,12 +712,12 @@ export const servicesContractConfig = {
   validationRules: [
     // Step 1
     { field: 'serviceType', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Вид на услуга' },
+    { field: 'serviceDescription', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Опис на услугата' },
     { field: 'contractDate', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Датум на склучување' },
     { field: 'contractLocation', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Место на склучување' },
     { field: 'userRole', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Ваша улога' },
 
     // Step 3
-    { field: 'serviceDescription', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Опис на услугата' },
     { field: 'deliverables', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Очекувани резултати' },
     { field: 'startDate', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Почеток на извршување' },
     { field: 'deadline', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Рок за завршување' },
@@ -736,14 +730,12 @@ export const servicesContractConfig = {
 
     // Step 5
     { field: 'materialProvider', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Обезбедување на материјали' },
-
-    // Step 6
     { field: 'qualityStandards', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Стандарди за квалитет' },
     { field: 'acceptanceProcedure', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Постапка за примопредавање' },
     { field: 'inspectionPeriod', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Рок за инспекција' },
     { field: 'warrantyPeriod', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Гарантен период' },
 
-    // Step 7
+    // Step 6
     { field: 'disputeResolution', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Решавање на спорови' }
   ],
 
@@ -800,13 +792,12 @@ export const servicesContractConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['serviceType', 'contractDate', 'contractLocation', 'userRole'],
+    1: ['serviceType', 'serviceDescription', 'contractDate', 'contractLocation', 'userRole'],
     2: ['clientName', 'clientAddress', 'clientTaxNumber', 'clientManager', 'providerName', 'providerAddress', 'providerTaxNumber', 'providerManager'],
-    3: ['serviceDescription', 'deliverables', 'startDate', 'deadline', 'deadlineExtensionAllowed', 'executionLocation', 'supervisionRights'],
+    3: ['deliverables', 'startDate', 'deadline', 'deadlineExtensionAllowed', 'executionLocation', 'supervisionRights'],
     4: ['paymentStructure', 'totalAmount', 'advancePayment', 'advancePaymentPercentage', 'hourlyRate', 'estimatedHours', 'maxBudget', 'numberOfMilestones', 'paymentDeadline', 'bankAccount', 'bankName', 'includesVAT', 'latePaymentPenalty'],
-    5: ['materialProvider', 'materialsDescription', 'materialsCostIncluded'],
-    6: ['qualityStandards', 'acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod', 'defectRemedies'],
-    7: ['terminationNotice', 'terminationForBreach', 'confidentiality', 'disputeResolution']
+    5: ['materialProvider', 'materialsDescription', 'materialsCostIncluded', 'qualityStandards', 'acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod', 'defectRemedies'],
+    6: ['terminationNotice', 'terminationForBreach', 'confidentiality', 'disputeResolution']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => servicesContractConfig.fields[fieldName]) || [];

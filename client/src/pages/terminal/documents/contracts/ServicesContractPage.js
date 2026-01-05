@@ -139,43 +139,24 @@ const ServicesContractPage = () => {
     const stepConfig = servicesContractConfig.steps.find(s => s.id === currentStep);
 
     // Handle service type change - auto-populate fields
-    const handleServiceTypeChange = (e) => {
-      if (!e || !e.target) return;
-
-      const newServiceType = e.target.value;
-      handleInputChange(e);
+    const handleServiceTypeChange = (name, value) => {
+      // Update the service type field
+      handleInputChange(name, value);
 
       // Auto-populate related fields based on service type template
-      if (newServiceType && serviceTemplates[newServiceType]) {
-        const template = serviceTemplates[newServiceType];
+      if (value && serviceTemplates[value]) {
+        const template = serviceTemplates[value];
 
-        // Trigger auto-population for each field
-        setTimeout(() => {
-          if (!formData.serviceDescription) {
-            handleInputChange({ target: { name: 'serviceDescription', value: template.description } });
-          }
-          if (!formData.deliverables) {
-            handleInputChange({ target: { name: 'deliverables', value: template.deliverables } });
-          }
-          if (!formData.paymentStructure) {
-            handleInputChange({ target: { name: 'paymentStructure', value: template.paymentStructure } });
-          }
-          if (!formData.inspectionPeriod) {
-            handleInputChange({ target: { name: 'inspectionPeriod', value: template.inspectionPeriod } });
-          }
-          if (!formData.warrantyPeriod) {
-            handleInputChange({ target: { name: 'warrantyPeriod', value: template.warrantyPeriod } });
-          }
-          if (!formData.qualityStandards) {
-            handleInputChange({ target: { name: 'qualityStandards', value: template.qualityStandards } });
-          }
-          if (!formData.materialProvider) {
-            handleInputChange({ target: { name: 'materialProvider', value: template.materialProvider } });
-          }
-          if (!formData.supervisionRights) {
-            handleInputChange({ target: { name: 'supervisionRights', value: template.supervisionRights } });
-          }
-        }, 0);
+        // Trigger auto-population for each field immediately
+        // Always auto-populate - overwrite existing values when service type changes
+        handleInputChange('serviceDescription', template.description);
+        handleInputChange('deliverables', template.deliverables);
+        handleInputChange('paymentStructure', template.paymentStructure);
+        handleInputChange('inspectionPeriod', template.inspectionPeriod);
+        handleInputChange('warrantyPeriod', template.warrantyPeriod);
+        handleInputChange('qualityStandards', template.qualityStandards);
+        handleInputChange('materialProvider', template.materialProvider);
+        handleInputChange('supervisionRights', template.supervisionRights);
       }
     };
 
@@ -226,8 +207,8 @@ const ServicesContractPage = () => {
             <strong>📋 Договор за услуги (Членови 619-648 од ЗОО):</strong>
             <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
               <li>Изберете го видот на услуга - системот ќе препорача оптимални вредности</li>
+              <li>Детално опишете ја услугата - полето ќе се пополни автоматски со пример</li>
               <li>Договорот регулира права и обврски на двете страни согласно македонското право</li>
-              <li>Автоматско пополнување на стандарди, рокови и структура на плаќање</li>
             </ul>
           </div>
         )}
@@ -250,7 +231,7 @@ const ServicesContractPage = () => {
           </div>
         )}
 
-        {currentStep === 6 && (
+        {currentStep === 5 && (
           <div className={styles['info-box']} style={{
             backgroundColor: '#f3e5f5',
             border: '1px solid #ce93d8',
@@ -261,9 +242,9 @@ const ServicesContractPage = () => {
           }}>
             <strong>✅ Квалитет и гаранција (Членови 633-640):</strong>
             <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+              <li><strong>Материјали:</strong> Определете кој ги обезбедува материјалите и опремата</li>
               <li><strong>Инспекција:</strong> Рок за пријава на видливи недостатоци по примопредавање</li>
               <li><strong>Гаранција:</strong> Период за одговорност за скриени недостатоци</li>
-              <li>Корисникот има право на поправка, намалување на цена или раскинување</li>
             </ul>
           </div>
         )}

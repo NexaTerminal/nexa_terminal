@@ -226,7 +226,7 @@ const ServicesContractPage = () => {
         {currentStep === 6 && (
           <div className={styles['info-box']} style={{
             backgroundColor: '#f3e5f5',
-            border: '1px solid '#ce93d8',
+            border: '1px solid #ce93d8',
             borderRadius: '6px',
             padding: '12px',
             marginBottom: '20px',

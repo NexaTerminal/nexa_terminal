@@ -140,6 +140,8 @@ const ServicesContractPage = () => {
 
     // Handle service type change - auto-populate fields
     const handleServiceTypeChange = (e) => {
+      if (!e || !e.target) return;
+
       const newServiceType = e.target.value;
       handleInputChange(e);
 

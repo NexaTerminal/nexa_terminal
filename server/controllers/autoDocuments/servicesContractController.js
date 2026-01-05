@@ -1,4 +1,4 @@
-const baseDocumentController = require('../../utils/baseDocumentController');
+const { createDocumentController } = require('../../utils/baseDocumentController');
 const generateServicesContractDoc = require('../../document_templates/contracts/servicesContract');
 
 /**
@@ -94,7 +94,7 @@ function validateServicesContract(formData) {
 /**
  * Services Contract Controller using factory pattern
  */
-const servicesContractController = baseDocumentController({
+const servicesContractController = createDocumentController({
   templateFunction: generateServicesContractDoc,
   documentName: 'ServicesContract',
   validationFunction: validateServicesContract // Custom validation

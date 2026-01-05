@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField, { ConditionalField } from '../../../../components/forms/FormField';
 import { servicesContractConfig, serviceTemplates, getStepFields } from '../../../../config/documents/servicesContract';
@@ -134,32 +134,57 @@ const ServicesContractPage = () => {
    * Custom step content renderer
    * This is the only document-specific logic needed
    */
-  const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating, setFormData }) => {
+  const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
     const stepFields = getStepFields(currentStep);
     const stepConfig = servicesContractConfig.steps.find(s => s.id === currentStep);
 
-    // Auto-populate fields when service type changes
-    useEffect(() => {
-      if (currentStep === 1 && formData.serviceType && serviceTemplates[formData.serviceType]) {
-        const template = serviceTemplates[formData.serviceType];
+    // Handle service type change - auto-populate fields
+    const handleServiceTypeChange = (e) => {
+      const newServiceType = e.target.value;
+      handleInputChange(e);
 
-        // Only auto-populate if fields are empty
-        setFormData(prev => ({
-          ...prev,
-          serviceDescription: prev.serviceDescription || template.description,
-          deliverables: prev.deliverables || template.deliverables,
-          paymentStructure: prev.paymentStructure || template.paymentStructure,
-          inspectionPeriod: prev.inspectionPeriod || template.inspectionPeriod,
-          warrantyPeriod: prev.warrantyPeriod || template.warrantyPeriod,
-          qualityStandards: prev.qualityStandards || template.qualityStandards,
-          materialProvider: prev.materialProvider || template.materialProvider,
-          supervisionRights: prev.supervisionRights || template.supervisionRights
-        }));
+      // Auto-populate related fields based on service type template
+      if (newServiceType && serviceTemplates[newServiceType]) {
+        const template = serviceTemplates[newServiceType];
+
+        // Trigger auto-population for each field
+        setTimeout(() => {
+          if (!formData.serviceDescription) {
+            handleInputChange({ target: { name: 'serviceDescription', value: template.description } });
+          }
+          if (!formData.deliverables) {
+            handleInputChange({ target: { name: 'deliverables', value: template.deliverables } });
+          }
+          if (!formData.paymentStructure) {
+            handleInputChange({ target: { name: 'paymentStructure', value: template.paymentStructure } });
+          }
+          if (!formData.inspectionPeriod) {
+            handleInputChange({ target: { name: 'inspectionPeriod', value: template.inspectionPeriod } });
+          }
+          if (!formData.warrantyPeriod) {
+            handleInputChange({ target: { name: 'warrantyPeriod', value: template.warrantyPeriod } });
+          }
+          if (!formData.qualityStandards) {
+            handleInputChange({ target: { name: 'qualityStandards', value: template.qualityStandards } });
+          }
+          if (!formData.materialProvider) {
+            handleInputChange({ target: { name: 'materialProvider', value: template.materialProvider } });
+          }
+          if (!formData.supervisionRights) {
+            handleInputChange({ target: { name: 'supervisionRights', value: template.supervisionRights } });
+          }
+        }, 0);
       }
-    }, [formData.serviceType, currentStep]);
+    };
 
-    // Map fields with dynamic placeholders
+    // Map fields with dynamic placeholders and custom handlers
     const mappedFields = stepFields.map(field => {
+      if (field.name === 'serviceType') {
+        return {
+          ...field,
+          customOnChange: handleServiceTypeChange
+        };
+      }
       if (field.name === 'serviceDescription') {
         return {
           ...field,
@@ -249,7 +274,7 @@ const ServicesContractPage = () => {
               <FormField
                 field={field}
                 value={formData[field.name]}
-                onChange={handleInputChange}
+                onChange={field.customOnChange || handleInputChange}
                 error={errors[field.name]}
                 disabled={isGenerating}
                 formData={formData}
@@ -262,7 +287,7 @@ const ServicesContractPage = () => {
                 <FormField
                   field={field}
                   value={formData[field.name]}
-                  onChange={handleInputChange}
+                  onChange={field.customOnChange || handleInputChange}
                   error={errors[field.name]}
                   disabled={isGenerating}
                   formData={formData}

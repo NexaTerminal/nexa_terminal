@@ -15,7 +15,7 @@ const PrivacyPolicy = () => {
 
       <div className={styles.legalContent}>
         <div className={styles.lastUpdated}>
-          Последно ажурирано: Декември 2024
+          Последно ажурирано: Декември 2025 година
         </div>
 
         {/* Introduction */}

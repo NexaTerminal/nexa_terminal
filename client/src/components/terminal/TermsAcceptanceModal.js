@@ -11,6 +11,38 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
       // Reset states when modal opens
       setHasScrolledToBottom(false);
       setHasCheckedBox(false);
+
+      // Auto-scroll to bottom after modal opens
+      const scrollTimer = setTimeout(() => {
+        if (contentRef.current) {
+          const { scrollHeight, clientHeight } = contentRef.current;
+          const maxScroll = scrollHeight - clientHeight;
+          const startTime = Date.now();
+          const duration = 1000; // 1 second
+
+          const animateScroll = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Ease-in-out function for smooth animation
+            const easeInOutCubic = progress < 0.5
+              ? 4 * progress * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            if (contentRef.current) {
+              contentRef.current.scrollTop = maxScroll * easeInOutCubic;
+            }
+
+            if (progress < 1) {
+              requestAnimationFrame(animateScroll);
+            }
+          };
+
+          animateScroll();
+        }
+      }, 300); // Small delay to ensure modal is rendered
+
+      return () => clearTimeout(scrollTimer);
     }
   }, [isOpen]);
 

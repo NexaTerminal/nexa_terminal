@@ -142,7 +142,7 @@ export const servicesContractConfig = {
       id: 1,
       title: 'Вид на услуга и опис',
       description: 'Изберете го видот на услуга и опишете ја детално',
-      requiredFields: ['serviceType', 'serviceDescription', 'contractDate', 'contractLocation', 'userRole']
+      requiredFields: ['serviceType', 'serviceDescription', 'contractDate', 'userRole']
     },
     {
       id: 2,
@@ -152,9 +152,9 @@ export const servicesContractConfig = {
     },
     {
       id: 3,
-      title: 'Резултати и рокови',
-      description: 'Очекувани резултати, датуми и локација на извршување',
-      requiredFields: ['deliverables', 'startDate', 'deadline']
+      title: 'Рокови за извршување',
+      description: 'Датуми и локација на извршување на услугата',
+      requiredFields: ['startDate', 'deadline']
     },
     {
       id: 4,
@@ -171,8 +171,8 @@ export const servicesContractConfig = {
     {
       id: 6,
       title: 'Завршни одредби',
-      description: 'Раскинување, доверливост и решавање на спорови',
-      requiredFields: ['disputeResolution']
+      description: 'Раскинување и доверливост',
+      requiredFields: []
     }
   ],
 
@@ -213,10 +213,10 @@ export const servicesContractConfig = {
 
     contractLocation: {
       name: 'contractLocation',
-      type: 'text',
+      type: 'hidden', // Hidden field - auto-filled with default value
       label: 'Место на склучување',
       placeholder: 'пр. Скопје',
-      required: true,
+      required: false,
       helpText: 'Внесете го градот каде што се склучува договорот. Местото на склучување е релевантно за определување на надлежен суд во случај на спорови (Член 14 од договорот).'
     },
 
@@ -262,7 +262,7 @@ export const servicesContractConfig = {
       placeholder: 'пр. 4030123456789',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
-      helpText: 'Внесете го единствениот даночен број на корисникот (ЕМБС за правни лица) според податоците од Централниот регистар или деловниот извод.'
+      helpText: 'Внесете го единствениот даночен број на корисникот (ЕДБ за правни лица) според податоците од Централниот регистар, Тековната состојба или од веб страната на www.ujp.gov.mk.'
     },
 
     clientManager: {
@@ -329,10 +329,10 @@ export const servicesContractConfig = {
 
     deliverables: {
       name: 'deliverables',
-      type: 'textarea',
+      type: 'hidden', // Hidden field - auto-filled from service template
       label: 'Очекувани резултати/испораки',
       placeholder: 'Се менува динамично според избраниот вид на услуга...',
-      required: true,
+      required: false,
       rows: 4,
       maxLength: 1000,
       helpText: 'Наведете ги конкретните резултати/испораки кои давателот на услугата треба да ги достави согласно Член 619. Јасното дефинирање помага при утврдување на исполнетоста на договорот и квалитетот на работата (Член 633-640).'
@@ -547,7 +547,7 @@ export const servicesContractConfig = {
 
     latePaymentPenalty: {
       name: 'latePaymentPenalty',
-      type: 'number',
+      type: 'hidden', // Hidden field - uses default value
       label: 'Казнена камата за задоцнето плаќање (% дневно)',
       placeholder: '0.3',
       min: 0.1,
@@ -694,10 +694,10 @@ export const servicesContractConfig = {
 
     disputeResolution: {
       name: 'disputeResolution',
-      type: 'select',
+      type: 'hidden', // Hidden field - uses default value 'court'
       label: 'Решавање на спорови',
       placeholder: 'Изберете метод',
-      required: true,
+      required: false,
       options: [
         { value: '', label: 'Избери' },
         { value: 'court', label: 'Надлежен суд во место на корисникот' },
@@ -714,11 +714,9 @@ export const servicesContractConfig = {
     { field: 'serviceType', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Вид на услуга' },
     { field: 'serviceDescription', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Опис на услугата' },
     { field: 'contractDate', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Датум на склучување' },
-    { field: 'contractLocation', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Место на склучување' },
     { field: 'userRole', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Ваша улога' },
 
     // Step 3
-    { field: 'deliverables', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Очекувани резултати' },
     { field: 'startDate', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Почеток на извршување' },
     { field: 'deadline', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Рок за завршување' },
 
@@ -733,17 +731,14 @@ export const servicesContractConfig = {
     { field: 'qualityStandards', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Стандарди за квалитет' },
     { field: 'acceptanceProcedure', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Постапка за примопредавање' },
     { field: 'inspectionPeriod', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Рок за инспекција' },
-    { field: 'warrantyPeriod', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Гарантен период' },
-
-    // Step 6
-    { field: 'disputeResolution', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Решавање на спорови' }
+    { field: 'warrantyPeriod', type: VALIDATION_TYPES.REQUIRED_TEXT, label: 'Гарантен период' }
   ],
 
   // Initial form data
   initialFormData: {
     serviceType: '',
     contractDate: '',
-    contractLocation: '',
+    contractLocation: 'Скопје', // Default value for hidden field
     userRole: '',
     clientName: '',
     clientAddress: '',
@@ -792,12 +787,12 @@ export const servicesContractConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['serviceType', 'serviceDescription', 'contractDate', 'contractLocation', 'userRole'],
+    1: ['serviceType', 'serviceDescription', 'contractDate', 'userRole'],
     2: ['clientName', 'clientAddress', 'clientTaxNumber', 'clientManager', 'providerName', 'providerAddress', 'providerTaxNumber', 'providerManager'],
-    3: ['deliverables', 'startDate', 'deadline', 'deadlineExtensionAllowed', 'executionLocation', 'supervisionRights'],
-    4: ['paymentStructure', 'totalAmount', 'advancePayment', 'advancePaymentPercentage', 'hourlyRate', 'estimatedHours', 'maxBudget', 'numberOfMilestones', 'paymentDeadline', 'bankAccount', 'bankName', 'includesVAT', 'latePaymentPenalty'],
+    3: ['startDate', 'deadline', 'deadlineExtensionAllowed', 'executionLocation', 'supervisionRights'],
+    4: ['paymentStructure', 'totalAmount', 'advancePayment', 'advancePaymentPercentage', 'hourlyRate', 'estimatedHours', 'maxBudget', 'numberOfMilestones', 'paymentDeadline', 'bankAccount', 'bankName', 'includesVAT'],
     5: ['materialProvider', 'materialsDescription', 'materialsCostIncluded', 'qualityStandards', 'acceptanceProcedure', 'inspectionPeriod', 'warrantyPeriod', 'defectRemedies'],
-    6: ['terminationNotice', 'terminationForBreach', 'confidentiality', 'disputeResolution']
+    6: ['terminationNotice', 'terminationForBreach', 'confidentiality']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => servicesContractConfig.fields[fieldName]) || [];

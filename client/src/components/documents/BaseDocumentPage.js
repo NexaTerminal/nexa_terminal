@@ -336,21 +336,14 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
     }
   };
 
-  const openPreview = () => {
-    window.open(previewUrl, '_blank');
-  };
-
   return (
     <div className={styles['live-preview-section']}>
-      <div className={styles['preview-header']}>
-        <span className={styles['preview-icon']}>👁️</span>
-        <h4 className={styles['preview-title']}>Преглед на податоци</h4>
-      </div>
-            <p className={styles['preview-description']}>
-        Споделете го линкот за преглед на внесените податоци или отворете го во нов прозорец.
+
+      <p className={styles['preview-description']}>
+        Споделете го линкот за преглед на внесените податоци.
       </p>
       <div className={styles['preview-content']}>
-        
+
         <input
           type="text"
           value={previewUrl}
@@ -363,12 +356,6 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
           className={`${styles['copy-preview-btn']} ${copied ? styles['copied'] : ''}`}
         >
           {copied ? '✓ Копирано' : 'Копирај'}
-        </button>
-        <button
-          onClick={openPreview}
-          className={styles['open-preview-btn']}
-        >
-          Отвори
         </button>
       </div>
     </div>

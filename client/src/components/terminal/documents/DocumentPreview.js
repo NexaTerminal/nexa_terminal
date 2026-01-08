@@ -61,7 +61,7 @@ const documentHeadlines = {
   vehicleSalePurchaseAgreement: "ДОГОВОР ЗА КУПОПРОДАЖБА НА МОТОРНО ВОЗИЛО",
   debtAssumptionAgreement: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
   saasAgreement: "ДОГОВОР ЗА СОФТВЕР КАКО УСЛУГА (SaaS Agreement)",
-  servicesContract: "ДОГОВОР ЗА УСЛУГИ (Services Contract)",
+  servicesContract: "Договор за услуги / Договор за дело (чл. 619-648 ЗОО)",
 
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
@@ -735,7 +735,7 @@ const documentSentences = {
     ]
   },
   servicesContract: {
-    title: "ДОГОВОР ЗА УСЛУГИ (Services Contract)",
+    title: "Договор за услуги / Договор за дело (чл. 619-648 ЗОО)",
     sentences: [
       {
         text: "Договорот за услуги е склучен на ден {contractDate} година во {contractLocation} помеѓу давателот и корисникот на услугата.",

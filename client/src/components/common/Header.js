@@ -105,10 +105,33 @@ const Header = ({ isTerminal = false }) => {
 
       if (response.ok) {
         console.log('✅ [Header] Invitations sent successfully');
+
+        const results = data.results || {};
+        const creditsEarned = results.creditsEarned || 0;
+        const sent = results.sent?.length || 0;
+        const alreadyUsers = results.alreadyUsers?.length || 0;
+        const alreadyInvited = results.alreadyInvited?.length || 0;
+
+        let message = '';
+        if (creditsEarned > 0) {
+          message = `✅ Заработивте +${creditsEarned} ${creditsEarned === 1 ? 'кредит' : 'кредити'}! `;
+          message += `(${sent} ${sent === 1 ? 'покана успешно пратена' : 'покани успешно пратени'})`;
+        } else {
+          message = '⚠️ Не заработивте кредити. ';
+        }
+
+        if (alreadyUsers > 0) {
+          message += ` ${alreadyUsers} ${alreadyUsers === 1 ? 'email веќе е корисник' : 'email-ови се веќе корисници'}.`;
+        }
+        if (alreadyInvited > 0) {
+          message += ` ${alreadyInvited} ${alreadyInvited === 1 ? 'email веќе е поканет' : 'email-ови се веќе поканети'}.`;
+        }
+
         setInviteMessage({
-          type: 'success',
-          text: `✅ ${data.message || `Успешно испратени ${data.results?.sent?.length || emails.length} покани!`}`
+          type: creditsEarned > 0 ? 'success' : 'error',
+          text: message
         });
+
         // Clear inputs after success
         setInviteEmails({ email1: '', email2: '', email3: '' });
       } else {
@@ -277,8 +300,8 @@ const Header = ({ isTerminal = false }) => {
                 <div className={styles['credit-explanation']}>
                   <p>
                     Секој понеделник добивате 14 кредити за користење на платформата.
-                    Секоја акција троши 1 кредит. Покани пријатели и заработи дополнителни
-                    кредити за побрза работа и повеќе можности.
+                    Секоја акција троши 1 кредит. Покани нови корисници и заработи +1 кредит
+                    веднаш за секој валиден email!
                   </p>
                 </div>
 
@@ -309,7 +332,7 @@ const Header = ({ isTerminal = false }) => {
                 <div className={styles['invite-section']}>
                   <h4>Покани пријатели</h4>
                   <p className={styles['invite-description']}>
-                    За секој пријател кој се регистрира, добиваш 2 дополнителни кредити.
+                    За секој нов (валиден) email добиваш +1 кредит веднаш! Секој email може да биде поканет само еднаш.
                   </p>
 
                   {inviteMessage && (

@@ -326,13 +326,14 @@ class ReferralService {
   }
 
   /**
-   * Send invitation emails
+   * Send invitation emails - SIMPLIFIED VERSION
+   * Awards credits immediately for valid new invitations
    * @param {ObjectId|string} userId - Referrer user ID
    * @param {Array<string>} emails - Email addresses to invite
-   * @returns {Promise<Object>} Send results
+   * @returns {Promise<Object>} Send results with credits earned
    */
   async sendInvitations(userId, emails) {
-    console.log('\n🎯 [ReferralService] sendInvitations called');
+    console.log('\n🎯 [ReferralService] sendInvitations called (SIMPLIFIED)');
     console.log('👤 [ReferralService] User ID:', userId);
     console.log('📧 [ReferralService] Emails to send:', emails);
 
@@ -357,7 +358,10 @@ class ReferralService {
     const emailService = require('./emailService');
     const results = {
       sent: [],
-      failed: []
+      failed: [],
+      alreadyUsers: [],
+      alreadyInvited: [],
+      creditsEarned: 0
     };
 
     console.log('📨 [ReferralService] Starting to process emails...');
@@ -366,10 +370,40 @@ class ReferralService {
       try {
         console.log(`\n📧 [ReferralService] Processing email: ${email}`);
 
+        // Check if email is already a registered user
+        const existingUser = await this.usersCollection.findOne({ email: email.toLowerCase() });
+        if (existingUser) {
+          console.log(`⚠️ [ReferralService] Email ${email} is already a registered user`);
+          results.alreadyUsers.push(email);
+          continue;
+        }
+
+        // Check if this email has been invited before (by anyone)
+        const alreadyInvited = await this.usersCollection.findOne({
+          'referrals.email': email.toLowerCase()
+        });
+
+        if (alreadyInvited) {
+          console.log(`⚠️ [ReferralService] Email ${email} has already been invited`);
+          results.alreadyInvited.push(email);
+          continue;
+        }
+
         // Track invitation
         console.log('📝 [ReferralService] Tracking invitation...');
         await this.processInvitation(referralCode, email);
         console.log('✅ [ReferralService] Invitation tracked');
+
+        // Award 1 credit immediately for this valid invitation
+        console.log('💰 [ReferralService] Awarding 1 credit for valid invitation...');
+        await this.creditService.addCredits(
+          user._id,
+          1,
+          'INSTANT_REFERRAL_CREDIT',
+          { invitedEmail: email.toLowerCase() }
+        );
+        results.creditsEarned++;
+        console.log('✅ [ReferralService] Credit awarded');
 
         // Send email
         console.log('📮 [ReferralService] Sending email via emailService...');
@@ -378,7 +412,7 @@ class ReferralService {
 
         results.sent.push(email);
       } catch (error) {
-        console.error(`❌ [ReferralService] Failed to send invitation to ${email}:`, error);
+        console.error(`❌ [ReferralService] Failed to process invitation for ${email}:`, error);
         results.failed.push({
           email,
           error: error.message
@@ -387,8 +421,11 @@ class ReferralService {
     }
 
     console.log('\n📊 [ReferralService] Final results:');
-    console.log('   ✅ Sent:', results.sent);
-    console.log('   ❌ Failed:', results.failed);
+    console.log('   ✅ Sent:', results.sent.length);
+    console.log('   ⏭️  Already users:', results.alreadyUsers.length);
+    console.log('   🔄 Already invited:', results.alreadyInvited.length);
+    console.log('   ❌ Failed:', results.failed.length);
+    console.log('   💰 Credits earned:', results.creditsEarned);
 
     return results;
   }

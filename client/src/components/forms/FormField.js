@@ -236,10 +236,19 @@ const FormField = ({
           />
         );
 
+      case 'hidden':
+        // Hidden fields - not rendered, but value is maintained in formData
+        return null;
+
       default:
         return null;
     }
   };
+
+  // Hidden fields don't need any rendering at all
+  if (type === 'hidden') {
+    return null;
+  }
 
   // Special handling for checkbox (label is already included)
   if (type === 'checkbox') {

@@ -18,6 +18,7 @@ import TrademarkPage from './pages/website/TrademarkPage';
 import CorporatePage from './pages/website/CorporatePage';
 import PrivacyPolicy from './pages/website/PrivacyPolicy';
 import TermsAndConditions from './pages/website/TermsAndConditions';
+import About from './pages/website/About';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
@@ -152,6 +153,7 @@ function App() {
       {/* Public Legal Pages */}
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-conditions" element={<TermsAndConditions />} />
+      <Route path="/about" element={<About />} />
 
       {/* Provider Response - Public (no auth required) */}
       <Route path="/provider-response/:token" element={<ProviderResponse />} />

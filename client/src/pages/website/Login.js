@@ -428,6 +428,8 @@ const Login = () => {
             <span className={styles.footerDivider}>•</span>
             <a href="/blog" className={styles.footerLink}>Блог</a>
             <span className={styles.footerDivider}>•</span>
+            <a href="/about" className={styles.footerLink}>Повеќе</a>
+            <span className={styles.footerDivider}>•</span>
             <a href="mailto:info@nexa.mk" className={styles.footerLink}>info@nexa.mk</a>
           </div>
         </div>

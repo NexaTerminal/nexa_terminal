@@ -420,7 +420,7 @@ const Login = () => {
       {/* Minimal Footer */}
       <footer className={styles.minimalFooter}>
         <div className={styles.footerContent}>
-          <span className={styles.footerText}>© 2025 Nexa Terminal. Сите права задржани.</span>
+          <span className={styles.footerText}>© 2026 Nexa Terminal. Сите права задржани.</span>
           <div className={styles.footerLinks}>
             <a href="/privacy-policy" className={styles.footerLink}>Политика за приватност</a>
             <span className={styles.footerDivider}>•</span>

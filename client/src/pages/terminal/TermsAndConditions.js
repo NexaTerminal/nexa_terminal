@@ -24,7 +24,7 @@ const TermsAndConditions = () => {
 
             <div className={styles['contact-form']}>
               <p style={{fontSize: '0.875rem', color: '#737373', fontStyle: 'italic', marginBottom: '2rem', padding: '1rem', background: '#f3f4f6', borderRadius: '8px', textAlign: 'center'}}>
-                Последно ажурирано: Декември 2024
+                Последно ажурирано: Декември 2025 година
               </p>
 
               {/* Key Points */}

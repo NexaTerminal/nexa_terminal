@@ -15,8 +15,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
       // Auto-scroll to bottom after modal opens
       const scrollTimer = setTimeout(() => {
         if (contentRef.current) {
-          const { scrollHeight, clientHeight } = contentRef.current;
-          const maxScroll = scrollHeight - clientHeight;
+          const scrollHeight = contentRef.current.scrollHeight;
           const startTime = Date.now();
           const duration = 1000; // 1 second
 
@@ -29,9 +28,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
               ? 4 * progress * progress * progress
               : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-            if (contentRef.current) {
-              contentRef.current.scrollTop = maxScroll * easeInOutCubic;
-            }
+            contentRef.current.scrollTop = scrollHeight * easeInOutCubic;
 
             if (progress < 1) {
               requestAnimationFrame(animateScroll);
@@ -40,7 +37,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
 
           animateScroll();
         }
-      }, 300); // Small delay to ensure modal is rendered
+      }, 100); // Small delay to ensure modal is rendered
 
       return () => clearTimeout(scrollTimer);
     }
@@ -71,7 +68,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
         <div className={styles.modalHeader}>
           <h2>Услови за користење</h2>
           <p className={styles.scrollInstruction}>
-            {!hasScrolledToBottom ? '⬇️ Ве молиме прочитајте ги целосно условите (скролајте до крај)' : '✅ Прочитавте ги условите'}
+            {!hasScrolledToBottom ? '⬇️ Ве молиме прочитајте ги целосно условите (скролајте до крај)' : '✅ Ги прочитавте условите'}
           </p>
         </div>
 
@@ -83,7 +80,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
           {/* Terms Content */}
           <div className={styles.termsContent}>
             <p className={styles.lastUpdated}>
-              Последно ажурирано: Декември 2024
+              Последно ажурирано: Декември 2025 година
             </p>
 
             {/* Acceptance */}

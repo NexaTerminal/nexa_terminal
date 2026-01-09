@@ -43,6 +43,7 @@ const saasAgreementController = require('../controllers/autoDocuments/saasAgreem
 const employeeStockPurchasePlanController = require('../controllers/autoDocuments/employeeStockPurchasePlanController');
 const masterServicesAgreementController = require('../controllers/autoDocuments/masterServicesAgreementController');
 const servicesContractController = require('../controllers/autoDocuments/servicesContractController');
+const warningBeforeLawsuitController = require('../controllers/autoDocuments/warningBeforeLawsuitController');
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
@@ -168,6 +169,9 @@ router.post('/employee-stock-purchase-plan', authenticateJWT, requireVerifiedCom
 
 // Master Services Agreement (Рамковен договор за услуги)
 router.post('/master-services-agreement', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), masterServicesAgreementController);
+
+// Warning Before Lawsuit (Опомена пред тужба)
+router.post('/warning-before-lawsuit', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), warningBeforeLawsuitController);
 
 // Add more document routes here as needed
 

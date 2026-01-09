@@ -91,6 +91,7 @@ import DividendPaymentDecisionPage from './pages/terminal/documents/accounting/D
 import AnnualAccountsAdoptionPage from './pages/terminal/documents/accounting/AnnualAccountsAdoptionPage';
 import EmployeeStockPurchasePlanPage from './pages/terminal/documents/other/EmployeeStockPurchasePlanPage';
 import MasterServicesAgreementPage from './pages/terminal/documents/other/MasterServicesAgreementPage';
+import WarningBeforeLawsuitPage from './pages/terminal/documents/other/WarningBeforeLawsuitPage';
 import GeneralConditions from './pages/terminal/GeneralConditions';
 import VerificationResult from './pages/VerificationResult';
 
@@ -254,6 +255,7 @@ function App() {
       {/* Other Business Documents */}
       <Route path="/terminal/documents/other/employee-stock-purchase-plan" element={<PrivateRoute><VerificationRequired feature="план за купување акции"><EmployeeStockPurchasePlanPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/other/master-services-agreement" element={<PrivateRoute><VerificationRequired feature="рамковен договор за услуги"><MasterServicesAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired feature="опомена пред тужба"><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

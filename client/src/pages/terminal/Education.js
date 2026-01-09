@@ -7,20 +7,20 @@ import styles from '../../styles/terminal/Dashboard.module.css';
 import educationStyles from '../../styles/terminal/EducationGrid.module.css';
 
 const courses = [
-  {
-    id: 'osnovi-delovno-pravo',
-    title: 'Основи на деловно право',
-    description: 'Запознајте се со основните принципи на деловното право, договори, обврски и права на компаниите.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-    available: false
-  },
-  {
-    id: 'finansii-pretpriemaci',
-    title: 'Финансии за претприемачи',
-    description: 'Научете ги основите на финансиското управување, буџетирање и анализа на финансиски извештаи.',
-    image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80',
-    available: false
-  },
+  // {
+  //   id: 'osnovi-delovno-pravo',
+  //   title: 'Основи на деловно право',
+  //   description: 'Запознајте се со основните принципи на деловното право, договори, обврски и права на компаниите.',
+  //   image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+  //   available: false
+  // },
+  // {
+  //   id: 'finansii-pretpriemaci',
+  //   title: 'Финансии за претприемачи',
+  //   description: 'Научете ги основите на финансиското управување, буџетирање и анализа на финансиски извештаи.',
+  //   image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80',
+  //   available: false
+  // },
   {
     id: 'rabotni-odnosi',
     title: 'Работни односи',
@@ -29,26 +29,33 @@ const courses = [
     available: true
   },
   {
-    id: 'zastita-licni-podatoci',
-    title: 'Заштита на лични податоци (GDPR)',
-    description: 'Практичен курс за заштита на лични податоци и усогласување со европските и македонските регулативи.',
-    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80',
-    available: false
+    id: 'udel-vo-drushtvo',
+    title: 'Удел во друштвото',
+    description: 'Комплетен курс за разбирање на уделот во друштвото, права на сопствениците, процедури за стекнување и пренесување на удел.',
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
+    available: true
   },
-  {
-    id: 'danocna-regulativa',
-    title: 'Даночна регулатива за компании',
-    description: 'Сеопфатен преглед на даночните обврски, даночни олеснувања и практични совети за компании.',
-    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
-    available: false
-  },
-  {
-    id: 'delovna-etika',
-    title: 'Деловна етика и корпоративна одговорност',
-    description: 'Курс за етичко водење на бизнис и општествена одговорност на компаниите.',
-    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
-    available: false
-  }
+  // {
+  //   id: 'zastita-licni-podatoci',
+  //   title: 'Заштита на лични податоци (GDPR)',
+  //   description: 'Практичен курс за заштита на лични податоци и усогласување со европските и македонските регулативи.',
+  //   image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80',
+  //   available: false
+  // },
+  // {
+  //   id: 'danocna-regulativa',
+  //   title: 'Даночна регулатива за компании',
+  //   description: 'Сеопфатен преглед на даночните обврски, даночни олеснувања и практични совети за компании.',
+  //   image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
+  //   available: false
+  // },
+  // {
+  //   id: 'delovna-etika',
+  //   title: 'Деловна етика и корпоративна одговорност',
+  //   description: 'Курс за етичко водење на бизнис и општествена одговорност на компаниите.',
+  //   image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+  //   available: false
+  // }
 ];
 
 const Education = () => {

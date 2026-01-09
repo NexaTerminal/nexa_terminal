@@ -35,6 +35,9 @@ const documentTypeTranslations = {
   vehicleSalePurchaseAgreement: 'Договор за купопродажба на возило',
   debtAssumptionAgreement: 'Договор за преземање на долг',
   saasAgreement: 'SaaS Договор',
+
+  // Other business documents
+  warningBeforeLawsuit: 'Опомена пред тужба',
 };
 
 /**

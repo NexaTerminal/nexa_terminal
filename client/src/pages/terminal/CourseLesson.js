@@ -25,6 +25,7 @@ const CourseLesson = () => {
   const [certificateStatus, setCertificateStatus] = useState({ issued: false });
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [retryStatus, setRetryStatus] = useState(null);
 
   // Find current lesson and navigation info
   const allLessons = course?.modules.flatMap(m => m.lessons) || [];
@@ -49,6 +50,11 @@ const CourseLesson = () => {
     loadProgress();
     loadUserData();
     checkCertificateStatus();
+
+    // Check retry status for final quiz
+    if (lesson.type === 'quiz' && lesson.id.includes('final')) {
+      checkRetryStatus(lesson.id);
+    }
 
     // Reset quiz state when lesson changes
     setQuizAnswers({});
@@ -83,6 +89,17 @@ const CourseLesson = () => {
       setCertificateStatus(response);
     } catch (error) {
       console.log('No certificate status found:', error);
+    }
+  };
+
+  const checkRetryStatus = async (lessonIdToCheck) => {
+    try {
+      const response = await api.get(`/courses/${courseId}/lessons/${lessonIdToCheck}/retry-status`);
+      setRetryStatus(response);
+      console.log('Retry status:', response);
+    } catch (error) {
+      console.error('Error checking retry status:', error);
+      setRetryStatus({ canRetry: true, attempts: 0 });
     }
   };
 
@@ -134,32 +151,42 @@ const CourseLesson = () => {
     }
   };
 
-  const markLessonComplete = async (lessonIdToMark) => {
-    if (!completedLessons.includes(lessonIdToMark)) {
-      setIsSaving(true);
-      setSaveError(null);
-      setShowSuccessMessage(false);
+  const markLessonComplete = async (lessonIdToMark, score = undefined, isFinalQuiz = false) => {
+    // For non-quiz lessons, check if already completed
+    if (score === undefined && completedLessons.includes(lessonIdToMark)) {
+      return;
+    }
 
-      try {
-        const response = await api.post(`/courses/${courseId}/lessons/${lessonIdToMark}/complete`, {});
-        console.log('✅ Lesson marked as complete:', lessonIdToMark, response);
+    setIsSaving(true);
+    setSaveError(null);
+    setShowSuccessMessage(false);
 
-        // Update local state
+    try {
+      const response = await api.post(`/courses/${courseId}/lessons/${lessonIdToMark}/complete`, {
+        score,
+        isFinalQuiz
+      });
+      console.log('✅ Lesson completion response:', lessonIdToMark, response);
+
+      // Update local state only if the lesson was actually marked complete
+      if (response.markedComplete && !completedLessons.includes(lessonIdToMark)) {
         const updated = [...completedLessons, lessonIdToMark];
         setCompletedLessons(updated);
 
         // Show success message
         setShowSuccessMessage(true);
         setTimeout(() => setShowSuccessMessage(false), 3000);
-      } catch (error) {
-        console.error('❌ Error saving progress:', error);
-        setSaveError('Грешка при зачувување. Обидете се повторно.');
-
-        // Auto-hide error after 5 seconds
-        setTimeout(() => setSaveError(null), 5000);
-      } finally {
-        setIsSaving(false);
+      } else if (!response.markedComplete) {
+        console.log('Quiz attempt recorded but not marked complete');
       }
+    } catch (error) {
+      console.error('❌ Error saving progress:', error);
+      setSaveError('Грешка при зачувување. Обидете се повторно.');
+
+      // Auto-hide error after 5 seconds
+      setTimeout(() => setSaveError(null), 5000);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -203,20 +230,36 @@ const CourseLesson = () => {
     setQuizScore(score);
     setQuizSubmitted(true);
 
+    // Determine if this is a final quiz
+    const isFinalQuiz = currentLesson.id.includes('final');
+
+    // For final quiz, check if retry is allowed
+    if (isFinalQuiz && retryStatus && !retryStatus.canRetry) {
+      alert(`Можете да го обидете повторно финалниот тест по ${retryStatus.hoursUntilRetry} час(а)`);
+      return;
+    }
+
     // Use passingScore from lesson data, default to 70 if not specified
     const passingScore = currentLesson.passingScore || 70;
-    if (score >= passingScore) {
-      await markLessonComplete(currentLesson.id);
 
-      // Check if this is the final quiz (quiz-final)
-      if (currentLesson.id === 'quiz-final') {
-        // Check certificate status
-        const status = await api.get(`/certificates/${courseId}/status`);
-        if (!status.issued) {
-          // Show certificate modal
-          setTimeout(() => setShowCertificateModal(true), 1500);
-        }
+    // Mark lesson complete with score
+    // For regular quizzes: always mark complete
+    // For final quiz: only mark complete if score >= 70%
+    await markLessonComplete(currentLesson.id, score, isFinalQuiz);
+
+    // If final quiz and passed, show certificate modal
+    if (isFinalQuiz && score >= passingScore) {
+      // Check certificate status
+      const status = await api.get(`/certificates/${courseId}/status`);
+      if (!status.issued) {
+        // Show certificate modal
+        setTimeout(() => setShowCertificateModal(true), 1500);
       }
+    }
+
+    // Refresh retry status for final quiz
+    if (isFinalQuiz) {
+      await checkRetryStatus(currentLesson.id);
     }
   };
 
@@ -317,6 +360,7 @@ const CourseLesson = () => {
     if (currentLesson.type === 'quiz') {
       const quiz = quizData[currentLesson.id];
       const passingScore = currentLesson.passingScore || 70;
+      const isFinalQuiz = currentLesson.id.includes('final');
 
       return (
         <div className={courseStyles.quizContainer}>
@@ -324,6 +368,21 @@ const CourseLesson = () => {
           <p className={courseStyles.quizInstructions}>
             Одговорете на сите прашања. За да поминете, потребни се минимум {passingScore}% точни одговори.
           </p>
+
+          {/* Show retry status for final quiz */}
+          {isFinalQuiz && retryStatus && retryStatus.attempts > 0 && (
+            <div className={courseStyles.retryInfo}>
+              <p>
+                <strong>Обиди:</strong> {retryStatus.attempts} |
+                <strong> Последен резултат:</strong> {retryStatus.lastScore}%
+                {!retryStatus.canRetry && (
+                  <span style={{ color: 'orange' }}>
+                    {' '}| Следен обид можен по {retryStatus.hoursUntilRetry} час(а)
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
 
           {quiz.questions.map((q, idx) => (
             <div key={q.id} className={courseStyles.question}>
@@ -361,28 +420,45 @@ const CourseLesson = () => {
             <button
               className={courseStyles.submitQuizButton}
               onClick={handleQuizSubmit}
-              disabled={Object.keys(quizAnswers).length !== quiz.questions.length}
+              disabled={
+                Object.keys(quizAnswers).length !== quiz.questions.length ||
+                (isFinalQuiz && retryStatus && !retryStatus.canRetry)
+              }
             >
-              Испрати одговори
+              {isFinalQuiz && retryStatus && !retryStatus.canRetry
+                ? `Обидот можен по ${retryStatus.hoursUntilRetry} час(а)`
+                : 'Испрати одговори'}
             </button>
           ) : (
             <div className={courseStyles.quizResult}>
               <h2>Резултат: {quizScore}%</h2>
               <p>
                 {quizScore >= passingScore
-                  ? '🎉 Честитки! Успешно го поминавте квизот!'
-                  : '😔 За жал, не постигнавте доволен број на поени. Обидете се повторно.'}
+                  ? isFinalQuiz
+                    ? '🎉 Честитки! Успешно го поминавте финалниот тест и го завршивте курсот!'
+                    : '🎉 Честитки! Успешно го поминавте квизот!'
+                  : isFinalQuiz
+                    ? '😔 За жал, не постигнавте доволен број на поени за финалниот тест. Потребни се минимум 70% за да го завршите курсот.'
+                    : '😔 За жал, не постигнавте доволен број на поени. Можете да го обидете повторно.'}
               </p>
               {quizScore < passingScore && (
-                <button
-                  className={courseStyles.retryButton}
-                  onClick={() => {
-                    setQuizSubmitted(false);
-                    setQuizAnswers({});
-                  }}
-                >
-                  Обиди се повторно
-                </button>
+                <>
+                  {isFinalQuiz && retryStatus && !retryStatus.canRetry ? (
+                    <p style={{ color: 'orange', fontWeight: 'bold' }}>
+                      Можете да го обидете повторно финалниот тест по {retryStatus.hoursUntilRetry} час(а).
+                    </p>
+                  ) : (
+                    <button
+                      className={courseStyles.retryButton}
+                      onClick={() => {
+                        setQuizSubmitted(false);
+                        setQuizAnswers({});
+                      }}
+                    >
+                      Обиди се повторно
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -288,6 +288,41 @@ The SaaS Agreement document demonstrates these best practices:
   - **Text inputs**: For short single-line values (names, addresses, numbers)
   - **Date inputs**: For date selection with `DD.MM.YYYY` format
   - **Checkboxes**: For boolean yes/no fields
+- **Amount Formatting (MANDATORY)**: ALL monetary amount fields MUST have automatic formatting with thousand separators
+  - Format: `1.000` (use periods as thousand separators, no decimals for whole numbers)
+  - Implement real-time formatting in the page component using `formatAmount()` function
+  - **Implementation Pattern**:
+    ```javascript
+    const formatAmount = (value) => {
+      const numericValue = value.replace(/\D/g, '');
+      return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    const handleAmountChange = (e) => {
+      const { name, value } = e.target;
+      if (name === 'amountFieldName') {
+        const formattedValue = formatAmount(value);
+        handleInputChange({ target: { name, value: formattedValue } });
+      } else {
+        handleInputChange(e);
+      }
+    };
+    ```
+  - Update field placeholders to show formatted examples (e.g., `placeholder: 'пр. 50.000'`)
+  - Apply to ALL amount fields: salaries, bonuses, debts, payments, invoices, etc.
+- **Third-Party Preview Links (MANDATORY)**: ALL new documents MUST have working shareable preview links
+  - **Step 1 - Document Type Translation**: Add document to `documentTypeTranslations` in `client/src/pages/public/DocumentPreviewPage.js`:
+    ```javascript
+    // In appropriate category comment section
+    documentType: 'Македонски назив на документот',
+    ```
+  - **Step 2 - Template Registration**: Register template in `server/controllers/documentPreviewController.js`:
+    ```javascript
+    // In loadDocumentTemplates() method, under appropriate category
+    this.registerTemplate('documentType', require('../document_templates/category/documentType'));
+    ```
+  - **Verification**: Test preview link format: `http://localhost:3000/preview/documentType?data=[base64EncodedData]`
+  - **Common Issue**: "Грешка при генерирање на преглед" means template is not registered in preview controller
 
 **Implementation Workflow:**
 1. **Analyze provided business logic from .md files** - Extract ALL legal requirements, input explanations, and document instructions
@@ -440,6 +475,11 @@ if (fieldName === 'customField') {
 18. ✅ **Array and Boolean Fields**: Multiple values join correctly, booleans show meaningful descriptions
 19. ✅ **Conditional Fields**: Live preview updates correctly when form conditions change
 20. ✅ **Visual Standards**: Clean text-only highlighting without backgrounds or borders
+21. ✅ **Amount Formatting**: All monetary fields have automatic 1.000 formatting with thousand separators
+22. ✅ **Amount Fields Test**: Type "50000" and verify it formats to "50.000" in real-time
+23. ✅ **Third-Party Preview Link**: Document type added to `documentTypeTranslations` in DocumentPreviewPage.js
+24. ✅ **Preview Template Registration**: Template registered in `documentPreviewController.js` loadDocumentTemplates()
+25. ✅ **Preview Link Verification**: Test shareable preview link works without "Грешка при генерирање на преглед" error
 
 When implementing new document types, you will create the complete MERN stack implementation while maintaining perfect consistency with existing patterns. Every new document must integrate seamlessly with the current system architecture and business rules.
 

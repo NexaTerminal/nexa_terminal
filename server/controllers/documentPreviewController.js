@@ -70,6 +70,7 @@ class DocumentPreviewController {
     // Other
     this.registerTemplate('employeeStockPurchasePlan', require('../document_templates/other/employeeStockPurchasePlan'));
     this.registerTemplate('masterServicesAgreement', require('../document_templates/other/masterServicesAgreement'));
+    this.registerTemplate('warningBeforeLawsuit', require('../document_templates/other/warningBeforeLawsuit'));
   }
 
   /**

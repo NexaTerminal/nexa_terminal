@@ -76,6 +76,7 @@ const documentHeadlines = {
   // Other Business Documents
   employeeStockPurchasePlan: "ПЛАН ЗА КУПУВАЊЕ АКЦИИ ОД СТРАНА НА ВРАБОТЕНИ (ESPP)",
   masterServicesAgreement: "РАМКОВЕН ДОГОВОР ЗА УСЛУГИ (Master Services Agreement)",
+  warningBeforeLawsuit: "ОПОМЕНА ПРЕД ТУЖБА",
 
   // ...add more as needed
 };
@@ -1477,6 +1478,52 @@ const documentSentences = {
         fields: []
       }
     ]
+  },
+  warningBeforeLawsuit: {
+    title: "ОПОМЕНА ПРЕД ТУЖБА",
+    sentences: [
+      {
+        text: "ДО {debtorName}, со адреса на {debtorAddress}.",
+        fields: ['debtorName', 'debtorAddress']
+      },
+      {
+        text: "ОД {companyName}, со седиште на {companyAddress}.",
+        fields: ['companyName', 'companyAddress']
+      },
+      {
+        text: "ПРЕДМЕТ: Опомена пред тужба за наплата на парично побарување.",
+        fields: []
+      },
+      {
+        text: "Ви се обраќаме во врска со наплата на парично побарување кое {debtorName} како должник го има према нас {companyName} како доверител.",
+        fields: ['debtorName', 'companyName']
+      },
+      {
+        text: "Паричното побарување произлегува врз основа на {debtBasis}.",
+        fields: ['debtBasis']
+      },
+      {
+        text: "Вкупното побарување изнесува {totalAmountToBePaid} денари.",
+        fields: ['totalAmountToBePaid']
+      },
+      {
+        text: "До денот на испраќање на оваа опомена пред тужба во целост се исполнети обврските према Вас како должник врз основа на кои е настанато паричното побарување, меѓутоа од Ваша страна сè уште не е исплатен доспениот долг.",
+        fields: []
+      },
+      {
+        text: "Ве повикуваме во рок од {responseDeadlineDays} дена, да пристапите кон исплата на доспеаното, а неисплатено парично побарување или да не контактирате со цел да најдеме заеднично прифатливо решение.",
+        fields: ['responseDeadlineDays']
+      },
+      {
+        text: "Во спротивно, доколку не пристапите кон исполнување на Вашата доспеана парична обврска, ќе бидеме приморани да иницираме соодветна постапка каде ќе бидете изложени на дополнителни трошоци (камати, адвокатски, нотарски, судски, извршителски и други трошоци).",
+        fields: []
+      },
+      {
+        text: "Контакт информации: {contactInfo}",
+        fields: ['contactInfo'],
+        condition: (formData) => formData.contactInfo && formData.contactInfo.trim() !== ''
+      }
+    ]
   }
 };
 
@@ -1645,6 +1692,19 @@ const renderLivePreview = ({ formData, company, documentType }) => {
         'мајка': 'мајка'
       };
       return familyMapping[value] || value || '[Член на семејно домаќинство]';
+    }
+
+    // Handle debtBasis field for warning before lawsuit
+    if (fieldName === 'debtBasis') {
+      const debtBasisMapping = {
+        'фактура': 'фактура (или фактури)',
+        'договор': 'договор',
+        'судска одлука': 'судска одлука',
+        'меница': 'меница',
+        'договор за заем': 'договор за заем',
+        'друго': formData?.debtBasisOther || 'друго правно основание'
+      };
+      return debtBasisMapping[value] || '[Изберете основа на долгот]';
     }
 
     // Handle articleCase field for termination due to fault

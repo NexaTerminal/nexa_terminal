@@ -82,6 +82,7 @@ import MediationAgreementPage from './pages/terminal/documents/contracts/Mediati
 import DebtAssumptionAgreementPage from './pages/terminal/documents/contracts/DebtAssumptionAgreementPage';
 import SaasAgreementPage from './pages/terminal/documents/contracts/SaasAgreementPage';
 import ServicesContractPage from './pages/terminal/documents/contracts/ServicesContractPage';
+import LoanAgreementPage from './pages/terminal/documents/contracts/LoanAgreementPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import CashRegisterMaximumDecisionPage from './pages/terminal/documents/accounting/CashRegisterMaximumDecisionPage';
@@ -240,6 +241,7 @@ function App() {
       <Route path="/terminal/documents/contracts/debt-assumption-agreement" element={<PrivateRoute><VerificationRequired feature="договор за преземање на долг"><DebtAssumptionAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/saas-agreement" element={<PrivateRoute><VerificationRequired feature="договор за софтвер како услуга"><SaasAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/contracts/services-contract" element={<PrivateRoute><VerificationRequired feature="договор за услуги"><ServicesContractPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/loan-agreement" element={<PrivateRoute><VerificationRequired feature="договор за заем"><LoanAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired feature="договор за возила"><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Rulebooks */}

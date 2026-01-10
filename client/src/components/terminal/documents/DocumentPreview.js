@@ -62,6 +62,7 @@ const documentHeadlines = {
   debtAssumptionAgreement: "ДОГОВОР ЗА ПРЕЗЕМАЊЕ НА ДОЛГ",
   saasAgreement: "ДОГОВОР ЗА СОФТВЕР КАКО УСЛУГА (SaaS Agreement)",
   servicesContract: "Договор за услуги / Договор за дело (чл. 619-648 ЗОО)",
+  loanAgreement: "ДОГОВОР ЗА ПАРИЧНА ПОЗАЈМИЦА",
 
   // Rulebooks
   personalDataRulebook: "ПРАВИЛНИК ЗА ЗАШТИТА НА ДЕЛОВНА ТАЈНА",
@@ -788,6 +789,51 @@ const documentSentences = {
       },
       {
         text: "Договорот е составен во согласност со Законот за облигациони односи (Членови 619-648 - Договор за дело).",
+        fields: []
+      }
+    ]
+  },
+  loanAgreement: {
+    title: "ДОГОВОР ЗА ПАРИЧНА ПОЗАЈМИЦА",
+    sentences: [
+      {
+        text: "Договорот за парична позајмица е склучен на ден {contractDate} година во {contractLocation} помеѓу давателот и примателот на заемот согласно Член 545-554 од ЗОО.",
+        fields: ['contractDate', 'contractLocation']
+      },
+      {
+        text: "Вашата компанија {companyName} во овој договор е {userRole} на заемот.",
+        fields: ['companyName', 'userRole']
+      },
+      {
+        text: "Износ на заемот: {loanAmount} денари. Тип на заем: {loanType}.",
+        fields: ['loanAmount', 'loanType']
+      },
+      {
+        text: "Камата: {hasInterest}. Годишна каматна стапка: {interestRate}% (Член 546 од ЗОО).",
+        fields: ['hasInterest', 'interestRate']
+      },
+      {
+        text: "Начин на враќање: {repaymentType}. Рок за враќање: {repaymentDeadline}. Број на рати: {numberOfInstallments}. Прва рата доспева: {firstPaymentDate}. Фреквенција: {paymentFrequency} (Член 550 од ЗОО).",
+        fields: ['repaymentType', 'repaymentDeadline', 'numberOfInstallments', 'firstPaymentDate', 'paymentFrequency']
+      },
+      {
+        text: "Банкарски детали на примателот: Сметка {borrowerBankAccount} кај {borrowerBank}.",
+        fields: ['borrowerBankAccount', 'borrowerBank']
+      },
+      {
+        text: "Предвремено враќање: {earlyRepayment}. Период за известување: {earlyRepaymentNotice} дена (Член 551 од ЗОО).",
+        fields: ['earlyRepayment', 'earlyRepaymentNotice']
+      },
+      {
+        text: "Специјални услови: {specialConditions}",
+        fields: ['specialConditions']
+      },
+      {
+        text: "Решавање на спорови: {disputeResolution}",
+        fields: ['disputeResolution']
+      },
+      {
+        text: "Договорот е составен во согласност со Законот за облигациони односи (Членови 545-554 - Договор за заем).",
         fields: []
       }
     ]
@@ -1669,7 +1715,7 @@ const renderLivePreview = ({ formData, company, documentType }) => {
          'employmentEndDate', 'endDate', 'definedDuration', 'fixingDeadline',
          'warningDate', 'effectiveDate', 'consentDate', 'terminationDate',
          'contractStartDate', 'documentDate', 'violationDate', 'paymentDate', 'adoptionDate',
-         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration', 'specificEffectiveDate', 'handoverDate'].includes(fieldName)) {
+         'originalContractDate', 'dueDate', 'startingDate', 'startingWorkDate', 'decisionDate', 'date', 'meetingDate', 'concurrentClauseDuration', 'specificEffectiveDate', 'handoverDate', 'repaymentDeadline', 'firstPaymentDate'].includes(fieldName)) {
       return formatDate(value);
     }
 
@@ -2466,6 +2512,37 @@ const renderLivePreview = ({ formData, company, documentType }) => {
         return `${discount}%`;
       }
       return '[Попуст]';
+    }
+
+    // Handle loan agreement specific fields
+    if (fieldName === 'loanType') {
+      const types = {
+        'general': 'општ заем',
+        'business': 'деловен заем',
+        'purpose-specific': 'наменски заем'
+      };
+      return types[value] || value;
+    }
+
+    if (fieldName === 'hasInterest') {
+      return value === 'yes' ? 'со камата' : value === 'no' ? 'безкаматен заем' : value;
+    }
+
+    if (fieldName === 'repaymentType') {
+      return value === 'single' ? 'еднократно враќање' : value === 'installments' ? 'на рати' : value;
+    }
+
+    if (fieldName === 'paymentFrequency') {
+      const frequencies = {
+        'monthly': 'месечно',
+        'quarterly': 'квартално',
+        'annually': 'годишно'
+      };
+      return frequencies[value] || value;
+    }
+
+    if (fieldName === 'earlyRepayment') {
+      return value === 'yes' ? 'дозволено' : value === 'no' ? 'не е дозволено' : value;
     }
 
     return String(value || '');

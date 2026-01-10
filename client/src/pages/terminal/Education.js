@@ -35,6 +35,27 @@ const courses = [
     image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
     available: true
   },
+  {
+    id: 'email-marketing',
+    title: 'Емаил маркетинг - како до нови клиенти на ваков начин',
+    description: 'Научете како да градите ефективни емаил кампањи, да привлекувате клиенти и да зголемите продажбата преку професионален емаил маркетинг.',
+    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
+    available: false
+  },
+  {
+    id: 'seo-principi',
+    title: 'SEO принципи - како да ве најдат на интернет',
+    description: 'Комплетен курс за оптимизација на пребарувачите. Научете како да го подобрите рангирањето на вашата веб-страница и да привлечете повеќе посетители.',
+    image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80',
+    available: false
+  },
+  {
+    id: 'investiranje-nedvizhnosti',
+    title: 'Инвестирање во недвижности во Македонија',
+    description: 'Како да најдете добри понуди, извршител, стечај, катастар и сл. Сите техники и постапки кои ќе ви требаат за успешно инвестирање во недвижности.',
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    available: false
+  },
   // {
   //   id: 'zastita-licni-podatoci',
   //   title: 'Заштита на лични податоци (GDPR)',

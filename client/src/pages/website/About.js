@@ -87,8 +87,8 @@ const About = () => {
       }
     );
 
-    // Only observe journey and cta sections, not feature sections
-    const sectionsToObserve = document.querySelectorAll('#journey, #cta');
+    // Only observe journey section, not feature sections
+    const sectionsToObserve = document.querySelectorAll('#journey');
     sectionsToObserve.forEach((section) => {
       observer.observe(section);
     });
@@ -101,20 +101,20 @@ const About = () => {
     {
       id: 'dokumenti',
       title: 'Автоматизирани документи',
-      tagline: 'Од концепт до договор за минути',
-      description: 'Креирај професионални правни документи прилагодени на македонското законодавство. Системот автоматски ги пополнува информациите за твојата фирма и генерира документи готови за употреба.',
+      tagline: 'Професионално скроени документи, адаптирани на Вашите потреби, за помалку од минута',
+      description: 'Креирај професионални правни документи прилагодени на македонското законодавство. Системот автоматски ги пополнува информациите за твојата фирма и генерира документи готови за употреба согласно твоите потреби.',
       videoUrl: 'https://www.youtube.com/watch?v=WG9Z0NadFJg',
       highlights: [
-        'Договори за вработување и услуги',
-        'ГДПР согласности и известувања',
+        'Работни документи (договори, решенија, известувања)',
+        'Лични податоци и GDPR документи',
         'Интерни правилници и акти',
-        'Деловна кореспонденција'
+        'Договори и други правни документи'
       ]
     },
     {
       id: 'proverka',
-      title: 'Правна проверка',
-      tagline: 'Твојот Legal Health Check',
+      title: 'Проверка на правна усогласеност',
+      tagline: 'Твојот Legal Health Check - стани инспектор на твојата фирма',
       description: 'Комплетна проверка на усогласеноста со македонското законодавство. Детален извештај со приоритизирани акции и препораки за подобрување на твојата фирма.',
       videoUrl: 'https://www.youtube.com/watch?v=98R2bDGKbgc',
       highlights: [
@@ -206,7 +206,7 @@ const About = () => {
         <div className={styles.heroContent}>
           <span className={styles.heroLabel}>Nexa Terminal</span>
           <h1 className={styles.heroTitle}>
-            Твојата дигитална правна<br />
+            Твојата дигитална <br />
             <span className={styles.highlight}>трансформација</span>
           </h1>
           <p className={styles.heroSubtitle}>
@@ -221,7 +221,7 @@ const About = () => {
         </div>
         <div className={styles.scrollIndicator}>
           <div className={styles.scrollLine}></div>
-          <span>Скролај за повеќе</span>
+          <span>Прочитај како</span>
         </div>
       </div>
 
@@ -233,10 +233,9 @@ const About = () => {
         <div className={styles.container}>
           <div className={styles.journeyContent}>
             <span className={styles.badge}>01 — Почеток</span>
-            <h2 className={styles.sectionTitle}>Зошто Nexa?</h2>
-            <p className={styles.leadText}>
-              Nexa Terminal е комплетна платформа која ги обединува сите правни потреби на современиот македонски бизнис на едно место. Од автоматизација на документи до поврзување со експерти.
-            </p>
+            <h2 className={styles.sectionTitle}>Што е Nexa?</h2>
+            <p className={styles.leadText}> Nexa Terminal е комплетна SaaS - македонска бизнис платформа која ги обединува сите деловни и правни потреби на современиот македонски бизнис на едно место.</p>
+            <p className={styles.leadText}> Заштедете време и трошоци за изработка на правни документи, деловни информаци или едукација и обуки на Вас или Вашите вработени </p>
           </div>
         </div>
       </section>
@@ -281,23 +280,60 @@ const About = () => {
         </section>
       ))}
 
-      {/* Final CTA Section */}
-      <section
-        className={`${styles.ctaSection} ${visibleSections.has('cta') ? styles.visible : ''}`}
-        id="cta"
-      >
-        <div className={styles.container}>
-          <div className={styles.ctaContent}>
-            <span className={styles.ctaBadge}>08 — Финале</span>
-            <h2 className={styles.ctaTitle}>
-              Подготвен за<br />дигитална трансформација?
-            </h2>
-            <p className={styles.ctaText}>
-              Придружи се на стотици македонски бизниси кои веќе ја користат Nexa Terminal за автоматизација на нивните правни процеси.
-            </p>
-            <a href="/login" className={styles.ctaButtonLarge}>
-              Започни денес
-            </a>
+      {/* Free Signup Trust Section - Story Conclusion */}
+      <section className={styles.trustSection}>
+        <div className={styles.trustBackground}>
+          <div className={styles.container}>
+            <div className={styles.trustLayout}>
+              <div className={styles.trustHero}>
+                <span className={styles.trustBadge}>07 — Причини за да бидете корисник</span>
+                <h2 className={styles.trustMainTitle}>
+                  Започни <span className={styles.trustHighlight}>целосно бесплатно</span>
+                </h2>
+                <p className={styles.trustDescription}>
+                  Не чуваме никакви лични или бизнис податоци. Само јавни информации кои ти ги обезбедуваш.
+                  Без кредитни картички, без скриени трошоци.
+                </p>
+                <div className={styles.trustStats}>
+                  <div className={styles.statItem}>
+                    <div className={styles.statNumber}>0</div>
+                    <div className={styles.statLabel}>денари</div>
+                  </div>
+                  <div className={styles.statItem}>
+                    <div className={styles.statNumber}>60</div>
+                    <div className={styles.statLabel}>секунди</div>
+                  </div>
+                  <div className={styles.statItem}>
+                    <div className={styles.statNumber}>100%</div>
+                    <div className={styles.statLabel}>бесплатно</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.trustCards}>
+                <div className={styles.trustCard}>
+                  <h3>Бесплатна употреба</h3>
+                  <p>Не се потребни кредитни картички или какви било плаќања</p>
+                </div>
+                <div className={styles.trustCard}>
+                  <h3>Приватност загарантирана</h3>
+                  <p>Чуваме само податоци кои се достапни за сите, со цел да ја забрзаме автоматизацијата</p>
+                </div>
+                <div className={styles.trustCard}>
+                  <h3>Најбрза форма на дигитализација на Вашата фирма</h3>
+                  <p>Пристап до сите функции за помалку од 1 минута, за да ја започнете Вашата дигитална трансформација</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.trustCtaWrapper}>
+              <a href="/login" className={styles.trustCtaButton}>
+                Регистрирај се сега — бесплатно →
+              </a>
+              <p className={styles.trustDisclaimer}>
+                Без обврски • Без договори • Отказување во секој момент
+              </p>
+            </div>
           </div>
         </div>
       </section>

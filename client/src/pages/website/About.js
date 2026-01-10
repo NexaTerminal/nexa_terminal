@@ -168,7 +168,7 @@ const About = () => {
       title: 'Едукација',
       tagline: 'Учи за правните основи',
       description: 'Богата библиотека на едукативни содржини - курсеви, водичи, вебинари и статии. Стани експерт за правните прашања релевантни за твојот бизнис.',
-      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      videoUrl: 'https://www.youtube.com/watch?v=IrgddYz1bQM',
       highlights: [
         'Онлајн курсеви за деловно работење и право',
         'Водичи за усогласеност',

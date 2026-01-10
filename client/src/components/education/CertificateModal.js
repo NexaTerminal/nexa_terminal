@@ -67,7 +67,7 @@ const CertificateModal = ({ isOpen, onClose, onGenerate, userData, courseName, i
       <div className={styles.modalOverlay} onClick={onClose}>
         <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
-            <h2>🎓 Генерирај сертификат</h2>
+            <h2>Генерирај сертификат</h2>
             <button className={styles.closeButton} onClick={onClose} disabled={isGenerating}>
               ✕
             </button>
@@ -171,7 +171,7 @@ const CertificateModal = ({ isOpen, onClose, onGenerate, userData, courseName, i
               onClick={handleSubmit}
               disabled={isGenerating || !formData.fullName || !formData.jobPosition || !formData.honorCodeAccepted}
             >
-              {isGenerating ? '⏳ Генерирам...' : '📄 Генерирај сертификат'}
+              {isGenerating ? 'Генерирам...' : 'Генерирај сертификат'}
             </button>
           </div>
         </div>

@@ -30,7 +30,7 @@ const courses = [
   },
   {
     id: 'udel-vo-drushtvo',
-    title: 'Удел во друштвото',
+    title: 'Удел во трговско друштво',
     description: 'Комплетен курс за разбирање на уделот во друштвото, права на сопствениците, процедури за стекнување и пренесување на удел.',
     image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
     available: true

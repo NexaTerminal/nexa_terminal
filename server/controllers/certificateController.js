@@ -25,7 +25,7 @@ class CertificateController {
       }
 
       // Get course data to check total lessons
-      const courseData = require('../../client/src/data/courseData').courseData;
+      const { courseData } = require('../data/courseData');
       const course = courseData[courseId];
 
       if (!course) {
@@ -102,7 +102,7 @@ class CertificateController {
       });
 
       // Get course data
-      const courseData = require('../../client/src/data/courseData').courseData;
+      const { courseData } = require('../data/courseData');
       const course = courseData[courseId];
 
       if (!course) {
@@ -182,7 +182,7 @@ class CertificateController {
       }
 
       // Get course data
-      const courseData = require('../../client/src/data/courseData').courseData;
+      const { courseData } = require('../data/courseData');
       const course = courseData[courseId];
 
       if (!course) {

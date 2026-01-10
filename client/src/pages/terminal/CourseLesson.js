@@ -123,10 +123,10 @@ const CourseLesson = () => {
       setShowCertificateModal(false);
       await checkCertificateStatus();
 
-      alert('✅ Сертификатот е успешно генериран и преземен!');
+      alert('Сертификатот е успешно генериран и преземен!');
     } catch (error) {
       console.error('Error generating certificate:', error);
-      alert('❌ Грешка при генерирање на сертификатот. Обидете се повторно.');
+      alert('Грешка при генерирање на сертификатот. Обидете се повторно.');
     } finally {
       setIsGeneratingCertificate(false);
     }
@@ -309,12 +309,12 @@ const CourseLesson = () => {
                 onClick={() => markLessonComplete(currentLesson.id)}
                 disabled={completedLessons.includes(currentLesson.id) || isSaving}
               >
-                {isSaving ? '⏳ Зачувување...' :
-                 completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
+                {isSaving ? 'Зачувување...' :
+                 completedLessons.includes(currentLesson.id) ? 'Завршено' :
                  'Означи како завршено'}
               </button>
               {showSuccessMessage && (
-                <span className={courseStyles.successMessage}>✓ Лекцијата е зачувана</span>
+                <span className={courseStyles.successMessage}>Лекцијата е зачувана</span>
               )}
               {saveError && (
                 <span className={courseStyles.errorMessage}>{saveError}</span>
@@ -342,12 +342,12 @@ const CourseLesson = () => {
               onClick={handleMarkReadingComplete}
               disabled={completedLessons.includes(currentLesson.id) || isSaving}
             >
-              {isSaving ? '⏳ Зачувување...' :
-               completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
+              {isSaving ? 'Зачувување...' :
+               completedLessons.includes(currentLesson.id) ? 'Завршено' :
                'Означи како завршено'}
             </button>
             {showSuccessMessage && (
-              <span className={courseStyles.successMessage}>✓ Лекцијата е зачувана</span>
+              <span className={courseStyles.successMessage}>Лекцијата е зачувана</span>
             )}
             {saveError && (
               <span className={courseStyles.errorMessage}>{saveError}</span>
@@ -376,7 +376,7 @@ const CourseLesson = () => {
                 <strong>Обиди:</strong> {retryStatus.attempts} |
                 <strong> Последен резултат:</strong> {retryStatus.lastScore}%
                 {!retryStatus.canRetry && (
-                  <span style={{ color: 'orange' }}>
+                  <span style={{ color: '#737373' }}>
                     {' '}| Следен обид можен по {retryStatus.hoursUntilRetry} час(а)
                   </span>
                 )}
@@ -435,16 +435,16 @@ const CourseLesson = () => {
               <p>
                 {quizScore >= passingScore
                   ? isFinalQuiz
-                    ? '🎉 Честитки! Успешно го поминавте финалниот тест и го завршивте курсот!'
-                    : '🎉 Честитки! Успешно го поминавте квизот!'
+                    ? 'Честитки! Успешно го поминавте финалниот тест и го завршивте курсот!'
+                    : 'Честитки! Успешно го поминавте квизот!'
                   : isFinalQuiz
-                    ? '😔 За жал, не постигнавте доволен број на поени за финалниот тест. Потребни се минимум 70% за да го завршите курсот.'
-                    : '😔 За жал, не постигнавте доволен број на поени. Можете да го обидете повторно.'}
+                    ? 'За жал, не постигнавте доволен број на поени за финалниот тест. Потребни се минимум 70% за да го завршите курсот.'
+                    : 'За жал, не постигнавте доволен број на поени. Можете да го обидете повторно.'}
               </p>
               {quizScore < passingScore && (
                 <>
                   {isFinalQuiz && retryStatus && !retryStatus.canRetry ? (
-                    <p style={{ color: 'orange', fontWeight: 'bold' }}>
+                    <p style={{ color: '#737373', fontWeight: 'bold' }}>
                       Можете да го обидете повторно финалниот тест по {retryStatus.hoursUntilRetry} час(а).
                     </p>
                   ) : (
@@ -490,12 +490,12 @@ const CourseLesson = () => {
             {/* Certificate Section */}
             {calculateProgress() === 100 && certificateStatus.issued && (
               <div className={certificateStyles.certificateSection}>
-                <p>🎉 Честитки! Успешно го завршивте курсот!</p>
+                <p>Честитки! Успешно го завршивте курсот!</p>
                 <button
                   className={certificateStyles.downloadCertificateButton}
                   onClick={handleDownloadCertificate}
                 >
-                  📄 Преземи сертификат
+                  Преземи сертификат
                 </button>
               </div>
             )}
@@ -516,11 +516,6 @@ const CourseLesson = () => {
                         } ${completedLessons.includes(lesson.id) ? courseStyles.completed : ''}`}
                         onClick={() => handleLessonClick(lesson)}
                       >
-                        <span className={courseStyles.lessonIcon}>
-                          {completedLessons.includes(lesson.id) ? '✓' :
-                           lesson.type === 'video' ? '▶' :
-                           lesson.type === 'reading' ? '📄' : '📝'}
-                        </span>
                         <div className={courseStyles.lessonInfo}>
                           <span className={courseStyles.lessonTitle}>{lesson.title}</span>
                           <span className={courseStyles.lessonDuration}>{lesson.duration}</span>

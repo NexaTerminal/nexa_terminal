@@ -200,10 +200,10 @@ const About = () => {
           <div className={styles.wavePattern}></div>
         </div>
         <div className={styles.heroContent}>
-          <span className={styles.heroLabel}>Nexa Terminal</span>
+          <span className={styles.heroLabel}>Nexa</span>
           <h1 className={styles.heroTitle}>
             Оперативниот систем за<br />
-            <span className={styles.highlight}>моќен македонски бизнис</span>
+            <span className={styles.highlight}>моќен бизнис</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Поставете ја вашата фирма на цврсти темели. Nexa Terminal ви ја нуди правната и оперативната инфраструктура на големите корпорации, со брзина на стартап.
@@ -230,8 +230,8 @@ const About = () => {
           <div className={styles.journeyContent}>
             <span className={styles.badge}>01 — Почеток</span>
             <h2 className={styles.sectionTitle}>Вашиот Business OS</h2>
-            <p className={styles.leadText}>Nexa Terminal не е само платформа. Тоа е оперативен систем за модерен македонски бизнис.</p>
-            <p className={styles.leadText}>Од правна документација до стратешко знаење, од комплајанс дијагностика до пристап до елитни експерти – сè што ви треба за да го водите вашиот бизнис со сигурност и брзина.</p>
+            <p className={styles.leadText}>Nexa Terminal не е само платформа. Тоа е сеопфатен систем за модерен македонски бизнис.</p>
+            <p className={styles.leadText}>Од правна документација до стратешки информации, од дијагностика за усогласеност до пристап до врвни експерти – сè што ви треба за да го водите вашиот бизнис со сигурност и брзина.</p>
           </div>
         </div>
       </section>

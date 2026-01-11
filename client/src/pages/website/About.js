@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useMemo, memo } from 'react';
-import SimpleNavbar from '../../components/common/SimpleNavbar';
-import PublicFooter from '../../components/common/PublicFooter';
 import styles from '../../styles/website/About.module.css';
 
 // Extract YouTube ID from URL
@@ -196,8 +194,6 @@ const About = () => {
       {/* Scroll Progress Bar */}
       <div className={styles.progressBar} style={{ width: `${scrollProgress}%` }} />
 
-      <SimpleNavbar />
-
       {/* Hero Section */}
       <div className={styles.heroSection}>
         <div className={styles.heroBackground}>
@@ -337,8 +333,6 @@ const About = () => {
           </div>
         </div>
       </section>
-
-      <PublicFooter />
     </div>
   );
 };

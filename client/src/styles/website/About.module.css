@@ -226,7 +226,7 @@
 .trustSection {
   position: relative;
   overflow: hidden;
-  padding: 8rem 0 6rem 0;
+  padding: 8rem 0 0 0;
 }
 
 .trustBackground {
@@ -775,7 +775,7 @@
   }
 
   .trustSection {
-    padding: 5rem 0 4rem 0;
+    padding: 5rem 0 0 0;
   }
 
   .trustLayout {
@@ -881,11 +881,11 @@
   }
 
   .trustSection {
-    padding: 4rem 0 3rem 0;
+    padding: 4rem 0 0 0;
   }
 
   .trustLayout {
-    padding: 3rem 0 2rem 0;
+    padding: 3rem 0 0 0;
   }
 
   .trustMainTitle {

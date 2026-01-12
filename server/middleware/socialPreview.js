@@ -52,15 +52,15 @@ function socialPreviewMiddleware(db) {
         };
 
         const metaDescription = stripHtml(post.excerpt || post.title);
-        const imageUrl = post.featuredImage || 'https://www.nexa.mk/nexa-logo-navbar.png';
-        const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://www.nexa.mk${imageUrl}`;
+        const imageUrl = post.featuredImage || 'https://nexa.mk/nexa-logo-navbar.png';
+        const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://nexa.mk${imageUrl}`;
 
         // Generate HTML with OG tags
         const html = generateBlogPostHTML({
           title: `${post.title} | Nexa Terminal`,
           description: metaDescription,
           image: fullImageUrl,
-          url: `https://www.nexa.mk/blog/${blogId}`,
+          url: `https://nexa.mk/blog/${blogId}`,
           siteName: 'Nexa Terminal',
           type: 'article'
         });

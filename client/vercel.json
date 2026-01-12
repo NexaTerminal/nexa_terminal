@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "rewrites": [
+    {
+      "source": "/blog/:id",
+      "destination": "/api/blog-preview?id=:id"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://nexa-terminal-api-production-74cc.up.railway.app/api/:path*"
+    }
+  ]
+}

@@ -116,12 +116,12 @@ const DocumentPreviewPage = () => {
           <div className={styles.navbarContent}>
             <span className={styles.navbarText}>Генерирано со </span>
             <a
-              href="https://www.nexa.mk"
+              href="https://nexa.mk"
               target="_blank"
               rel="noopener noreferrer"
               // className={styles.navbarLink}
             >
-              www.nexa.mk
+              Nexa
             </a>
           </div>
         </div>
@@ -143,12 +143,12 @@ const DocumentPreviewPage = () => {
           <div className={styles.navbarContent}>
             <span className={styles.navbarText}>Генерирано со</span>
             <a
-              href="https://www.nexa.mk"
+              href="https://nexa.mk"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.navbarLink}
             >
-              www.nexa.mk
+              Nexa
             </a>
           </div>
         </div>

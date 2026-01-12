@@ -33,7 +33,7 @@ const PersonalDataRulebookPage = () => {
           <p style={{ marginTop: '10px' }}>
             📚 <strong>За повеќе информации:</strong>{' '}
             <a
-              href="https://www.nexa.mk/terminal/blogs/c348d18d-1906-4ad2-9dd6-7a2879d9ca1e"
+              href="https://nexa.mk/terminal/blogs/c348d18d-1906-4ad2-9dd6-7a2879d9ca1e"
               target="_blank"
               rel="noopener noreferrer"
               className={styles['info-link']}

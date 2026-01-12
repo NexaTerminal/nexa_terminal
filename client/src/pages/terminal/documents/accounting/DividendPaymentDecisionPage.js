@@ -57,7 +57,7 @@ const DividendPaymentDecisionPage = () => {
             <p style={{ margin: '8px 0' }}>
               За повеќе информации за правната рамка на исплата на дивиденда според член 490 од Законот за трговските друштва, погледнете го нашиот{' '}
               <a
-                href="https://www.nexa.mk/terminal/blogs/ba4348c7-3ff4-477a-aa57-97b96ae1b3bd"
+                href="https://nexa.mk/terminal/blogs/ba4348c7-3ff4-477a-aa57-97b96ae1b3bd"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#1976d2', textDecoration: 'underline' }}

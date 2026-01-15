@@ -473,7 +473,7 @@ export default function BlogPost() {
                 scrolling="no"
                 marginHeight="0"
                 marginWidth="0"
-                src="https://118h2.mjt.lu/wgt/118h2/0tm6/form?c=06658682"
+                src="https://118h2.mjt.lu/wgt/118h2/0t2x/form?c=9eb33de5"
                 width="100%"
                 title="Newsletter signup"
                 className={styles.newsletterIframe}

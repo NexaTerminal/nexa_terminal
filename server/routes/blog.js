@@ -3,6 +3,44 @@ const router = express.Router();
 // Public blog routes - no authentication required
 
 /**
+ * Helper function to format plain text into HTML paragraphs
+ * Converts line breaks into proper <p> tags for better readability
+ */
+function formatTextToParagraphs(text) {
+  if (!text) return '';
+
+  // If already has HTML paragraph tags, return as-is
+  if (text.includes('<p>') || text.includes('<div>') || text.includes('<br')) {
+    return text;
+  }
+
+  // Normalize line endings
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Split by double line breaks (paragraph separators)
+  let paragraphs = text.split(/\n\s*\n/).filter(p => p.trim());
+
+  if (paragraphs.length > 1) {
+    // Multiple paragraphs found - wrap each in <p> tags
+    paragraphs = paragraphs.map(p =>
+      p.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    ).filter(p => p);
+  } else {
+    // Check for single line breaks
+    const singleBreakParagraphs = text.split(/\n/).filter(p => p.trim());
+
+    if (singleBreakParagraphs.length > 1) {
+      paragraphs = singleBreakParagraphs.map(p => p.trim()).filter(p => p);
+    } else {
+      // No line breaks - keep as single paragraph
+      paragraphs = [text.trim()];
+    }
+  }
+
+  return paragraphs.map(p => `<p>${p}</p>`).join('\n');
+}
+
+/**
  * GET /api/blog
  * Public route - Get all published blog posts (excerpt only, for SEO)
  * Returns: Array of blog posts with excerpt, not full content
@@ -29,7 +67,13 @@ router.get('/', async (req, res) => {
       })
       .toArray();
 
-    res.json(blogs);
+    // Format excerpts to ensure proper paragraph structure
+    const formattedBlogs = blogs.map(blog => ({
+      ...blog,
+      excerpt: formatTextToParagraphs(blog.excerpt)
+    }));
+
+    res.json(formattedBlogs);
   } catch (error) {
     console.error('Error fetching blogs:', error);
     res.status(500).json({
@@ -81,7 +125,13 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    res.json(blog);
+    // Format excerpt to ensure proper paragraph structure
+    const formattedBlog = {
+      ...blog,
+      excerpt: formatTextToParagraphs(blog.excerpt)
+    };
+
+    res.json(formattedBlog);
   } catch (error) {
     console.error('Error fetching blog:', error);
     res.status(500).json({

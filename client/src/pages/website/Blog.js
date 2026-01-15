@@ -25,6 +25,7 @@ const CATEGORY_MAP = {
   // Finance & Investment
   'FINANCE': 'Финансии',
   'INVESTMENT': 'Инвестиции',
+  'INVESTMENTS': 'Инвестиции',
   'TAX': 'Даноци',
   'ACCOUNTING': 'Сметководство',
 

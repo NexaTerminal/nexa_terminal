@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
@@ -18,6 +18,19 @@ export default function BlogPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const videoSliderRef = useRef(null);
+
+  // Video slider navigation
+  const scrollVideos = (direction) => {
+    if (videoSliderRef.current) {
+      const scrollAmount = 140; // Width of one video card + gap
+      const currentScroll = videoSliderRef.current.scrollLeft;
+      videoSliderRef.current.scrollTo({
+        left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     // If user is already logged in, redirect to terminal blog view (full content)
@@ -29,6 +42,37 @@ export default function BlogPost() {
     fetchPost();
     fetchSuggestedPosts();
   }, [id, currentUser, navigate]);
+
+  // Load Mailjet newsletter script with robust reinitialization
+  useEffect(() => {
+    const loadMailjetScript = () => {
+      const scriptId = 'mailjet-widget-script';
+      // Remove existing script to force fresh load
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://app.mailjet.com/pas-nc-embedded-v1.js';
+      script.type = 'text/javascript';
+      script.onload = () => {
+        // After script loads, find iframe and ensure it has proper height
+        setTimeout(() => {
+          const iframe = document.querySelector('iframe[data-w-type="embedded"]');
+          if (iframe && (iframe.style.height === '0px' || iframe.style.height === '0')) {
+            iframe.style.height = '520px';
+          }
+        }, 500);
+      };
+      document.body.appendChild(script);
+    };
+
+    // Delay to ensure iframe is in DOM first
+    const timer = setTimeout(loadMailjetScript, 300);
+    return () => clearTimeout(timer);
+  }, [post]);
 
   async function fetchPost() {
     try {
@@ -55,80 +99,45 @@ export default function BlogPost() {
     }
   }
 
-  // Translate category to Macedonian
+  // Translate category to Macedonian (case-insensitive)
   function translateCategory(category) {
+    if (!category) return '';
+
     const categoryTranslations = {
-      // Legal & Compliance
-      'LEGAL': 'ПРАВНО',
-      'Legal': 'Правно',
-      'COMPLIANCE': 'УСОГЛАСЕНОСТ',
-      'Compliance': 'Усогласеност',
-      'CONTRACTS': 'ДОГОВОРИ',
-      'Contracts': 'Договори',
-      'CORPORATE': 'КОРПОРАТИВНО ПРАВО',
-      'Corporate': 'Корпоративно право',
-      'TRADEMARK': 'ЖИГОВИ',
-      'Trademark': 'Жигови',
-
-      // Business & Management
-      'BUSINESS': 'БИЗНИС',
-      'Business': 'Бизнис',
-      'ENTREPRENEURSHIP': 'ПРЕТПРИЕМНИШТВО',
-      'Entrepreneurship': 'Претприемништво',
-      'STARTUP': 'СТАРТАПИ',
-      'Startup': 'Стартапи',
-      'MANAGEMENT': 'МЕНАЏМЕНТ',
-      'Management': 'Менаџмент',
-
-      // Finance & Investment
-      'FINANCE': 'ФИНАНСИИ',
-      'Finance': 'Финансии',
-      'INVESTMENT': 'ИНВЕСТИЦИИ',
-      'Investment': 'Инвестиции',
-      'TAX': 'ДАНОЦИ',
-      'Tax': 'Даноци',
-      'ACCOUNTING': 'СМЕТКОВОДСТВО',
-      'Accounting': 'Сметководство',
-
-      // HR & Employment
+      'LEGAL': 'Право',
+      'COMPLIANCE': 'Усогласеност',
+      'CONTRACTS': 'Договори',
+      'CORPORATE': 'Корпоративно право',
+      'TRADEMARK': 'Жигови',
+      'BUSINESS': 'Бизнис',
+      'ENTREPRENEURSHIP': 'Претприемништво',
+      'STARTUP': 'Стартапи',
+      'MANAGEMENT': 'Менаџмент',
+      'FINANCE': 'Финансии',
+      'INVESTMENT': 'Инвестиции',
+      'INVESTMENTS': 'Инвестиции',
+      'TAX': 'Даноци',
+      'ACCOUNTING': 'Сметководство',
       'HR': 'ЧР',
-      'EMPLOYMENT': 'ВРАБОТУВАЊЕ',
-      'Employment': 'Вработување',
-      'RECRUITMENT': 'РЕГРУТАЦИЈА',
-      'Recruitment': 'Регрутација',
-
-      // Marketing & Sales
-      'MARKETING': 'МАРКЕТИНГ',
-      'Marketing': 'Маркетинг',
-      'SALES': 'ПРОДАЖБА',
-      'Sales': 'Продажба',
-      'ADVERTISING': 'РЕКЛАМА',
-      'Advertising': 'Реклама',
-      'DIGITAL MARKETING': 'ДИГИТАЛЕН МАРКЕТИНГ',
-      'Digital Marketing': 'Дигитален маркетинг',
-
-      // Technology
-      'TECHNOLOGY': 'ТЕХНОЛОГИЈА',
-      'Technology': 'Технологија',
-      'AUTOMATION': 'АВТОМАТИЗАЦИЈА',
-      'Automation': 'Автоматизација',
+      'EMPLOYMENT': 'Вработување',
+      'RECRUITMENT': 'Регрутација',
+      'MARKETING': 'Маркетинг',
+      'SALES': 'Продажба',
+      'ADVERTISING': 'Реклама',
+      'DIGITAL MARKETING': 'Дигитален маркетинг',
+      'TECHNOLOGY': 'Технологија',
+      'AUTOMATION': 'Автоматизација',
       'IT': 'ИТ',
-      'SOFTWARE': 'СОФТВЕР',
-      'Software': 'Софтвер',
-
-      // Other
-      'NEWS': 'ВЕСТИ',
-      'News': 'Вести',
-      'GENERAL': 'ОПШТО',
-      'General': 'Општо',
-      'RESIDENCE': 'ПРЕСТОЈ',
-      'Residence': 'Престој',
-      'EDUCATION': 'ОБРАЗОВАНИЕ',
-      'Education': 'Образование',
-      'TIPS': 'СОВЕТИ',
-      'Tips': 'Совети'
+      'SOFTWARE': 'Софтвер',
+      'NEWS': 'Вести',
+      'GENERAL': 'Општо',
+      'RESIDENCE': 'Престој',
+      'EDUCATION': 'Образование',
+      'TIPS': 'Совети'
     };
-    return categoryTranslations[category] || category;
+
+    const upperCategory = category.toUpperCase();
+    return categoryTranslations[upperCategory] || category;
   }
 
   // Format date to Macedonian format
@@ -265,9 +274,12 @@ export default function BlogPost() {
           </div>
         )}
 
-        {/* Excerpt (Public Preview) */}
-        <div className={styles.excerpt}>
-          <div dangerouslySetInnerHTML={{ __html: post.excerpt }} />
+        {/* Excerpt (Public Preview) with Fade Effect */}
+        <div className={styles.excerptWrapper}>
+          <div className={styles.excerpt}>
+            <div dangerouslySetInnerHTML={{ __html: post.excerpt }} />
+          </div>
+          <div className={styles.excerptFade}></div>
         </div>
 
         {/* Login Gate - Inside Article */}
@@ -304,48 +316,175 @@ export default function BlogPost() {
         </footer>
       </article>
 
-        {/* Sidebar with Suggested Posts */}
+        {/* Sidebar with Suggested Posts and About */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarSticky}>
-            <h3 className={styles.sidebarTitle}>Препорачани статии</h3>
-            <div className={styles.suggestedPosts}>
-              {suggestedPosts.length > 0 ? (
-                suggestedPosts.map((suggestedPost) => (
-                  <Link
-                    key={suggestedPost._id}
-                    to={`/blog/${suggestedPost._id}`}
-                    className={styles.suggestedPostCard}
+            {/* About Nexa Promo Box - Light Design */}
+            <div className={styles.aboutBox}>
+              <div className={styles.aboutHeader}>
+                <div className={styles.aboutLogo}>
+                  <span className={styles.logoN}>N</span>
+                </div>
+                <div>
+                  <h3 className={styles.aboutTitle}>Nexa Terminal</h3>
+                  <span className={styles.aboutBadge}>Бесплатно</span>
+                </div>
+              </div>
+              <p className={styles.aboutText}>
+                Платформа за македонски бизниси. Генерирај документи, следи обврски, автоматизирај процеси.
+              </p>
+              <ul className={styles.aboutFeatures}>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Бесплатно засекогаш
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                  100% приватност
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Без чекање
+                </li>
+              </ul>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className={styles.aboutCta}
+              >
+                Започни бесплатно
+              </button>
+            </div>
+
+            {/* Feature Videos Slider */}
+            <div className={styles.videosSection}>
+              <div className={styles.videosTitleRow}>
+                <h4 className={styles.videosTitle}>Видео водичи</h4>
+                <div className={styles.videoArrows}>
+                  <button
+                    className={styles.videoArrow}
+                    onClick={() => scrollVideos('left')}
+                    aria-label="Previous video"
                   >
-                    {suggestedPost.featuredImage && (
-                      <div className={styles.suggestedPostImage}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                  </button>
+                  <button
+                    className={styles.videoArrow}
+                    onClick={() => scrollVideos('right')}
+                    aria-label="Next video"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className={styles.videosSlider} ref={videoSliderRef}>
+                <div className={styles.videosTrack}>
+                  {[
+                    { id: 'WG9Z0NadFJg', title: 'Документација' },
+                    { id: '98R2bDGKbgc', title: 'Комплајанс' },
+                    { id: 'IbTsGXAXHdY', title: 'AI Асистент' },
+                    { id: 'LJXQtz--Sm8', title: 'Едукација' },
+                    { id: '1Z9nMueisuk', title: 'Експерти' },
+                  ].map((video) => (
+                    <a
+                      key={video.id}
+                      href={`https://www.youtube.com/watch?v=${video.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.videoCard}
+                    >
+                      <div className={styles.videoThumb}>
                         <img
-                          src={suggestedPost.featuredImage}
-                          alt={`${suggestedPost.title} - Nexa Terminal`}
+                          src={`https://img.youtube.com/vi/${video.id}/mqdefault.jpg`}
+                          alt={video.title}
                           loading="lazy"
                         />
+                        <div className={styles.playIcon}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                          </svg>
+                        </div>
                       </div>
-                    )}
-                    <div className={styles.suggestedPostContent}>
-                      {suggestedPost.category && (
-                        <span className={styles.suggestedPostCategory}>
-                          {translateCategory(suggestedPost.category)}
-                        </span>
+                      <span className={styles.videoLabel}>{video.title}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Suggested Posts */}
+            <div className={styles.suggestedSection}>
+              <h3 className={styles.sidebarTitle}>Препорачани</h3>
+              <div className={styles.suggestedPosts}>
+                {suggestedPosts.length > 0 ? (
+                  suggestedPosts.map((suggestedPost) => (
+                    <Link
+                      key={suggestedPost._id}
+                      to={`/blog/${suggestedPost._id}`}
+                      className={styles.suggestedPostCard}
+                    >
+                      {suggestedPost.featuredImage && (
+                        <div className={styles.suggestedPostImage}>
+                          <img
+                            src={suggestedPost.featuredImage}
+                            alt={`${suggestedPost.title} - Nexa Terminal`}
+                            loading="lazy"
+                          />
+                        </div>
                       )}
-                      <h4 className={styles.suggestedPostTitle}>
-                        {suggestedPost.title}
-                      </h4>
-                      <p className={styles.suggestedPostExcerpt}>
-                        {truncateText(suggestedPost.excerpt, 80)}
-                      </p>
-                      <span className={styles.suggestedPostDate}>
-                        {formatDate(suggestedPost.createdAt)}
-                      </span>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <p className={styles.noSuggestions}>Нема други статии засега</p>
-              )}
+                      <div className={styles.suggestedPostContent}>
+                        {suggestedPost.category && (
+                          <span className={styles.suggestedPostCategory}>
+                            {translateCategory(suggestedPost.category)}
+                          </span>
+                        )}
+                        <h4 className={styles.suggestedPostTitle}>
+                          {suggestedPost.title}
+                        </h4>
+                        <span className={styles.suggestedPostDate}>
+                          {formatDate(suggestedPost.createdAt)}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className={styles.noSuggestions}>Нема други статии</p>
+                )}
+              </div>
+            </div>
+
+            {/* Newsletter Signup */}
+            <div className={styles.newsletterSection}>
+              <iframe
+                data-w-type="embedded"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight="0"
+                marginWidth="0"
+                src="https://118h2.mjt.lu/wgt/118h2/0tm6/form?c=06658682"
+                width="100%"
+                title="Newsletter signup"
+                className={styles.newsletterIframe}
+                style={{ minHeight: '520px', height: '520px' }}
+                onLoad={(e) => {
+                  // Force height if script sets it to 0
+                  if (e.target.style.height === '0px' || e.target.style.height === '0') {
+                    e.target.style.height = '520px';
+                  }
+                }}
+              />
             </div>
           </div>
         </aside>

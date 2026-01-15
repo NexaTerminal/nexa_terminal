@@ -76,78 +76,43 @@ const BlogDetail = () => {
   }, [blog]);
 
   const translateCategory = (category) => {
+    if (!category) return '';
+
     const categoryTranslations = {
-      // Legal & Compliance
-      'LEGAL': 'ПРАВНО',
-      'Legal': 'Правно',
-      'COMPLIANCE': 'УСОГЛАСЕНОСТ',
-      'Compliance': 'Усогласеност',
-      'CONTRACTS': 'ДОГОВОРИ',
-      'Contracts': 'Договори',
-      'CORPORATE': 'КОРПОРАТИВНО ПРАВО',
-      'Corporate': 'Корпоративно право',
-      'TRADEMARK': 'ЖИГОВИ',
-      'Trademark': 'Жигови',
-
-      // Business & Management
-      'BUSINESS': 'БИЗНИС',
-      'Business': 'Бизнис',
-      'ENTREPRENEURSHIP': 'ПРЕТПРИЕМНИШТВО',
-      'Entrepreneurship': 'Претприемништво',
-      'STARTUP': 'СТАРТАПИ',
-      'Startup': 'Стартапи',
-      'MANAGEMENT': 'МЕНАЏМЕНТ',
-      'Management': 'Менаџмент',
-
-      // Finance & Investment
-      'FINANCE': 'ФИНАНСИИ',
-      'Finance': 'Финансии',
-      'INVESTMENT': 'ИНВЕСТИЦИИ',
-      'Investment': 'Инвестиции',
-      'TAX': 'ДАНОЦИ',
-      'Tax': 'Даноци',
-      'ACCOUNTING': 'СМЕТКОВОДСТВО',
-      'Accounting': 'Сметководство',
-
-      // HR & Employment
+      'LEGAL': 'Право',
+      'COMPLIANCE': 'Усогласеност',
+      'CONTRACTS': 'Договори',
+      'CORPORATE': 'Корпоративно право',
+      'TRADEMARK': 'Жигови',
+      'BUSINESS': 'Бизнис',
+      'ENTREPRENEURSHIP': 'Претприемништво',
+      'STARTUP': 'Стартапи',
+      'MANAGEMENT': 'Менаџмент',
+      'FINANCE': 'Финансии',
+      'INVESTMENT': 'Инвестиции',
+      'INVESTMENTS': 'Инвестиции',
+      'TAX': 'Даноци',
+      'ACCOUNTING': 'Сметководство',
       'HR': 'ЧР',
-      'EMPLOYMENT': 'ВРАБОТУВАЊЕ',
-      'Employment': 'Вработување',
-      'RECRUITMENT': 'РЕГРУТАЦИЈА',
-      'Recruitment': 'Регрутација',
-
-      // Marketing & Sales
-      'MARKETING': 'МАРКЕТИНГ',
-      'Marketing': 'Маркетинг',
-      'SALES': 'ПРОДАЖБА',
-      'Sales': 'Продажба',
-      'ADVERTISING': 'РЕКЛАМА',
-      'Advertising': 'Реклама',
-      'DIGITAL MARKETING': 'ДИГИТАЛЕН МАРКЕТИНГ',
-      'Digital Marketing': 'Дигитален маркетинг',
-
-      // Technology
-      'TECHNOLOGY': 'ТЕХНОЛОГИЈА',
-      'Technology': 'Технологија',
-      'AUTOMATION': 'АВТОМАТИЗАЦИЈА',
-      'Automation': 'Автоматизација',
+      'EMPLOYMENT': 'Вработување',
+      'RECRUITMENT': 'Регрутација',
+      'MARKETING': 'Маркетинг',
+      'SALES': 'Продажба',
+      'ADVERTISING': 'Реклама',
+      'DIGITAL MARKETING': 'Дигитален маркетинг',
+      'TECHNOLOGY': 'Технологија',
+      'AUTOMATION': 'Автоматизација',
       'IT': 'ИТ',
-      'SOFTWARE': 'СОФТВЕР',
-      'Software': 'Софтвер',
-
-      // Other
-      'NEWS': 'ВЕСТИ',
-      'News': 'Вести',
-      'GENERAL': 'ОПШТО',
-      'General': 'Општо',
-      'RESIDENCE': 'ПРЕСТОЈ',
-      'Residence': 'Престој',
-      'EDUCATION': 'ОБРАЗОВАНИЕ',
-      'Education': 'Образование',
-      'TIPS': 'СОВЕТИ',
-      'Tips': 'Совети'
+      'SOFTWARE': 'Софтвер',
+      'NEWS': 'Вести',
+      'GENERAL': 'Општо',
+      'RESIDENCE': 'Престој',
+      'EDUCATION': 'Образование',
+      'TIPS': 'Совети'
     };
-    return categoryTranslations[category] || category;
+
+    const upperCategory = category.toUpperCase();
+    return categoryTranslations[upperCategory] || category;
   };
 
   const formatDate = (dateString) => {

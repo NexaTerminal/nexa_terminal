@@ -26,6 +26,9 @@ const Sidebar = () => {
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪' },
     { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝' },
     { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot', icon: '🤖' },
+    { path: '/terminal/admin/newsletter/subscribers', label: 'Претплатници', icon: '📧' },
+    { path: '/terminal/admin/newsletter/create', label: 'Креирај билтен', icon: '➕' },
+    { path: '/terminal/admin/newsletter/analytics', label: 'Аналитика', icon: '📊' },
   ];
 
   return (

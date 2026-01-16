@@ -1374,6 +1374,242 @@ class EmailService {
       </html>
     `;
   }
+
+  // ======================
+  // NEWSLETTER METHODS
+  // ======================
+
+  /**
+   * Fetch blogs for newsletter from database
+   * @param {Array} blogIds - Array of blog IDs
+   * @returns {Array} Array of blog objects
+   */
+  async fetchBlogsForNewsletter(blogIds) {
+    try {
+      if (!blogIds || blogIds.length === 0) {
+        return [];
+      }
+
+      // Get database instance from global app
+      const db = global.app?.locals?.db;
+      if (!db) {
+        console.error('Database not available in fetchBlogsForNewsletter');
+        return [];
+      }
+
+      const blogs = await db.collection('blogPosts')
+        .find({
+          _id: { $in: blogIds },
+          status: 'published'
+        })
+        .project({
+          _id: 1,
+          title: 1,
+          excerpt: 1,
+          content: 1,
+          featuredImage: 1,
+          createdAt: 1
+        })
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      return blogs;
+    } catch (error) {
+      console.error('Error fetching blogs for newsletter:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Generate newsletter HTML with blog preview cards
+   * @param {Object} campaign - Campaign object
+   * @param {Array} blogs - Array of blog objects
+   * @param {String} unsubscribeToken - Unsubscribe token
+   * @param {String} trackingPixelToken - Tracking pixel token
+   * @returns {String} HTML email content
+   */
+  async generateNewsletterHTML(campaign, blogs, unsubscribeToken, trackingPixelToken) {
+    const baseUrl = process.env.CLIENT_URL || 'https://nexa.mk';
+    const serverUrl = process.env.SERVER_URL || 'https://nexa-terminal-api-production-74cc.up.railway.app';
+
+    // Generate blog cards
+    const blogCardsHtml = blogs.map(blog => {
+      const blogUrl = `${baseUrl}/blog/${blog._id}`;
+      const trackingUrl = `${serverUrl}/api/public/newsletter/track/click/${trackingPixelToken}/blog-${blog._id}?redirect=${encodeURIComponent(blogUrl)}`;
+      const imageUrl = blog.featuredImage || `${baseUrl}/nexa-logo-navbar.png`;
+      const excerpt = blog.excerpt || (blog.content ? blog.content.substring(0, 150) + '...' : '');
+
+      return `
+        <tr>
+          <td style="padding: 20px 0;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+              <tr>
+                <td style="padding: 0;">
+                  ${blog.featuredImage ? `
+                  <img src="${imageUrl}" alt="${blog.title}" style="width: 100%; height: auto; display: block; max-height: 250px; object-fit: cover;">
+                  ` : ''}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px;">
+                  <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 20px; font-weight: 600; line-height: 1.4;">
+                    <a href="${trackingUrl}" style="color: #111827; text-decoration: none;">
+                      ${blog.title}
+                    </a>
+                  </h2>
+                  <p style="margin: 0 0 16px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                    ${excerpt}
+                  </p>
+                  <a href="${trackingUrl}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+                    Прочитај повеќе →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html lang="mk">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${campaign.subject}</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+        <!-- Tracking Pixel -->
+        <img src="${serverUrl}/api/public/newsletter/track/open/${trackingPixelToken}" width="1" height="1" style="display:none;" alt="">
+
+        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 30px 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0; text-align: center;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                      Nexa Terminal
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">
+                      Билтен
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <h2 style="margin: 0 0 20px 0; color: #111827; font-size: 24px; font-weight: 600;">
+                      ${campaign.subject}
+                    </h2>
+                    <p style="margin: 0 0 30px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                      Здраво! Ги споделуваме нашите најнови објави што ви донесуваат корисни информации и совети.
+                    </p>
+
+                    <!-- Blog Cards -->
+                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                      ${blogCardsHtml}
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0 0 15px 0; color: #6b7280; font-size: 14px;">
+                      Nexa Terminal - Автоматизација на правни документи<br>
+                      <a href="${baseUrl}" style="color: #10b981; text-decoration: none;">nexa.mk</a>
+                    </p>
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                      Не сакате повеќе да примате билтен?
+                      <a href="${serverUrl}/api/public/newsletter/unsubscribe/${unsubscribeToken}" style="color: #dc2626; text-decoration: none;">
+                        Отпиши се
+                      </a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Send newsletter to batch of subscribers with rate limiting
+   * @param {Object} campaign - Campaign object
+   * @param {Array} blogs - Array of blog objects
+   * @param {Array} subscribers - Array of subscriber objects
+   * @returns {Object} Results with sent/failed counts
+   */
+  async sendNewsletterBatch(campaign, blogs, subscribers) {
+    const results = {
+      sent: 0,
+      failed: 0,
+      errors: []
+    };
+
+    // Get database instance
+    const db = global.app?.locals?.db;
+    if (!db) {
+      throw new Error('Database not available');
+    }
+
+    for (const subscriber of subscribers) {
+      try {
+        // Generate unique tracking pixel token
+        const trackingPixelToken = crypto.randomBytes(32).toString('hex');
+
+        // Create analytics record
+        const analyticsRecord = {
+          campaignId: campaign._id,
+          subscriberId: subscriber._id,
+          subscriberEmail: subscriber.email,
+          events: [{
+            type: 'sent',
+            timestamp: new Date(),
+            metadata: {}
+          }],
+          trackingPixelToken,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        await db.collection('newsletter_analytics').insertOne(analyticsRecord);
+
+        // Generate personalized HTML
+        const html = await this.generateNewsletterHTML(
+          campaign,
+          blogs,
+          subscriber.unsubscribeToken,
+          trackingPixelToken
+        );
+
+        // Send email
+        await this.sendEmail(subscriber.email, campaign.subject, html);
+
+        results.sent++;
+
+        // Rate limiting: 100ms delay between sends
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Error sending to ${subscriber.email}:`, error);
+        results.failed++;
+        results.errors.push({
+          email: subscriber.email,
+          error: error.message
+        });
+      }
+    }
+
+    return results;
+  }
 }
 
 module.exports = new EmailService();

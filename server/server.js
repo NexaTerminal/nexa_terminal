@@ -97,6 +97,9 @@ app.use('/api/provider-response', require('./routes/providerResponse'));
 // Mount public blog routes BEFORE CSRF middleware (public API for SEO)
 app.use('/api/blog', require('./routes/blog'));
 
+// Mount public newsletter routes BEFORE CSRF middleware (tracking, unsubscribe)
+app.use('/api/public/newsletter', require('./routes/publicNewsletter'));
+
 // Mount shared documents routes BEFORE CSRF middleware (public + authenticated API)
 // Route registration is deferred until after controller initialization
 // See registerRoutes() function for actual mounting
@@ -330,6 +333,17 @@ async function initializeServices(database) {
     creditScheduler.startAll();
 
     console.log('✅ Credit System initialized successfully');
+
+    // Initialize Newsletter Scheduler
+    console.log('📧 Initializing Newsletter Scheduler...');
+    const NewsletterScheduler = require('./services/newsletterScheduler');
+    const newsletterScheduler = new NewsletterScheduler(database, emailService);
+    app.locals.newsletterScheduler = newsletterScheduler;
+
+    // Start newsletter scheduler
+    newsletterScheduler.start();
+
+    console.log('✅ Newsletter Scheduler initialized successfully');
 
     // Initialize activity logger
     activityLogger.initialize(database);
@@ -619,6 +633,12 @@ function registerRoutes() {
       }
 
       app.use('/api/admin', adminRouter);
+
+      // Newsletter admin routes
+      const { router: newsletterRouter, initializeController: initNewsletterController } = require('./routes/newsletter');
+      initNewsletterController(db);
+      app.use('/api/newsletter', newsletterRouter);
+      console.log('✅ Newsletter routes loaded successfully');
 
       // Real-time admin routes
       const { router: realtimeAdminRouter } = require('./routes/realtimeAdmin');

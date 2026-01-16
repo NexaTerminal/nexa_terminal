@@ -79,6 +79,74 @@ const courseData = {
       }
     ]
   },
+  'izvrsuvanje-nedviznosti': {
+    title: 'Извршување врз недвижности',
+    description: 'Комплетен курс за постапката на извршување врз недвижности - од прибелешка до намирување на доверителите.',
+    modules: [
+      {
+        id: 1,
+        title: 'Модул 1: Вовед во постапката за извршување',
+        lessons: [
+          { id: 'izv-lesson-1', title: 'Видео: Вовед во постапката', type: 'video', videoId: 'imAWHrYOVUQ', duration: '15 мин' },
+          { id: 'izv-reading-1', title: 'Читање: Општи одредби за извршување', type: 'reading', duration: '10 мин' },
+          { id: 'izv-quiz-1', title: 'Квиз: Модул 1', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Модул 2: Прибелешка и право на намирување',
+        lessons: [
+          { id: 'izv-lesson-2', title: 'Видео: Прибелешка и стекнување права', type: 'video', videoId: 'LDT5XHoOotU', duration: '15 мин' },
+          { id: 'izv-reading-2', title: 'Читање: Прибелешка на налогот', type: 'reading', duration: '10 мин' },
+          { id: 'izv-quiz-2', title: 'Квиз: Модул 2', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Модул 3: Утврдување на вредноста',
+        lessons: [
+          { id: 'izv-lesson-3', title: 'Видео: Проценка на недвижноста', type: 'video', videoId: '_o_EexOQroU', duration: '15 мин' },
+          { id: 'izv-reading-3', title: 'Читање: Утврдување на вредноста', type: 'reading', duration: '10 мин' },
+          { id: 'izv-quiz-3', title: 'Квиз: Модул 3', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 4,
+        title: 'Модул 4: Процес на продажба',
+        lessons: [
+          { id: 'izv-lesson-4', title: 'Видео: Продажба на недвижноста', type: 'video', videoId: '-d4BOXJCz4c', duration: '15 мин' },
+          { id: 'izv-reading-4', title: 'Читање: Процес на продажба', type: 'reading', duration: '10 мин' },
+          { id: 'izv-quiz-4', title: 'Квиз: Модул 4', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 5,
+        title: 'Модул 5: Намирување и сопственост',
+        lessons: [
+          { id: 'izv-lesson-5', title: 'Видео: Намирување на доверителите', type: 'video', videoId: '8L2we3HsBpc', duration: '15 мин' },
+          { id: 'izv-reading-5', title: 'Читање: Намирување и сопственост', type: 'reading', duration: '10 мин' },
+          { id: 'izv-quiz-5', title: 'Квиз: Модул 5', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 6,
+        title: 'Модул 6: Предавање на имотот',
+        lessons: [
+          { id: 'izv-lesson-6', title: 'Видео: Предавање и завршување', type: 'video', videoId: 'IQeYqQ7PzhI', duration: '15 мин' },
+          { id: 'izv-reading-6', title: 'Читање: Предавање на имотот', type: 'reading', duration: '10 мин' },
+          { id: 'izv-infographic', title: 'Инфографик: Водич низ постапката', type: 'reading', duration: '5 мин' },
+          { id: 'izv-quiz-6', title: 'Квиз: Модул 6', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 7,
+        title: 'Финален тест',
+        lessons: [
+          { id: 'izv-quiz-final', title: 'Финален квиз', type: 'quiz', passingScore: 70, duration: '15 мин', isFinal: true }
+        ]
+      }
+    ]
+  },
   'rabotni-odnosi': {
     title: 'Работни односи',
     description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',

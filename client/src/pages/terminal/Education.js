@@ -36,6 +36,13 @@ const courses = [
     available: true
   },
   {
+    id: 'izvrsuvanje-nedviznosti',
+    title: 'Извршување врз недвижности',
+    description: 'Комплетен курс за постапката на извршување врз недвижности - од прибелешка до намирување на доверителите.',
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    available: true
+  },
+  {
     id: 'email-marketing',
     title: 'Емаил маркетинг - како до нови клиенти на ваков начин',
     description: 'Научете како да градите ефективни емаил кампањи, да привлекувате клиенти и да зголемите продажбата преку професионален емаил маркетинг.',

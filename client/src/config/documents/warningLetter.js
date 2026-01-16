@@ -22,7 +22,7 @@ export const warningLetterConfig = {
       id: 2,
       title: 'Причина за опомената',
       description: 'Детали за постапувањето и повредените правила',
-      requiredFields: ['employeeWrongDoing', 'rulesNotRespected', 'articleNumber']
+      requiredFields: ['wrongDoingCategory', 'employeeWrongDoing', 'articleNumber']
     }
   ],
 
@@ -45,28 +45,43 @@ export const warningLetterConfig = {
     },
 
     // Step 2: Warning Details
+    wrongDoingCategory: {
+      name: 'wrongDoingCategory',
+      type: 'select',
+      label: 'Категорија на прекршок',
+      required: true,
+      helpText: 'Изберете ја категоријата на прекршокот што го направил работникот. Врз основа на изборот, автоматски ќе се пополни описот кој можете дополнително да го приспособите.',
+      options: [
+        { value: '', label: 'Избери категорија' },
+        { value: 'доцнење', label: 'Доцнење на работа' },
+        { value: 'отсуство', label: 'Неоправдано отсуство' },
+        { value: 'работноВреме', label: 'Непочитување на работното време' },
+        { value: 'неизвршување', label: 'Неизвршување на работни задачи' },
+        { value: 'непрофесионално', label: 'Непрофесионално однесување' },
+        { value: 'безбедност', label: 'Непочитување на безбедносни процедури' },
+        { value: 'конфиденциjalност', label: 'Прекршување на конфиденциалност' },
+        { value: 'дискриминација', label: 'Дискриминаторско однесување' },
+        { value: 'алкохол', label: 'Појава под влијание на алкохол/дрога' },
+        { value: 'имот', label: 'Злоупотреба на имот на компанијата' },
+        { value: 'друго', label: 'Друго' }
+      ]
+    },
     employeeWrongDoing: {
       name: 'employeeWrongDoing',
       type: 'textarea',
-      label: 'Што направил работникот погрешно',
-      placeholder: 'пр. доцнење на работа без оправдана причина, непочитување на работното време...',
+      label: 'Детален опис на постапувањето',
+      placeholder: 'Изберете категорија за автоматско пополнување...',
       rows: 4,
-      required: true
-    },
-    rulesNotRespected: {
-      name: 'rulesNotRespected',
-      type: 'textarea',
-      label: 'Кои правила/обврски не се почитуваат',
-      placeholder: 'пр. работно време согласно договорот за вработување, интерни правила за работа...',
-      rows: 3,
-      required: true
+      required: true,
+      helpText: 'Опишете го конкретното постапување на работникот. Текстот автоматски се пополнува врз основа на избраната категорија, но можете да го прилагодите.'
     },
     articleNumber: {
       name: 'articleNumber',
       type: 'text',
       label: 'Член од договорот за вработување',
       placeholder: 'пр. член 8, член 12.3',
-      required: true
+      required: true,
+      helpText: 'Внесете го бројот на членот од договорот за вработување кој е прекршен со ова постапување.'
     }
   },
 
@@ -81,14 +96,14 @@ export const warningLetterConfig = {
 
     // Step 2 - Warning Details
     {
-      field: 'employeeWrongDoing',
+      field: 'wrongDoingCategory',
       type: VALIDATION_TYPES.REQUIRED,
-      label: 'Што направил работникот погрешно'
+      label: 'Категорија на прекршок'
     },
     {
-      field: 'rulesNotRespected',
+      field: 'employeeWrongDoing',
       type: VALIDATION_TYPES.REQUIRED,
-      label: 'Кои правила/обврски не се почитуваат'
+      label: 'Детален опис на постапувањето'
     },
     {
       field: 'articleNumber',
@@ -101,8 +116,8 @@ export const warningLetterConfig = {
   initialFormData: {
     employeeName: '',
     warningDate: '',
+    wrongDoingCategory: '',
     employeeWrongDoing: '',
-    rulesNotRespected: '',
     articleNumber: '',
     acceptTerms: false
   }
@@ -112,10 +127,29 @@ export const warningLetterConfig = {
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
     1: ['employeeName', 'warningDate'],
-    2: ['employeeWrongDoing', 'rulesNotRespected', 'articleNumber']
+    2: ['wrongDoingCategory', 'employeeWrongDoing', 'articleNumber']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => warningLetterConfig.fields[fieldName]) || [];
+};
+
+// Helper function to get description based on category
+export const getWrongDoingDescription = (category) => {
+  const descriptions = {
+    'доцнење': 'работникот честопати доцни на работа без оправдана причина, со што го нарушува редовното функционирање на работните процеси и создава несоодветна работна атмосфера',
+    'отсуство': 'работникот беше отсутен од работа без претходна најава и оправдана причина, со што предизвика прекин на работните процеси и неможност за навремено извршување на работните задачи',
+    'работноВреме': 'работникот не се придржува кон утврденото работно време, честопати заминува од работа пред завршување на работното време или прави неовластени паузи, со што го нарушува редовното работење',
+    'неизвршување': 'работникот не ги извршува доделените работни задачи во договорениот рок или не ги извршува согласно утврдените стандарди на квалитет, со што ги загрозува работните резултати на тимот',
+    'непрофесионално': 'работникот покажува непрофесионално однесување кон колегите, клиентите или деловните партнери, вклучувајќи невоспитано комуницирање, неповолно однесување или несоодветно претставување на компанијата',
+    'безбедност': 'работникот не ги почитува пропишаните безбедносни процедури и мерки, со што го загрозува сопственото здравје и безбедност, како и здравјето и безбедноста на другите вработени',
+    'конфиденциjalност': 'работникот ги прекршил правилата за заштита на доверливи информации со несоодветно споделување, објавување или користење на деловни или лични податоци без овластување',
+    'дискриминација': 'работникот покажал дискриминаторско однесување кон колеги или клиенти врз основа на пол, возраст, национална припадност, религија или друга заштитена карактеристика',
+    'алкохол': 'работникот се појавил на работа под влијание на алкохол или други опојни супстанци, со што го загрозил сопственото здравје и безбедност, како и безбедноста на другите вработени',
+    'имот': 'работникот го злоупотребил имотот на компанијата за приватни цели без овластување, или предизвикал штета на опремата или материјалите на компанијата со невнимателно или небрежно постапување',
+    'друго': ''
+  };
+
+  return descriptions[category] || '';
 };
 
 export default warningLetterConfig;

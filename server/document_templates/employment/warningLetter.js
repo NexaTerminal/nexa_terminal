@@ -12,7 +12,6 @@ function generateWarningLetterDoc(formData, user, company) {
   const employeeName = formData?.employeeName || '[Име на работник]';
   const warningDate = formData?.warningDate ? moment(formData.warningDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const employeeWrongDoing = formData?.employeeWrongDoing || '[Постапување на работникот]';
-  const rulesNotRespected = formData?.rulesNotRespected || '[Правила кои не се почитуваат]';
   const articleNumber = formData?.articleNumber || '[Број на член]';
   
   const currentDate = moment().format('DD.MM.YYYY');
@@ -48,7 +47,7 @@ function generateWarningLetterDoc(formData, user, company) {
         new Paragraph({ text: '' }),
         new Paragraph({
           children: [
-            new TextRun({ text: `Ве опоменуваме дека со Вашето постапување од ${warningDate} година кога ${employeeWrongDoing}, се утврди дека не се придржувате кон ${rulesNotRespected}.` })
+            new TextRun({ text: `Ве опоменуваме дека со Вашето постапување од ${warningDate} година се утврди дека ${employeeWrongDoing}.` })
           ],
           alignment: AlignmentType.JUSTIFIED
         }),

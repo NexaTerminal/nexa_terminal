@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField, { ConditionalField } from '../../../../components/forms/FormField';
-import { warningLetterConfig, getStepFields } from '../../../../config/documents/warningLetter';
+import { warningLetterConfig, getStepFields, getWrongDoingDescription } from '../../../../config/documents/warningLetter';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -10,7 +10,8 @@ import styles from '../../../../styles/terminal/documents/DocumentGeneration.mod
  * This page generates warning letters for employee misconduct
  */
 const WarningLetterPage = () => {
-  
+  const formDataRef = useRef(null);
+
   /**
    * Custom step content renderer
    * This is the only document-specific logic needed
@@ -19,52 +20,62 @@ const WarningLetterPage = () => {
     const stepFields = getStepFields(currentStep);
     const stepConfig = warningLetterConfig.steps.find(s => s.id === currentStep);
 
+    // Store formData in ref
+    formDataRef.current = formData;
+
+    // Handle category change and auto-fill description
+    const handleCategoryChange = (name, value) => {
+      // Call original handleInputChange for the category
+      handleInputChange(name, value);
+
+      // Auto-fill the description based on selected category
+      if (value) {
+        const description = getWrongDoingDescription(value);
+
+        // Update employeeWrongDoing field
+        setTimeout(() => {
+          handleInputChange('employeeWrongDoing', description);
+        }, 0);
+      }
+    };
+
+    // Map fields and inject custom onChange for wrongDoingCategory
+    const mappedFields = stepFields.map(field => {
+      if (field.name === 'wrongDoingCategory') {
+        return {
+          ...field,
+          onChange: handleCategoryChange
+        };
+      }
+      return field;
+    });
+
     return (
       <div className={styles['form-section']}>
         <h3>{stepConfig.title}</h3>
         {stepConfig.description && <p>{stepConfig.description}</p>}
-        
-        {/* Add informational note for step 2 */}
-        {currentStep === 2 && (
-          <div className={styles['info-box']} style={{ 
-            backgroundColor: '#fff3cd', 
-            border: '1px solid #ffeaa7', 
-            borderRadius: '6px', 
-            padding: '12px', 
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
-            <strong>⚠️ Напомена:</strong>
-            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-              <li>Опишете конкретно што направил работникот погрешно</li>
-              <li>Наведете кои правила или обврски се прекршени</li>
-              <li>Укажете на член од договорот за вработување</li>
-              <li>Опомената служи како предупредување пред дисциплинска мерка</li>
-            </ul>
-          </div>
-        )}
-        
-        {stepFields.map(field => (
+
+        {mappedFields.map(field => (
           <React.Fragment key={field.name}>
             {/* Regular fields */}
             {!field.condition && (
               <FormField
                 field={field}
                 value={formData[field.name]}
-                onChange={handleInputChange}
+                onChange={field.onChange || handleInputChange}
                 error={errors[field.name]}
                 disabled={isGenerating}
                 formData={formData}
               />
             )}
-            
+
             {/* Conditional fields (if any are added later) */}
             {field.condition && (
               <ConditionalField condition={field.condition} formData={formData}>
                 <FormField
                   field={field}
                   value={formData[field.name]}
-                  onChange={handleInputChange}
+                  onChange={field.onChange || handleInputChange}
                   error={errors[field.name]}
                   disabled={isGenerating}
                   formData={formData}
@@ -78,7 +89,7 @@ const WarningLetterPage = () => {
   };
 
   return (
-    <BaseDocumentPage 
+    <BaseDocumentPage
       config={warningLetterConfig}
       renderStepContent={renderStepContent}
       title="Опомена до вработен"

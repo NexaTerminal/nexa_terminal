@@ -42,7 +42,7 @@ function generateConfirmationOfEmploymentDoc(formData, user, company) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Со оваа потврда, ${companyName} потврдува дека работникот ${employeeName} со адреса на живеење ул.${employeeAddress}, ЕМБГ ${employeePIN}, е во редовен работен однос и е ангажиран на работно место „${jobPosition}“.`,
+          text: `Со оваа потврда, ${companyName} потврдува дека работникот ${employeeName} со адреса на живеење ${employeeAddress}, ЕМБГ ${employeePIN}, е во редовен работен однос и е ангажиран на работно место „${jobPosition}“.`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,

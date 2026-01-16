@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
@@ -62,6 +62,7 @@ function getCategoryInMacedonian(englishCategory) {
 }
 
 export default function Blog() {
+  const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,16 @@ export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState('СИ');
   const [sortOrder, setSortOrder] = useState('latest');
   const [brokenImages, setBrokenImages] = useState(new Set());
+
+  // Read category from URL on mount and when URL changes
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+    } else {
+      setSelectedCategory('СИ');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchPosts();

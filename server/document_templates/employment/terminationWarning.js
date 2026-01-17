@@ -66,13 +66,13 @@ function generateTerminationWarningDoc(formData, user, company) {
         // }),
 
         // Document number and date - creatively integrated
-        new Paragraph({
-          children: [
-            new TextRun({ text: `Бр. _____ од ${decisionDate} година`, bold: false })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 300, line: 276 }
-        }),
+        // new Paragraph({
+        //   children: [
+        //     new TextRun({ text: `Бр. _____ од ${decisionDate} година`, bold: false })
+        //   ],
+        //   alignment: AlignmentType.LEFT,
+        //   spacing: { after: 300, line: 276 }
+        // }),
 
         // Main content - creative integration of variables
         new Paragraph({
@@ -143,7 +143,7 @@ function generateTerminationWarningDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Ваквото постапување претставува повреда на работните обврски утврдени со Договорот за вработување, Правилникот за работа, како и општите начела на работната дисциплина и лојалност кон работодавачот, што согласно член 75 од Законот за работни односи може да биде основ за престанок на работниот однос по пат на откажување.`,
+              text: `Ваквото постапување претставува повреда на работните обврски утврдени со Договорот за вработување како и општите начела на работната дисциплина и лојалност кон работодавачот, што согласно член 75 од Законот за работни односи може да биде основ за престанок на работниот однос по пат на откажување.`,
               bold: false
             })
           ],
@@ -282,7 +282,7 @@ function generateTerminationWarningDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({ 
-              text: `Забелешка: Согласно член 77 став 4 од Законот за работни односи, работникот има право на приговор против ова предупредување во рок од 8 дена од денот на приемот, до комисијата за решавање работни спорови формирана кај работодавачот.`, 
+              text: `Правна поука: Согласно член 77 став 4 од Законот за работни односи, работникот има право на приговор против ова предупредување во рок од 8 дена од денот на приемот, до работодавачот.`, 
               bold: false,
               italics: true,
               size: 18

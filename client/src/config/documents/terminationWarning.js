@@ -1,6 +1,68 @@
 import { VALIDATION_TYPES } from '../../utils/documentValidation';
 
 /**
+ * Violation Categories - unified options that fill both fields
+ */
+export const violationCategoryOptions = [
+  { value: '', label: 'Изберете категорија...' },
+  { value: 'deadlines', label: 'Непочитување на рокови' },
+  { value: 'attendance', label: 'Присуство и работно време' },
+  { value: 'quality', label: 'Квалитет на работа' },
+  { value: 'communication', label: 'Комуникација и соработка' },
+  { value: 'safety', label: 'Безбедност при работа' },
+  { value: 'confidentiality', label: 'Доверливост на информации' },
+  { value: 'conduct', label: 'Професионално однесување' },
+  { value: 'insubordination', label: 'Непочитување на претпоставени' },
+  { value: 'other', label: 'Друго' }
+];
+
+/**
+ * Get both descriptions for a violation category
+ * Returns { obligation, wrongdoing } - fills both textareas
+ */
+export const getViolationDescriptions = (category) => {
+  const descriptions = {
+    'deadlines': {
+      obligation: 'Навремено завршување на доделените работни задачи и проекти согласно утврдените рокови и приоритети определени од претпоставениот',
+      wrongdoing: 'Континуирано доцнење со извршување на доделените работни задачи, пречекорување на утврдените рокови без навремено известување на претпоставениот'
+    },
+    'attendance': {
+      obligation: 'Редовно присуство на работа и почитување на утврденото работно време согласно договорот за вработување и интерните правила',
+      wrongdoing: 'Повторено доцнење на работа и/или неоправдано отсуство од работа без претходно одобрение, непочитување на утврденото работно време'
+    },
+    'quality': {
+      obligation: 'Извршување на работните задачи со потребното ниво на квалитет, точност и професионалност согласно стандардите на компанијата',
+      wrongdoing: 'Извршување на работните задачи со незадоволително ниво на квалитет, грешки кои влијаат на работата на тимот или компанијата'
+    },
+    'communication': {
+      obligation: 'Редовна и навремена комуникација со претпоставените и колегите, како и тимска соработка при извршување на работните задачи',
+      wrongdoing: 'Недостаток на комуникација со претпоставените и колегите, неодговарање на пораки и барања, неинформирање за статусот на задачите'
+    },
+    'safety': {
+      obligation: 'Почитување на правилата и процедурите за безбедност и здравје при работа утврдени со интерните акти на компанијата',
+      wrongdoing: 'Непочитување на правилата за безбедност при работа, изложување на себе или колегите на ризик'
+    },
+    'confidentiality': {
+      obligation: 'Чување на деловните тајни и доверливите информации на компанијата согласно договорот за вработување и политиката за доверливост',
+      wrongdoing: 'Неовластено споделување на доверливи информации, прекршување на политиката за заштита на податоци'
+    },
+    'conduct': {
+      obligation: 'Професионално и етичко однесување на работното место согласно кодексот на однесување и интерните правила на компанијата',
+      wrongdoing: 'Непрофесионално однесување кон колегите, создавање конфликтни ситуации, нарушување на работната атмосфера'
+    },
+    'insubordination': {
+      obligation: 'Почитување и извршување на упатствата и наредбите дадени од претпоставените во врска со работните задачи',
+      wrongdoing: 'Одбивање да се постапи по упатствата на претпоставениот, непочитување на хиерархијата и процедурите'
+    },
+    'other': {
+      obligation: '',
+      wrongdoing: ''
+    }
+  };
+  return descriptions[category] || { obligation: '', wrongdoing: '' };
+};
+
+/**
  * Termination Warning Document Configuration
  * This configuration drives the entire form behavior, validation, and API integration
  */
@@ -20,8 +82,8 @@ export const terminationWarningConfig = {
     {
       id: 2,
       title: 'Детали за прекршокот',
-      description: 'Опишете ја обврската и постапувањето спротивно на истата',
-      requiredFields: ['workTaskFailure', 'employeeWrongDoing']
+      description: 'Изберете категорија за автоматско пополнување или внесете рачно',
+      requiredFields: ['violationCategory', 'workTaskFailure', 'employeeWrongDoing']
     },
     {
       id: 3,
@@ -56,6 +118,14 @@ export const terminationWarningConfig = {
       max: new Date().toISOString().split('T')[0], // Cannot be in the future
       helpText: 'Датумот кога е донесена одлуката за издавање предупредување'
     },
+    violationCategory: {
+      name: 'violationCategory',
+      type: 'select',
+      label: 'Категорија на прекршок',
+      required: false,
+      options: violationCategoryOptions,
+      helpText: 'Изберете категорија за автоматско пополнување на двете полиња подолу'
+    },
     workTaskFailure: {
       name: 'workTaskFailure',
       type: 'textarea',
@@ -64,7 +134,7 @@ export const terminationWarningConfig = {
       required: true,
       rows: 3,
       maxLength: 500,
-      helpText: 'Детално опишете ја работната обврска која не е исполнета'
+      helpText: 'Опишете ја обврската или изберете категорија од горе'
     },
     employeeWrongDoing: {
       name: 'employeeWrongDoing',
@@ -74,7 +144,7 @@ export const terminationWarningConfig = {
       required: true,
       rows: 4,
       maxLength: 800,
-      helpText: 'Конкретно опишете го проблематичното однесување или постапување'
+      helpText: 'Опишете го прекршокот или изберете категорија од горе'
     },
     fixingDeadline: {
       name: 'fixingDeadline',
@@ -82,8 +152,8 @@ export const terminationWarningConfig = {
       label: 'Рок за исправка на однесувањето',
       placeholder: '',
       required: true,
-      min: new Date().toISOString().split('T')[0], // Must be in the future
-      helpText: 'Датумот до кој работникот мора да го исправи своето однесување'
+      minDaysAfter: { field: 'decisionDate', days: 15 }, // Dynamic: at least 15 days after decisionDate
+      helpText: 'Минимум 15 дена по датумот на одлуката (законски рок)'
     }
   },
 
@@ -149,8 +219,10 @@ export const terminationWarningConfig = {
         if (!value || !formData.decisionDate) return true;
         const decisionDate = new Date(formData.decisionDate);
         const fixingDate = new Date(value);
-        if (fixingDate <= decisionDate) {
-          return 'Рокот за исправка мора да биде после датумот на одлуката';
+        const minDate = new Date(decisionDate);
+        minDate.setDate(minDate.getDate() + 15);
+        if (fixingDate < minDate) {
+          return 'Рокот за исправка мора да биде минимум 15 дена по датумот на одлуката (законски рок)';
         }
         return true;
       }
@@ -162,6 +234,7 @@ export const terminationWarningConfig = {
     employeeName: '',
     jobPosition: '',
     decisionDate: '',
+    violationCategory: '',
     workTaskFailure: '',
     employeeWrongDoing: '',
     fixingDeadline: '',

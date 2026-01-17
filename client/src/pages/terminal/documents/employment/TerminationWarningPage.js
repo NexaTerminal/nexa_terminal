@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField from '../../../../components/forms/FormField';
-import terminationWarningConfig from '../../../../config/documents/terminationWarning';
+import terminationWarningConfig, { getViolationDescriptions } from '../../../../config/documents/terminationWarning';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -14,56 +14,64 @@ const TerminationWarningPage = () => {
   // Custom step content renderer for termination warning information
   const renderStepContent = ({ currentStepData, formData, errors, handleInputChange, isGenerating }) => {
     const { fields } = terminationWarningConfig;
-    
+
+    // Handle violation category change - fills both textareas
+    const handleCategoryChange = (name, value) => {
+      handleInputChange(name, value);
+      if (value) {
+        const { obligation, wrongdoing } = getViolationDescriptions(value);
+        setTimeout(() => {
+          handleInputChange('workTaskFailure', obligation);
+          handleInputChange('employeeWrongDoing', wrongdoing);
+        }, 0);
+      }
+    };
+
+    // Handle decision date change - auto-fill fixing deadline to +15 days
+    const handleDecisionDateChange = (name, value) => {
+      handleInputChange(name, value);
+      if (value) {
+        const decisionDate = new Date(value);
+        decisionDate.setDate(decisionDate.getDate() + 15);
+        const fixingDate = decisionDate.toISOString().split('T')[0];
+        setTimeout(() => {
+          handleInputChange('fixingDeadline', fixingDate);
+        }, 0);
+      }
+    };
+
     // Get fields for current step based on required fields
-    const stepFields = currentStepData.requiredFields.map(fieldName => fields[fieldName]).filter(Boolean);
-    
+    const stepFields = currentStepData.requiredFields.map(fieldName => {
+      const field = fields[fieldName];
+      if (!field) return null;
+
+      // Inject custom onChange handler for category dropdown
+      if (fieldName === 'violationCategory') {
+        return { ...field, customOnChange: handleCategoryChange };
+      }
+      // Inject custom onChange handler for decision date
+      if (fieldName === 'decisionDate') {
+        return { ...field, customOnChange: handleDecisionDateChange };
+      }
+      return field;
+    }).filter(Boolean);
+
     return (
       <div className={styles['form-section']}>
         <h3>{currentStepData.title}</h3>
         <p className={styles['section-description']}>{currentStepData.description}</p>
-        
+
         {stepFields.map(field => (
           <FormField
             key={field.name}
             field={field}
             value={formData[field.name]}
             formData={formData}
-            onChange={handleInputChange}
+            onChange={field.customOnChange || handleInputChange}
             error={errors[field.name]}
             disabled={isGenerating}
           />
         ))}
-
-        {/* Add step-specific guidance */}
-        {currentStepData.id === 1 && (
-          <div className={styles['help-section']}>
-            <p className={styles['help-text']}>
-              <strong>Совет:</strong> Внесете ги точните податоци за работникот како што се наведени во договорот за работа.
-            </p>
-          </div>
-        )}
-
-        {currentStepData.id === 2 && (
-          <div className={styles['help-section']}>
-            <p className={styles['help-text']}>
-              <strong>Важно:</strong> Бидете прецизни и објективни во описот на прекршокот. Избегнувајте емотивни или субјективни изрази.
-            </p>
-            <ul className={styles['help-list']}>
-              <li>Користете факти, не мислења</li>
-              <li>Наведете конкретни примери</li>
-              <li>Избегнувайте лични навреди</li>
-            </ul>
-          </div>
-        )}
-
-        {currentStepData.id === 3 && (
-          <div className={styles['help-section']}>
-            <div className={styles['info-box']}>
-              <p><strong>Совет:</strong> Рокот за исправка обично изнесува 15-30 дена - внесете конкретен датум.</p>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

@@ -15,7 +15,7 @@ const FormField = ({
   arrayMethods = null, // For array fields: { onAdd, onRemove }
   formData = {} // Need access to all form data for conditional logic
 }) => {
-  const { name, type, label, placeholder, required, options, rows, condition, conditional, showWhen, maxLength, pattern, inputMode, helpText, searchable, allowCustom, dataSource, displayField, autoFillSource, autoFillField } = field;
+  const { name, type, label, placeholder, required, options, rows, condition, conditional, showWhen, maxLength, pattern, inputMode, helpText, searchable, allowCustom, dataSource, displayField, autoFillSource, autoFillField, min, max, minDaysAfter } = field;
 
   // Check if field should be shown based on condition (use either condition, conditional, or showWhen)
   const conditionToCheck = condition || conditional;
@@ -72,6 +72,13 @@ const FormField = ({
         );
 
       case 'date':
+        // Calculate dynamic min date if minDaysAfter is specified
+        let dynamicMin = min;
+        if (minDaysAfter && formData[minDaysAfter.field]) {
+          const referenceDate = new Date(formData[minDaysAfter.field]);
+          referenceDate.setDate(referenceDate.getDate() + minDaysAfter.days);
+          dynamicMin = referenceDate.toISOString().split('T')[0];
+        }
         return (
           <input
             type="date"
@@ -80,6 +87,8 @@ const FormField = ({
             onChange={(e) => handleChange(e.target.value)}
             className={error ? styles.error : ''}
             disabled={disabled}
+            min={dynamicMin}
+            max={max}
           />
         );
 

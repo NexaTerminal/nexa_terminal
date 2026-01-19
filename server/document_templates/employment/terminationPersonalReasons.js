@@ -119,14 +119,9 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
             }),
             new TextRun({ text: jobPosition, bold: true }),
             new TextRun({ 
-              text: `, му престанува договорот за вработување од лични причини на страна на работникот, со датум `, 
+              text: `, му престанува договорот за вработување од лични причини на страна на работникот.`, 
               bold: false 
             }),
-            new TextRun({ text: terminationDate, bold: true }),
-            new TextRun({ 
-              text: ` година.`, 
-              bold: false 
-            })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { after: 400, line: 276 }
@@ -145,7 +140,7 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
         new Paragraph({
           children: [
             new TextRun({ 
-              text: `Работникот ${employeeName} е вработен во ${companyName} врз основа на Договорот за вработување склучен на ден ${contractStartDate} година, на работната позиција ${jobPosition}. Вкупното време на работниот однос изнесува `, 
+              text: `Работникот ${employeeName} е вработен во ${companyName} врз основа на Договорот за вработување склучен на ден ${contractStartDate} година, на работната позиција ${jobPosition}.`, 
               bold: false 
             }),
             new TextRun({ 
@@ -172,26 +167,43 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
         // Personal reasons description
         new Paragraph({
           children: [
-            new TextRun({ 
-              text: `Согласно барањето на работникот и утврдените лични причини кои се состојат во `, 
-              bold: false 
+            new TextRun({
+              text: `Согласно член 79 и член 80 од Законот за работни односи, утврдено е дека работникот не е способен да ги извршува договорните и други обврски од работниот однос поради лични причини кои се состојат во: `,
+              bold: false
             }),
             new TextRun({ text: personalReasonDescription, bold: true, underline: {} }),
-            new TextRun({ 
-              text: `, работодавачот одлучи да го прекине работниот однос со работникот со датум ${terminationDate} година.`, 
-              bold: false 
+            new TextRun({
+              text: `.`,
+              bold: false
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
           spacing: { after: 300, line: 276 }
         }),
 
-        // Legal basis
+        // Written warning reference
         new Paragraph({
           children: [
-            new TextRun({ 
-              text: `Согласно член 77 став 1 точка 1 од Законот за работни односи, договорот за вработување престанува по сила на закон кога работникот ќе наполни услови за стекнување право на старосна пензија или кога поради лични причини на страна на работникот, не може да ги извршува работните обврски. Во конкретниот случај, личните причини се утврдени и документирани согласно законските процедури.`, 
-              bold: false 
+            new TextRun({
+              text: `На работникот му беше доставено писмено предупредување согласно член 73 од Законот за работни односи, со кое беше информиран за неисполнувањето на обврските и можноста за отказ доколку не го подобри своето работење. По истекот на рокот од најмалку 15 дена од приемот на писменото предупредување, работникот не го подобри своето работење.`,
+              bold: false
+            })
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 300, line: 276 }
+        }),
+
+        // Termination decision
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Врз основа на горенаведеното, работодавачот одлучи да му го откаже договорот за вработување на работникот со датум `,
+              bold: false
+            }),
+            new TextRun({ text: terminationDate, bold: true }),
+            new TextRun({
+              text: ` година.`,
+              bold: false
             })
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -209,20 +221,10 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
           alignment: AlignmentType.JUSTIFIED,
           spacing: { after: 400, line: 276 }
         }),
-
-        // Legal notice for appeal
-        new Paragraph({
-          children: [
-            new TextRun({ text: 'ПРАВНА ПОУКА', bold: true, size: 22 })
-          ],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 300, line: 276 }
-        }),
-
         new Paragraph({
           children: [
             new TextRun({ 
-              text: `Против оваа одлука, работникот има право да поднесе тужба пред надлежниот суд во рок од 30 дена од денот на приемот на одлуката, согласно член 194 од Законот за работни односи.`, 
+              text: `Правна поука: Против оваа одлука, работникот има право да поднесе приговор до работодавачот во рок од 8 дена од денот на приемот на одлуката.`, 
               bold: false 
             })
           ],

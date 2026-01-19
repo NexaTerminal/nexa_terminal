@@ -275,6 +275,84 @@
   display: inline-block;
 }
 
+/* Subcategories Page */
+.subcategories-container {
+  padding: var(--spacing-lg);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.subcategories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .subcategories-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.subcategory-card {
+  background: var(--color-white);
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.subcategory-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: currentColor;
+}
+
+.subcategory-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.subcategory-card:hover::before {
+  opacity: 1;
+}
+
+.subcategory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.subcategory-icon {
+  font-size: 2.5rem;
+}
+
+.subcategory-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+.subcategory-description {
+  font-size: 0.95rem;
+  color: var(--color-gray);
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* Templates Page */
 .templates-container {
   padding: var(--spacing-lg);
@@ -444,6 +522,23 @@
   letter-spacing: 0.5px;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
   z-index: 10;
+}
+
+.template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: var(--spacing-sm);
+}
+
+.category-badge {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .template-icon {

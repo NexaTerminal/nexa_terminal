@@ -3,25 +3,28 @@
   min-height: 100vh;
   background-color: #f8f9fa;
   position: relative;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .dashboard-main {
   flex: 1 1 auto;
-  width: 100%;
-  max-width: 100%;
+  width: calc(100% - 280px - 252px); /* Subtract both sidebar widths */
+  max-width: calc(100% - 280px - 252px);
   min-width: 0;
   margin-left: 280px; /* Sidebar offset */
-  margin-right: 300px; /* Account for fixed right sidebar */
+  margin-right: 252px; /* Account for fixed right sidebar (matches RightSidebar width) */
   padding: var(--spacing-6) var(--spacing-8);
   background: var(--color-neutral-50);
   min-height: calc(100vh - 60px);
-  /* margin-top: 60px; Account for fixed header */
   overflow-y: auto;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .right-sidebar {
-  width: 300px;
+  width: 252px;
   min-width: 200px;
   background: var(--color-neutral-50);
   position: fixed;

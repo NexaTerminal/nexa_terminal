@@ -13,6 +13,7 @@ const DocumentGen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentStep, setCurrentStep] = useState('categories');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [formData, setFormData] = useState({});
   const [generatedDocument, setGeneratedDocument] = useState(null);
@@ -27,19 +28,39 @@ const DocumentGen = () => {
     return acc;
   }, {});
 
-  // Get all documents across all categories for search
+  // Get all documents across all categories for search (handles subcategories)
   const getAllDocuments = () => {
     const allDocuments = [];
     documentCategoriesData.forEach(category => {
-      category.templates.forEach(template => {
-        allDocuments.push({
-          ...template,
-          categoryId: category.id,
-          categoryTitle: category.title,
-          categoryIcon: category.icon,
-          categoryColor: category.color
+      // Handle categories with subcategories
+      if (category.subcategories) {
+        category.subcategories.forEach(subcategory => {
+          subcategory.templates.forEach(template => {
+            allDocuments.push({
+              ...template,
+              categoryId: category.id,
+              categoryTitle: category.title,
+              categoryIcon: category.icon,
+              categoryColor: category.color,
+              subcategoryId: subcategory.id,
+              subcategoryTitle: subcategory.title,
+              subcategoryIcon: subcategory.icon,
+              subcategoryColor: subcategory.color
+            });
+          });
         });
-      });
+      } else if (category.templates) {
+        // Handle categories without subcategories (flat templates)
+        category.templates.forEach(template => {
+          allDocuments.push({
+            ...template,
+            categoryId: category.id,
+            categoryTitle: category.title,
+            categoryIcon: category.icon,
+            categoryColor: category.color
+          });
+        });
+      }
     });
     return allDocuments;
   };
@@ -90,6 +111,17 @@ const DocumentGen = () => {
 
   const selectCategory = (categoryKey) => {
     setSelectedCategory(categoryKey);
+    const category = documentCategories[categoryKey];
+    // If category has subcategories, show them first
+    if (category && category.subcategories) {
+      setCurrentStep('subcategories');
+    } else {
+      setCurrentStep('templates');
+    }
+  };
+
+  const selectSubcategory = (subcategoryId) => {
+    setSelectedSubcategory(subcategoryId);
     setCurrentStep('templates');
   };
 
@@ -237,6 +269,7 @@ const DocumentGen = () => {
   const resetProcess = () => {
     setCurrentStep('categories');
     setSelectedCategory(null);
+    setSelectedSubcategory(null);
     setSelectedTemplate(null);
     setFormData({});
     setGeneratedDocument(null);
@@ -313,23 +346,30 @@ const DocumentGen = () => {
 
         {showCategories && (
           <div className={styles['categories-grid']}>
-            {documentCategoriesData.map((category) => (
-              <div
-                key={category.id}
-                className={styles['category-card']}
-                onClick={() => selectCategory(category.id)}
-                style={{ borderColor: category.color }}
-              >
-                <div className={styles['category-icon']} style={{ color: category.color }}>
-                  {category.icon}
+            {documentCategoriesData.map((category) => {
+              // Calculate template count - handle both subcategories and direct templates
+              const templateCount = category.subcategories
+                ? category.subcategories.reduce((sum, sub) => sum + sub.templates.length, 0)
+                : (category.templates ? category.templates.length : 0);
+
+              return (
+                <div
+                  key={category.id}
+                  className={styles['category-card']}
+                  onClick={() => selectCategory(category.id)}
+                  style={{ borderColor: category.color }}
+                >
+                  <div className={styles['category-icon']} style={{ color: category.color }}>
+                    {category.icon}
+                  </div>
+                  <h3 className={styles['category-title']}>{category.title}</h3>
+                  <p className={styles['category-description']}>{category.description}</p>
+                  <div className={styles['template-count']}>
+                    {templateCount} шаблони
+                  </div>
                 </div>
-                <h3 className={styles['category-title']}>{category.title}</h3>
-                <p className={styles['category-description']}>{category.description}</p>
-                <div className={styles['template-count']}>
-                  {category.templates.length} шаблони
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -343,9 +383,140 @@ const DocumentGen = () => {
     );
   };
 
+  const renderSubcategories = () => {
+    const category = documentCategories[selectedCategory];
+    if (!category || !category.subcategories) return null;
+
+    // Get all templates from all subcategories for search
+    const allCategoryTemplates = category.subcategories.flatMap(sub =>
+      sub.templates.map(template => ({
+        ...template,
+        subcategoryId: sub.id,
+        subcategoryTitle: sub.title,
+        subcategoryIcon: sub.icon,
+        subcategoryColor: sub.color
+      }))
+    );
+
+    // Filter templates by search term
+    const filteredTemplates = searchTerm
+      ? allCategoryTemplates.filter(template =>
+          template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (template.description && template.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+      : [];
+
+    const showSearchResults = searchTerm && filteredTemplates.length > 0;
+
+    return (
+      <div className={styles['subcategories-container']}>
+        <div className={styles['document-header']}>
+          <button
+            className={styles['back-button']}
+            onClick={() => { setCurrentStep('categories'); setSelectedCategory(null); setSearchTerm(''); }}
+          >
+            ← Назад
+          </button>
+          <h1>{category.title}</h1>
+          <p>{showSearchResults ? 'Резултати од пребарување' : 'Пребарајте документ или изберете поткатегорија'}</p>
+        </div>
+
+        <div className={styles['search-bar-container']}>
+          <input
+            type="text"
+            placeholder="Пребарај документи во работни односи..."
+            className={styles['search-input']}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {showSearchResults && (
+          <div className={styles['templates-grid']}>
+            {filteredTemplates.map((template) => (
+              <div
+                key={template.id}
+                className={`${styles['template-card']} ${template.comingSoon ? styles['coming-soon'] : ''}`}
+                onClick={() => !template.comingSoon && selectTemplate(template)}
+                style={{
+                  borderLeft: `4px solid ${template.subcategoryColor}`,
+                  cursor: template.comingSoon ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {template.comingSoon && (
+                  <div className={styles['coming-soon-badge']}>Наскоро</div>
+                )}
+                <div className={styles['template-header']}>
+                  <div className={styles['template-icon']}>
+                    {template.icon || '📄'}
+                  </div>
+                  <div className={styles['category-badge']} style={{ backgroundColor: template.subcategoryColor }}>
+                    {template.subcategoryIcon} {template.subcategoryTitle}
+                  </div>
+                </div>
+                <h3 className={styles['template-name']}>{template.name}</h3>
+                {template.description && (
+                  <p className={styles['template-description']}>{template.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {searchTerm && filteredTemplates.length === 0 && (
+          <div className={styles['no-results']}>
+            <h3>Нема резултати</h3>
+            <p>Не се најдени документи што одговараат на "{searchTerm}"</p>
+          </div>
+        )}
+
+        {!searchTerm && (
+          <div className={styles['subcategories-grid']}>
+            {category.subcategories.map((subcategory) => (
+              <div
+                key={subcategory.id}
+                className={styles['subcategory-card']}
+                onClick={() => selectSubcategory(subcategory.id)}
+                style={{ borderColor: subcategory.color }}
+              >
+                <div className={styles['subcategory-header']}>
+                  <div className={styles['subcategory-icon']} style={{ color: subcategory.color }}>
+                    {subcategory.icon}
+                  </div>
+                  <div className={styles['template-count']}>
+                    {subcategory.templates.length} документи
+                  </div>
+                </div>
+                <h3 className={styles['subcategory-title']}>{subcategory.title}</h3>
+                <p className={styles['subcategory-description']}>{subcategory.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderTemplates = () => {
     const category = documentCategories[selectedCategory];
     if (!category) return null; // Should not happen if flow is correct
+
+    // Get templates - either from subcategory or directly from category
+    let templates = [];
+    let subcategory = null;
+    let backStep = 'categories';
+    let backAction = () => { setCurrentStep('categories'); setSelectedCategory(null); setSearchTerm(''); };
+
+    if (category.subcategories && selectedSubcategory) {
+      // Category has subcategories and one is selected
+      subcategory = category.subcategories.find(s => s.id === selectedSubcategory);
+      templates = subcategory ? subcategory.templates : [];
+      backStep = 'subcategories';
+      backAction = () => { setCurrentStep('subcategories'); setSelectedSubcategory(null); setSearchTerm(''); };
+    } else if (category.templates) {
+      // Category has direct templates (no subcategories)
+      templates = category.templates;
+    }
 
     const fieldLabels = {
       employeeName: 'Име на вработен',
@@ -376,21 +547,24 @@ const DocumentGen = () => {
       payment: 'Плаќање'
     };
 
-    const filteredTemplates = category.templates.filter(template =>
+    const filteredTemplates = templates.filter(template =>
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (template.description && template.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    
+
+    // Determine title to show
+    const displayTitle = subcategory ? subcategory.title : category.title;
+
     return (
       <div className={styles['templates-container']}>
         <div className={styles['document-header']}>
-          <button 
-            className={styles['back-button']} 
-            onClick={() => { setCurrentStep('categories'); setSearchTerm(''); /* Clear search on back */ }}
+          <button
+            className={styles['back-button']}
+            onClick={backAction}
           >
             ← Назад
           </button>
-          <h1>{category.title}</h1>
+          <h1>{displayTitle}</h1>
           <p>Не задржуваме било какви податоци кои ќе ги користите</p>
         </div>
         <div className={styles['search-bar-container']}>
@@ -609,6 +783,8 @@ const DocumentGen = () => {
     switch (currentStep) {
       case 'categories':
         return renderCategories();
+      case 'subcategories':
+        return renderSubcategories();
       case 'templates':
         return renderTemplates();
       case 'form':

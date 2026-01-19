@@ -399,7 +399,7 @@ function generateMandatoryBonusDoc(formData, user, company) {
         new TextRun({ text: "ја потпишаа следната:" }),
       ],
       alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 400, line: 276 }
+      spacing: { after: 100, line: 276 }
     }),
     
     new Paragraph({

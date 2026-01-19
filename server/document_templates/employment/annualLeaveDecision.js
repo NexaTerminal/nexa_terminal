@@ -1,4 +1,4 @@
-const { Document, Paragraph, TextRun, AlignmentType } = require('docx');
+const { Document, Paragraph, TextRun, AlignmentType, PageBreak } = require('docx');
 const moment = require('moment');
 
 function generateAnnualLeaveDecisionDoc(formData, user, company) {
@@ -147,7 +147,10 @@ function generateAnnualLeaveDecisionDoc(formData, user, company) {
           alignment: AlignmentType.RIGHT,
           spacing: { line: 276 }
         }),
-        new Paragraph({ text: '' }),
+        // Page break - separates the decision from the employee's request
+        new Paragraph({
+          children: [new PageBreak()]
+        }),
         new Paragraph({
           children: [
             new TextRun({ text: 'ОД:', bold: false })

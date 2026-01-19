@@ -167,10 +167,10 @@ export const mandatoryBonusConfig = {
       field: 'year',
       type: VALIDATION_TYPES.REQUIRED_TEXT,
       label: 'Година за која се исплаќа регресот',
-      message: 'Годината мора да биде во формат YYYY (пр. 2024)',
+      message: 'Годината мора да биде во формат YYYY (пр. 2026)',
       customValidation: (value) => {
         if (!value) return 'Годината е задолжителна';
-        if (!/^\d{4}$/.test(value)) return 'Годината мора да биде во формат YYYY (пр. 2024)';
+        if (!/^\d{4}$/.test(value)) return 'Годината мора да биде во формат YYYY (пр. 2026)';
         return null;
       }
     },

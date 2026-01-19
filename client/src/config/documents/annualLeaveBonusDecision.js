@@ -4,6 +4,7 @@
  */
 
 export const annualLeaveBonusDecisionConfig = {
+  documentType: 'annualLeaveBonusDecision',
   steps: [
     {
       title: 'Основни информации за одлуката',

@@ -38,14 +38,6 @@ function generateTerminationPersonalReasonsDoc(formData, user, company) {
   const sections = [{
       children: [
         // Document header with number and date
-        new Paragraph({
-          children: [
-            new TextRun({ text: `Бр. _____ од ${documentDate} година`, bold: false })
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 400, line: 276 }
-        }),
-
         // Legal basis introduction
         new Paragraph({
           children: [

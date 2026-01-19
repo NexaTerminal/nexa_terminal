@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseDocumentPage from '../../../../components/documents/BaseDocumentPage';
 import FormField from '../../../../components/forms/FormField';
-import terminationPersonalReasonsConfig from '../../../../config/documents/terminationPersonalReasons';
+import terminationPersonalReasonsConfig, { personalReasonOptions } from '../../../../config/documents/terminationPersonalReasons';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -14,35 +14,61 @@ const TerminationPersonalReasonsPage = () => {
   // Custom step content renderer for termination personal reasons information
   const renderStepContent = ({ currentStepData, formData, errors, handleInputChange, isGenerating }) => {
     const { fields } = terminationPersonalReasonsConfig;
-    
+
     // Get fields for current step based on required fields
     const stepFields = currentStepData.requiredFields.map(fieldName => fields[fieldName]).filter(Boolean);
-    
+
+    // Handle category selection and auto-fill description
+    const handleCategoryChange = (name, value) => {
+      // First, update the category field
+      handleInputChange(name, value);
+
+      // Find the selected option and auto-fill description
+      const selectedOption = personalReasonOptions.find(opt => opt.value === value);
+      if (selectedOption && selectedOption.description) {
+        // Auto-fill the description field
+        handleInputChange('personalReasonDescription', selectedOption.description);
+      }
+    };
+
     return (
       <div className={styles['form-section']}>
         <h3>{currentStepData.title}</h3>
         <p className={styles['section-description']}>{currentStepData.description}</p>
-        
-        {stepFields.map(field => (
-          <FormField
-            key={field.name}
-            field={field}
-            value={formData[field.name]}
-            formData={formData}
-            onChange={handleInputChange}
-            error={errors[field.name]}
-            disabled={isGenerating}
-          />
-        ))}
 
-        {/* Add step-specific technical guidance */}
-        {currentStepData.id === 1 && (
-          <div className={styles['help-section']}>
-            <div className={styles['info-box']}>
-              <p><strong>Совет:</strong> Користете ги податоците од личната карта и договорот за работа.</p>
-            </div>
-          </div>
-        )}
+        {stepFields.map(field => {
+          // Special handling for personalReasonCategory field
+          if (field.name === 'personalReasonCategory') {
+            const fieldWithOptions = {
+              ...field,
+              options: personalReasonOptions.map(opt => ({ value: opt.value, label: opt.label }))
+            };
+            return (
+              <FormField
+                key={field.name}
+                field={fieldWithOptions}
+                value={formData[field.name]}
+                formData={formData}
+                onChange={handleCategoryChange}
+                error={errors[field.name]}
+                disabled={isGenerating}
+              />
+            );
+          }
+
+          // Regular fields
+          return (
+            <FormField
+              key={field.name}
+              field={field}
+              value={formData[field.name]}
+              formData={formData}
+              onChange={handleInputChange}
+              error={errors[field.name]}
+              disabled={isGenerating}
+            />
+          );
+        })}
 
         {currentStepData.id === 2 && (
           <div className={styles['help-section']}>
@@ -57,11 +83,8 @@ const TerminationPersonalReasonsPage = () => {
         {currentStepData.id === 3 && (
           <div className={styles['help-section']}>
             <p className={styles['help-text']}>
-              <strong>Лични причини:</strong> Здравствени проблеми, семејни околности или други лични причини.
+              <strong>Совет:</strong> Изберете категорија за автоматски предлог на опис. Можете да го прилагодите текстот според вашите потреби.
             </p>
-            <div className={styles['info-box']}>
-              <p><strong>Совет:</strong> Кратко и јасно објаснување на околностите.</p>
-            </div>
           </div>
         )}
       </div>

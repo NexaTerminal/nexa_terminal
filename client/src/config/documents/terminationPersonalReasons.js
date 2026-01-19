@@ -1,6 +1,58 @@
 import { VALIDATION_TYPES } from '../../utils/documentValidation';
 
 /**
+ * Personal reason categories for termination
+ * These are common cases when an employee doesn't meet job requirements
+ */
+export const personalReasonOptions = [
+  {
+    value: '',
+    label: 'Изберете причина',
+    description: ''
+  },
+  {
+    value: 'lack_of_knowledge',
+    label: 'Недостаток на знаења и способности',
+    description: 'Работникот не ги поседува потребните знаења и способности за успешно извршување на работните задачи предвидени со систематизацијата на работни места, и покрај обезбедената обука и поддршка од страна на работодавачот.'
+  },
+  {
+    value: 'poor_performance',
+    label: 'Неостварување на работни резултати',
+    description: 'Работникот континуирано не ги остварува очекуваните работни резултати и норми утврдени за неговата работна позиција, што е документирано преку редовните оценки на работна успешност.'
+  },
+  {
+    value: 'not_adapting',
+    label: 'Неприлагодување на нови методи/технологии',
+    description: 'Работникот не успева да се приспособи на новите работни методи, процедури или технологии воведени на работното место, и покрај обезбедената обука и разумен период за адаптација.'
+  },
+  {
+    value: 'lack_of_skills',
+    label: 'Недостаток на потребни вештини',
+    description: 'Работникот не ги поседува или не успева да ги развие потребните професионални вештини за ефективно извршување на работните обврски на неговата позиција.'
+  },
+  {
+    value: 'not_meeting_standards',
+    label: 'Неисполнување на работни стандарди',
+    description: 'Работникот не ги исполнува утврдените стандарди за квалитет и продуктивност на работата, што резултира со незадоволителни резултати и влијае на работењето на организацијата.'
+  },
+  {
+    value: 'loss_of_qualifications',
+    label: 'Губење на потребни квалификации',
+    description: 'Работникот ги изгубил потребните лиценци, сертификати или други квалификации кои се услов за извршување на работата на неговата позиција според важечките прописи.'
+  },
+  {
+    value: 'organizational_changes',
+    label: 'Неприлагодување на организациски промени',
+    description: 'Работникот не успева да се приспособи на организациските промени и новата структура на работните процеси, што влијае на неговата ефективност и соработка со останатите вработени.'
+  },
+  {
+    value: 'other',
+    label: 'Друга причина',
+    description: ''
+  }
+];
+
+/**
  * Termination Decision Due to Personal Reasons Document Configuration
  * This configuration drives the entire form behavior, validation, and API integration
  * Includes comprehensive legal compliance helpText for all fields
@@ -28,7 +80,7 @@ export const terminationPersonalReasonsConfig = {
       id: 3,
       title: 'Детали за престанокот',
       description: 'Определете го датумот на престанок и опишете ги личните причини',
-      requiredFields: ['terminationDate', 'personalReasonDescription', 'documentDate']
+      requiredFields: ['terminationDate', 'personalReasonCategory', 'personalReasonDescription', 'documentDate']
     }
   ],
 
@@ -85,6 +137,14 @@ export const terminationPersonalReasonsConfig = {
       placeholder: '',
       required: true,
       helpText: 'Последен работен ден - кога престанува работниот однос'
+    },
+    personalReasonCategory: {
+      name: 'personalReasonCategory',
+      type: 'select',
+      label: 'Категорија на лични причини',
+      required: true,
+      options: [], // Will be populated from personalReasonOptions
+      helpText: 'Изберете ја категоријата на причина за престанок. Описот автоматски ќе се пополни, но можете да го прилагодите.'
     },
     personalReasonDescription: {
       name: 'personalReasonDescription',
@@ -195,6 +255,11 @@ export const terminationPersonalReasonsConfig = {
       }
     },
     {
+      field: 'personalReasonCategory',
+      type: VALIDATION_TYPES.REQUIRED,
+      label: 'Категорија на лични причини'
+    },
+    {
       field: 'personalReasonDescription',
       type: VALIDATION_TYPES.REQUIRED,
       label: 'Опис на личните причини'
@@ -245,6 +310,7 @@ export const terminationPersonalReasonsConfig = {
     jobPosition: '',
     contractStartDate: '',
     terminationDate: '',
+    personalReasonCategory: '',
     personalReasonDescription: '',
     documentDate: new Date().toISOString().split('T')[0], // Default to today
     acceptTerms: false

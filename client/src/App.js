@@ -105,6 +105,7 @@ import VerificationResult from './pages/VerificationResult';
 import AnnualLeaveDecisionPage from './pages/terminal/documents/employment/AnnualLeaveDecisionPage';
 import UnpaidLeaveDecisionPage from './pages/terminal/documents/employment/UnpaidLeaveDecisionPage';
 import DisciplinaryActionPage from './pages/terminal/documents/employment/DisciplinaryActionPage';
+import DeathCompensationDecisionPage from './pages/terminal/documents/employment/DeathCompensationDecisionPage';
 // import ConfirmationOfEmploymentPage from './pages/terminal/documents/labourLaw/ConfirmationOfEmploymentPage'; // Assuming this component will be created
 
 // import HealthAndSafetyPolicyPage from './pages/terminal/documents/healthAndSafety/HealthAndSafetyPolicyPage';
@@ -236,6 +237,7 @@ function App() {
       <Route path="/terminal/documents/employment/termination-due-to-age-limit" element={<PrivateRoute><VerificationRequired feature="решение за престанок поради возраст"><TerminationDueToAgeLimitPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/organization-act" element={<PrivateRoute><VerificationRequired feature="акт за систематизација"><OrganizationActPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/employment/mandatory-bonus" element={<PrivateRoute><VerificationRequired feature="регрес за годишен одмор"><MandatoryBonusPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/death-compensation-decision" element={<PrivateRoute><VerificationRequired feature="одлука за надомест при смрт"><DeathCompensationDecisionPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Contracts */}
       <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />

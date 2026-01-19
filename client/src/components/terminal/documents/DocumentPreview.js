@@ -1223,6 +1223,10 @@ const documentSentences = {
     title: "ОДЛУКА ЗА ИСПЛАТА НА НАДОМЕСТ ВО СЛУЧАЈ НА СМРТ НА ЧЛЕН НА СЕМЕЈНО ДОМАЌИНСТВО",
     sentences: [
       {
+        text: "Врз основа на член 35 од Општиот колективен договор за приватниот сектор од областа на стопанството, {companyName} со адреса на {companyAddress}, претставувано од страна на Управителот {companyManager} на {decisionDate} година, донесе",
+        fields: ['companyName', 'companyAddress', 'companyManager', 'decisionDate']
+      },
+      {
         text: "На работникот {employeeName} му се исплаќа надомест во случај на смрт на член на семејно домаќинство – {familyMember}.",
         fields: ['employeeName', 'familyMember']
       },
@@ -1231,12 +1235,8 @@ const documentSentences = {
         fields: ['compensationAmount']
       },
       {
-        text: "Одлуката е донесена на {decisionDate} година, а надоместот ќе се исплати на {paymentDate} година.",
-        fields: ['decisionDate', 'paymentDate']
-      },
-      {
-        text: "Надоместот се исплаќа врз основа на член 35 од Општиот колективен договор за приватниот сектор од областа на стопанството.",
-        fields: []
+        text: "Надоместот на работникот ќе му се исплати по донесувањето на одлуката, односно на {paymentDate} година.",
+        fields: ['paymentDate']
       }
     ]
   },
@@ -1597,8 +1597,9 @@ const renderLivePreview = ({ formData, company, documentType }) => {
   // Get formatted values for fields
   const getFieldValue = (fieldName) => {
     if (fieldName === 'companyName') return company?.companyName || '[Име на компанија]';
-    if (fieldName === 'companyAddress') return company?.address || '[Адреса на компанија]';
-    if (fieldName === 'companyTaxNumber') return company?.taxNumber || '[ЕДБ]';
+    if (fieldName === 'companyAddress') return company?.companyAddress || company?.address || '[Адреса на компанија]';
+    if (fieldName === 'companyTaxNumber') return company?.companyTaxNumber || company?.taxNumber || '[ЕДБ]';
+    if (fieldName === 'companyManager') return company?.companyManager || company?.manager || '[Застапник]';
 
     // Handle ESPP purpose field - combine all selected checkboxes
     if (fieldName === 'purpose') {

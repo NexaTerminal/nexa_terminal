@@ -294,11 +294,12 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
     const dataWithCompanyInfo = {
       ...formData,
       // Add company info for preview (if user is authenticated)
+      // Check both field name variants (companyAddress vs address, etc.)
       companyName: currentUser?.companyInfo?.companyName,
-      companyAddress: currentUser?.companyInfo?.address,
-      companyTaxNumber: currentUser?.companyInfo?.taxNumber,
-      companyRepresentative: currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role,
-      companyManager: currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role
+      companyAddress: currentUser?.companyInfo?.companyAddress || currentUser?.companyInfo?.address,
+      companyTaxNumber: currentUser?.companyInfo?.companyTaxNumber || currentUser?.companyInfo?.taxNumber,
+      companyRepresentative: currentUser?.companyInfo?.companyManager || currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role,
+      companyManager: currentUser?.companyInfo?.companyManager || currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role
     };
 
     // Debug logging

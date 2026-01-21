@@ -416,6 +416,7 @@
   font-weight: 500;
   color: #374151;
   margin-bottom: 6px;
+  margin-left: 1rem;
   font-size: 14px; /* Readable label size */
   line-height: 1.4; /* Better readability */
   position: relative;

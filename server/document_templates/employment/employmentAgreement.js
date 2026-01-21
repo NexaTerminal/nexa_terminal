@@ -1,28 +1,41 @@
 const { Document, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, HeadingLevel } = require('docx');
 const moment = require('moment');
 
+/**
+ * Format number with thousand separators (European style: 1.000)
+ */
+const formatMoney = (value) => {
+  if (!value) return '';
+  const num = parseInt(String(value).replace(/\./g, ''), 10);
+  if (isNaN(num)) return value;
+  return num.toLocaleString('de-DE');
+};
+
 function generateEmploymentAgreementDoc(formData, user, company) {
   // Company data with defaults - using the standardized field mapping
   const companyName = company?.companyName || '[Име на компанија]';
   const companyAddress = company?.companyAddress || company?.address || '[Адреса на компанија]';
   const companyNumber = company?.companyTaxNumber || company?.taxNumber || '[ЕМБС на компанија]';
   const companyManager = company?.companyManager || company?.manager || '[Управител]';
-  
+
   // Employee data with defaults
   const employeeName = formData?.employeeName || '[Име на вработен]';
   const employeeAddress = formData?.employeeAddress || '[Адреса на вработен]';
   const employeePIN = formData?.employeePIN || '[ЕМБГ]';
   const jobPosition = formData?.jobPosition || '[Работно место]';
   const workTasks = formData?.workTasks || [];
-  const netSalary = formData?.netSalary || '[Плата]';
+  // Use formatted salary if available, otherwise format here
+  const netSalary = formData?.netSalaryFormatted || formatMoney(formData?.netSalary) || '[Плата]';
   const placeOfWork = formData?.otherWorkPlace || formData?.placeOfWork || 'просториите на седиштето на работодавачот';
   const agreementDate = formData?.agreementDate ? moment(formData.agreementDate).format('DD.MM.YYYY') : moment().format('DD.MM.YYYY');
   const agreementDurationType = formData?.agreementDurationType || 'неопределено времетраење.';
   const definedDuration = formData?.definedDuration ? moment(formData.definedDuration).format('DD.MM.YYYY') : '';
   const dailyWorkTime = formData?.otherWorkTime || formData?.dailyWorkTime || 'започнува од 08:00 часот, а завршува во 16:00 часот';
   const concurrentClauseInput = formData?.concurrentClauseInput || '';
-  const concurrentClauseDuration = formData?.concurrentClauseDuration ? moment(formData.concurrentClauseDuration).format('DD.MM.YYYY') : '';
-  const concurrentClauseCompensation = formData?.concurrentClauseCompensation || '';
+  // Use duration text (months/years) instead of date
+  const concurrentClauseDurationText = formData?.concurrentClauseDurationText || '';
+  // Use formatted compensation if available
+  const concurrentClauseCompensation = formData?.concurrentClauseCompensationFormatted || formatMoney(formData?.concurrentClauseCompensation) || '';
 
   const children = [
     // Header
@@ -191,8 +204,24 @@ function generateEmploymentAgreementDoc(formData, user, company) {
       ],
       alignment: AlignmentType.JUSTIFIED,
     }),
+        new Paragraph({
+      children: [
+        new TextRun({
+          text: `4) Работодавачот има право да врши периодични оценувања на работата на работникот и да дава насоки за подобрување на неговата работа. За извршената работа, работодавачот може да му дава извештаји на работникот за неговото работење. Ваквиот извештај претставува основ за поттикнување на работникот за подобрување на неговата работа и може да се користи како основа за донесување одлуки во врска со неговото унапредување, доделување на повисока плата или продолжување односно прекинување на работниот однос.`,
+        }),
+      ],
+      alignment: AlignmentType.JUSTIFIED,
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `5) Работникот изјавува и гарантира дека сите податоци, информации, документи, дипломи, сертификати, лиценци, квалификации и други докази за стручна оспособеност доставени во текот на постапката за вработување, вклучувајќи ги и податоците наведени во апликацијата за вработување и изјавите дадени на интервју, се вистинити, точни и целосни. Доколку се утврди дека работникот дал невистинити, неточни или нецелосни податоци, или премолчел суштествени информации релевантни за склучување на овој договор, работодавачот има право да го раскине договорот за вработување согласно со законските одредби за откажување на договорот поради кршење на работните обврски од страна на работникот, без обврска за исплата на отпремнина.`,
+        }),
+      ],
+      alignment: AlignmentType.JUSTIFIED,
+    }),
     new Paragraph({ text: "" }),
-    
+
     // Article 5 - Place of work
     new Paragraph({
       children: [
@@ -605,7 +634,7 @@ function generateEmploymentAgreementDoc(formData, user, company) {
       new Paragraph({
         children: [
           new TextRun({
-            text: `По завршувањето на овој работен однос${concurrentClauseDuration ? `, заклучно со ${concurrentClauseDuration} година` : ''}, работникот не смее да се јави како основач, партнер, управител, одговорно лице, вработен, надворешен соработник или на друг начин ангажирано лице во трговско друштво кое врши иста или слична дејност со дејноста на работодавецот.`,
+            text: `По завршувањето на овој работен однос${concurrentClauseDurationText ? `, за период од ${concurrentClauseDurationText} по престанувањето на договорот за вработување` : ''}, работникот не смее да се јави како основач, партнер, управител, одговорно лице, вработен, надворешен соработник или на друг начин ангажирано лице во трговско друштво кое врши иста или слична дејност со дејноста на работодавецот.`,
           }),
         ],
         alignment: AlignmentType.JUSTIFIED,
@@ -734,6 +763,14 @@ function generateEmploymentAgreementDoc(formData, user, company) {
       children: [
         new TextRun({
           text: `За повреда на работните обврски утврдени со овој договор, работникот одговара дисциплински согласно со Законот за работни односи и интерните правила на работодавецот.`,
+        }),
+      ],
+      alignment: AlignmentType.JUSTIFIED,
+    }),
+     new Paragraph({
+      children: [
+        new TextRun({
+          text: `На работникот му се дадени на увид синте интерни акти, правилници, документирани процеси на работа и други насоки на работењето од страна на работодавачот и работникот е соодветно запознаен со истите. Дополнително, работникот потврдува дека е известен дека ваквата интерна документација е секогаш достапна и по негово барање.`,
         }),
       ],
       alignment: AlignmentType.JUSTIFIED,

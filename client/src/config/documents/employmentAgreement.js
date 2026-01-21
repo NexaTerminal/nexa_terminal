@@ -213,27 +213,37 @@ export const employmentAgreementConfig = {
     },
     concurrentClauseDuration: {
       name: 'concurrentClauseDuration',
-      type: 'date',
-      label: 'Времетраење на конкурентската клаузула (краен датум)',
+      type: 'select',
+      label: 'Времетраење на конкурентската клаузула',
+      options: [
+        { value: '3', label: '3 месеци' },
+        { value: '6', label: '6 месеци' },
+        { value: '9', label: '9 месеци' },
+        { value: '12', label: '12 месеци (1 година)' },
+        { value: '18', label: '18 месеци' },
+        { value: '24', label: '24 месеци (2 години)' }
+      ],
       required: false,
       condition: {
         field: 'concurrentClause',
         operator: 'truthy'
       },
-      helpText: 'Конкурентската клаузула може да се договори најдолго за период од две години по престанувањето на договорот за вработување. Изберете го крајниот датум до кој важи забраната за конкурентско дејствување.'
+      helpText: 'Конкурентската клаузула може да се договори најдолго за период од две години (24 месеци) по престанувањето на договорот за вработување.'
     },
     concurrentClauseCompensation: {
       name: 'concurrentClauseCompensation',
       type: 'text',
       label: 'Месечен паричен надоместок (во денари)',
-      placeholder: 'пр. 25000',
+      placeholder: 'Автоматски се пресметува',
       required: false,
       condition: {
         field: 'concurrentClause',
         operator: 'truthy'
       },
       inputMode: 'numeric',
-      helpText: 'Паричниот надоместок за почитување на конкурентската забрана мора да изнесува најмалку половина од просечната плата на работникот во последните три месеца пред престанувањето на договорот за вработување. Внесете го месечниот износ во денари.'
+      autoCalculateFrom: 'netSalary',
+      autoCalculateMultiplier: 0.5,
+      helpText: 'Автоматски се пресметува како 50% од основната плата. Можете да ја промените вредноста доколку сакате поинаков износ (најмалку половина од просечната плата).'
     },
     concurrentClauseInput: {
       name: 'concurrentClauseInput',
@@ -268,7 +278,7 @@ export const employmentAgreementConfig = {
     dailyWorkTime: 'започнува од 08:00 часот, а завршува во 16:00 часот',
     otherWorkTime: '',
     concurrentClause: false,
-    concurrentClauseDuration: '',
+    concurrentClauseDuration: '24',
     concurrentClauseCompensation: '',
     concurrentClauseInput: '',
     acceptTerms: false

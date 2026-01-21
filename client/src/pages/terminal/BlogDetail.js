@@ -36,38 +36,43 @@ const BlogDetail = () => {
     }
   }, [id, token]);
 
-  // Fetch suggested blogs based on category
+  // Fetch suggested blogs based on category (with fallback to any category)
   useEffect(() => {
     const fetchSuggestedBlogs = async () => {
       if (!blog) return;
 
       try {
-        console.log('🔍 Fetching suggested blogs for category:', blog.category);
-
-        // Fetch all blogs and filter by same category (case-insensitive), excluding current blog
+        // Fetch all blogs excluding current blog
         const allBlogs = await ApiService.request('/blogs');
-        console.log('📚 Total blogs fetched:', allBlogs.length);
+        const otherBlogs = allBlogs.filter(b => b._id !== blog._id);
 
         const currentCategory = blog.category?.toUpperCase() || '';
-        const related = allBlogs
-          .filter(b => {
-            const blogCategory = b.category?.toUpperCase() || '';
-            const isNotCurrent = b._id !== blog._id;
-            const isSameCategory = blogCategory === currentCategory;
 
-            if (isNotCurrent && isSameCategory) {
-              console.log('✅ Match found:', b.title.substring(0, 50));
-            }
+        // First, get blogs from the same category
+        const sameCategoryBlogs = otherBlogs
+          .filter(b => (b.category?.toUpperCase() || '') === currentCategory)
+          .sort(() => 0.5 - Math.random());
 
-            return isNotCurrent && isSameCategory;
-          })
-          .sort(() => 0.5 - Math.random()) // Randomize
-          .slice(0, 3); // Get 3 suggested blogs
+        let suggested = [];
 
-        console.log('🎯 Related blogs found:', related.length);
-        setSuggestedBlogs(related);
+        if (sameCategoryBlogs.length >= 3) {
+          // Enough posts in same category
+          suggested = sameCategoryBlogs.slice(0, 3);
+        } else {
+          // Not enough in same category - add posts from other categories as fallback
+          suggested = [...sameCategoryBlogs];
+
+          const otherCategoryBlogs = otherBlogs
+            .filter(b => (b.category?.toUpperCase() || '') !== currentCategory)
+            .sort(() => 0.5 - Math.random());
+
+          const needed = 3 - suggested.length;
+          suggested = [...suggested, ...otherCategoryBlogs.slice(0, needed)];
+        }
+
+        setSuggestedBlogs(suggested);
       } catch (error) {
-        console.error('❌ Error fetching suggested blogs:', error);
+        console.error('Error fetching suggested blogs:', error);
         setSuggestedBlogs([]);
       }
     };

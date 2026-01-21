@@ -235,17 +235,7 @@ function generateRentAgreementDoc(formData, user, company) {
       spacing: { after: 200, line: 276 },
     }),
     new Paragraph({ text: "" }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Договорните страни потврдуваат дека закуподавачот му го има предадено во владение на закупецот недвижниот имот пред денот на потпишување на овој Договор.`,
-          size: 22
-        }),
-      ],
-      alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 200, line: 276 },
-    }),
-    new Paragraph({ text: "" }),
+   
     
     // Article 3 - Rent
     new Paragraph({

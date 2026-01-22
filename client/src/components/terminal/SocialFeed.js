@@ -69,31 +69,31 @@ const SocialFeed = () => {
           className={`${styles.filterButton} ${filter === 'all' ? styles.active : ''}`}
           onClick={() => setFilter('all')}
         >
-          Сите
+          Сите |
         </button>
         <button
           className={`${styles.filterButton} ${filter === 'legal' ? styles.active : ''}`}
           onClick={() => setFilter('legal')}
         >
-          Правни
+          Право и усогласност |
         </button>
         <button
           className={`${styles.filterButton} ${filter === 'entrepreneurship' ? styles.active : ''}`}
           onClick={() => setFilter('entrepreneurship')}
         >
-          Претприемништво
+          Менаџмент и претприемништво |
         </button>
         <button
           className={`${styles.filterButton} ${filter === 'investments' ? styles.active : ''}`}
           onClick={() => setFilter('investments')}
         >
-          Инвестиции
+          Бизнис и инвестиции |
         </button>
         <button
           className={`${styles.filterButton} ${filter === 'marketing' ? styles.active : ''}`}
           onClick={() => setFilter('marketing')}
         >
-          Маркетинг
+          Маркетинг и продажба
         </button>
       </div>
 

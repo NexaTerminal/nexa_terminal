@@ -42,6 +42,8 @@ import HealthAndSafetyQuestionnaire from './pages/terminal/lhc/HealthAndSafetyQu
 import HealthAndSafetyReport from './pages/terminal/lhc/HealthAndSafetyReport';
 import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
 import GDPRReport from './pages/terminal/lhc/GDPRReport';
+import GeneralQuestionnaire from './pages/terminal/lhc/GeneralQuestionnaire';
+import GeneralReport from './pages/terminal/lhc/GeneralReport';
 import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
@@ -195,6 +197,8 @@ function App() {
       <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />

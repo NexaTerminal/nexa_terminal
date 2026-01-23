@@ -3,6 +3,7 @@ const router = express.Router();
 const employmentController = require('../controllers/lhc/employmentController');
 const healthAndSafetyController = require('../controllers/lhc/healthAndSafetyController');
 const gdprController = require('../controllers/lhc/gdprController');
+const generalController = require('../controllers/lhc/generalController');
 const { authenticateJWT } = require('../middleware/auth');
 const { requireVerification } = require('../middleware/verification');
 const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
@@ -28,6 +29,12 @@ router.get('/gdpr/questions', gdprController.getQuestions);
 router.post('/gdpr/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), gdprController.evaluateCompliance);
 router.get('/gdpr/history', gdprController.getAssessmentHistory);
 router.get('/gdpr/assessment/:id', gdprController.getAssessmentById);
+
+// General LHC Routes (Општ правен здравствен преглед - 20 случајни прашања)
+router.get('/general/questions', generalController.getQuestions);
+router.post('/general/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), generalController.evaluateCompliance);
+router.get('/general/history', generalController.getAssessmentHistory);
+router.get('/general/assessment/:id', generalController.getAssessmentById);
 
 // Future routes for other categories
 // router.get('/trade/questions', tradeController.getQuestions);

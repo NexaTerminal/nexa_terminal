@@ -10,25 +10,24 @@ const Sidebar = () => {
   const location = useLocation();
 
   const regularMenuItems = [
-    { path: '/terminal', label: 'common.dashboard', icon: '📊' },
-    { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
-    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
-    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
-    // { path: '/terminal/profile', label: 'Профил', icon: '👤', noTranslate: true },
-    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
-    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
-    { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
+    { path: '/terminal', label: 'common.dashboard' },
+    { path: '/terminal/documents', label: 'dashboard.documentGenerator' },
+    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening' },
+    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI' },
+    { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true },
+    { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
+    { path: '/terminal/education', label: 'Обуки', noTranslate: true }
   ];
 
   const adminMenuItems = [
-    { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️' },
-    { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
-    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪' },
-    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝' },
-    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot', icon: '🤖' },
-    { path: '/terminal/admin/newsletter/subscribers', label: 'Претплатници', icon: '📧' },
-    { path: '/terminal/admin/newsletter/create', label: 'Креирај билтен', icon: '➕' },
-    { path: '/terminal/admin/newsletter/analytics', label: 'Аналитика', icon: '📊' },
+    { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
+    { path: '/terminal/admin/users', label: 'dashboard.manageUsers' },
+    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
+    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди' },
+    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' },
+    { path: '/terminal/admin/newsletter/subscribers', label: 'Претплатници' },
+    { path: '/terminal/admin/newsletter/create', label: 'Креирај билтен' },
+    { path: '/terminal/admin/newsletter/analytics', label: 'Аналитика' },
   ];
 
   return (
@@ -40,14 +39,13 @@ const Sidebar = () => {
 
       <nav className={styles["dashboard-menu"]}>
         {/* Regular Menu Items */}
-        {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+        {regularMenuItems.map(({ path, label, noTranslate, disabled, comingSoon }) =>
           disabled ? (
             <div
               key={path}
               className={`${styles["menu-item"]} ${styles["menu-item-disabled"]}`}
               title={comingSoon || 'Coming Soon'}
             >
-              <span className={styles["menu-icon"]}>{icon}</span>
               <h3>{noTranslate ? label : t(label)}</h3>
               {comingSoon && <span className={styles["coming-soon-badge"]}>{comingSoon}</span>}
             </div>
@@ -59,7 +57,6 @@ const Sidebar = () => {
                 location.pathname === path ? styles.active : ""
               }`}
             >
-              <span className={styles["menu-icon"]}>{icon}</span>
               <h3>{noTranslate ? label : t(label)}</h3>
             </Link>
           )
@@ -71,7 +68,7 @@ const Sidebar = () => {
             <div className={styles["section-divider"]}>
               {t('dashboard.adminSection')}
             </div>
-            {adminMenuItems.map(({ path, label, icon, external }) => (
+            {adminMenuItems.map(({ path, label, external }) => (
               external ? (
                 <a
                   key={path}
@@ -80,7 +77,6 @@ const Sidebar = () => {
                   rel="noopener noreferrer"
                   className={styles["menu-item"]}
                 >
-                  <span className={styles["menu-icon"]}>{icon}</span>
                   <h3>{t(label)}</h3>
                 </a>
               ) : (
@@ -91,7 +87,6 @@ const Sidebar = () => {
                     location.pathname === path ? styles.active : ""
                   }`}
                 >
-                  <span className={styles["menu-icon"]}>{icon}</span>
                   <h3>{t(label)}</h3>
                 </Link>
               )

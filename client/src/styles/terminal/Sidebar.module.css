@@ -29,13 +29,16 @@
 
 .dashboard-main {
   flex: 1;
-  margin-left: 0; /* Full width - no sidebar offset */
+  margin-left: 0;
+  margin-right: 0;
   background-color: var(--color-background);
   min-height: calc(100vh - 60px);
   overflow-y: auto;
   z-index: 1;
   margin-top: 60px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Sidebar Content */

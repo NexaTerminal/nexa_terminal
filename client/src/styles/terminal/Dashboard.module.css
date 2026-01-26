@@ -4,15 +4,17 @@
   background-color: #f8f9fa;
   position: relative;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dashboard-main {
   flex: 1 1 auto;
-  width: calc(100% - 280px - 252px); /* Subtract both sidebar widths */
-  max-width: calc(100% - 280px - 252px);
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  margin-left: 280px; /* Sidebar offset */
-  margin-right: 252px; /* Account for fixed right sidebar (matches RightSidebar width) */
+  margin-left: 0;
+  margin-right: 0;
   padding: var(--spacing-6) var(--spacing-8);
   background: var(--color-neutral-50);
   min-height: calc(100vh - 60px);
@@ -21,6 +23,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* Desktop: Add sidebar offsets */
+@media (min-width: 1025px) {
+  .dashboard-main {
+    width: calc(100% - 280px - 252px); /* Subtract both sidebar widths */
+    max-width: calc(100% - 280px - 252px);
+    margin-left: 280px; /* Sidebar offset */
+    margin-right: 252px; /* Account for fixed right sidebar */
+  }
 }
 
 .right-sidebar {
@@ -39,8 +51,10 @@
 /* Tablet: Hide sidebars, full width content */
 @media (max-width: 1024px) {
   .dashboard-main {
-    margin-left: 0; /* No left sidebar */
-    margin-right: 0; /* No right sidebar */
+    margin-left: 0 !important; /* No left sidebar */
+    margin-right: 0 !important; /* No right sidebar */
+    width: 100% !important;
+    max-width: 100% !important;
     padding: var(--spacing-6) var(--spacing-6);
   }
   .right-sidebar {
@@ -51,9 +65,10 @@
 /* Mobile: Full width content */
 @media (max-width: 768px) {
   .dashboard-main {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     padding: var(--spacing-4);
   }
 
@@ -65,6 +80,10 @@
 /* Small mobile: Reduce padding further */
 @media (max-width: 480px) {
   .dashboard-main {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     padding: var(--spacing-3);
   }
 }

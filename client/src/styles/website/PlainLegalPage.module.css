@@ -1,0 +1,188 @@
+/* Plain Legal Pages - Minimal styling */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/* Minimal navbar with sign-in only */
+.navbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: transparent;
+}
+
+.signInLink {
+  color: #1E4DB7;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid #1E4DB7;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.signInLink:hover {
+  background: #1E4DB7;
+  color: #fff;
+}
+
+/* Content area */
+.content {
+  flex: 1;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Title */
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #737373;
+  margin-bottom: 2rem;
+}
+
+.lastUpdated {
+  font-size: 0.875rem;
+  color: #737373;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 1rem;
+}
+
+.section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #404040;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.section p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #525252;
+  margin-bottom: 0.75rem;
+}
+
+.section ul,
+.section ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.section li {
+  color: #525252;
+  margin-bottom: 0.4rem;
+}
+
+.section strong {
+  color: #262626;
+  font-weight: 600;
+}
+
+.section a {
+  color: #1E4DB7;
+  text-decoration: underline;
+}
+
+.section a:hover {
+  color: #1a3d8f;
+}
+
+/* Warning/Info boxes - simplified */
+.warningBox {
+  border-left: 3px solid #F59E0B;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  background: transparent;
+}
+
+.warningBox p {
+  color: #525252;
+  margin: 0;
+}
+
+.infoBox {
+  border-left: 3px solid #3B82F6;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  background: transparent;
+}
+
+.infoBox p {
+  color: #525252;
+  margin: 0;
+}
+
+/* Contact section - simplified */
+.contactSection {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.contactSection h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 1rem;
+}
+
+.contactSection p {
+  color: #525252;
+  margin-bottom: 0.5rem;
+}
+
+.contactSection a {
+  color: #1E4DB7;
+  text-decoration: underline;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+  }
+
+  .content {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .section h2 {
+    font-size: 1.125rem;
+  }
+
+  .section ul,
+  .section ol {
+    margin-left: 1rem;
+  }
+}

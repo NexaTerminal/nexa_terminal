@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
@@ -62,37 +62,22 @@ function getCategoryInMacedonian(englishCategory) {
 }
 
 export default function Blog() {
-  const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('СИ');
-  const [sortOrder, setSortOrder] = useState('latest');
   const [brokenImages, setBrokenImages] = useState(new Set());
-
-  // Read category from URL on mount and when URL changes
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    if (categoryFromUrl) {
-      setSelectedCategory(categoryFromUrl);
-    } else {
-      setSelectedCategory('СИ');
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
-  useEffect(() => {
-    filterAndSortPosts();
-  }, [posts, selectedCategory, sortOrder]);
-
   async function fetchPosts() {
     try {
       const response = await api.get('/blog');
-      setPosts(Array.isArray(response) ? response : []);
+      const postsData = Array.isArray(response) ? response : [];
+      // Sort by latest first
+      postsData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setPosts(postsData);
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Грешка при вчитување на блоговите');
@@ -100,38 +85,6 @@ export default function Blog() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function filterAndSortPosts() {
-    let filtered = [...posts];
-
-    // Filter by category
-    if (selectedCategory !== 'СИ') {
-      filtered = filtered.filter(post =>
-        getCategoryInMacedonian(post.category) === selectedCategory
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-      return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
-    });
-
-    setFilteredPosts(filtered);
-  }
-
-  // Get unique categories from posts
-  function getAvailableCategories() {
-    const categories = new Set();
-    posts.forEach(post => {
-      if (post.category) {
-        const macedonianCategory = getCategoryInMacedonian(post.category);
-        categories.add(macedonianCategory);
-      }
-    });
-    return ['СИ', ...Array.from(categories).sort()];
   }
 
   // Helper to extract plain text from HTML and truncate
@@ -177,40 +130,6 @@ export default function Blog() {
 
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <main className={styles.container}>
-          {/* Minimal Filter Bar */}
-          {!loading && posts.length > 0 && (
-            <div className={styles.filterBar}>
-              <div className={styles.categories}>
-                {getAvailableCategories().map(category => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`${styles.categoryChip} ${selectedCategory === category ? styles.active : ''}`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              <div className={styles.sortOptions}>
-                <button
-                  onClick={() => setSortOrder('latest')}
-                  className={`${styles.sortChip} ${sortOrder === 'latest' ? styles.active : ''}`}
-                  title="Најнови"
-                >
-                  ↓
-                </button>
-                <button
-                  onClick={() => setSortOrder('oldest')}
-                  className={`${styles.sortChip} ${sortOrder === 'oldest' ? styles.active : ''}`}
-                  title="Најстари"
-                >
-                  ↑
-                </button>
-              </div>
-            </div>
-          )}
-
           {loading ? (
             <div className={styles.loading}>
               <div className={styles.spinner}></div>
@@ -220,18 +139,13 @@ export default function Blog() {
             <div className={styles.error}>
               <p>{error}</p>
             </div>
-          ) : filteredPosts.length === 0 ? (
+          ) : posts.length === 0 ? (
             <div className={styles.empty}>
-              <p>
-                {selectedCategory !== 'СИ'
-                  ? `Нема блогови во категоријата "${selectedCategory}".`
-                  : 'Нема објавени блогови засега.'
-                }
-              </p>
+              <p>Нема објавени блогови засега.</p>
             </div>
           ) : (
             <div className={styles.grid}>
-              {filteredPosts.map(post => (
+              {posts.map(post => (
                 <article key={post._id} className={styles.card}>
                   {post.featuredImage && !brokenImages.has(post._id) && (
                     <div className={styles.imageWrapper}>

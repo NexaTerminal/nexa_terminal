@@ -1,25 +1,28 @@
 import React from 'react';
-import SimpleNavbar from '../../components/common/SimpleNavbar';
+import { Link } from 'react-router-dom';
 import PublicFooter from '../../components/common/PublicFooter';
-import styles from '../../styles/website/LegalPage.module.css';
+import styles from '../../styles/website/PlainLegalPage.module.css';
 
 const TermsAndConditions = () => {
   return (
-    <div className={styles.legalPage}>
-      <SimpleNavbar />
+    <div className={styles.page}>
+      {/* Minimal navbar with sign-in only */}
+      <nav className={styles.navbar}>
+        <Link to="/login" className={styles.signInLink}>
+          Најави се
+        </Link>
+      </nav>
 
-      <div className={styles.legalHeader}>
-        <h1>Услови за користење</h1>
-        <p>Правила и услови за користење на Nexa Terminal платформата</p>
-      </div>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Услови за користење</h1>
+        <p className={styles.subtitle}>Правила и услови за користење на Nexa Terminal платформата</p>
 
-      <div className={styles.legalContent}>
         <div className={styles.lastUpdated}>
           Последно ажурирано: Декември 2025 година
         </div>
 
         {/* Acceptance */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>1. Прифаќање на условите</h2>
           <p>
             Со пристапување и користење на Nexa Terminal платформата, се согласувате да ги прифатите и да ги почитувате овие Услови за користење. Доколку не се согласувате со овие услови, ве молиме не ја користете платформата.
@@ -33,7 +36,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Service Description */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>2. Опис на услугите</h2>
           <p>Nexa Terminal нуди следните услуги:</p>
           <ul>
@@ -46,11 +49,11 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Legal Disclaimer */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>3. КРИТИЧНО: Правен дисклејмер</h2>
 
           <div className={styles.warningBox}>
-            <p><strong>⚖️ ВАЖНО: НЕ ДАВАМЕ ПРАВЕН СОВЕТ</strong></p>
+            <p><strong>ВАЖНО: НЕ ДАВАМЕ ПРАВЕН СОВЕТ</strong></p>
           </div>
 
           <h3>А. Образовна платформа</h3>
@@ -65,7 +68,7 @@ const TermsAndConditions = () => {
 
           <div className={styles.warningBox}>
             <p>
-              <strong>⚠️ ПРЕПОРАКА:</strong> Секогаш консултирајте адвокат пред употреба на документите генерирани од Nexa Terminal. Ние не можеме да гарантираме дека документите се соодветни за вашата ситуација или усогласени со најновите законски измени.
+              <strong>ПРЕПОРАКА:</strong> Секогаш консултирајте адвокат пред употреба на документите генерирани од Nexa Terminal. Ние не можеме да гарантираме дека документите се соодветни за вашата ситуација или усогласени со најновите законски измени.
             </p>
           </div>
 
@@ -76,7 +79,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Company Verification */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>4. Верификација на компанија</h2>
           <p>
             За пристап до нашите функции, Вие ќе морате да ја верификувате вашата компанија со обезбедување на:
@@ -93,10 +96,10 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Credit System */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>5. Систем со кредити</h2>
           <p>
-            Nexa Terminal користи систем со кредити за генерирање на документи. Секој документ чини одреден број кредити. 
+            Nexa Terminal користи систем со кредити за генерирање на документи. Секој документ чини одреден број кредити.
           </p>
           <ul>
             <li>Кредитите се обновуваат неделно</li>
@@ -105,7 +108,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Prohibited Use */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>6. Забрането користење</h2>
           <p>НЕ смеете да ја користите платформата за:</p>
           <ul>
@@ -120,7 +123,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Intellectual Property */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>7. Интелектуална сопственост</h2>
           <p>
             Сите содржини на Nexa Terminal платформата (шаблони, дизајн, код, текст, графика) се интелектуална сопственост на Nexa Terminal и се заштитени со закони за авторски права.
@@ -135,7 +138,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Find Lawyer Terms */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>8. Find Lawyer - Посредничка услуга</h2>
 
           <div className={styles.infoBox}>
@@ -156,7 +159,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Limitation of Liability */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>9. Ограничување на одговорноста</h2>
 
           <div className={styles.warningBox}>
@@ -187,7 +190,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Account Termination */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>10. Раскинување на сметка</h2>
 
           <h3>Ваше право:</h3>
@@ -205,11 +208,10 @@ const TermsAndConditions = () => {
             <li>Користите платформата за нелегални цели</li>
             <li>Злоупотребувате систем или функции</li>
           </ul>
-
         </section>
 
         {/* Modifications */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>11. Измени и дополнувања</h2>
           <p>
             Задржуваме право да ги изменуваме овие Услови за користење во секое време. Значајните промени ќе ви бидат соопштени преку:
@@ -220,12 +222,12 @@ const TermsAndConditions = () => {
             <li>Ажурирање на датумот на врвот на страната</li>
           </ul>
           <p>
-            Продолжувањето на користењето на платформата по промените значи прифаќање на новите услови. Доколку не се согласувате, мо жете да ја раскинете сметката.
+            Продолжувањето на користењето на платформата по промените значи прифаќање на новите услови. Доколку не се согласувате, можете да ја раскинете сметката.
           </p>
         </section>
 
         {/* Governing Law */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>12. Применливо право</h2>
           <p>
             Овие Услови за користење се уредени и толкуваат според законите на <strong>Република Северна Македонија</strong>.
@@ -239,7 +241,7 @@ const TermsAndConditions = () => {
         </section>
 
         {/* Miscellaneous */}
-        <section className={styles.legalSection}>
+        <section className={styles.section}>
           <h2>13. Разно</h2>
 
           <h3>Делива клаузула (Severability):</h3>

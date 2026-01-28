@@ -912,6 +912,54 @@
   margin-top: 0;
 }
 
+/* Mobile submenu styles */
+.mobile-menu-item-with-submenu {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-item-with-submenu .mobile-menu-item {
+  justify-content: flex-start;
+}
+
+.mobile-submenu-arrow {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.mobile-submenu-inline {
+  display: flex;
+  flex-direction: column;
+  padding-left: 20px;
+  margin-left: 20px;
+  border-left: 2px solid var(--color-primary-100, #E0EEFF);
+  background: linear-gradient(90deg, rgba(114, 158, 228, 0.02), transparent);
+}
+
+.mobile-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.mobile-submenu-item:hover {
+  color: var(--color-accent);
+  background: linear-gradient(90deg, rgba(114, 158, 228, 0.05), transparent);
+}
+
+.mobile-submenu-item.mobile-menu-item-active {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
 /* Show mobile menu button and hide desktop items on mobile */
 @media (max-width: 768px) {
   .mobile-menu-button {

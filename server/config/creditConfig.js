@@ -51,6 +51,8 @@ const creditConfig = {
     DOCUMENT_GENERATION: 1,  // Cost per automated document generated
     AI_QUESTION: 1,          // Cost per AI chatbot question
     LHC_REPORT: 1,           // Cost per Legal Health Check report
+    MHC_REPORT: 1,           // Cost per Marketing Health Check report
+    CHC_REPORT: 1,           // Cost per Cyber Security Health Check report
   },
 
   // ============ REFERRAL SYSTEM ============

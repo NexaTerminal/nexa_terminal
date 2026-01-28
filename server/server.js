@@ -88,8 +88,17 @@ app.use(sanitizeRequest); // Sanitize all incoming requests
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', require('./routes/autoDocuments'));
 
+// Mount marketing documents routes (JWT-protected API)
+app.use('/api/marketing-documents', require('./routes/marketingDocuments'));
+
 // Mount LHC (Legal Health Check) routes (JWT-protected API)
 app.use('/api/lhc', require('./routes/lhc'));
+
+// Mount MHC (Marketing Health Check) routes (JWT-protected API)
+app.use('/api/mhc', require('./routes/mhc'));
+
+// Mount CHC (Cyber Security Health Check) routes (JWT-protected API)
+app.use('/api/chc', require('./routes/chc'));
 
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));

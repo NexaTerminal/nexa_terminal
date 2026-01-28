@@ -44,6 +44,10 @@ import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
 import GDPRReport from './pages/terminal/lhc/GDPRReport';
 import GeneralQuestionnaire from './pages/terminal/lhc/GeneralQuestionnaire';
 import GeneralReport from './pages/terminal/lhc/GeneralReport';
+import MarketingQuestionnaire from './pages/terminal/mhc/MarketingQuestionnaire';
+import MarketingReport from './pages/terminal/mhc/MarketingReport';
+import CyberQuestionnaire from './pages/terminal/chc/CyberQuestionnaire';
+import CyberReport from './pages/terminal/chc/CyberReport';
 import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
@@ -63,6 +67,9 @@ import CourseLesson from './pages/terminal/CourseLesson';
 import Credits from './pages/terminal/Credits';
 import Invite from './pages/terminal/Invite';
 
+// Marketing Pages
+import Marketing from './pages/terminal/marketing/Marketing';
+import MarketingPerformanceReportPage from './pages/terminal/marketing/MarketingPerformanceReportPage';
 
 import TerminationAgreementPage from './pages/terminal/documents/employment/TerminationAgreementPage';
 import ConfirmationOfEmploymentPage from './pages/terminal/documents/employment/ConfirmationOfEmploymentPage';
@@ -199,6 +206,10 @@ function App() {
       <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-screening" element={<PrivateRoute><VerificationRequired feature="маркетинг здравствен преглед"><MarketingQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-screening/report/:id" element={<PrivateRoute><VerificationRequired feature="маркетинг здравствен преглед"><MarketingReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cyber-screening" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
@@ -216,6 +227,10 @@ function App() {
       <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><VerificationRequired feature="едукација"><CourseLesson /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
       <Route path="/terminal/invite" element={<PrivateRoute><Invite /></PrivateRoute>} />
+
+      {/* Marketing Documents */}
+      <Route path="/terminal/marketing" element={<PrivateRoute><VerificationRequired feature="маркетинг документи"><Marketing /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing/performance-report" element={<PrivateRoute><VerificationRequired feature="маркетинг извештај"><MarketingPerformanceReportPage /></VerificationRequired></PrivateRoute>} />
 
       {/* General Conditions */}
       <Route path="/general-conditions" element={<GeneralConditions />} />

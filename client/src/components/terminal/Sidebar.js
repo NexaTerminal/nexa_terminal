@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,16 +8,43 @@ const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
+  const screeningRef = useRef(null);
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+
+  // Close submenu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (screeningRef.current && !screeningRef.current.contains(event.target)) {
+        setIsSubmenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleScreeningClick = () => {
+    setIsSubmenuOpen(!isSubmenuOpen);
+  };
+
+  // Screening submenu items
+  const screeningSubItems = [
+    { path: '/terminal/legal-screening', label: 'Правен' },
+    { path: '/terminal/marketing-screening', label: 'Маркетинг' },
+    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
+  ];
 
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard' },
     { path: '/terminal/documents', label: 'dashboard.documentGenerator' },
-    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening' },
     { path: '/terminal/ai-chat', label: 'dashboard.nexaAI' },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true },
     { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', noTranslate: true }
   ];
+
+  // Check if any screening route is active
+  const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
 
   const adminMenuItems = [
     { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
@@ -38,8 +65,49 @@ const Sidebar = () => {
         </div> */}
 
       <nav className={styles["dashboard-menu"]}>
-        {/* Regular Menu Items */}
-        {regularMenuItems.map(({ path, label, noTranslate, disabled, comingSoon }) =>
+        {/* Dashboard and Documents */}
+        {regularMenuItems.slice(0, 2).map(({ path, label, noTranslate }) => (
+          <Link
+            key={path}
+            to={path}
+            className={`${styles["menu-item"]} ${
+              location.pathname === path ? styles.active : ""
+            }`}
+          >
+            <h3>{noTranslate ? label : t(label)}</h3>
+          </Link>
+        ))}
+
+        {/* Screening Menu with Submenu */}
+        <div ref={screeningRef} className={styles["menu-item-with-submenu"]}>
+          <div
+            className={`${styles["menu-item"]} ${isScreeningActive ? styles.active : ""}`}
+            onClick={handleScreeningClick}
+            style={{ cursor: 'pointer' }}
+          >
+            <h3>Скрининг</h3>
+            <span className={styles["submenu-arrow"]}>{isSubmenuOpen ? '▼' : '▶'}</span>
+          </div>
+          {isSubmenuOpen && (
+            <div className={styles["submenu-inline"]}>
+              {screeningSubItems.map(({ path, label }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${styles["submenu-item-inline"]} ${
+                    location.pathname === path ? styles.active : ""
+                  }`}
+                  onClick={() => setIsSubmenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Remaining Menu Items */}
+        {regularMenuItems.slice(2).map(({ path, label, noTranslate, disabled, comingSoon }) =>
           disabled ? (
             <div
               key={path}

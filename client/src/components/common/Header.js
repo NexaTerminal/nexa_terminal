@@ -14,6 +14,7 @@ const Header = ({ isTerminal = false }) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [screeningSubmenuOpen, setScreeningSubmenuOpen] = useState(false);
   const location = useLocation();
   const dropdownRef = useRef(null);
   const creditModalRef = useRef(null);
@@ -188,12 +189,21 @@ const Header = ({ isTerminal = false }) => {
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard', icon: '📊' },
     { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
-    { path: '/terminal/legal-screening', label: 'dashboard.legalScreening', icon: '⚖️' },
     { path: '/terminal/ai-chat', label: 'dashboard.nexaAI', icon: '🤖' },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
     { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
   ];
+
+  // Screening submenu items
+  const screeningSubItems = [
+    { path: '/terminal/legal-screening', label: 'Правен', icon: '⚖️' },
+    { path: '/terminal/marketing-screening', label: 'Маркетинг', icon: '📈' },
+    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност', icon: '🔒' }
+  ];
+
+  // Check if any screening route is active
+  const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
 
   const adminMenuItems = [
     { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️', noTranslate: true },
@@ -475,8 +485,55 @@ const Header = ({ isTerminal = false }) => {
           </div>
 
           <nav className={styles['mobile-menu-nav']}>
-            {/* Regular Menu Items */}
-            {regularMenuItems.map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
+            {/* First two items: Dashboard and Documents */}
+            {regularMenuItems.slice(0, 2).map(({ path, label, icon, noTranslate }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`${styles['mobile-menu-item']} ${
+                  location.pathname === path ? styles['mobile-menu-item-active'] : ''
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className={styles['mobile-menu-icon']}>{icon}</span>
+                <span>{noTranslate ? label : t(label)}</span>
+              </Link>
+            ))}
+
+            {/* Screening Menu with Submenu */}
+            <div className={styles['mobile-menu-item-with-submenu']}>
+              <button
+                className={`${styles['mobile-menu-item']} ${isScreeningActive ? styles['mobile-menu-item-active'] : ''}`}
+                onClick={() => setScreeningSubmenuOpen(!screeningSubmenuOpen)}
+              >
+                <span className={styles['mobile-menu-icon']}>🔍</span>
+                <span>Скрининг</span>
+                <span className={styles['mobile-submenu-arrow']}>{screeningSubmenuOpen ? '▼' : '▶'}</span>
+              </button>
+              {screeningSubmenuOpen && (
+                <div className={styles['mobile-submenu-inline']}>
+                  {screeningSubItems.map(({ path, label, icon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`${styles['mobile-submenu-item']} ${
+                        location.pathname === path ? styles['mobile-menu-item-active'] : ''
+                      }`}
+                      onClick={() => {
+                        setScreeningSubmenuOpen(false);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <span className={styles['mobile-menu-icon']}>{icon}</span>
+                      <span>{label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Remaining Menu Items */}
+            {regularMenuItems.slice(2).map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
               disabled ? (
                 <div
                   key={path}

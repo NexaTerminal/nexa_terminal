@@ -177,42 +177,45 @@
 
 .answer-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 .answer-option {
   display: flex;
   align-items: center;
-  padding: var(--spacing-md);
-  border: 2px solid #dee2e6;
-  border-radius: var(--border-radius-sm);
+  padding: 8px 12px;
+  border: 1px solid #e0e4e8;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
+  transition: all 0.15s ease;
+  background: #fafbfc;
 }
 
 .answer-option:hover {
-  background: #f8f9fc;
+  background: white;
   border-color: var(--color-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .answer-option input[type="radio"] {
-  margin-right: var(--spacing-sm);
+  margin-right: 8px;
   cursor: pointer;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   accent-color: var(--color-accent);
+  flex-shrink: 0;
 }
 
 .answer-option input[type="radio"]:checked + span {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-accent);
 }
 
 .answer-option span {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: var(--color-dark);
+  line-height: 1.4;
 }
 
 /* Navigation Buttons */
@@ -711,44 +714,45 @@
 .multi-check-options {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 8px;
 }
 
 .multi-check-option {
   display: flex;
   align-items: flex-start;
-  padding: var(--spacing-md);
-  border: 2px solid #dee2e6;
-  border-radius: var(--border-radius-sm);
+  padding: 8px 12px;
+  border: 1px solid #e0e4e8;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
+  transition: all 0.15s ease;
+  background: #fafbfc;
 }
 
 .multi-check-option:hover {
-  background: #f8f9fc;
+  background: white;
   border-color: var(--color-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .multi-check-option input[type="checkbox"] {
-  margin-right: var(--spacing-sm);
-  margin-top: 2px;
+  margin-right: 8px;
+  margin-top: 1px;
   cursor: pointer;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   accent-color: var(--color-accent);
   flex-shrink: 0;
 }
 
 .multi-check-option input[type="checkbox"]:checked + span {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-accent);
 }
 
 .multi-check-option span {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: var(--color-dark);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* Category Breakdown Section */

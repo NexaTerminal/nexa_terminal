@@ -39,6 +39,9 @@ const documentTypeTranslations = {
 
   // Other business documents
   warningBeforeLawsuit: 'Опомена пред тужба',
+
+  // Marketing documents
+  marketingPerformanceReport: 'Маркетинг перформанс извештај',
 };
 
 /**

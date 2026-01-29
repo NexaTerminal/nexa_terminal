@@ -72,6 +72,9 @@ class DocumentPreviewController {
     this.registerTemplate('employeeStockPurchasePlan', require('../document_templates/other/employeeStockPurchasePlan'));
     this.registerTemplate('masterServicesAgreement', require('../document_templates/other/masterServicesAgreement'));
     this.registerTemplate('warningBeforeLawsuit', require('../document_templates/other/warningBeforeLawsuit'));
+
+    // Marketing
+    this.registerTemplate('marketingPerformanceReport', require('../marketing_templates/reports/marketingPerformanceReport'));
   }
 
   /**

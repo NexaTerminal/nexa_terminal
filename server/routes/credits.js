@@ -11,6 +11,23 @@ const { authenticateJWT, isAdmin } = require('../middleware/auth');
  * transaction history, usage statistics, and for admins to manage credits.
  */
 
+/**
+ * Helper function to get creditService with validation
+ */
+function getCreditService(req, res) {
+  const creditService = req.app.locals.creditService;
+  if (!creditService) {
+    console.error('❌ CreditService not initialized - app.locals.creditService is undefined');
+    res.status(503).json({
+      error: 'Credit system temporarily unavailable',
+      code: 'CREDIT_SERVICE_UNAVAILABLE',
+      message: 'Please try again in a moment'
+    });
+    return null;
+  }
+  return creditService;
+}
+
 // ============ USER ENDPOINTS ============
 
 /**
@@ -19,15 +36,24 @@ const { authenticateJWT, isAdmin } = require('../middleware/auth');
  */
 router.get('/balance', authenticateJWT, async (req, res) => {
   try {
-    const creditService = req.app.locals.creditService;
+    console.log(`[Credits] Fetching balance for user: ${req.user._id}`);
+
+    const creditService = getCreditService(req, res);
+    if (!creditService) {
+      console.error('[Credits] CreditService not available');
+      return;
+    }
+
     const credits = await creditService.getUserCredits(req.user._id);
+    console.log(`[Credits] Retrieved credits for user ${req.user._id}:`, credits);
 
     res.json({
       success: true,
       credits
     });
   } catch (error) {
-    console.error('Error fetching credit balance:', error);
+    console.error('[Credits] Error fetching credit balance:', error);
+    console.error('[Credits] Stack:', error.stack);
     res.status(500).json({
       error: 'Failed to fetch credit balance',
       message: error.message
@@ -42,7 +68,9 @@ router.get('/balance', authenticateJWT, async (req, res) => {
  */
 router.get('/transactions', authenticateJWT, async (req, res) => {
   try {
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const {
       limit = 50,
       offset = 0,
@@ -78,7 +106,9 @@ router.get('/transactions', authenticateJWT, async (req, res) => {
  */
 router.get('/stats', authenticateJWT, async (req, res) => {
   try {
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const stats = await creditService.getWeeklyUsageStats(req.user._id);
 
     res.json({
@@ -101,7 +131,8 @@ router.get('/stats', authenticateJWT, async (req, res) => {
 router.get('/info', authenticateJWT, async (req, res) => {
   try {
     const creditConfig = require('../config/creditConfig');
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
 
     const userCredits = await creditService.getUserCredits(req.user._id);
 
@@ -145,7 +176,9 @@ router.post('/adjust', authenticateJWT, isAdmin, async (req, res) => {
       });
     }
 
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const result = await creditService.adjustCredits(
       userId,
       parseInt(amount),
@@ -177,7 +210,9 @@ router.get('/all-users', authenticateJWT, isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, sortBy = 'balance' } = req.query;
 
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const result = await creditService.getAllUserCredits({
       page: parseInt(page),
       limit: parseInt(limit),
@@ -203,7 +238,9 @@ router.get('/all-users', authenticateJWT, isAdmin, async (req, res) => {
  */
 router.get('/system-stats', authenticateJWT, isAdmin, async (req, res) => {
   try {
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const stats = await creditService.getSystemStats();
 
     res.json({
@@ -234,7 +271,9 @@ router.post('/reset-user', authenticateJWT, isAdmin, async (req, res) => {
       });
     }
 
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     await creditService.resetWeeklyCredits(userId);
 
     const updatedCredits = await creditService.getUserCredits(userId);
@@ -260,7 +299,9 @@ router.post('/reset-user', authenticateJWT, isAdmin, async (req, res) => {
  */
 router.post('/reset-all', authenticateJWT, isAdmin, async (req, res) => {
   try {
-    const creditService = req.app.locals.creditService;
+    const creditService = getCreditService(req, res);
+    if (!creditService) return;
+
     const result = await creditService.resetAllUserCredits();
 
     res.json({

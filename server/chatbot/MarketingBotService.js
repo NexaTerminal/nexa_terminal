@@ -4,7 +4,7 @@ const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
 
-/
+/**
  * MarketingBotService - Core RAG chatbot service for marketing Q&A
  *
  * This service handles:
@@ -190,7 +190,7 @@ class MarketingBotService {
     this.promptTemplate = PromptTemplate.fromTemplate(this.systemPromptTemplate);
   }
 
-  /
+  /**
    * Set database reference
    */
   async setDatabase(database) {
@@ -198,7 +198,7 @@ class MarketingBotService {
     console.log('✓ Database reference set for MarketingBotService');
   }
 
-  /
+  /**
    * Set conversation service reference (shared for unified history)
    */
   setConversationService(conversationService) {
@@ -206,7 +206,7 @@ class MarketingBotService {
     console.log('✓ ConversationService reference set for MarketingBotService');
   }
 
-  /
+  /**
    * Verify Qdrant connection and collection existence
    */
   async verifyQdrantConnection() {
@@ -221,7 +221,7 @@ class MarketingBotService {
     }
   }
 
-  /
+  /**
    * Check if user has exceeded weekly question limit (separate from legal)
    */
   async checkWeeklyLimit(userId) {
@@ -266,7 +266,7 @@ class MarketingBotService {
     }
   }
 
-  /
+  /**
    * Increment user's weekly question count
    */
   async incrementUsageCount(userId) {
@@ -299,7 +299,7 @@ class MarketingBotService {
     }
   }
 
-  /
+  /**
    * Ask a marketing question and get an AI response
    */
   async askQuestion(question, userId, conversationId = null) {
@@ -403,7 +403,7 @@ class MarketingBotService {
     }
   }
 
-  /
+  /**
    * Retrieve relevant documents from Qdrant
    */
   async retrieveRelevantDocuments(question) {
@@ -447,7 +447,7 @@ class MarketingBotService {
     }
   }
 
-  /
+  /**
    * Format retrieved documents into context string
    */
   formatContext(documents) {
@@ -462,7 +462,7 @@ class MarketingBotService {
       .join('\n\n---\n\n');
   }
 
-  /
+  /**
    * Format conversation history
    */
   formatConversationHistory(messages) {
@@ -487,7 +487,7 @@ class MarketingBotService {
     return `ПРЕТХОДНА КОНВЕРЗАЦИЈА:\n${formattedHistory}`;
   }
 
-  /
+  /**
    * Get chatbot health status
    */
   getHealthStatus() {

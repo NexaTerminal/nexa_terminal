@@ -366,7 +366,18 @@ async function initializeServices(database) {
     app.locals.activityLogger = activityLogger;
 
   } catch (error) {
-    console.error('Error initializing services:', error);
+    console.error('❌ Error initializing services:', error);
+    console.error('Stack trace:', error.stack);
+
+    // Log which services were successfully initialized
+    console.log('📋 Service initialization status:');
+    console.log('   - userService:', app.locals.userService ? '✅' : '❌');
+    console.log('   - creditService:', app.locals.creditService ? '✅' : '❌');
+    console.log('   - referralService:', app.locals.referralService ? '✅' : '❌');
+    console.log('   - conversationService:', app.locals.conversationService ? '✅' : '❌');
+    console.log('   - chatBotService:', app.locals.chatBotService ? '✅' : '❌');
+    console.log('   - marketingBotService:', app.locals.marketingBotService ? '✅' : '❌');
+
     // Don't exit, just log the error as services might still work
   }
 }

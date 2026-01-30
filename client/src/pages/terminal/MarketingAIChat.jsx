@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
+import MarketingConversationSidebar from '../../components/chatbot/MarketingConversationSidebar';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
@@ -31,6 +32,7 @@ const MarketingAIChat = () => {
 
   // Conversation history state
   const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef(null);
@@ -80,6 +82,39 @@ const MarketingAIChat = () => {
     setMessages([]);
     setCurrentConversationId(null);
     setError(null);
+  };
+
+  /**
+   * Handle loading a previous conversation
+   */
+  const handleSelectConversation = async (conversationId) => {
+    try {
+      setIsLoading(true);
+      const response = await MarketingBotApiService.getConversation(conversationId);
+
+      if (response.success) {
+        const conversation = response.data.conversation;
+
+        // Format messages from conversation history
+        const formattedMessages = conversation.messages.map(msg => ({
+          type: msg.type,
+          content: msg.content,
+          sources: msg.sources || [],
+          timestamp: new Date(msg.timestamp)
+        }));
+
+        setMessages(formattedMessages);
+        setCurrentConversationId(conversationId);
+        setError(null);
+      } else {
+        setError('Не можевме да ја вчитаме конверзацијата.');
+      }
+    } catch (err) {
+      console.error('Error loading marketing conversation:', err);
+      setError('Грешка при вчитување на конверзацијата.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   /**
@@ -152,6 +187,9 @@ const MarketingAIChat = () => {
           remaining: data.data.remainingQuestions
         }));
 
+        // Trigger conversation list refresh
+        setRefreshTrigger(prev => prev + 1);
+
         // Refresh credits after successful operation
         await refreshCredits();
       } else {
@@ -193,18 +231,13 @@ const MarketingAIChat = () => {
       <Header isTerminal={true} />
 
       <div className={styles.chatLayout}>
-        {/* Simple sidebar for new conversation */}
-        <aside className={styles.conversationSidebar}>
-          <div className={styles.sidebarHeader}>
-            <h3>Маркетинг AI</h3>
-          </div>
-          <button
-            className={styles.newConversationBtn}
-            onClick={handleNewConversation}
-          >
-            + Нова конверзација
-          </button>
-        </aside>
+        {/* Conversation History Sidebar */}
+        <MarketingConversationSidebar
+          currentConversationId={currentConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
+          refreshTrigger={refreshTrigger}
+        />
 
         <main className={styles.chatMain}>
           <div className={styles.container}>

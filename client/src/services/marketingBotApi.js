@@ -69,6 +69,35 @@ class MarketingBotApiService {
   static async sendMessage(conversationId, question) {
     return ApiService.post(`/marketing-bot/conversations/${conversationId}/ask`, { question });
   }
+
+  /**
+   * Get user's marketing conversations (paginated)
+   * @param {number} limit - Number of conversations to fetch
+   * @param {number} offset - Offset for pagination
+   * @returns {Promise<Object>} - List of conversations with hasMore flag
+   */
+  static async getConversations(limit = 20, offset = 0) {
+    return ApiService.get(`/marketing-bot/conversations?limit=${limit}&offset=${offset}`);
+  }
+
+  /**
+   * Delete a marketing conversation
+   * @param {string} conversationId - Conversation ID to delete
+   * @returns {Promise<Object>} - Success status
+   */
+  static async deleteConversation(conversationId) {
+    return ApiService.delete(`/marketing-bot/conversations/${conversationId}`);
+  }
+
+  /**
+   * Rename a marketing conversation
+   * @param {string} conversationId - Conversation ID to rename
+   * @param {string} title - New title for the conversation
+   * @returns {Promise<Object>} - Updated conversation with new title
+   */
+  static async renameConversation(conversationId, title) {
+    return ApiService.put(`/marketing-bot/conversations/${conversationId}/title`, { title });
+  }
 }
 
 export default MarketingBotApiService;

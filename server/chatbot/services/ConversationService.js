@@ -46,13 +46,15 @@ class ConversationService {
    * Create a new conversation
    * @param {string} userId - User ID
    * @param {string} firstQuestion - First question (optional)
+   * @param {Object} options - Optional settings { botType: 'legal' | 'marketing' }
    * @returns {Object} - { conversationId, title, isNew: true }
    */
-  async createConversation(userId, firstQuestion = null) {
+  async createConversation(userId, firstQuestion = null, options = {}) {
     try {
       const conversationId = new ObjectId();
       const title = this.generateTitle(firstQuestion || 'Нова конверзација');
       const now = new Date();
+      const botType = options.botType || 'legal';
 
       const conversation = {
         _id: conversationId,
@@ -62,12 +64,13 @@ class ConversationService {
         createdAt: now,
         updatedAt: now,
         messageCount: 0,
-        isActive: true
+        isActive: true,
+        botType: botType
       };
 
-      // Mark any existing active conversations as inactive
+      // Mark any existing active conversations as inactive (only for same botType)
       await this.collection.updateMany(
-        { userId: userId.toString(), isActive: true },
+        { userId: userId.toString(), isActive: true, botType: botType },
         { $set: { isActive: false } }
       );
 
@@ -76,7 +79,8 @@ class ConversationService {
       return {
         conversationId: conversationId.toString(),
         title,
-        isNew: true
+        isNew: true,
+        botType: botType
       };
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -154,11 +158,17 @@ class ConversationService {
    * @param {string} userId - User ID
    * @param {number} limit - Max conversations to return (default 20)
    * @param {number} offset - Skip count for pagination (default 0)
+   * @param {Object} options - Optional filters { botType: 'legal' | 'marketing' }
    * @returns {Object} - { conversations: [], total, hasMore }
    */
-  async getUserConversations(userId, limit = 20, offset = 0) {
+  async getUserConversations(userId, limit = 20, offset = 0, options = {}) {
     try {
       const query = { userId: userId.toString() };
+
+      // Add botType filter if specified
+      if (options.botType) {
+        query.botType = options.botType;
+      }
 
       // Get total count
       const total = await this.collection.countDocuments(query);
@@ -175,7 +185,8 @@ class ConversationService {
           updatedAt: 1,
           createdAt: 1,
           messageCount: 1,
-          isActive: 1
+          isActive: 1,
+          botType: 1
         })
         .toArray();
 
@@ -274,11 +285,22 @@ class ConversationService {
   }
 
   /**
+   * Rename conversation (alias for updateConversationTitle)
+   * @param {string} conversationId - Conversation ID
+   * @param {string} userId - User ID (for authorization)
+   * @param {string} newTitle - New title
+   * @returns {Object} - Updated conversation with new title
+   */
+  async renameConversation(conversationId, userId, newTitle) {
+    return this.updateConversationTitle(conversationId, userId, newTitle);
+  }
+
+  /**
    * Update conversation title
    * @param {string} conversationId - Conversation ID
    * @param {string} userId - User ID (for authorization)
    * @param {string} newTitle - New title
-   * @returns {Object} - { success: true, title }
+   * @returns {Object} - { _id, title, success: true }
    */
   async updateConversationTitle(conversationId, userId, newTitle) {
     try {
@@ -309,7 +331,7 @@ class ConversationService {
         throw new Error('Conversation not found or unauthorized');
       }
 
-      return { success: true, title: truncatedTitle };
+      return { _id: conversationId, title: truncatedTitle, success: true };
     } catch (error) {
       console.error('Error updating conversation title:', error);
       throw error;

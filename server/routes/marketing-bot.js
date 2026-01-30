@@ -12,10 +12,13 @@ const marketingBotService = require('../chatbot/MarketingBotService');
  * - GET /api/marketing-bot/limits - Check user's remaining questions
  * - GET /api/marketing-bot/health - Check service health
  *
- * Conversation endpoints (shared with legal chatbot):
+ * Conversation endpoints:
+ * - GET /api/marketing-bot/conversations - Get user's conversations (paginated)
  * - POST /api/marketing-bot/conversations/new - Create new conversation
  * - GET /api/marketing-bot/conversations/:id - Get conversation
  * - POST /api/marketing-bot/conversations/:id/ask - Send message to conversation
+ * - PUT /api/marketing-bot/conversations/:id/title - Rename conversation
+ * - DELETE /api/marketing-bot/conversations/:id - Delete conversation
  */
 
 /**
@@ -166,6 +169,38 @@ function getConversationService(req) {
   }
   return conversationService;
 }
+
+/**
+ * @route   GET /api/marketing-bot/conversations
+ * @desc    Get user's marketing conversations (paginated)
+ * @access  Private
+ */
+router.get('/conversations', authenticateJWT, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const conversationService = getConversationService(req);
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const result = await conversationService.getUserConversations(userId, limit, offset, { botType: 'marketing' });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        conversations: result.conversations,
+        hasMore: result.hasMore,
+        total: result.total,
+      },
+    });
+
+  } catch (error) {
+    console.error('❌ Error getting marketing conversations:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Не можевме да ги вчитаме конверзациите.',
+    });
+  }
+});
 
 /**
  * @route   POST /api/marketing-bot/conversations/new
@@ -325,6 +360,87 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     return res.status(500).json({
       success: false,
       message: 'Се случи грешка при обработка на вашето прашање.',
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/marketing-bot/conversations/:id/title
+ * @desc    Rename a marketing conversation
+ * @access  Private
+ */
+router.put('/conversations/:id/title', authenticateJWT, async (req, res) => {
+  try {
+    const conversationId = req.params.id;
+    const { title } = req.body;
+    const userId = req.user._id;
+    const conversationService = getConversationService(req);
+
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Насловот не може да биде празен.',
+      });
+    }
+
+    const updatedConversation = await conversationService.renameConversation(conversationId, userId, title.trim());
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        conversationId: updatedConversation._id,
+        title: updatedConversation.title,
+      },
+    });
+
+  } catch (error) {
+    console.error('❌ Error renaming marketing conversation:', error);
+
+    if (error.message.includes('not found') || error.message.includes('unauthorized')) {
+      return res.status(404).json({
+        success: false,
+        message: 'Конверзацијата не е пронајдена.',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Не можевме да го промениме насловот.',
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/marketing-bot/conversations/:id
+ * @desc    Delete a marketing conversation
+ * @access  Private
+ */
+router.delete('/conversations/:id', authenticateJWT, async (req, res) => {
+  try {
+    const conversationId = req.params.id;
+    const userId = req.user._id;
+    const conversationService = getConversationService(req);
+
+    await conversationService.deleteConversation(conversationId, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Конверзацијата е избришана.',
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting marketing conversation:', error);
+
+    if (error.message.includes('not found') || error.message.includes('unauthorized')) {
+      return res.status(404).json({
+        success: false,
+        message: 'Конверзацијата не е пронајдена.',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Не можевме да ја избришеме конверзацијата.',
     });
   }
 });

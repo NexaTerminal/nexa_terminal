@@ -256,6 +256,19 @@ class AuthController {
 
       const newUser = await userService.createUser(userData);
 
+      // Initialize credits for the new user
+      try {
+        const creditService = req.app.locals.creditService;
+        if (creditService) {
+          // This will initialize credits for the new user
+          await creditService.getUserCredits(newUser._id);
+          console.log(`✅ Credits initialized for new user: ${username}`);
+        }
+      } catch (creditError) {
+        // Don't fail registration if credit initialization fails
+        console.error('⚠️ Credit initialization warning:', creditError.message);
+      }
+
       // Generate JWT token
       const token = this.generateToken(newUser);
 

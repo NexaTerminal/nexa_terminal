@@ -27,19 +27,26 @@ class CreditService {
    * @returns {Promise<Object>} Credit information
    */
   async getUserCredits(userId) {
+    console.log(`[CreditService] getUserCredits called for userId: ${userId}`);
+
     const user = await this.userService.findById(userId);
     if (!user) {
+      console.error(`[CreditService] User not found: ${userId}`);
       throw new Error('User not found');
     }
 
+    console.log(`[CreditService] User found: ${user.username}, has credits: ${!!user.credits}`);
+
     // Initialize credits if not present (for existing users)
     if (!user.credits) {
+      console.log(`[CreditService] No credits found, initializing for user: ${userId}`);
       await this._initializeUserCredits(userId);
       const updatedUser = await this.userService.findById(userId);
+      console.log(`[CreditService] Credits initialized, new balance: ${updatedUser.credits?.balance}`);
       return updatedUser.credits;
     }
 
-    return {
+    const credits = {
       balance: user.credits.balance || 0,
       weeklyAllocation: user.credits.weeklyAllocation || creditConfig.WEEKLY_ALLOCATION,
       lastResetDate: user.credits.lastResetDate,
@@ -47,6 +54,9 @@ class CreditService {
       lifetimeSpent: user.credits.lifetimeSpent || 0,
       nextResetDate: creditConfig.getNextResetDate()
     };
+
+    console.log(`[CreditService] Returning credits for ${user.username}: balance=${credits.balance}`);
+    return credits;
   }
 
   /**
@@ -571,7 +581,10 @@ class CreditService {
    * @private
    */
   async _initializeUserCredits(userId) {
-    await this.usersCollection.updateOne(
+    console.log(`[CreditService] _initializeUserCredits called for userId: ${userId}`);
+    console.log(`[CreditService] Setting initial balance to: ${creditConfig.WEEKLY_ALLOCATION}`);
+
+    const result = await this.usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       {
         $set: {
@@ -587,6 +600,8 @@ class CreditService {
       }
     );
 
+    console.log(`[CreditService] Update result: matched=${result.matchedCount}, modified=${result.modifiedCount}`);
+
     // Record initial credit transaction
     await this._recordTransaction({
       userId: new ObjectId(userId),
@@ -597,6 +612,8 @@ class CreditService {
       metadata: { reason: 'Initial credit allocation' },
       createdAt: new Date()
     });
+
+    console.log(`[CreditService] ✅ Credits initialized for user ${userId}: ${creditConfig.WEEKLY_ALLOCATION} credits`);
   }
 
   /**

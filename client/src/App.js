@@ -59,6 +59,7 @@ import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
 import EditProfile from './pages/terminal/EditProfile';
 import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
+import MarketingAIChat from './pages/terminal/MarketingAIChat';
 // import CompleteProfile from './pages/terminal/CompleteProfile';
 import SimpleCompleteProfile from './pages/terminal/SimpleCompleteProfile';
 import Education from './pages/terminal/Education';
@@ -211,6 +212,7 @@ function App() {
       <Route path="/terminal/cyber-screening" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired feature="Маркетинг AI асистент"><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />

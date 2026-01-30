@@ -298,6 +298,13 @@ async function initializeServices(database) {
       app.locals.chatBotService = chatBotService;
 
       console.log('✅ AI Chatbot with conversation history initialized');
+
+      // Initialize Marketing ChatBot Service
+      const marketingBotService = require('./chatbot/MarketingBotService');
+      await marketingBotService.setDatabase(database);
+      marketingBotService.setConversationService(conversationService);
+      app.locals.marketingBotService = marketingBotService;
+      console.log('✅ Marketing AI Chatbot initialized');
     }
 
     // Initialize Credit System
@@ -520,6 +527,15 @@ function registerRoutes() {
     } catch (error) {
       console.log('⚠️  AI Chatbot routes not found - feature not available');
       console.error('Chatbot routes error:', error.message);
+    }
+
+    // Marketing AI Chatbot routes
+    try {
+      app.use('/api/marketing-bot', require('./routes/marketing-bot'));
+      console.log('✅ Marketing AI Chatbot routes loaded successfully');
+    } catch (error) {
+      console.log('⚠️  Marketing AI Chatbot routes not found');
+      console.error('Marketing bot routes error:', error.message);
     }
   }
 

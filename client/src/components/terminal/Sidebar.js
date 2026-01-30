@@ -9,13 +9,18 @@ const Sidebar = () => {
   const { currentUser } = useAuth();
   const location = useLocation();
   const screeningRef = useRef(null);
+  const aiRef = useRef(null);
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const [isAISubmenuOpen, setIsAISubmenuOpen] = useState(false);
 
-  // Close submenu when clicking outside
+  // Close submenus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (screeningRef.current && !screeningRef.current.contains(event.target)) {
         setIsSubmenuOpen(false);
+      }
+      if (aiRef.current && !aiRef.current.contains(event.target)) {
+        setIsAISubmenuOpen(false);
       }
     };
 
@@ -27,6 +32,10 @@ const Sidebar = () => {
     setIsSubmenuOpen(!isSubmenuOpen);
   };
 
+  const handleAIClick = () => {
+    setIsAISubmenuOpen(!isAISubmenuOpen);
+  };
+
   // Screening submenu items
   const screeningSubItems = [
     { path: '/terminal/legal-screening', label: 'Правен' },
@@ -34,10 +43,15 @@ const Sidebar = () => {
     { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
   ];
 
+  // AI submenu items
+  const aiSubItems = [
+    { path: '/terminal/ai-chat', label: 'Правен AI' },
+    { path: '/terminal/marketing-ai', label: 'Маркетинг AI' }
+  ];
+
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard' },
     { path: '/terminal/documents', label: 'dashboard.documentGenerator' },
-    { path: '/terminal/ai-chat', label: 'dashboard.nexaAI' },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true },
     { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', noTranslate: true }
@@ -45,6 +59,9 @@ const Sidebar = () => {
 
   // Check if any screening route is active
   const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
+
+  // Check if any AI route is active
+  const isAIActive = aiSubItems.some(item => location.pathname === item.path);
 
   const adminMenuItems = [
     { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
@@ -98,6 +115,34 @@ const Sidebar = () => {
                     location.pathname === path ? styles.active : ""
                   }`}
                   onClick={() => setIsSubmenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Nexa AI Menu with Submenu */}
+        <div ref={aiRef} className={styles["menu-item-with-submenu"]}>
+          <div
+            className={`${styles["menu-item"]} ${isAIActive ? styles.active : ""}`}
+            onClick={handleAIClick}
+            style={{ cursor: 'pointer' }}
+          >
+            <h3>Nexa AI</h3>
+            <span className={styles["submenu-arrow"]}>{isAISubmenuOpen ? '▼' : '▶'}</span>
+          </div>
+          {isAISubmenuOpen && (
+            <div className={styles["submenu-inline"]}>
+              {aiSubItems.map(({ path, label }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${styles["submenu-item-inline"]} ${
+                    location.pathname === path ? styles.active : ""
+                  }`}
+                  onClick={() => setIsAISubmenuOpen(false)}
                 >
                   {label}
                 </Link>

@@ -86,6 +86,10 @@
   outline: none;
 }
 
+.filterSeparator {
+  /* Visible on desktop */
+}
+
 /* Create Post Section */
 .createPost {
   background: white;
@@ -599,14 +603,28 @@
   }
 
   .filterSection {
-    gap: 2px;
-    padding-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 12px;
+    overflow-x: visible;
   }
 
   .filterButton {
-    padding: 2px 4px;
-    font-size: 14px;
-    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+    min-height: auto;
+    border-radius: 20px;
+    background: #f3f4f6;
+    white-space: nowrap;
+  }
+
+  .filterButton.active {
+    background: #1f2937;
+    color: white;
+  }
+
+  .filterSeparator {
+    display: none;
   }
   
   .postCard {

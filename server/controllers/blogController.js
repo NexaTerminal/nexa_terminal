@@ -2,6 +2,7 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs').promises;
+const { generateSlug, generateUniqueSlug } = require('../utils/slugify');
 
 class BlogController {
   constructor() {
@@ -201,6 +202,7 @@ class BlogController {
           contentLanguage: blog.language || 'en', // Map language to contentLanguage
           featuredImage: blog.featuredImage || null,
           status: blog.status || 'published',
+          promotedTool: blog.promotedTool || 'legal_health_check', // Default promoted tool
           author: blog.author ? {
             id: blog.author,
             name: blog.author
@@ -213,8 +215,11 @@ class BlogController {
           views: blog.views || 0,
           likes: blog.likes || 0
         };
+      } else {
+        // Ensure promotedTool is always present
+        transformedBlog.promotedTool = blog.promotedTool || 'legal_health_check';
       }
-      
+
       res.json(transformedBlog);
     } catch (error) {
       console.error('Error fetching blog:', error);
@@ -233,13 +238,18 @@ class BlogController {
         tags,
         language,
         featuredImage,
-        status = 'published'
+        status = 'published',
+        promotedTool = 'legal_health_check', // Default promoted tool
+        // SEO fields
+        metaTitle,
+        metaDescription,
+        focusKeyword
       } = req.body;
 
       // Validation
       if (!title || !content || !category || !language) {
-        return res.status(400).json({ 
-          message: 'Title, content, category, and language are required' 
+        return res.status(400).json({
+          message: 'Title, content, category, and language are required'
         });
       }
 
@@ -249,19 +259,31 @@ class BlogController {
       // Get user ID - handle both req.user.id (from JWT payload) and req.user._id (from database object)
       const userId = req.user.id || req.user._id;
 
+      // Generate unique slug from title
+      const slug = await generateUniqueSlug(db, title);
+
       // Create blog object - use contentLanguage instead of language to avoid MongoDB text index conflicts
       const formattedContent = this.formatContentToParagraphs(content);
 
+      // Extract plain text from content for auto-generating meta description
+      const plainTextContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
       const newBlog = {
         _id: uuidv4(),
+        slug, // SEO-friendly URL slug
         title: title.trim(),
         content: formattedContent,
-        excerpt: excerpt || content.substring(0, 200) + '...',
+        excerpt: excerpt || plainTextContent.substring(0, 200) + '...',
         category,
         tags: tags || [],
         contentLanguage: language, // Changed from 'language' to 'contentLanguage'
         featuredImage: featuredImage || null,
         status,
+        promotedTool, // Tool to promote at end of article
+        // SEO metadata
+        metaTitle: metaTitle || title.trim(),
+        metaDescription: metaDescription || plainTextContent.substring(0, 155),
+        focusKeyword: focusKeyword || '',
         author: {
           id: userId,
           name: req.user.email || req.user.username
@@ -298,22 +320,33 @@ class BlogController {
       delete updateData.author;
       delete updateData.createdAt;
 
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
       // Handle language field conversion
       if (updateData.language) {
         updateData.contentLanguage = updateData.language;
         delete updateData.language;
       }
 
+      // Regenerate slug if title is being updated
+      if (updateData.title) {
+        updateData.slug = await generateUniqueSlug(db, updateData.title, id);
+      }
+
       // Format content into proper paragraphs if content is being updated
       if (updateData.content) {
         updateData.content = this.formatContentToParagraphs(updateData.content);
+
+        // Auto-update meta description if not explicitly provided and content changes
+        if (!updateData.metaDescription) {
+          const plainTextContent = updateData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          updateData.metaDescription = plainTextContent.substring(0, 155);
+        }
       }
 
       // Add updated timestamp
       updateData.updatedAt = new Date();
-
-      const db = req.app.locals.db;
-      const blogsCollection = db.collection('blogs');
 
       const result = await blogsCollection.findOneAndUpdate(
         { _id: id },
@@ -456,6 +489,7 @@ class BlogController {
       // Transform blogs for public response (remove sensitive data)
       const transformedBlogs = blogs.map(blog => ({
         id: blog._id,
+        slug: blog.slug || blog._id, // Include slug for SEO-friendly URLs
         title: blog.title,
         content: blog.content,
         excerpt: blog.excerpt,
@@ -493,17 +527,26 @@ class BlogController {
     }
   }
 
-  // Get single published blog post by ID (public access)
+  // Get single published blog post by ID or slug (public access)
   async getPublicBlogById(req, res) {
     try {
       const { id } = req.params;
       const db = req.app.locals.db;
       const blogsCollection = db.collection('blogs');
 
-      const blog = await blogsCollection.findOne({
-        _id: id,
+      // Try to find by slug first, then by _id
+      let blog = await blogsCollection.findOne({
+        slug: id,
         status: 'published'
       });
+
+      // If not found by slug, try by _id (for backwards compatibility)
+      if (!blog) {
+        blog = await blogsCollection.findOne({
+          _id: id,
+          status: 'published'
+        });
+      }
 
       if (!blog) {
         return res.status(404).json({ message: 'Blog post not found' });
@@ -512,6 +555,7 @@ class BlogController {
       // Transform for public response (remove sensitive data)
       const transformedBlog = {
         id: blog._id,
+        slug: blog.slug || blog._id, // Include slug in response
         title: blog.title,
         content: blog.content,
         excerpt: blog.excerpt,
@@ -519,6 +563,11 @@ class BlogController {
         tags: blog.tags || [],
         language: blog.contentLanguage || blog.language || 'en',
         featuredImage: blog.featuredImage || null,
+        promotedTool: blog.promotedTool || 'legal_health_check', // Tool to promote at end of article
+        // SEO metadata
+        metaTitle: blog.metaTitle || blog.title,
+        metaDescription: blog.metaDescription || blog.excerpt,
+        focusKeyword: blog.focusKeyword || '',
         author: blog.author ? {
           name: blog.author.name || 'Unknown Author'
         } : { name: 'Unknown Author' },
@@ -531,7 +580,7 @@ class BlogController {
       // Optional: Increment view count
       try {
         await blogsCollection.updateOne(
-          { _id: id },
+          { _id: blog._id },
           { $inc: { views: 1 } }
         );
       } catch (viewError) {

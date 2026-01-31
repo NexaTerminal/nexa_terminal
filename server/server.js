@@ -109,6 +109,9 @@ app.use('/api/blog', require('./routes/blog'));
 // Mount public newsletter routes BEFORE CSRF middleware (tracking, unsubscribe)
 app.use('/api/public/newsletter', require('./routes/publicNewsletter'));
 
+// Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
+app.use('/api/seo', require('./routes/seo'));
+
 // Mount shared documents routes BEFORE CSRF middleware (public + authenticated API)
 // Route registration is deferred until after controller initialization
 // See registerRoutes() function for actual mounting

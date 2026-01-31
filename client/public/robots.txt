@@ -1,3 +1,26 @@
 # https://www.robotstxt.org/robotstxt.html
+# Nexa Terminal - robots.txt
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://nexa.mk/api/seo/sitemap.xml
+
+# Disallow private/admin areas
+Disallow: /terminal/
+Disallow: /admin/
+
+# Allow public pages
+Allow: /blog/
+Allow: /about
+Allow: /contact
+Allow: /pricing
+Allow: /legal-health-check
+Allow: /marketing-health-check
+Allow: /company-health-check
+Allow: /login
+Allow: /register
+
+# Crawl delay (optional, be polite to the server)
+Crawl-delay: 1

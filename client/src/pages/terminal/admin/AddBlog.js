@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from '../../../styles/terminal/admin/AddBlog.module.css';
@@ -6,6 +6,7 @@ import Header from '../../../components/common/Header';
 import Footer from '../../../components/common/Footer';
 import Sidebar from '../../../components/terminal/Sidebar';
 import ProfileRequired from '../../../components/common/ProfileRequired';
+import { getToolsGroupedByCategory } from '../../../config/promotedTools';
 
 const AddBlog = () => {
   const { token } = useAuth();
@@ -21,8 +22,16 @@ const AddBlog = () => {
     language: 'mk',
     featuredImage: '',
     status: 'published',
-    tags: ''
+    tags: '',
+    promotedTool: 'legal_health_check',
+    // SEO fields
+    metaTitle: '',
+    metaDescription: '',
+    focusKeyword: ''
   });
+
+  // Get promoted tools grouped by category for the dropdown
+  const promotedToolsGrouped = useMemo(() => getToolsGroupedByCategory(), []);
 
   // Set category from URL parameter
   useEffect(() => {
@@ -56,7 +65,12 @@ const AddBlog = () => {
         language: formData.language,
         featuredImage: formData.featuredImage,
         status: formData.status,
-        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : []
+        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
+        promotedTool: formData.promotedTool,
+        // SEO fields
+        metaTitle: formData.metaTitle || formData.title,
+        metaDescription: formData.metaDescription,
+        focusKeyword: formData.focusKeyword
       };
 
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/blogs`, {
@@ -78,9 +92,16 @@ const AddBlog = () => {
       setFormData({
         title: '',
         content: '',
-        category: '',
+        excerpt: '',
+        category: 'legal',
+        language: 'mk',
+        featuredImage: '',
+        status: 'published',
         tags: '',
-        language: 'mk'
+        promotedTool: 'legal_health_check',
+        metaTitle: '',
+        metaDescription: '',
+        focusKeyword: ''
       });
 
       setTimeout(() => {
@@ -249,6 +270,87 @@ const AddBlog = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="promotedTool">Промовирај алатка</label>
+                  <select
+                    id="promotedTool"
+                    name="promotedTool"
+                    value={formData.promotedTool}
+                    onChange={handleInputChange}
+                    className={styles.select}
+                  >
+                    {Object.entries(promotedToolsGrouped).map(([groupName, tools]) => (
+                      tools.length > 0 && (
+                        <optgroup key={groupName} label={groupName}>
+                          {tools.map(tool => (
+                            <option key={tool.id} value={tool.id}>
+                              {tool.icon} {tool.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    ))}
+                  </select>
+                  <small className={styles.helpText}>
+                    Изберете која алатка ќе се прикаже на крајот од статијата
+                  </small>
+                </div>
+
+                {/* SEO Section */}
+                <div className={styles.formGroup}>
+                  <h3 style={{ marginBottom: '1rem', color: '#666', fontSize: '1rem' }}>SEO Поставки</h3>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="metaTitle">Meta Title (SEO)</label>
+                  <input
+                    type="text"
+                    id="metaTitle"
+                    name="metaTitle"
+                    value={formData.metaTitle}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="SEO наслов (ако е различен од главниот наслов)"
+                    maxLength={60}
+                  />
+                  <small className={styles.helpText}>
+                    Препорачано: до 60 карактери. Ако е празно, ќе се користи главниот наслов.
+                  </small>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="metaDescription">Meta Description (SEO)</label>
+                  <textarea
+                    id="metaDescription"
+                    name="metaDescription"
+                    value={formData.metaDescription}
+                    onChange={handleInputChange}
+                    className={styles.textarea}
+                    rows={3}
+                    placeholder="Краток опис за пребарувачи (Google, Bing...)"
+                    maxLength={160}
+                  />
+                  <small className={styles.helpText}>
+                    Препорачано: до 155 карактери. Ако е празно, ќе се генерира автоматски од содржината.
+                  </small>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="focusKeyword">Focus Keyword (SEO)</label>
+                  <input
+                    type="text"
+                    id="focusKeyword"
+                    name="focusKeyword"
+                    value={formData.focusKeyword}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Главен клучен збор за оптимизација"
+                  />
+                  <small className={styles.helpText}>
+                    Примарниот клучен збор за кој сакате да рангирате во пребарувачите.
+                  </small>
                 </div>
 
                 <div className={styles.formActions}>

@@ -85,17 +85,17 @@ router.get('/', async (req, res) => {
 
 /**
  * GET /api/blog/:id
- * Public route - Get single blog post by ID (excerpt only, for SEO)
- * Returns: Blog post with excerpt, NOT full content
+ * Public route - Get single blog post by ID with FULL content
+ * Returns: Blog post with full content and promotedTool for banner display
  *
- * IMPORTANT: Full content only available in /terminal/blogs/:id (authenticated route)
+ * NOTE: Full content now publicly available - promotional banner shows at end
  */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const db = req.app.locals.db;
 
-    // Fetch blog by ID (public fields only)
+    // Fetch blog by ID with full content
     const blog = await db.collection('blogs')
       .findOne(
         { _id: id, status: 'published' },
@@ -103,6 +103,7 @@ router.get('/:id', async (req, res) => {
           projection: {
             _id: 1,
             title: 1,
+            content: 1,
             excerpt: 1,
             featuredImage: 1,
             category: 1,
@@ -112,8 +113,8 @@ router.get('/:id', async (req, res) => {
             author: 1,
             views: 1,
             likes: 1,
-            contentLanguage: 1
-            // NOTE: Explicitly exclude 'content' - only for authenticated users
+            contentLanguage: 1,
+            promotedTool: 1
           }
         }
       );
@@ -125,10 +126,22 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Format excerpt to ensure proper paragraph structure
+    // Increment view count
+    try {
+      await db.collection('blogs').updateOne(
+        { _id: id },
+        { $inc: { views: 1 } }
+      );
+    } catch (viewError) {
+      console.warn('Could not increment view count:', viewError);
+    }
+
+    // Format content and excerpt to ensure proper paragraph structure
     const formattedBlog = {
       ...blog,
-      excerpt: formatTextToParagraphs(blog.excerpt)
+      content: formatTextToParagraphs(blog.content),
+      excerpt: formatTextToParagraphs(blog.excerpt),
+      promotedTool: blog.promotedTool || 'legal_health_check' // Default to legal health check
     };
 
     res.json(formattedBlog);

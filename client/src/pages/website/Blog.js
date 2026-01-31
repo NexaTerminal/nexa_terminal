@@ -167,7 +167,7 @@ export default function Blog() {
                     )}
 
                     <h2 className={styles.title}>
-                      <Link to={`/blog/${post._id}`}>
+                      <Link to={`/blog/${post.slug || post._id}`}>
                         {post.title}
                       </Link>
                     </h2>
@@ -176,7 +176,7 @@ export default function Blog() {
                       {truncateText(post.excerpt, 150)}
                     </p>
 
-                    <Link to={`/blog/${post._id}`} className={styles.readMore}>
+                    <Link to={`/blog/${post.slug || post._id}`} className={styles.readMore}>
                       Прочитај повеќе →
                     </Link>
                   </div>

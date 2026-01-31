@@ -31,15 +31,20 @@ function socialPreviewMiddleware(db) {
       return next(); // Not a crawler, continue to React app
     }
 
-    // Handle blog post URLs: /blog/:id
-    const blogMatch = req.path.match(/^\/blog\/([a-f0-9\-]+)/);
+    // Handle blog post URLs: /blog/:slug (supports both slugs and IDs)
+    const blogMatch = req.path.match(/^\/blog\/([a-zA-Z0-9\-]+)/);
 
     if (blogMatch) {
-      const blogId = blogMatch[1];
+      const blogSlugOrId = blogMatch[1];
 
       try {
-        // Fetch blog post from database
-        const post = await db.collection('blogPosts').findOne({ _id: blogId });
+        // Fetch blog post from database - try slug first, then _id
+        let post = await db.collection('blogs').findOne({ slug: blogSlugOrId, status: 'published' });
+
+        if (!post) {
+          // Fallback to finding by _id for backwards compatibility
+          post = await db.collection('blogs').findOne({ _id: blogSlugOrId, status: 'published' });
+        }
 
         if (!post) {
           return next(); // Post not found, serve regular app
@@ -51,16 +56,19 @@ function socialPreviewMiddleware(db) {
           return html.replace(/<[^>]*>/g, '').substring(0, 155);
         };
 
-        const metaDescription = stripHtml(post.excerpt || post.title);
+        // Use SEO metadata if available
+        const metaTitle = post.metaTitle || post.title;
+        const metaDescription = post.metaDescription || stripHtml(post.excerpt || post.title);
         const imageUrl = post.featuredImage || 'https://nexa.mk/nexa-logo-navbar.png';
         const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://nexa.mk${imageUrl}`;
+        const canonicalSlug = post.slug || post._id;
 
         // Generate HTML with OG tags
         const html = generateBlogPostHTML({
-          title: `${post.title} | Nexa Terminal`,
+          title: `${metaTitle} | Nexa Terminal`,
           description: metaDescription,
           image: fullImageUrl,
-          url: `https://nexa.mk/blog/${blogId}`,
+          url: `https://nexa.mk/blog/${canonicalSlug}`,
           siteName: 'Nexa Terminal',
           type: 'article'
         });

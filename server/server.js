@@ -459,6 +459,8 @@ function registerRoutes() {
     /^\/certificates\/.*$/,                // All certificate routes (JWT protected)
     '/chatbot',                            // AI Chatbot endpoints (JWT protected)
     /^\/chatbot\/.*$/,                     // All chatbot sub-routes (JWT protected)
+    '/marketing-bot',                      // Marketing AI Chatbot endpoints (JWT protected)
+    /^\/marketing-bot\/.*$/,               // All marketing-bot sub-routes (JWT protected)
     '/credits',                            // Credit system endpoints (JWT protected)
     /^\/credits\/.*$/,                     // All credit sub-routes (JWT protected)
     '/referrals',                          // Referral system endpoints (JWT protected)

@@ -47,7 +47,7 @@ const warningBeforeLawsuitController = require('../controllers/autoDocuments/war
 const loanAgreementController = require('../controllers/autoDocuments/loanAgreementController');
 
 // Consent for Personal Data Processing
-router.post('/consent-for-personal-data', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
+router.post('/consent-for-personal-data-processing', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);
 
 // Politics for Data Protection (Политика за заштита на лични податоци)
 router.post('/politics-for-data-protection', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), politicsForDataProtectionController);

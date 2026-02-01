@@ -42,6 +42,12 @@ const documentTypeTranslations = {
 
   // Marketing documents
   marketingPerformanceReport: 'Маркетинг перформанс извештај',
+
+  // Personal Data Protection documents
+  consentForPersonalDataProcessing: 'Согласност за обработка на лични податоци',
+  politicsForDataProtection: 'Политика за заштита на лични податоци',
+  procedureForEstimation: 'Процедура за проценка на влијанието врз заштитата на личните податоци',
+  gdprCompanyPolitics: 'Политика за администрирање со правата на субјектите на персонални податоци',
 };
 
 /**

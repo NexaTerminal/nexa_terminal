@@ -1,5 +1,5 @@
 /**
- * Configuration for Consent For Personal Data Processing Document (!>3;0A=>AB 70 >1@01>B:0 =0 ;8G=8 ?>40B>F8)
+ * Configuration for Consent For Personal Data Processing Document (Согласност за обработка на лични податоци)
  */
 
 export const consentForPersonalDataProcessingConfig = {
@@ -8,15 +8,15 @@ export const consentForPersonalDataProcessingConfig = {
   steps: [
     {
       id: 1,
-      title: 'A=>2=8 8=D>@<0F88 70 2@01>B5=8>B',
-      description: '=5A5B5 38 >A=>2=8B5 ?>40B>F8 70 2@01>B5=8>B :>X 4020 A>3;0A=>AB',
+      title: 'Основни информации за вработениот',
+      description: 'Внесете ги основните податоци за вработениот кој дава согласност',
       fields: [
         {
           name: 'employeeName',
-          label: '<5 8 ?@578<5 =0 2@01>B5=8>B',
+          label: 'Име и презиме на вработениот',
           type: 'text',
           required: true,
-          placeholder: '?@. 0@:> 5B@>2A:8',
+          placeholder: 'пр. Марко Петровски',
           validation: {
             minLength: 2,
             maxLength: 100
@@ -24,17 +24,17 @@ export const consentForPersonalDataProcessingConfig = {
         },
         {
           name: 'employeeAddress',
-          label: '4@5A0 =0 2@01>B5=8>B',
+          label: 'Адреса на вработениот',
           type: 'text',
           required: true,
-          placeholder: '?@. C;. 0:54>=8X0 1@. 123, !:>?X5'
+          placeholder: 'пр. ул. Македонија бр. 123, Скопје'
         },
         {
           name: 'employeeWorkPosition',
-          label: ' 01>B=0 ?>78F8X0',
+          label: 'Работна позиција',
           type: 'text',
           required: true,
-          placeholder: '?@. !>DB25@A:8 8=65=5@'
+          placeholder: 'пр. Софтверски инженер'
         }
       ]
     }
@@ -56,15 +56,15 @@ export const validateFormData = (formData) => {
   const errors = {};
 
   if (!formData.employeeName?.trim()) {
-    errors.employeeName = '20 ?>;5 5 704>;68B5;=>';
+    errors.employeeName = 'Ова поле е задолжително';
   }
 
   if (!formData.employeeAddress?.trim()) {
-    errors.employeeAddress = '20 ?>;5 5 704>;68B5;=>';
+    errors.employeeAddress = 'Ова поле е задолжително';
   }
 
   if (!formData.employeeWorkPosition?.trim()) {
-    errors.employeeWorkPosition = '20 ?>;5 5 704>;68B5;=>';
+    errors.employeeWorkPosition = 'Ова поле е задолжително';
   }
 
   return errors;

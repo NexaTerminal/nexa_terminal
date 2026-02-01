@@ -242,6 +242,7 @@
       {
         "id": "consent_for_personal_data_processing",
         "name": "Согласност за обработка на лични податоци",
+        "icon": "📄",
         "description": "Формулар за добивање согласност за обработка на лични податоци.",
         "route": "/terminal/documents/personal-data-protection/consent-for-personal-data-processing"
       }

@@ -26,7 +26,7 @@ const ProfileReminderBanner = () => {
         <div className={styles.text}>
           <h4 className={styles.title}>Подобрете го вашето корисничко искуство</h4>
           <p className={styles.subtitle}>
-            Пополнете го вашиот профил за да добиете пристап до сите функции и подобро искуство.
+            Пополнете го вашиот профил за да ги генерирате документите во финална верзија.
           </p>
         </div>
         <div className={styles.actions}>

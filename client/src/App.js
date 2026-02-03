@@ -183,13 +183,13 @@ function App() {
       {/* Private Terminal Routes */}
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
-      <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired feature="автоматизирано генерирање на документи"><DocumentGen /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired feature="генерирање на документи"><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired feature="генерирање на документи"><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}
-      <Route path="/terminal/documents/employment/annual-leave-decision" element={<PrivateRoute><VerificationRequired feature="годишни одмори"><AnnualLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/unpaid-leave-decision" element={<PrivateRoute><VerificationRequired feature="неплатени отсуства"><UnpaidLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/disciplinary-action" element={<PrivateRoute><VerificationRequired feature="дисциплински мерки"><DisciplinaryActionPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/annual-leave-decision" element={<PrivateRoute><VerificationRequired><AnnualLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/unpaid-leave-decision" element={<PrivateRoute><VerificationRequired><UnpaidLeaveDecisionPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/disciplinary-action" element={<PrivateRoute><VerificationRequired><DisciplinaryActionPage /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/labourLaw/confirmation-of-employment" element={<PrivateRoute><ConfirmationOfEmploymentPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/health-safety-policy" element={<PrivateRoute><HealthAndSafetyPolicyPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/health-safety/workplace-harassment-policy" element={<PrivateRoute><WorkplaceHarassmentPolicyPage /></PrivateRoute>} /> */}
@@ -198,41 +198,41 @@ function App() {
       <Route path="/terminal/documents/personal-data-protection/procedure-for-estimation" element={<PrivateRoute><ProcedureForEstimationPage /></PrivateRoute>} />
       {/* <Route path="/terminal/documents/personal-data-protection/gdpr-company-politics" element={<PrivateRoute><GdprCompanyPoliticsPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/personal-data-protection/privacy-policy" element={<PrivateRoute><PrivacyPolicyPage /></PrivateRoute>} /> */}
-      <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><LegalScreening /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/employment" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><EmploymentQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/employment/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><EmploymentReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/health-safety" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><HealthAndSafetyQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GDPRReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired feature="правен здравствен преглед"><GeneralReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/marketing-screening" element={<PrivateRoute><VerificationRequired feature="маркетинг здравствен преглед"><MarketingQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/marketing-screening/report/:id" element={<PrivateRoute><VerificationRequired feature="маркетинг здравствен преглед"><MarketingReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/cyber-screening" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired feature="сајбер безбедносен преглед"><CyberReport /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired feature="AI асистент"><AIChat /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired feature="Маркетинг AI асистент"><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired><LegalScreening /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment" element={<PrivateRoute><VerificationRequired><EmploymentQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/health-safety" element={<PrivateRoute><VerificationRequired><HealthAndSafetyQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired><GDPRReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired><GeneralReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-screening" element={<PrivateRoute><VerificationRequired><MarketingQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-screening/report/:id" element={<PrivateRoute><VerificationRequired><MarketingReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cyber-screening" element={<PrivateRoute><VerificationRequired><CyberQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired><CyberReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
-      <Route path="/terminal/find-lawyer" element={<PrivateRoute><VerificationRequired feature="пронајди адвокат"><FindLawyer /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/find-lawyer" element={<PrivateRoute><VerificationRequired><FindLawyer /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
       <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
       <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
-      <Route path="/terminal/education" element={<PrivateRoute><VerificationRequired feature="едукација"><Education /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><VerificationRequired feature="едукација"><CourseDetail /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><VerificationRequired feature="едукација"><CourseLesson /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/education" element={<PrivateRoute><VerificationRequired><Education /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><VerificationRequired><CourseDetail /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/education/course/:courseId/lesson/:lessonId" element={<PrivateRoute><VerificationRequired><CourseLesson /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
       <Route path="/terminal/invite" element={<PrivateRoute><Invite /></PrivateRoute>} />
 
       {/* Marketing Documents */}
-      <Route path="/terminal/marketing" element={<PrivateRoute><VerificationRequired feature="маркетинг документи"><Marketing /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/marketing/performance-report" element={<PrivateRoute><VerificationRequired feature="маркетинг извештај"><MarketingPerformanceReportPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing" element={<PrivateRoute><VerificationRequired><Marketing /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/marketing/performance-report" element={<PrivateRoute><VerificationRequired><MarketingPerformanceReportPage /></VerificationRequired></PrivateRoute>} />
 
       {/* General Conditions */}
       <Route path="/general-conditions" element={<GeneralConditions />} />
@@ -241,49 +241,49 @@ function App() {
       <Route path="/verification-result" element={<VerificationResult />} />
 
       {/* Employment */}
-      <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><VerificationRequired feature="договор за престанок"><TerminationAgreementPage /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><VerificationRequired feature="потврда за работа"><ConfirmationOfEmploymentPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><VerificationRequired feature="договор за работа"><EmploymentAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-decision-due-to-duration" element={<PrivateRoute><VerificationRequired feature="одлука за престанок"><TerminationDecisionDueToDurationPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-warning" element={<PrivateRoute><VerificationRequired feature="предупредување за откажување"><TerminationWarningPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-personal-reasons" element={<PrivateRoute><VerificationRequired feature="одлука за престанок поради лични причини"><TerminationPersonalReasonsPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/employment-annex" element={<PrivateRoute><VerificationRequired feature="анекс на договор"><EmploymentAnnexPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/warning-letter" element={<PrivateRoute><VerificationRequired feature="опомена до вработен"><WarningLetterPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-due-to-fault" element={<PrivateRoute><VerificationRequired feature="одлука за престанок поради вина"><TerminationDueToFaultPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-by-employee-request" element={<PrivateRoute><VerificationRequired feature="решение за престанок по барање"><TerminationByEmployeeRequestPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/bonus-payment" element={<PrivateRoute><VerificationRequired feature="одлука за бонус плаќање"><BonusPaymentPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/bonus-decision" element={<PrivateRoute><VerificationRequired feature="одлука за бонус"><BonusDecisionPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/annual-leave-bonus-decision" element={<PrivateRoute><VerificationRequired feature="одлука за регрес за годишен одмор"><AnnualLeaveBonusDecisionPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/employee-damages-statement" element={<PrivateRoute><VerificationRequired feature="изјава за согласност за намалување на плата"><EmployeeDamagesStatementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/termination-due-to-age-limit" element={<PrivateRoute><VerificationRequired feature="решение за престанок поради возраст"><TerminationDueToAgeLimitPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/organization-act" element={<PrivateRoute><VerificationRequired feature="акт за систематизација"><OrganizationActPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/mandatory-bonus" element={<PrivateRoute><VerificationRequired feature="регрес за годишен одмор"><MandatoryBonusPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/employment/death-compensation-decision" element={<PrivateRoute><VerificationRequired feature="одлука за надомест при смрт"><DeathCompensationDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-agreement" element={<PrivateRoute><VerificationRequired><TerminationAgreementPage /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/confirmation-of-employment" element={<PrivateRoute><VerificationRequired><ConfirmationOfEmploymentPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employment-agreement" element={<PrivateRoute><VerificationRequired><EmploymentAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-decision-due-to-duration" element={<PrivateRoute><VerificationRequired><TerminationDecisionDueToDurationPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-warning" element={<PrivateRoute><VerificationRequired><TerminationWarningPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-personal-reasons" element={<PrivateRoute><VerificationRequired><TerminationPersonalReasonsPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employment-annex" element={<PrivateRoute><VerificationRequired><EmploymentAnnexPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/warning-letter" element={<PrivateRoute><VerificationRequired><WarningLetterPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-due-to-fault" element={<PrivateRoute><VerificationRequired><TerminationDueToFaultPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-by-employee-request" element={<PrivateRoute><VerificationRequired><TerminationByEmployeeRequestPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/bonus-payment" element={<PrivateRoute><VerificationRequired><BonusPaymentPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/bonus-decision" element={<PrivateRoute><VerificationRequired><BonusDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/annual-leave-bonus-decision" element={<PrivateRoute><VerificationRequired><AnnualLeaveBonusDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/employee-damages-statement" element={<PrivateRoute><VerificationRequired><EmployeeDamagesStatementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/termination-due-to-age-limit" element={<PrivateRoute><VerificationRequired><TerminationDueToAgeLimitPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/organization-act" element={<PrivateRoute><VerificationRequired><OrganizationActPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/mandatory-bonus" element={<PrivateRoute><VerificationRequired><MandatoryBonusPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/employment/death-compensation-decision" element={<PrivateRoute><VerificationRequired><DeathCompensationDecisionPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Contracts */}
-      <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired feature="договор за закуп"><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired feature="договор за доверливост"><NdaPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/mediation-agreement" element={<PrivateRoute><VerificationRequired feature="договор за посредување"><MediationAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/debt-assumption-agreement" element={<PrivateRoute><VerificationRequired feature="договор за преземање на долг"><DebtAssumptionAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/saas-agreement" element={<PrivateRoute><VerificationRequired feature="договор за софтвер како услуга"><SaasAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/services-contract" element={<PrivateRoute><VerificationRequired feature="договор за услуги"><ServicesContractPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/contracts/loan-agreement" element={<PrivateRoute><VerificationRequired feature="договор за заем"><LoanAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired feature="договор за возила"><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/rent-agreement" element={<PrivateRoute><VerificationRequired><RentAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/nda" element={<PrivateRoute><VerificationRequired><NdaPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/mediation-agreement" element={<PrivateRoute><VerificationRequired><MediationAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/debt-assumption-agreement" element={<PrivateRoute><VerificationRequired><DebtAssumptionAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/saas-agreement" element={<PrivateRoute><VerificationRequired><SaasAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/services-contract" element={<PrivateRoute><VerificationRequired><ServicesContractPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/contracts/loan-agreement" element={<PrivateRoute><VerificationRequired><LoanAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/obligations/vehicle-sale-purchase-agreement" element={<PrivateRoute><VerificationRequired><VehicleSalePurchaseAgreementPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Rulebooks */}
-      <Route path="/terminal/documents/rulebooks/personal-data-rulebook" element={<PrivateRoute><VerificationRequired feature="правилник за податоци"><PersonalDataRulebookPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/rulebooks/personal-data-rulebook" element={<PrivateRoute><VerificationRequired><PersonalDataRulebookPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Accounting Documents */}
-      <Route path="/terminal/documents/accounting/cash-register-maximum-decision" element={<PrivateRoute><VerificationRequired feature="одлука за благајнички максимум"><CashRegisterMaximumDecisionPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/accounting/invoice-signing-authorization" element={<PrivateRoute><VerificationRequired feature="овластување за потпишување фактури"><InvoiceSigningAuthorizationPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/accounting/write-off-decision" element={<PrivateRoute><VerificationRequired feature="одлука за отпис"><WriteOffDecisionPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/accounting/dividend-payment-decision" element={<PrivateRoute><VerificationRequired feature="одлука за исплата на дивиденда"><DividendPaymentDecisionPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/accounting/annual-accounts-adoption" element={<PrivateRoute><VerificationRequired feature="одлука за усвојување на годишната сметка"><AnnualAccountsAdoptionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/cash-register-maximum-decision" element={<PrivateRoute><VerificationRequired><CashRegisterMaximumDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/invoice-signing-authorization" element={<PrivateRoute><VerificationRequired><InvoiceSigningAuthorizationPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/write-off-decision" element={<PrivateRoute><VerificationRequired><WriteOffDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/dividend-payment-decision" element={<PrivateRoute><VerificationRequired><DividendPaymentDecisionPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/accounting/annual-accounts-adoption" element={<PrivateRoute><VerificationRequired><AnnualAccountsAdoptionPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Other Business Documents */}
-      <Route path="/terminal/documents/other/employee-stock-purchase-plan" element={<PrivateRoute><VerificationRequired feature="план за купување акции"><EmployeeStockPurchasePlanPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/other/master-services-agreement" element={<PrivateRoute><VerificationRequired feature="рамковен договор за услуги"><MasterServicesAgreementPage/></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired feature="опомена пред тужба"><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/other/employee-stock-purchase-plan" element={<PrivateRoute><VerificationRequired><EmployeeStockPurchasePlanPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/other/master-services-agreement" element={<PrivateRoute><VerificationRequired><MasterServicesAgreementPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />

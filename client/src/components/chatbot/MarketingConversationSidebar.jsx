@@ -120,7 +120,6 @@ const MarketingConversationSidebar = ({
     <div className={styles.conversationSidebar}>
       {/* Header */}
       <div className={styles.sidebarHeader}>
-        <h3>Маркетинг AI</h3>
       </div>
 
       {/* New Chat Button */}

@@ -6,7 +6,8 @@
  * All features accessible once required company fields are filled
  */
 
-// Check if user's company data is complete for restricted actions
+// Check if user's company data is complete and set flag on request
+// Non-blocking: always calls next() so unverified users can still access features
 const requireVerifiedCompany = async (req, res, next) => {
   try {
     if (!req.user) {
@@ -17,38 +18,15 @@ const requireVerifiedCompany = async (req, res, next) => {
       });
     }
 
-    // ============================================
-    // EMAIL VERIFICATION DISABLED (2025-11-29)
-    // ============================================
-    // Check only if user has complete company data
-    // const isFullyVerified = req.user.isVerified; // COMMENTED OUT
-
-    const hasRequiredFields = req.user.companyInfo &&
+    const hasRequiredFields = !!(req.user.companyInfo &&
                               req.user.companyInfo.companyName &&
                               (req.user.companyInfo.address || req.user.companyInfo.companyAddress) &&
                               (req.user.companyInfo.taxNumber || req.user.companyInfo.companyTaxNumber) &&
                               (req.user.companyInfo.companyManager || req.user.companyManager) &&
-                              (req.user.officialEmail || req.user.email);
+                              (req.user.officialEmail || req.user.email));
 
-    // Only check hasRequiredFields (isVerified check removed)
-    if (!hasRequiredFields) {
-      return res.status(403).json({
-        success: false,
-        message: 'Complete company data required to access this feature',
-        code: 'COMPANY_DATA_REQUIRED',
-        details: {
-          // isVerified: req.user.isVerified || false, // COMMENTED OUT
-          hasRequiredFields: hasRequiredFields || false
-        },
-        requiredFields: {
-          companyName: !!req.user.companyInfo?.companyName,
-          address: !!(req.user.companyInfo?.address || req.user.companyInfo?.companyAddress),
-          taxNumber: !!(req.user.companyInfo?.taxNumber || req.user.companyInfo?.companyTaxNumber),
-          companyManager: !!(req.user.companyInfo?.companyManager || req.user.companyManager),
-          officialEmail: !!(req.user.officialEmail || req.user.email)
-        }
-      });
-    }
+    // Set flag on request - downstream handlers can check this
+    req.companyDataComplete = hasRequiredFields;
 
     next();
   } catch (error) {

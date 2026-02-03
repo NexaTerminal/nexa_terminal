@@ -7,11 +7,11 @@
  */
 
 /**
- * Require complete company information (email verification disabled)
+ * Check company information completeness and set flag on request
+ * Non-blocking: always calls next() so unverified users can still access features
  */
 const requireVerification = (req, res, next) => {
   try {
-    // Check if user is authenticated (should be set by authenticateToken middleware)
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -19,46 +19,15 @@ const requireVerification = (req, res, next) => {
       });
     }
 
-    // ============================================
-    // EMAIL VERIFICATION DISABLED (2025-11-29)
-    // ============================================
-    // Access now granted based on company data completeness only
-    // No email verification click required
-
-    /*
-    // COMMENTED OUT: Email verification check
-    if (!req.user.isVerified) {
-      return res.status(403).json({
-        success: false,
-        message: 'Мора да бидете верификуван корисник за да пристапите до оваа функција',
-        requiresVerification: true
-      });
-    }
-    */
-
-    // Check if user has complete company info (all required fields)
-    // Accept fields from either companyInfo or root level for backward compatibility
-    const hasCompleteCompanyInfo = req.user.companyInfo &&
+    const hasCompleteCompanyInfo = !!(req.user.companyInfo &&
                                    req.user.companyInfo.companyName &&
                                    (req.user.companyInfo.companyAddress || req.user.companyInfo.address) &&
                                    (req.user.companyInfo.companyTaxNumber || req.user.companyInfo.taxNumber) &&
                                    (req.user.companyInfo.companyManager || req.user.companyManager) &&
-                                   (req.user.officialEmail || req.user.email);
+                                   (req.user.officialEmail || req.user.email));
 
-    if (!hasCompleteCompanyInfo) {
-      return res.status(403).json({
-        success: false,
-        message: 'Пополнете ги сите задолжителни податоци за компанијата (име, адреса, даночен број, менаџер и email) за да пристапите до оваа функција',
-        requiresCompanyInfo: true,
-        missingFields: {
-          companyName: !req.user.companyInfo?.companyName,
-          address: !(req.user.companyInfo?.companyAddress || req.user.companyInfo?.address),
-          taxNumber: !(req.user.companyInfo?.companyTaxNumber || req.user.companyInfo?.taxNumber),
-          companyManager: !(req.user.companyInfo?.companyManager || req.user.companyManager),
-          officialEmail: !(req.user.officialEmail || req.user.email)
-        }
-      });
-    }
+    // Set flag on request - downstream handlers can check this
+    req.companyDataComplete = hasCompleteCompanyInfo;
 
     next();
   } catch (error) {

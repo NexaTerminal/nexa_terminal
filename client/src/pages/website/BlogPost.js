@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import SimpleNavbar from '../../components/common/SimpleNavbar';
+import LoginModal from '../../components/common/LoginModal';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import { ArticleSchema } from '../../components/seo/StructuredData';
+import { sanitizeHTML } from '../../utils/sanitizer';
 import api from '../../services/api';
 import { getPromotedToolById } from '../../config/promotedTools';
 import styles from '../../styles/website/BlogPost.module.css';
@@ -16,6 +18,7 @@ export default function BlogPost() {
   const [suggestedPosts, setSuggestedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -56,11 +59,41 @@ export default function BlogPost() {
     }
   }
 
+  // Reading time estimate
+  const readingTime = useMemo(() => {
+    if (!post?.content) return 0;
+    const text = post.content.replace(/<[^>]*>/g, '').trim();
+    const words = text.split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 200));
+  }, [post?.content]);
+
+  // Extract headings and inject IDs for ToC links
+  const { headings, contentWithIds } = useMemo(() => {
+    if (!post?.content) return { headings: [], contentWithIds: '' };
+
+    const extracted = [];
+    let counter = 0;
+    const modified = post.content.replace(
+      /<(h[23])([^>]*)>(.*?)<\/\1>/gi,
+      (match, tag, attrs, text) => {
+        const id = `heading-${counter}`;
+        extracted.push({ id, tag: tag.toLowerCase(), text: text.replace(/<[^>]*>/g, '') });
+        counter++;
+        return `<${tag}${attrs} id="${id}">${text}</${tag}>`;
+      }
+    );
+
+    return { headings: extracted, contentWithIds: modified };
+  }, [post?.content]);
+
+  const showToc = headings.length >= 3;
+  const [tocCollapsed, setTocCollapsed] = useState(false);
+
   // Split content at ~70% for inline CTA
   const { contentBefore, contentAfter } = useMemo(() => {
     if (!post?.content) return { contentBefore: '', contentAfter: '' };
 
-    const content = post.content;
+    const content = contentWithIds;
     // Find paragraph breaks to split at roughly 70%
     const paragraphs = content.split(/<\/p>/i);
     const splitPoint = Math.floor(paragraphs.length * 0.7);
@@ -73,7 +106,7 @@ export default function BlogPost() {
     const after = paragraphs.slice(splitPoint).join('</p>');
 
     return { contentBefore: before, contentAfter: after };
-  }, [post?.content]);
+  }, [post?.content, contentWithIds]);
 
   // Get promoted tool data
   const promotedTool = useMemo(() => {
@@ -210,31 +243,59 @@ export default function BlogPost() {
             <span className={styles.category}>{translateCategory(post.category)}</span>
           )}
           <h1 className={styles.title}>{post.title}</h1>
+          <div className={styles.heroMeta}>
+            <span className={styles.heroDate}>{formatDate(post.createdAt)}</span>
+            <span className={styles.heroDivider}>·</span>
+            <span className={styles.heroReadingTime}>{readingTime} мин читање</span>
+          </div>
         </div>
       </header>
 
       {/* Article Content */}
       <article className={styles.article}>
+        {/* Table of Contents */}
+        {showToc && (
+          <nav className={styles.toc}>
+            <button
+              className={styles.tocToggle}
+              onClick={() => setTocCollapsed(prev => !prev)}
+              aria-expanded={!tocCollapsed}
+            >
+              <span className={styles.tocTitle}>Содржина</span>
+              <span className={tocCollapsed ? styles.tocChevronCollapsed : styles.tocChevron}>▾</span>
+            </button>
+            {!tocCollapsed && (
+              <ol className={styles.tocList}>
+                {headings.map((h) => (
+                  <li key={h.id} className={h.tag === 'h3' ? styles.tocItemSub : styles.tocItem}>
+                    <a href={`#${h.id}`} className={styles.tocLink}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </nav>
+        )}
+
         {/* First 70% of content */}
         <div
           className={styles.content}
-          dangerouslySetInnerHTML={{ __html: contentBefore }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHTML(contentBefore) }}
         />
 
         {/* Inline CTA Banner */}
-        {promotedTool && promotedTool.id !== 'none' && promotedTool.link && (
+        {promotedTool && promotedTool.id !== 'none' && (
           <div className={styles.ctaBanner}>
             <div className={`${styles.ctaInner} ${promotedTool.videoUrl ? styles.ctaWithVideo : ''}`}>
               <div className={styles.ctaText}>
                 <p className={styles.ctaLabel}>Препорачано</p>
                 <h3 className={styles.ctaTitle}>{promotedTool.name}</h3>
                 <p className={styles.ctaDescription}>{promotedTool.description}</p>
-                <Link to={promotedTool.link} className={styles.ctaButton}>
+                <button onClick={() => setShowLoginModal(true)} className={styles.ctaButton}>
                   {promotedTool.ctaText}
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </Link>
+                </button>
               </div>
               {promotedTool.videoUrl && (
                 <div className={styles.ctaVideo}>
@@ -256,7 +317,7 @@ export default function BlogPost() {
         {contentAfter && (
           <div
             className={styles.content}
-            dangerouslySetInnerHTML={{ __html: contentAfter }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(contentAfter) }}
           />
         )}
       </article>
@@ -303,6 +364,12 @@ export default function BlogPost() {
           </div>
         </section>
       )}
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        redirectPath="/terminal"
+      />
 
       <PublicFooter />
     </>

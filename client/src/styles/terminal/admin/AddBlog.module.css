@@ -72,6 +72,29 @@
   min-height: 100px;
 }
 
+.editorWrapper {
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: var(--transition-all);
+}
+
+.editorWrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.editorWrapper :global(.ql-toolbar) {
+  border: none;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.editorWrapper :global(.ql-container) {
+  border: none;
+  font-size: var(--font-size-sm);
+  min-height: 250px;
+}
+
 .helpText {
   font-size: var(--font-size-xs, 0.875rem);
   color: var(--color-neutral-600);

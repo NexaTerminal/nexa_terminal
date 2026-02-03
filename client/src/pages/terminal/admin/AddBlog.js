@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from '../../../styles/terminal/admin/AddBlog.module.css';
 import Header from '../../../components/common/Header';
@@ -17,7 +19,6 @@ const AddBlog = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    excerpt: '',
     category: 'legal',
     language: 'mk',
     featuredImage: '',
@@ -32,6 +33,27 @@ const AddBlog = () => {
 
   // Get promoted tools grouped by category for the dropdown
   const promotedToolsGrouped = useMemo(() => getToolsGroupedByCategory(), []);
+
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ header: [2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link', 'image'],
+      ['clean']
+    ]
+  }), []);
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline',
+    'list', 'blockquote', 'code-block',
+    'link', 'image'
+  ];
+
+  const handleContentChange = (value) => {
+    setFormData(prev => ({ ...prev, content: value }));
+  };
 
   // Set category from URL parameter
   useEffect(() => {
@@ -51,16 +73,25 @@ const AddBlog = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate content (ReactQuill doesn't support required attribute)
+    const strippedContent = formData.content.replace(/<[^>]*>/g, '').trim();
+    if (!strippedContent) {
+      setError('Содржината е задолжителна.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
       // Prepare blog data
+      const excerptFallback = strippedContent.substring(0, 200) + (strippedContent.length > 200 ? '...' : '');
       const blogData = {
         title: formData.title,
         content: formData.content,
-        excerpt: formData.excerpt || formData.content.substring(0, 200) + '...',
+        excerpt: excerptFallback,
         category: formData.category,
         language: formData.language,
         featuredImage: formData.featuredImage,
@@ -92,7 +123,6 @@ const AddBlog = () => {
       setFormData({
         title: '',
         content: '',
-        excerpt: '',
         category: 'legal',
         language: 'mk',
         featuredImage: '',
@@ -163,32 +193,16 @@ const AddBlog = () => {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="content">Содржина*</label>
-                  <textarea
-                    id="content"
-                    name="content"
-                    value={formData.content}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.textarea}
-                    rows={8}
-                    placeholder="Внесете содржина на објавата. Користете празни редови (два пати Enter) помеѓу параграфите за да се форматираат правилно."
-                  />
-                  <small className={styles.helpText}>
-                    💡 Совет: Користете празни редови помеѓу параграфите. Секој параграф ќе биде автоматски форматиран со соодветно растојание.
-                  </small>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="excerpt">Excerpt</label>
-                  <textarea
-                    id="excerpt"
-                    name="excerpt"
-                    value={formData.excerpt}
-                    onChange={handleInputChange}
-                    className={styles.textarea}
-                    rows={3}
-                    placeholder="Краток опис на објавата (опционално)"
-                  />
+                  <div className={styles.editorWrapper}>
+                    <ReactQuill
+                      theme="snow"
+                      value={formData.content}
+                      onChange={handleContentChange}
+                      modules={quillModules}
+                      formats={quillFormats}
+                      placeholder="Внесете содржина на објавата..."
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.formRow}>

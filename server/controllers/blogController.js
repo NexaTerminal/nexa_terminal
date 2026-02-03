@@ -46,7 +46,7 @@ class BlogController {
     if (!content) return '';
 
     // If already has HTML tags, return as is
-    if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>')) {
+    if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>') || content.includes('<h')) {
       return content;
     }
 

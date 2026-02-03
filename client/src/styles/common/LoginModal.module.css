@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-modal-backdrop);
+  z-index: 10000;
   padding: var(--spacing-4);
   animation: fadeIn 0.2s ease-out;
 }

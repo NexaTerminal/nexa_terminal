@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LoginModal from './LoginModal';
 import styles from '../../styles/common/SimpleNavbar.module.css';
 
 // Main blog categories for quick navigation
@@ -14,6 +15,7 @@ const BLOG_CATEGORIES = [
 export default function SimpleNavbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -59,51 +61,17 @@ export default function SimpleNavbar() {
 
         {/* Navigation links - All temporarily hidden, moved to footer */}
         <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-          {/* Moved to footer - Блог link
-          <a href="/blog" className={styles.navLink}>
-            Блог
-          </a>
-          */}
-
-          {/* Temporarily hidden - Теми link
-          <a href="/topics" className={styles.navLink}>
-            Теми
-          </a>
-          */}
-
-          {/* Temporarily hidden - Области dropdown
-          <div
-            className={styles.dropdown}
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-          >
-            <span className={styles.dropdownTrigger}>
-              Области ▾
-            </span>
-
-            {dropdownOpen && (
-              <>
-                <div className={styles.dropdownBridge} />
-
-                <div className={styles.dropdownMenu}>
-                  <a href="/residence" className={styles.dropdownItem}>
-                    Престој
-                  </a>
-                  <a href="/employment" className={styles.dropdownItem}>
-                    Работни односи
-                  </a>
-                  <a href="/trademark" className={styles.dropdownItem}>
-                    Трговска марка
-                  </a>
-                  <a href="/corporate" className={styles.dropdownItem}>
-                    Корпоративно право
-                  </a>
-                </div>
-              </>
-            )}
-          </div>
-          */}
         </div>
+
+        {/* Login button - hidden on login/homepage */}
+        {!isLoginOrHome && (
+          <button
+            className={styles.loginButton}
+            onClick={() => setShowLoginModal(true)}
+          >
+            Најава
+          </button>
+        )}
       </div>
 
       {/* Category bar - shown on blog pages */}
@@ -129,6 +97,11 @@ export default function SimpleNavbar() {
           </div>
         </div>
       )}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        redirectPath="/terminal"
+      />
     </nav>
   );
 }

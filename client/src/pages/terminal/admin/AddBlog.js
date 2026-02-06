@@ -264,14 +264,17 @@ const AddBlog = () => {
                 <div className={styles.formGroup}>
                   <label htmlFor="featuredImage">Featured Image URL</label>
                   <input
-                    type="url"
+                    type="text"
                     id="featuredImage"
                     name="featuredImage"
                     value={formData.featuredImage}
                     onChange={handleInputChange}
                     className={styles.input}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="/images/blog/marketing-1.jpg"
                   />
+                  <small className={styles.helpText}>
+                    Достапни слики: business.jpg, marketing-1.jpg до marketing-10.jpg (пр. /images/blog/marketing-1.jpg)
+                  </small>
                 </div>
 
                 <div className={styles.formGroup}>

@@ -176,7 +176,7 @@ export default function Blog() {
         <header className={styles.header}>
           <div className={styles.headerContent}>
             <span className={styles.headerLabel}>Инсајти</span>
-            <h1 className={styles.headerTitle}>Знаење за успешен бизнис</h1>
+            <h1 className={styles.headerTitle}>Консумирај квалитетна содржина</h1>
             <p className={styles.headerSubtitle}>
               Експертски анализи, практични совети и најнови трендови за претприемачи и бизнис лидери
             </p>
@@ -216,19 +216,23 @@ export default function Blog() {
               {featuredPost && (
                 <section className={styles.featured}>
                   <Link to={`/blog/${featuredPost.slug || featuredPost._id}`} className={styles.featuredLink}>
-                    <div className={styles.featuredImageWrapper}>
-                      {featuredPost.featuredImage && !brokenImages.has(featuredPost._id) ? (
-                        <img
-                          src={featuredPost.featuredImage}
-                          alt={featuredPost.title}
-                          className={styles.featuredImage}
-                          onError={() => handleImageError(featuredPost._id)}
-                        />
-                      ) : (
-                        <div className={styles.featuredPlaceholder} />
-                      )}
-                      <div className={styles.featuredOverlay} />
-                    </div>
+                    {featuredPost.featuredImage && !brokenImages.has(featuredPost._id) ? (
+                      <img
+                        src={featuredPost.featuredImage}
+                        alt={featuredPost.title}
+                        className={styles.featuredImage}
+                        onError={() => handleImageError(featuredPost._id)}
+                      />
+                    ) : (
+                      <div className={styles.featuredPlaceholder}>
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                      </div>
+                    )}
+                    <div className={styles.featuredOverlay} />
                     <div className={styles.featuredContent}>
                       <div className={styles.featuredMeta}>
                         {featuredPost.category && (

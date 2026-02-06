@@ -86,8 +86,13 @@ const AddBlog = () => {
     setSuccess('');
 
     try {
+      // Decode HTML entities (e.g. &nbsp; &amp;) from stripped content
+      const textarea = document.createElement('textarea');
+      textarea.innerHTML = strippedContent;
+      const decodedContent = textarea.value;
+
       // Prepare blog data
-      const excerptFallback = strippedContent.substring(0, 200) + (strippedContent.length > 200 ? '...' : '');
+      const excerptFallback = decodedContent.substring(0, 200) + (decodedContent.length > 200 ? '...' : '');
       const blogData = {
         title: formData.title,
         content: formData.content,

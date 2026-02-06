@@ -494,6 +494,40 @@
 }
 
 /* ========================================
+   NEWSLETTER SIGNUP
+   ======================================== */
+
+.newsletter {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.newsletterTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.newsletterSubtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+}
+
+.newsletterEmbed {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ========================================
    SUGGESTED POSTS
    ======================================== */
 
@@ -683,6 +717,12 @@
     padding: 0 1.5rem 3rem;
   }
 
+  .newsletter {
+    margin: 0 1.5rem 2rem;
+    padding: 2.5rem 1.5rem;
+    border-radius: 12px;
+  }
+
   .suggestedSection {
     padding: 3rem 1.5rem;
   }
@@ -789,6 +829,19 @@
 
   .backSection {
     padding: 0 1rem 2.5rem;
+  }
+
+  .newsletter {
+    margin: 0 1rem 2rem;
+    padding: 2rem 1rem;
+  }
+
+  .newsletterTitle {
+    font-size: 1.25rem;
+  }
+
+  .newsletterSubtitle {
+    font-size: 0.875rem;
   }
 
   .suggestedSection {

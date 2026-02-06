@@ -123,6 +123,14 @@ const SocialFeed = () => {
 };
 
 
+// Decode HTML entities (e.g. &nbsp; &amp;) in plain text strings
+function decodeEntities(text) {
+  if (!text) return '';
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 // Blog Card Component
 const BlogCard = ({ blog, formatDate }) => {
   return (
@@ -166,7 +174,10 @@ const BlogCard = ({ blog, formatDate }) => {
             {/* Blog Excerpt */}
             {blog.excerpt && (
               <p className={styles.blogCardExcerpt}>
-                {blog.excerpt.length > 150 ? blog.excerpt.slice(0, 150) + '...' : blog.excerpt}
+                {(() => {
+                  const decoded = decodeEntities(blog.excerpt);
+                  return decoded.length > 150 ? decoded.slice(0, 150) + '...' : decoded;
+                })()}
               </p>
             )}
 

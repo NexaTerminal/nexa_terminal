@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
@@ -54,6 +54,23 @@ const CATEGORY_MAP = {
   'TIPS': 'Совети'
 };
 
+// Category group mapping: broad group -> list of DB category values
+const CATEGORY_GROUPS = {
+  'LEGAL': ['LEGAL', 'COMPLIANCE', 'CONTRACTS', 'CORPORATE', 'TRADEMARK'],
+  'BUSINESS': ['BUSINESS', 'ENTREPRENEURSHIP', 'STARTUP', 'MANAGEMENT'],
+  'MARKETING': ['MARKETING', 'SALES', 'ADVERTISING', 'DIGITAL MARKETING'],
+  'INVESTMENT': ['FINANCE', 'INVESTMENT', 'INVESTMENTS', 'TAX', 'ACCOUNTING'],
+};
+
+// Category tabs for filtering
+const CATEGORY_TABS = [
+  { label: 'Сите', value: 'ALL' },
+  { label: 'Право', value: 'LEGAL' },
+  { label: 'Претприемништво', value: 'BUSINESS' },
+  { label: 'Маркетинг', value: 'MARKETING' },
+  { label: 'Инвестиции', value: 'INVESTMENT' },
+];
+
 // Get Macedonian category name
 function getCategoryInMacedonian(englishCategory) {
   if (!englishCategory) return '';
@@ -66,6 +83,19 @@ export default function Blog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [brokenImages, setBrokenImages] = useState(new Set());
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const activeCategory = searchParams.get('category') || 'ALL';
+
+  // Handle category tab click
+  const handleCategoryClick = (category) => {
+    if (category === 'ALL') {
+      navigate('/blog');
+    } else {
+      navigate(`/blog?category=${encodeURIComponent(category)}`);
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -80,7 +110,7 @@ export default function Blog() {
       setPosts(postsData);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setError('Грешка при вчитување на блоговите');
+      setError('Грешка при вчитување');
       setPosts([]);
     } finally {
       setLoading(false);
@@ -116,73 +146,148 @@ export default function Blog() {
     setBrokenImages(prev => new Set([...prev, postId]));
   }
 
+  // Filter posts by active category
+  const filteredPosts = activeCategory === 'ALL'
+    ? posts
+    : posts.filter(post => {
+        const postCat = (post.category || '').toUpperCase();
+        const group = CATEGORY_GROUPS[activeCategory];
+        return group ? group.includes(postCat) : false;
+      });
+
+  // Separate featured (first) post from rest
+  const featuredPost = filteredPosts[0];
+  const remainingPosts = filteredPosts.slice(1);
+
   return (
     <>
       <SEOHelmet
-        title="Блог - Правни совети за македонски бизниси"
-        description="Практични совети за правни прашања, регистрација на фирми, жигови, договори, маркетинг и повеќе. Блог од Nexa Terminal."
-        keywords="правни совети, македонски бизниси, блог, legal advice macedonia, бизнис совети, маркетинг"
+        title="Инсајти - Бизнис совети и правни насоки за претприемачи"
+        description="Експертски совети за правни прашања, бизнис стратегии, маркетинг и инвестиции. Информирајте се за успешно водење на вашиот бизнис во Македонија."
+        keywords="бизнис совети, правни насоки, претприемништво, маркетинг стратегии, инвестиции македонија"
         canonical="/blog"
       />
       <OrganizationSchema />
 
       <SimpleNavbar />
 
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <main className={styles.container}>
+      <div className={styles.page}>
+        {/* Hero Header */}
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <span className={styles.headerLabel}>Инсајти</span>
+            <h1 className={styles.headerTitle}>Знаење за успешен бизнис</h1>
+            <p className={styles.headerSubtitle}>
+              Експертски анализи, практични совети и најнови трендови за претприемачи и бизнис лидери
+            </p>
+          </div>
+
+          {/* Category Tabs */}
+          <nav className={styles.categoryTabs}>
+            {CATEGORY_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                className={`${styles.categoryTab} ${activeCategory === tab.value ? styles.categoryTabActive : ''}`}
+                onClick={() => handleCategoryClick(tab.value)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        <main className={styles.main}>
           {loading ? (
             <div className={styles.loading}>
               <div className={styles.spinner}></div>
-              <p>Се вчитуваат блоговите...</p>
+              <p>Се вчитува...</p>
             </div>
           ) : error ? (
             <div className={styles.error}>
               <p>{error}</p>
             </div>
-          ) : posts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <div className={styles.empty}>
-              <p>Нема објавени блогови засега.</p>
+              <p>Нема објави во оваа категорија.</p>
             </div>
           ) : (
-            <div className={styles.grid}>
-              {posts.map(post => (
-                <article key={post._id} className={styles.card}>
-                  {post.featuredImage && !brokenImages.has(post._id) && (
-                    <div className={styles.imageWrapper}>
-                      <img
-                        src={post.featuredImage}
-                        alt={post.title}
-                        loading="lazy"
-                        className={styles.featuredImage}
-                        onError={() => handleImageError(post._id)}
-                      />
+            <>
+              {/* Featured Article */}
+              {featuredPost && (
+                <section className={styles.featured}>
+                  <Link to={`/blog/${featuredPost.slug || featuredPost._id}`} className={styles.featuredLink}>
+                    <div className={styles.featuredImageWrapper}>
+                      {featuredPost.featuredImage && !brokenImages.has(featuredPost._id) ? (
+                        <img
+                          src={featuredPost.featuredImage}
+                          alt={featuredPost.title}
+                          className={styles.featuredImage}
+                          onError={() => handleImageError(featuredPost._id)}
+                        />
+                      ) : (
+                        <div className={styles.featuredPlaceholder} />
+                      )}
+                      <div className={styles.featuredOverlay} />
                     </div>
-                  )}
+                    <div className={styles.featuredContent}>
+                      <div className={styles.featuredMeta}>
+                        {featuredPost.category && (
+                          <span className={styles.featuredCategory}>
+                            {getCategoryInMacedonian(featuredPost.category)}
+                          </span>
+                        )}
+                        <span className={styles.featuredDate}>{formatDate(featuredPost.createdAt)}</span>
+                      </div>
+                      <h2 className={styles.featuredTitle}>{featuredPost.title}</h2>
+                      <p className={styles.featuredExcerpt}>
+                        {truncateText(featuredPost.excerpt, 200)}
+                      </p>
+                      <span className={styles.featuredReadMore}>Прочитај ја статијата</span>
+                    </div>
+                  </Link>
+                </section>
+              )}
 
-                  <div className={styles.content}>
-                    {post.category && (
-                      <span className={styles.category}>
-                        {getCategoryInMacedonian(post.category)}
-                      </span>
-                    )}
-
-                    <h2 className={styles.title}>
-                      <Link to={`/blog/${post.slug || post._id}`}>
-                        {post.title}
-                      </Link>
-                    </h2>
-
-                    <p className={styles.excerpt}>
-                      {truncateText(post.excerpt, 150)}
-                    </p>
-
-                    <Link to={`/blog/${post.slug || post._id}`} className={styles.readMore}>
-                      Прочитај повеќе →
-                    </Link>
+              {/* Articles Grid */}
+              {remainingPosts.length > 0 && (
+                <section className={styles.articles}>
+                  <h3 className={styles.sectionTitle}>Последни објави</h3>
+                  <div className={styles.grid}>
+                    {remainingPosts.map(post => (
+                      <article key={post._id} className={styles.card}>
+                        <Link to={`/blog/${post.slug || post._id}`} className={styles.cardLink}>
+                          {post.featuredImage && !brokenImages.has(post._id) && (
+                            <div className={styles.cardImageWrapper}>
+                              <img
+                                src={post.featuredImage}
+                                alt={post.title}
+                                loading="lazy"
+                                className={styles.cardImage}
+                                onError={() => handleImageError(post._id)}
+                              />
+                            </div>
+                          )}
+                          <div className={styles.cardContent}>
+                            <div className={styles.cardMeta}>
+                              {post.category && (
+                                <span className={styles.cardCategory}>
+                                  {getCategoryInMacedonian(post.category)}
+                                </span>
+                              )}
+                              <span className={styles.cardDate}>{formatDate(post.createdAt)}</span>
+                            </div>
+                            <h2 className={styles.cardTitle}>{post.title}</h2>
+                            <p className={styles.cardExcerpt}>
+                              {truncateText(post.excerpt, 120)}
+                            </p>
+                          </div>
+                        </Link>
+                      </article>
+                    ))}
                   </div>
-                </article>
-              ))}
-            </div>
+                </section>
+              )}
+            </>
           )}
         </main>
 

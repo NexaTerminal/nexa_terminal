@@ -332,6 +332,25 @@ export default function BlogPost() {
         </Link>
       </div>
 
+      {/* Newsletter Signup (Mailjet Embedded Form) */}
+      <section className={styles.newsletter}>
+        <h3 className={styles.newsletterTitle}>Останете информирани</h3>
+        <p className={styles.newsletterSubtitle}>
+          Добивајте правни совети и бизнис новости директно на вашиот email.
+        </p>
+        <div className={styles.newsletterEmbed}>
+          <iframe
+            data-w-type="embedded"
+            frameBorder="0"
+            scrolling="auto"
+            src="https://118h2.mjt.lu/wgt/118h2/0t2x/form?c=9eb33de5"
+            width="100%"
+            style={{ minHeight: '280px', width: '100%', border: 'none' }}
+            title="Newsletter signup"
+          />
+        </div>
+      </section>
+
       {/* Suggested Posts */}
       {suggestedPosts.length > 0 && (
         <section className={styles.suggestedSection}>

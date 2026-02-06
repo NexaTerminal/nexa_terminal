@@ -10,7 +10,7 @@ function formatTextToParagraphs(text) {
   if (!text) return '';
 
   // If already has HTML paragraph tags, return as-is
-  if (text.includes('<p>') || text.includes('<div>') || text.includes('<br')) {
+  if (text.includes('<p>') || text.includes('<div>') || text.includes('<br') || text.includes('<h')) {
     return text;
   }
 
@@ -55,6 +55,7 @@ router.get('/', async (req, res) => {
       .sort({ createdAt: -1 })
       .project({
         _id: 1,
+        slug: 1,
         title: 1,
         excerpt: 1,
         featuredImage: 1,
@@ -95,29 +96,35 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const db = req.app.locals.db;
 
-    // Fetch blog by ID with full content
-    const blog = await db.collection('blogs')
-      .findOne(
-        { _id: id, status: 'published' },
-        {
-          projection: {
-            _id: 1,
-            title: 1,
-            content: 1,
-            excerpt: 1,
-            featuredImage: 1,
-            category: 1,
-            tags: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            author: 1,
-            views: 1,
-            likes: 1,
-            contentLanguage: 1,
-            promotedTool: 1
-          }
-        }
-      );
+    const projection = {
+      _id: 1,
+      slug: 1,
+      title: 1,
+      content: 1,
+      excerpt: 1,
+      featuredImage: 1,
+      category: 1,
+      tags: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      author: 1,
+      views: 1,
+      likes: 1,
+      contentLanguage: 1,
+      promotedTool: 1,
+      metaTitle: 1,
+      metaDescription: 1,
+      focusKeyword: 1
+    };
+
+    // Try to find by slug first, then fall back to _id
+    let blog = await db.collection('blogs')
+      .findOne({ slug: id, status: 'published' }, { projection });
+
+    if (!blog) {
+      blog = await db.collection('blogs')
+        .findOne({ _id: id, status: 'published' }, { projection });
+    }
 
     if (!blog) {
       return res.status(404).json({
@@ -129,7 +136,7 @@ router.get('/:id', async (req, res) => {
     // Increment view count
     try {
       await db.collection('blogs').updateOne(
-        { _id: id },
+        { _id: blog._id },
         { $inc: { views: 1 } }
       );
     } catch (viewError) {

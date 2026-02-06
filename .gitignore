@@ -93,6 +93,7 @@ test-cookies.txt
 
 # Blog directory (separate deployment)
 blog/
+!client/public/images/blog/
 
 # Legal source documents (large files, not for git)
 server/legal sources/**/*.pdf

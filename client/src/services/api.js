@@ -440,6 +440,50 @@ class ApiService {
     return this.get('/admin/chatbot/analytics/credits');
   }
 
+  // ==================== BLOG ADMIN METHODS ====================
+
+  /**
+   * Get all blogs (admin) with pagination
+   * @param {number} page - Page number (default 1)
+   * @param {number} limit - Items per page (default 10)
+   */
+  static async getBlogs(page = 1, limit = 10) {
+    return this.get(`/blogs?page=${page}&limit=${limit}`);
+  }
+
+  /**
+   * Get single blog by ID (for editing)
+   * @param {string} id - Blog ID or slug
+   */
+  static async getBlogById(id) {
+    return this.get(`/blogs/${id}`);
+  }
+
+  /**
+   * Create new blog post
+   * @param {object} data - Blog data
+   */
+  static async createBlog(data) {
+    return this.post('/blogs', data);
+  }
+
+  /**
+   * Update existing blog post
+   * @param {string} id - Blog ID
+   * @param {object} data - Updated blog data
+   */
+  static async updateBlog(id, data) {
+    return this.put(`/blogs/${id}`, data);
+  }
+
+  /**
+   * Delete blog post
+   * @param {string} id - Blog ID
+   */
+  static async deleteBlog(id) {
+    return this.delete(`/blogs/${id}`);
+  }
+
 }
 
 export default ApiService;

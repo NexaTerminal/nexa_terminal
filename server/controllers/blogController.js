@@ -145,6 +145,7 @@ class BlogController {
       // Transform blogs for response
       const transformedBlogs = blogs.map(blog => ({
         id: blog._id,
+        slug: blog.slug,
         title: blog.title,
         content: blog.content,
         excerpt: blog.excerpt,

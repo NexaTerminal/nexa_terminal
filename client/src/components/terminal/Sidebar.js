@@ -64,6 +64,7 @@ const Sidebar = () => {
   const isAIActive = aiSubItems.some(item => location.pathname === item.path);
 
   const adminMenuItems = [
+    { path: '/terminal/admin/blogs', label: 'Управувај блогови' },
     { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
     { path: '/terminal/admin/users', label: 'dashboard.manageUsers' },
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },

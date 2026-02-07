@@ -144,9 +144,10 @@ const BlogCard = ({ blog, formatDate }) => {
                 src={
                   blog.featuredImage.startsWith('data:') ||
                   blog.featuredImage.startsWith('http://') ||
-                  blog.featuredImage.startsWith('https://')
-                    ? blog.featuredImage
-                    : `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${blog.featuredImage}`
+                  blog.featuredImage.startsWith('https://') ||
+                  blog.featuredImage.startsWith('/images/')
+                    ? encodeURI(blog.featuredImage)
+                    : `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${encodeURIComponent(blog.featuredImage)}`
                 }
                 alt={blog.title}
                 className={styles.blogFeaturedImage}

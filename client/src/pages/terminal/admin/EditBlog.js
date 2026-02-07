@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { useAuth } from '../../../contexts/AuthContext';
+import ApiService from '../../../services/api';
 import styles from '../../../styles/terminal/admin/AddBlog.module.css';
 import Header from '../../../components/common/Header';
 import Footer from '../../../components/common/Footer';
@@ -42,10 +42,9 @@ const BLOG_IMAGES = [
   'business, marketing, managment9.jpg',
 ];
 
-const AddBlog = () => {
-  const { token } = useAuth();
+const EditBlog = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { id } = useParams();
 
   const isTerminal = true;
   const [formData, setFormData] = useState({
@@ -57,13 +56,11 @@ const AddBlog = () => {
     status: 'published',
     tags: '',
     promotedTool: 'legal_health_check',
-    // SEO fields
     metaTitle: '',
     metaDescription: '',
     focusKeyword: ''
   });
 
-  // Get promoted tools grouped by category for the dropdown
   const promotedToolsGrouped = useMemo(() => getToolsGroupedByCategory(), []);
 
   const quillModules = useMemo(() => ({
@@ -87,19 +84,47 @@ const AddBlog = () => {
     setFormData(prev => ({ ...prev, content: value }));
   };
 
-  // Set category from URL parameter
-  useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam && ['legal', 'entrepreneurship', 'investments', 'marketing'].includes(categoryParam)) {
-      setFormData(prev => ({ ...prev, category: categoryParam }));
-    }
-  }, [searchParams]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showImagePicker, setShowImagePicker] = useState(false);
 
-  // Handle image selection from picker
+  // Fetch blog data on mount
+  useEffect(() => {
+    const fetchBlog = async () => {
+      setFetching(true);
+      try {
+        const blog = await ApiService.getBlogById(id);
+        if (blog) {
+          setFormData({
+            title: blog.title || '',
+            content: blog.content || '',
+            category: blog.category || 'legal',
+            language: blog.contentLanguage || blog.language || 'mk',
+            featuredImage: blog.featuredImage || '',
+            status: blog.status || 'published',
+            tags: Array.isArray(blog.tags) ? blog.tags.join(', ') : '',
+            promotedTool: blog.promotedTool || 'legal_health_check',
+            metaTitle: blog.metaTitle || '',
+            metaDescription: blog.metaDescription || '',
+            focusKeyword: blog.focusKeyword || ''
+          });
+        } else {
+          setError('Блогот не е пронајден.');
+        }
+      } catch (err) {
+        setError('Грешка при вчитување на блогот: ' + err.message);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    if (id) {
+      fetchBlog();
+    }
+  }, [id]);
+
   const handleImageSelect = (imageName) => {
     setFormData(prev => ({ ...prev, featuredImage: `/images/blog/${imageName}` }));
     setShowImagePicker(false);
@@ -113,7 +138,6 @@ const AddBlog = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate content (ReactQuill doesn't support required attribute)
     const strippedContent = formData.content.replace(/<[^>]*>/g, '').trim();
     if (!strippedContent) {
       setError('Содржината е задолжителна.');
@@ -125,12 +149,10 @@ const AddBlog = () => {
     setSuccess('');
 
     try {
-      // Decode HTML entities (e.g. &nbsp; &amp;) from stripped content
       const textarea = document.createElement('textarea');
       textarea.innerHTML = strippedContent;
       const decodedContent = textarea.value;
 
-      // Prepare blog data
       const excerptFallback = decodedContent.substring(0, 200) + (decodedContent.length > 200 ? '...' : '');
       const blogData = {
         title: formData.title,
@@ -142,45 +164,17 @@ const AddBlog = () => {
         status: formData.status,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
         promotedTool: formData.promotedTool,
-        // SEO fields
         metaTitle: formData.metaTitle || formData.title,
         metaDescription: formData.metaDescription,
         focusKeyword: formData.focusKeyword
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/blogs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(blogData)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Грешка при додавање на објавата.');
-      }
-
-      const result = await response.json();
-      setSuccess('Објавата беше успешно додадена!');
-      setFormData({
-        title: '',
-        content: '',
-        category: 'legal',
-        language: 'mk',
-        featuredImage: '',
-        status: 'published',
-        tags: '',
-        promotedTool: 'legal_health_check',
-        metaTitle: '',
-        metaDescription: '',
-        focusKeyword: ''
-      });
+      await ApiService.updateBlog(id, blogData);
+      setSuccess('Блогот е успешно ажуриран!');
 
       setTimeout(() => {
-        navigate('/terminal');
-      }, 3000);
+        navigate('/terminal/admin/blogs');
+      }, 2000);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -205,17 +199,36 @@ const AddBlog = () => {
     { value: 'draft', label: 'Нацрт' }
   ];
 
+  if (fetching) {
+    return (
+      <ProfileRequired>
+        <div>
+          <Header isTerminal={isTerminal} />
+          <div className={styles["dashboard-layout"]}>
+            <Sidebar />
+            <main className={styles["dashboard-main"]}>
+              <div className={styles.container}>
+                <h1>Вчитување...</h1>
+              </div>
+            </main>
+          </div>
+          <Footer />
+        </div>
+      </ProfileRequired>
+    );
+  }
+
   return (
     <ProfileRequired>
       <div>
         <Header isTerminal={isTerminal} />
-        
+
         <div className={styles["dashboard-layout"]}>
           <Sidebar />
-          
+
           <main className={styles["dashboard-main"]}>
             <div className={styles.container}>
-              <h1>Додади нова објава</h1>
+              <h1>Уреди објава</h1>
 
               {error && <div className={styles.error}>{error}</div>}
               {success && <div className={styles.success}>{success}</div>}
@@ -445,12 +458,12 @@ const AddBlog = () => {
                     className={styles.submitButton}
                     disabled={loading}
                   >
-                    {loading ? 'Се додава...' : 'Додади објава'}
+                    {loading ? 'Се зачувува...' : 'Зачувај промени'}
                   </button>
                   <button
                     type="button"
                     className={styles.cancelButton}
-                    onClick={() => navigate('/terminal')}
+                    onClick={() => navigate('/terminal/admin/blogs')}
                   >
                     Откажи
                   </button>
@@ -459,11 +472,11 @@ const AddBlog = () => {
             </div>
           </main>
         </div>
-        
+
         <Footer />
       </div>
     </ProfileRequired>
   );
 };
 
-export default AddBlog;
+export default EditBlog;

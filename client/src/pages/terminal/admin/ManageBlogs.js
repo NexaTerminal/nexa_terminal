@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../../../services/api';
-import { getBlogUrl } from '../../../utils/blogUrls';
 import styles from '../../../styles/terminal/admin/ManageBlogs.module.css';
 import Header from '../../../components/common/Header';
 import Footer from '../../../components/common/Footer';
@@ -62,7 +61,8 @@ const ManageBlogs = () => {
   };
 
   const handlePreview = (blog) => {
-    window.open(getBlogUrl(blog._id), '_blank');
+    const identifier = blog.slug || blog.id;
+    window.open(`/blog/${identifier}`, '_blank');
   };
 
   const formatDate = (dateString) => {
@@ -100,10 +100,10 @@ const ManageBlogs = () => {
                 {blogs && blogs.length > 0 ? (
                   <>
                     {blogs.map(blog => (
-                      <div key={blog._id} className={styles.blogCard}>
-                        {blog.image && (
-                          <img 
-                            src={`${process.env.REACT_APP_API_URL || 'http://localhost:5002'}${blog.image}`}
+                      <div key={blog.id} className={styles.blogCard}>
+                        {blog.featuredImage && (
+                          <img
+                            src={blog.featuredImage}
                             alt={blog.title}
                             className={styles.blogImage}
                             onError={(e) => {
@@ -117,7 +117,7 @@ const ManageBlogs = () => {
                           <p className={styles.blogMeta}>
                             Објавено на {formatDate(blog.createdAt)}
                           </p>
-                          <p className={styles.blogSummary}>{blog.summary}</p>
+                          <p className={styles.blogSummary}>{blog.excerpt}</p>
                           <div className={styles.stats}>
                             <span>{blog.views || 0} Прегледи</span>
                             <span>{blog.likes || 0} Допаѓања</span>
@@ -125,13 +125,13 @@ const ManageBlogs = () => {
                           </div>
                           <div className={styles.blogActions}>
                             <button
-                              onClick={() => navigate(`/terminal/admin/blogs/edit/${blog._id}`)}
+                              onClick={() => navigate(`/terminal/admin/blogs/edit/${blog.id}`)}
                               className={styles.editButton}
                             >
                               Уреди
                             </button>
                             <button
-                              onClick={() => handleDelete(blog._id)}
+                              onClick={() => handleDelete(blog.id)}
                               className={styles.deleteButton}
                             >
                               Избриши

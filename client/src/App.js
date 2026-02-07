@@ -29,6 +29,8 @@ import AddBlog from './pages/terminal/admin/AddBlog';
 import ManageNewsletterSubscribers from './pages/terminal/admin/ManageNewsletterSubscribers';
 import CreateNewsletter from './pages/terminal/admin/CreateNewsletter';
 import NewsletterAnalytics from './pages/terminal/admin/NewsletterAnalytics';
+import ManageBlogs from './pages/terminal/admin/ManageBlogs';
+import EditBlog from './pages/terminal/admin/EditBlog';
 
 // Terminal Pages
 import Dashboard from './pages/terminal/Dashboard';
@@ -286,7 +288,9 @@ function App() {
       <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
+      <Route path="/terminal/admin/blogs" element={<PrivateRoute><ManageBlogs /></PrivateRoute>} />
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
+      <Route path="/terminal/admin/blogs/edit/:id" element={<PrivateRoute><EditBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />

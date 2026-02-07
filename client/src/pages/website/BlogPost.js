@@ -490,16 +490,35 @@ export default function BlogPost() {
                   </svg>
                   <span>AI правен асистент</span>
                 </div>
+                <div className={styles.scrollModalFeature}>
+                  <svg className={styles.featureIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M4 19V17C4 14.7909 5.79086 13 8 13H12C14.2091 13 16 14.7909 16 17V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="10" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M16 11C17.6569 11 19 9.65685 19 8C19 6.34315 17.6569 5 16 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M17 19V17C17 15.5 16.5 14.5 15.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span>Вмрежување</span>
+                </div>
+                <div className={styles.scrollModalFeature}>
+                  <svg className={styles.featureIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V14C18 15.1046 17.1046 16 16 16H4C2.89543 16 2 15.1046 2 14V4Z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M6 18H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M10 16V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M6 6L9 9L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span>Курсеви</span>
+                </div>
               </div>
 
               <button onClick={handleModalSignup} className={styles.scrollModalButton}>
-                Започнете бесплатно
+                Започнете, целосно бесплатно
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path d="M3.75 9H14.25M14.25 9L9.75 4.5M14.25 9L9.75 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               <p className={styles.scrollModalNote}>
-                Бесплатен пристап · Без кредитна картичка
+                Бесплатен пристап · Без банкарска картичка
               </p>
             </div>
           </div>

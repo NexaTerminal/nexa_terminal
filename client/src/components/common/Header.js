@@ -319,8 +319,7 @@ const Header = ({ isTerminal = false }) => {
                 <div className={styles['credit-explanation']}>
                   <p>
                     Секој понеделник добивате 14 кредити за користење на платформата.
-                    Секоја акција троши 1 кредит. Покани нови корисници и заработи +1 кредит
-                    веднаш за секој валиден email!
+                    Секоја акција троши 1 кредит.
                   </p>
                 </div>
 
@@ -348,6 +347,7 @@ const Header = ({ isTerminal = false }) => {
                   </div>
                 </div>
 
+{/* Invite section temporarily disabled
                 <div className={styles['invite-section']}>
                   <h4>Покани пријатели</h4>
                   <p className={styles['invite-description']}>
@@ -406,6 +406,7 @@ const Header = ({ isTerminal = false }) => {
                     </button>
                   </form>
                 </div>
+*/}
               </div>
             </div>
           </div>

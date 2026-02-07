@@ -1142,3 +1142,71 @@
     gap: 12px;
   }
 }
+
+/* Blog Footer with Tags and Like Button */
+.blogFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.likeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.likeButton:hover {
+  background: transparent;
+}
+
+.likeButton:hover .likeIcon {
+  transform: scale(1.1);
+}
+
+.likeButton.liked {
+  background: transparent;
+  color: #ca8a04;
+}
+
+.likeButton.liked .likeIcon {
+  filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.5));
+}
+
+.likeIcon {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.likeCount {
+  font-weight: 500;
+}
+
+.noPosts {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .blogFooter {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .likeButton {
+    align-self: flex-end;
+  }
+}

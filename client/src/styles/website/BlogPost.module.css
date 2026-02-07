@@ -365,7 +365,7 @@
 /* With Video - Side by Side Layout */
 .ctaWithVideo {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.2fr;
   gap: 2.5rem;
   text-align: left;
   align-items: center;
@@ -876,4 +876,205 @@
 .suggestedCard:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
+}
+
+/* ========================================
+   SCROLL-TRIGGERED SIGNUP MODAL
+   ======================================== */
+
+.scrollModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scrollModal {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 20px 40px -8px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.scrollModalClose {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+  z-index: 1;
+}
+
+.scrollModalClose:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.scrollModalContent {
+  padding: 2.5rem 2rem 2rem;
+}
+
+.scrollModalLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.scrollModalTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 0.625rem;
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.scrollModalSubtitle {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0 0 1.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.scrollModalFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.scrollModalFeature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+
+.scrollModalFeature:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  color: #475569;
+}
+
+.scrollModalButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.scrollModalButton:hover {
+  background: #1e293b;
+}
+
+.scrollModalButton svg {
+  transition: transform 0.15s ease;
+}
+
+.scrollModalButton:hover svg {
+  transform: translateX(3px);
+}
+
+.scrollModalNote {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.875rem 0 0;
+  text-align: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .scrollModalOverlay {
+    padding: 1rem;
+  }
+
+  .scrollModal {
+    border-radius: 14px;
+  }
+
+  .scrollModalContent {
+    padding: 2rem 1.5rem 1.75rem;
+  }
+
+  .scrollModalTitle {
+    font-size: 1.25rem;
+  }
+
+  .scrollModalSubtitle {
+    font-size: 0.875rem;
+  }
+
+  .scrollModalFeature {
+    font-size: 0.8125rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .scrollModalButton {
+    font-size: 0.875rem;
+    padding: 0.8125rem 1.25rem;
+  }
 }

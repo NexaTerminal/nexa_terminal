@@ -270,7 +270,7 @@ export const PROMOTED_TOOLS = [
     link: '/terminal/education/course/izvrsuvanje-nedviznosti',
     category: 'courses',
     ctaText: 'Започни бесплатен курс',
-    videoUrl: null
+    videoUrl: "https://www.youtube.com/watch?v=IrgddYz1bQM"
   },
   {
     id: 'all_courses',

@@ -19,6 +19,8 @@ export default function BlogPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showScrollModal, setShowScrollModal] = useState(false);
+  const [hasTriggeredModal, setHasTriggeredModal] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -58,6 +60,62 @@ export default function BlogPost() {
       console.error('Error fetching suggested posts:', error);
     }
   }
+
+  // Scroll-triggered and exit-intent signup modal
+  useEffect(() => {
+    // Check if already dismissed today
+    const dismissed = localStorage.getItem('blogModalDismissed');
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed, 10);
+      const hoursSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60);
+      if (hoursSinceDismissed < 24) {
+        setHasTriggeredModal(true); // Don't show again within 24 hours
+        return;
+      }
+    }
+
+    const handleScroll = () => {
+      if (hasTriggeredModal) return;
+
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollProgress = (window.scrollY / scrollHeight) * 100;
+
+      // Trigger at 65% scroll
+      if (scrollProgress >= 65) {
+        setShowScrollModal(true);
+        setHasTriggeredModal(true);
+      }
+    };
+
+    // Exit intent detection - triggers when mouse leaves viewport at top
+    const handleMouseLeave = (e) => {
+      if (hasTriggeredModal) return;
+
+      // Check if mouse is leaving from the top of the viewport
+      if (e.clientY <= 5 && e.relatedTarget === null) {
+        setShowScrollModal(true);
+        setHasTriggeredModal(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [hasTriggeredModal]);
+
+  const handleDismissModal = () => {
+    setShowScrollModal(false);
+    localStorage.setItem('blogModalDismissed', Date.now().toString());
+  };
+
+  const handleModalSignup = () => {
+    setShowScrollModal(false);
+    setShowLoginModal(true);
+  };
 
   // Reading time estimate
   const readingTime = useMemo(() => {
@@ -125,7 +183,7 @@ export default function BlogPost() {
   function translateCategory(category) {
     if (!category) return '';
     const categoryTranslations = {
-      'LEGAL': 'Право',
+      'LEGAL': 'Усогласеност',
       'COMPLIANCE': 'Усогласеност',
       'CONTRACTS': 'Договори',
       'CORPORATE': 'Корпоративно право',
@@ -295,7 +353,7 @@ export default function BlogPost() {
           <div className={styles.ctaBanner}>
             <div className={`${styles.ctaInner} ${promotedTool.videoUrl ? styles.ctaWithVideo : ''}`}>
               <div className={styles.ctaText}>
-                <p className={styles.ctaLabel}>Препорачано</p>
+                <p className={styles.ctaLabel}>Бесплатна алатка за сите бизниси</p>
                 <h3 className={styles.ctaTitle}>{promotedTool.name}</h3>
                 <p className={styles.ctaDescription}>{promotedTool.description}</p>
                 <button onClick={() => setShowLoginModal(true)} className={styles.ctaButton}>
@@ -390,6 +448,62 @@ export default function BlogPost() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Scroll-triggered Signup Modal */}
+      {showScrollModal && promotedTool && (
+        <div className={styles.scrollModalOverlay} onClick={handleDismissModal}>
+          <div className={styles.scrollModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.scrollModalClose} onClick={handleDismissModal}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <div className={styles.scrollModalContent}>
+              <p className={styles.scrollModalLabel}>NEXA TERMINAL</p>
+              <h2 className={styles.scrollModalTitle}>
+                Подигнете го вашиот бизнис на следно ниво
+              </h2>
+              <p className={styles.scrollModalSubtitle}>
+                Пристапете до професионални алатки за автоматизација и усогласеност
+              </p>
+
+              <div className={styles.scrollModalFeatures}>
+                <div className={styles.scrollModalFeature}>
+                  <svg className={styles.featureIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 2H4C2.89543 2 2 2.89543 2 4V16C2 17.1046 2.89543 18 4 18H16C17.1046 18 18 17.1046 18 16V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M7 13L17 3M17 3H12M17 3V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Автоматско генерирање документи</span>
+                </div>
+                <div className={styles.scrollModalFeature}>
+                  <svg className={styles.featureIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M6.5 10L9 12.5L14 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                  <span>Проверка на усогласеност</span>
+                </div>
+                <div className={styles.scrollModalFeature}>
+                  <svg className={styles.featureIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2C5.58172 2 2 5.58172 2 10C2 11.8487 2.62704 13.551 3.68033 14.9297L2.5 17.5L5.41421 16.5858C6.67728 17.4826 8.27549 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 9H13M7 12H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span>AI правен асистент</span>
+                </div>
+              </div>
+
+              <button onClick={handleModalSignup} className={styles.scrollModalButton}>
+                Започнете бесплатно
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M3.75 9H14.25M14.25 9L9.75 4.5M14.25 9L9.75 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <p className={styles.scrollModalNote}>
+                Бесплатен пристап · Без кредитна картичка
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       <LoginModal

@@ -189,7 +189,7 @@ const AddBlog = () => {
   };
 
   const categories = [
-    { value: 'legal', label: 'Правни прашања' },
+    { value: 'legal', label: 'Усогласеност' },
     { value: 'entrepreneurship', label: 'Претприемништво' },
     { value: 'investments', label: 'Инвестиции' },
     { value: 'marketing', label: 'Маркетинг' }

@@ -6,7 +6,7 @@ import styles from '../../styles/common/SimpleNavbar.module.css';
 // Main blog categories for quick navigation (values match English DB groups)
 const BLOG_CATEGORIES = [
   { label: 'Сите', value: 'ALL' },
-  { label: 'Право', value: 'LEGAL' },
+  { label: 'Усогласеност', value: 'LEGAL' },
   { label: 'Претприемништво', value: 'BUSINESS' },
   { label: 'Маркетинг', value: 'MARKETING' },
   { label: 'Инвестиции', value: 'INVESTMENT' },

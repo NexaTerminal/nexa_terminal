@@ -84,7 +84,7 @@ const BlogDetail = () => {
     if (!category) return '';
 
     const categoryTranslations = {
-      'LEGAL': 'Право',
+      'LEGAL': 'Усогласеност',
       'COMPLIANCE': 'Усогласеност',
       'CONTRACTS': 'Договори',
       'CORPORATE': 'Корпоративно право',

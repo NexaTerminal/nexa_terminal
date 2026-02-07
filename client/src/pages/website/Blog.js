@@ -10,7 +10,7 @@ import styles from '../../styles/website/Blog.module.css';
 // Category translation mapping (English -> Macedonian)
 const CATEGORY_MAP = {
   // Legal & Compliance
-  'LEGAL': 'Право',
+  'LEGAL': 'Усогласеност',
   'COMPLIANCE': 'Усогласеност',
   'CONTRACTS': 'Договори',
   'CORPORATE': 'Корпоративно право',
@@ -65,7 +65,7 @@ const CATEGORY_GROUPS = {
 // Category tabs for filtering
 const CATEGORY_TABS = [
   { label: 'Сите', value: 'ALL' },
-  { label: 'Право', value: 'LEGAL' },
+  { label: 'Усогласеност', value: 'LEGAL' },
   { label: 'Претприемништво', value: 'BUSINESS' },
   { label: 'Маркетинг', value: 'MARKETING' },
   { label: 'Инвестиции', value: 'INVESTMENT' },

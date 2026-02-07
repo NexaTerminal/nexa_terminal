@@ -36,6 +36,7 @@ class BlogController {
     this.createBlog = this.createBlog.bind(this);
     this.updateBlog = this.updateBlog.bind(this);
     this.deleteBlog = this.deleteBlog.bind(this);
+    this.likeBlog = this.likeBlog.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
     this.getCategories = this.getCategories.bind(this);
     this.getTags = this.getTags.bind(this);
@@ -158,7 +159,8 @@ class BlogController {
         updatedAt: blog.updatedAt,
         status: blog.status || 'published',
         views: blog.views || 0,
-        likes: blog.likes || 0
+        likes: blog.likes || 0,
+        likedBy: blog.likedBy || []
       }));
 
       res.json({
@@ -396,6 +398,61 @@ class BlogController {
       res.json({ message: 'Blog post deleted successfully' });
     } catch (error) {
       console.error('Error deleting blog:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // Like/unlike blog post
+  async likeBlog(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id || req.user._id;
+
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
+      // Find the blog
+      const blog = await blogsCollection.findOne({ _id: id });
+      if (!blog) {
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+
+      // Initialize likedBy array if it doesn't exist
+      const likedBy = blog.likedBy || [];
+      const userLikedIndex = likedBy.findIndex(like => like.toString() === userId.toString());
+
+      let updateOperation;
+      let isLiked;
+
+      if (userLikedIndex > -1) {
+        // User already liked, so unlike
+        updateOperation = {
+          $pull: { likedBy: userId },
+          $inc: { likes: -1 }
+        };
+        isLiked = false;
+      } else {
+        // User hasn't liked, so like
+        updateOperation = {
+          $addToSet: { likedBy: userId },
+          $inc: { likes: 1 }
+        };
+        isLiked = true;
+      }
+
+      const result = await blogsCollection.findOneAndUpdate(
+        { _id: id },
+        updateOperation,
+        { returnDocument: 'after' }
+      );
+
+      res.json({
+        message: isLiked ? 'Blog liked' : 'Blog unliked',
+        likes: result.likes || 0,
+        isLiked
+      });
+    } catch (error) {
+      console.error('Error liking blog:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }

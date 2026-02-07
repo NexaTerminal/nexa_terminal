@@ -67,6 +67,13 @@ export default function BlogPost() {
     return Math.max(1, Math.round(words / 200));
   }, [post?.content]);
 
+  // Helper to decode HTML entities
+  const decodeHtmlEntities = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+
   // Extract headings and inject IDs for ToC links
   const { headings, contentWithIds } = useMemo(() => {
     if (!post?.content) return { headings: [], contentWithIds: '' };
@@ -77,7 +84,8 @@ export default function BlogPost() {
       /<(h[23])([^>]*)>(.*?)<\/\1>/gi,
       (match, tag, attrs, text) => {
         const id = `heading-${counter}`;
-        extracted.push({ id, tag: tag.toLowerCase(), text: text.replace(/<[^>]*>/g, '') });
+        const cleanText = decodeHtmlEntities(text.replace(/<[^>]*>/g, ''));
+        extracted.push({ id, tag: tag.toLowerCase(), text: cleanText });
         counter++;
         return `<${tag}${attrs} id="${id}">${text}</${tag}>`;
       }

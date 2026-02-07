@@ -10,6 +10,29 @@ import Sidebar from '../../../components/terminal/Sidebar';
 import ProfileRequired from '../../../components/common/ProfileRequired';
 import { getToolsGroupedByCategory } from '../../../config/promotedTools';
 
+// Available blog images
+const BLOG_IMAGES = [
+  'marketing-1.jpg',
+  'marketing-2.jpg',
+  'marketing-3.jpg',
+  'marketing-4.jpg',
+  'marketing-5.jpg',
+  'marketing-6.jpg',
+  'marketing-7.jpg',
+  'marketing-8.jpg',
+  'marketing-9.jpg',
+  'marketing-10.jpg',
+  'business.jpg',
+  'business1.jpg',
+  'business2.jpg',
+  'business3.jpg',
+  'business4.jpg',
+  'business5.jpg',
+  'business6.jpg',
+  'business7.jpg',
+  'business8.jpg',
+];
+
 const AddBlog = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -65,6 +88,13 @@ const AddBlog = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showImagePicker, setShowImagePicker] = useState(false);
+
+  // Handle image selection from picker
+  const handleImageSelect = (imageName) => {
+    setFormData(prev => ({ ...prev, featuredImage: `/images/blog/${imageName}` }));
+    setShowImagePicker(false);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -262,19 +292,44 @@ const AddBlog = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="featuredImage">Featured Image URL</label>
-                  <input
-                    type="text"
-                    id="featuredImage"
-                    name="featuredImage"
-                    value={formData.featuredImage}
-                    onChange={handleInputChange}
-                    className={styles.input}
-                    placeholder="/images/blog/marketing-1.jpg"
-                  />
-                  <small className={styles.helpText}>
-                    Достапни слики: business.jpg, marketing-1.jpg до marketing-10.jpg (пр. /images/blog/marketing-1.jpg)
-                  </small>
+                  <label htmlFor="featuredImage">Featured Image</label>
+                  <div className={styles.imagePickerContainer}>
+                    <input
+                      type="text"
+                      id="featuredImage"
+                      name="featuredImage"
+                      value={formData.featuredImage}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="/images/blog/marketing-1.jpg"
+                    />
+                    <button
+                      type="button"
+                      className={styles.imagePickerButton}
+                      onClick={() => setShowImagePicker(!showImagePicker)}
+                    >
+                      {showImagePicker ? 'Затвори' : 'Избери слика'}
+                    </button>
+                  </div>
+                  {formData.featuredImage && (
+                    <div className={styles.imagePreview}>
+                      <img src={formData.featuredImage} alt="Preview" />
+                    </div>
+                  )}
+                  {showImagePicker && (
+                    <div className={styles.imagePickerGrid}>
+                      {BLOG_IMAGES.map((img) => (
+                        <div
+                          key={img}
+                          className={`${styles.imagePickerItem} ${formData.featuredImage === `/images/blog/${img}` ? styles.imagePickerItemSelected : ''}`}
+                          onClick={() => handleImageSelect(img)}
+                        >
+                          <img src={`/images/blog/${img}`} alt={img} />
+                          <span className={styles.imagePickerName}>{img}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>

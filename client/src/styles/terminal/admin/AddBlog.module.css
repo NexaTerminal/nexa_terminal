@@ -170,26 +170,132 @@
   margin-bottom: var(--spacing-4);
 }
 
+/* Image Picker */
+.imagePickerContainer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.imagePickerContainer .input {
+  flex: 1;
+}
+
+.imagePickerButton {
+  padding: 0.75rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.imagePickerButton:hover {
+  background: var(--color-primary-600);
+}
+
+.imagePreview {
+  margin-top: 0.75rem;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--color-neutral-200);
+  max-width: 300px;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.imagePickerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-neutral-50);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-neutral-200);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.imagePickerItem {
+  cursor: pointer;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  background: white;
+}
+
+.imagePickerItem:hover {
+  border-color: var(--color-primary-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.imagePickerItem img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+}
+
+.imagePickerName {
+  display: block;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--color-neutral-600);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--color-neutral-50);
+}
+
+.imagePickerItemSelected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.imagePickerItemSelected .imagePickerName {
+  background: var(--color-primary);
+  color: white;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .dashboard-main {
     padding: 1rem;
   }
-  
+
   .container {
     padding: 1.5rem;
   }
-  
+
   .formRow {
     grid-template-columns: 1fr;
   }
-  
+
   .formActions {
     flex-direction: column;
   }
-  
+
   .submitButton,
   .cancelButton {
     width: 100%;
+  }
+
+  .imagePickerContainer {
+    flex-direction: column;
+  }
+
+  .imagePickerGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 } 

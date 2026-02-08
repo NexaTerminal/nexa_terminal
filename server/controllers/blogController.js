@@ -37,6 +37,7 @@ class BlogController {
     this.updateBlog = this.updateBlog.bind(this);
     this.deleteBlog = this.deleteBlog.bind(this);
     this.likeBlog = this.likeBlog.bind(this);
+    this.dislikeBlog = this.dislikeBlog.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
     this.getCategories = this.getCategories.bind(this);
     this.getTags = this.getTags.bind(this);
@@ -160,7 +161,9 @@ class BlogController {
         status: blog.status || 'published',
         views: blog.views || 0,
         likes: blog.likes || 0,
-        likedBy: blog.likedBy || []
+        likedBy: blog.likedBy || [],
+        dislikes: blog.dislikes || 0,
+        dislikedBy: blog.dislikedBy || []
       }));
 
       res.json({
@@ -417,9 +420,11 @@ class BlogController {
         return res.status(404).json({ message: 'Blog post not found' });
       }
 
-      // Initialize likedBy array if it doesn't exist
+      // Initialize arrays if they don't exist
       const likedBy = blog.likedBy || [];
+      const dislikedBy = blog.dislikedBy || [];
       const userLikedIndex = likedBy.findIndex(like => like.toString() === userId.toString());
+      const hadDisliked = dislikedBy.some(dislike => dislike.toString() === userId.toString());
 
       let updateOperation;
       let isLiked;
@@ -433,11 +438,18 @@ class BlogController {
         isLiked = false;
       } else {
         // User hasn't liked, so like
+        // Also remove from dislikedBy if they had disliked (toggle principle)
         updateOperation = {
           $addToSet: { likedBy: userId },
-          $inc: { likes: 1 }
+          $inc: { likes: 1 },
+          $pull: { dislikedBy: userId }
         };
         isLiked = true;
+
+        // If user had disliked, decrement dislikes count
+        if (hadDisliked) {
+          updateOperation.$inc.dislikes = -1;
+        }
       }
 
       const result = await blogsCollection.findOneAndUpdate(
@@ -449,10 +461,74 @@ class BlogController {
       res.json({
         message: isLiked ? 'Blog liked' : 'Blog unliked',
         likes: result.likes || 0,
+        dislikes: result.dislikes || 0,
         isLiked
       });
     } catch (error) {
       console.error('Error liking blog:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // Dislike/un-dislike a blog post
+  async dislikeBlog(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id || req.user._id;
+
+      const db = req.app.locals.db;
+      const blogsCollection = db.collection('blogs');
+
+      // Find the blog
+      const blog = await blogsCollection.findOne({ _id: id });
+      if (!blog) {
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+
+      // Initialize dislikedBy array if it doesn't exist
+      const dislikedBy = blog.dislikedBy || [];
+      const userDislikedIndex = dislikedBy.findIndex(dislike => dislike.toString() === userId.toString());
+
+      let updateOperation;
+      let isDisliked;
+
+      if (userDislikedIndex > -1) {
+        // User already disliked, so un-dislike
+        updateOperation = {
+          $pull: { dislikedBy: userId },
+          $inc: { dislikes: -1 }
+        };
+        isDisliked = false;
+      } else {
+        // User hasn't disliked, so dislike
+        // Also remove from likedBy if they had liked it
+        updateOperation = {
+          $addToSet: { dislikedBy: userId },
+          $inc: { dislikes: 1 },
+          $pull: { likedBy: userId }
+        };
+        isDisliked = true;
+
+        // If user had liked, decrement likes count
+        if (blog.likedBy && blog.likedBy.some(like => like.toString() === userId.toString())) {
+          updateOperation.$inc.likes = -1;
+        }
+      }
+
+      const result = await blogsCollection.findOneAndUpdate(
+        { _id: id },
+        updateOperation,
+        { returnDocument: 'after' }
+      );
+
+      res.json({
+        message: isDisliked ? 'Blog disliked' : 'Blog un-disliked',
+        dislikes: result.dislikes || 0,
+        likes: result.likes || 0,
+        isDisliked
+      });
+    } catch (error) {
+      console.error('Error disliking blog:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }

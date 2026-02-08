@@ -5,8 +5,11 @@
 
 .dashboard-main {
   flex: 1;
+  margin-left: 280px;
   padding: var(--spacing-8);
   background-color: var(--color-neutral-50);
+  width: calc(100% - 280px);
+  box-sizing: border-box;
 }
 
 .container {
@@ -50,6 +53,53 @@
   background-color: var(--color-primary-600);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+.searchBar {
+  position: relative;
+  margin-bottom: var(--spacing-4);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  padding-right: 40px;
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-white);
+  transition: var(--transition-all);
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.searchInput::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.clearSearch {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-all);
+}
+
+.clearSearch:hover {
+  color: var(--color-neutral-600);
+  background-color: var(--color-neutral-100);
 }
 
 .error {
@@ -241,6 +291,8 @@
 
 @media (max-width: 768px) {
   .dashboard-main {
+    margin-left: 0;
+    width: 100%;
     padding: var(--spacing-4);
   }
 

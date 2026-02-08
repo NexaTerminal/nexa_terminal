@@ -106,9 +106,6 @@ app.use('/api/provider-response', require('./routes/providerResponse'));
 // Mount public blog routes BEFORE CSRF middleware (public API for SEO)
 app.use('/api/blog', require('./routes/blog'));
 
-// Mount public newsletter routes BEFORE CSRF middleware (tracking, unsubscribe)
-app.use('/api/public/newsletter', require('./routes/publicNewsletter'));
-
 // Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
 app.use('/api/seo', require('./routes/seo'));
 
@@ -353,17 +350,6 @@ async function initializeServices(database) {
 
     console.log('✅ Credit System initialized successfully');
 
-    // Initialize Newsletter Scheduler
-    console.log('📧 Initializing Newsletter Scheduler...');
-    const NewsletterScheduler = require('./services/newsletterScheduler');
-    const newsletterScheduler = new NewsletterScheduler(database, emailService);
-    app.locals.newsletterScheduler = newsletterScheduler;
-
-    // Start newsletter scheduler
-    newsletterScheduler.start();
-
-    console.log('✅ Newsletter Scheduler initialized successfully');
-
     // Initialize activity logger
     activityLogger.initialize(database);
     app.locals.activityLogger = activityLogger;
@@ -448,6 +434,8 @@ function registerRoutes() {
     /^\/social\/posts\/[^\/]+\/comments$/,    // Comment on posts
     /^\/social\/posts\/[^\/]+$/,             // Individual post operations
     '/blogs',                   // Blog posts (JWT protected)
+    /^\/blogs\/[^\/]+\/like$/,  // Like/unlike blog posts (JWT protected)
+    /^\/blogs\/[^\/]+\/dislike$/, // Dislike/un-dislike blog posts (JWT protected)
     '/verification',            // Company verification (JWT protected)
     '/verification/status',     // Verification status (JWT protected)
     '/verification/upload',     // Document upload (JWT protected)
@@ -674,12 +662,6 @@ function registerRoutes() {
       }
 
       app.use('/api/admin', adminRouter);
-
-      // Newsletter admin routes
-      const { router: newsletterRouter, initializeController: initNewsletterController } = require('./routes/newsletter');
-      initNewsletterController(db);
-      app.use('/api/newsletter', newsletterRouter);
-      console.log('✅ Newsletter routes loaded successfully');
 
       // Real-time admin routes
       const { router: realtimeAdminRouter } = require('./routes/realtimeAdmin');

@@ -29,6 +29,9 @@ router.delete('/:id', authenticateJWT, isAdmin, blogController.deleteBlog);
 // Like/unlike blog post (authenticated users)
 router.post('/:id/like', authenticateJWT, blogController.likeBlog);
 
+// Dislike/un-dislike blog post (authenticated users)
+router.post('/:id/dislike', authenticateJWT, blogController.dislikeBlog);
+
 // Upload image for blog
 router.post('/upload', authenticateJWT, isAdmin, blogController.upload.single('image'), blogController.uploadImage);
 

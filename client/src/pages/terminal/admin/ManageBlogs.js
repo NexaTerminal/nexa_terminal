@@ -13,9 +13,10 @@ const ManageBlogs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 24,
     total: 0,
     pages: 1
   });
@@ -27,7 +28,7 @@ const ManageBlogs = () => {
   const fetchBlogs = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await ApiService.getBlogs(page);
+      const response = await ApiService.getBlogs(page, 24);
       if (response && response.blogs) {
         setBlogs(response.blogs);
         setPagination(response.pagination);
@@ -70,6 +71,18 @@ const ManageBlogs = () => {
     return new Date(dateString).toLocaleDateString('mk-MK', options);
   };
 
+  // Filter blogs based on search term
+  const filteredBlogs = blogs.filter(blog => {
+    if (!searchTerm.trim()) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      blog.title?.toLowerCase().includes(search) ||
+      blog.excerpt?.toLowerCase().includes(search) ||
+      blog.tags?.some(tag => tag.toLowerCase().includes(search)) ||
+      blog.category?.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <ProfileRequired>
       <div>
@@ -82,13 +95,31 @@ const ManageBlogs = () => {
             <div className={styles.container}>
               <div className={styles.header}>
                 <h1>Управувај со блогови</h1>
-              <button
-                onClick={() => navigate('/terminal/admin/blogs/add')}
-                className={styles.addButton}
-              >
-                Додади нов блог
-              </button>
-            </div>
+                <button
+                  onClick={() => navigate('/terminal/admin/blogs/add')}
+                  className={styles.addButton}
+                >
+                  Додади нов блог
+                </button>
+              </div>
+
+              <div className={styles.searchBar}>
+                <input
+                  type="text"
+                  placeholder="Пребарај по наслов, содржина, тагови..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={styles.searchInput}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className={styles.clearSearch}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
 
             {error && <div className={styles.error}>{error}</div>}
             {success && <div className={styles.success}>{success}</div>}
@@ -97,9 +128,9 @@ const ManageBlogs = () => {
               <div className={styles.loading}>Вчитување...</div>
             ) : (
               <div className={styles.blogList}>
-                {blogs && blogs.length > 0 ? (
+                {filteredBlogs && filteredBlogs.length > 0 ? (
                   <>
-                    {blogs.map(blog => (
+                    {filteredBlogs.map(blog => (
                       <div key={blog.id} className={styles.blogCard}>
                         {blog.featuredImage && (
                           <img
@@ -168,7 +199,7 @@ const ManageBlogs = () => {
                   </>
                 ) : (
                   <div className={styles.noBlogsMessage}>
-                    Нема пронајдени блогови
+                    {searchTerm ? `Нема резултати за "${searchTerm}"` : 'Нема пронајдени блогови'}
                   </div>
                 )}
               </div>

@@ -36,10 +36,16 @@ const SocialFeed = () => {
             const newLikedBy = isNowLiked
               ? [...(post.likedBy || []), userId]
               : (post.likedBy || []).filter(id => id !== userId);
+            // If liked, remove from dislikedBy
+            const newDislikedBy = isNowLiked
+              ? (post.dislikedBy || []).filter(id => id !== userId)
+              : post.dislikedBy || [];
             return {
               ...post,
               likes: response.likes,
-              likedBy: newLikedBy
+              likedBy: newLikedBy,
+              dislikedBy: newDislikedBy,
+              dislikes: isNowLiked && post.dislikedBy?.includes(userId) ? (post.dislikes || 1) - 1 : post.dislikes
             };
           }
           return post;
@@ -47,6 +53,39 @@ const SocialFeed = () => {
       );
     } catch (err) {
       console.error('Error liking post:', err);
+    }
+  };
+
+  // Handle dislike/un-dislike
+  const handleDislike = async (blogId) => {
+    try {
+      const response = await ApiService.post(`/blogs/${blogId}/dislike`);
+      // Update local state
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if ((post.id || post._id) === blogId) {
+            const userId = currentUser?._id || currentUser?.id;
+            const isNowDisliked = response.isDisliked;
+            const newDislikedBy = isNowDisliked
+              ? [...(post.dislikedBy || []), userId]
+              : (post.dislikedBy || []).filter(id => id !== userId);
+            // If disliked, remove from likedBy
+            const newLikedBy = isNowDisliked
+              ? (post.likedBy || []).filter(id => id !== userId)
+              : post.likedBy || [];
+            return {
+              ...post,
+              dislikes: response.dislikes,
+              likes: response.likes,
+              dislikedBy: newDislikedBy,
+              likedBy: newLikedBy
+            };
+          }
+          return post;
+        })
+      );
+    } catch (err) {
+      console.error('Error disliking post:', err);
     }
   };
 
@@ -104,6 +143,7 @@ const SocialFeed = () => {
             formatDate={formatDate}
             currentUserId={currentUser?._id || currentUser?.id}
             onLike={handleLike}
+            onDislike={handleDislike}
           />
         ))}
       </div>
@@ -122,14 +162,23 @@ function decodeEntities(text) {
 }
 
 // Blog Card Component
-const BlogCard = ({ blog, formatDate, currentUserId, onLike }) => {
+const BlogCard = ({ blog, formatDate, currentUserId, onLike, onDislike }) => {
   const isLiked = blog.likedBy && blog.likedBy.includes(currentUserId);
+  const isDisliked = blog.dislikedBy && blog.dislikedBy.includes(currentUserId);
 
   const handleLike = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (onLike) {
       onLike(blog.id || blog._id);
+    }
+  };
+
+  const handleDislike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDislike) {
+      onDislike(blog.id || blog._id);
     }
   };
 
@@ -191,13 +240,24 @@ const BlogCard = ({ blog, formatDate, currentUserId, onLike }) => {
                   ))}
                 </div>
               )}
-              <button
-                className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
-                onClick={handleLike}
-              >
-                <span className={styles.likeIcon}>{isLiked ? '💡' : '○'}</span>
-                <span className={styles.likeCount}>{blog.likes || 0}</span>
-              </button>
+              <div className={styles.reactionButtons}>
+                <button
+                  className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
+                  onClick={handleLike}
+                  title="Добра идеја"
+                >
+                  <span className={styles.likeIcon}>{isLiked ? '💡' : '○'}</span>
+                  <span className={styles.likeCount}>{blog.likes || 0}</span>
+                </button>
+                <button
+                  className={`${styles.dislikeButton} ${isDisliked ? styles.disliked : ''}`}
+                  onClick={handleDislike}
+                  title="Губење пари"
+                >
+                  <span className={styles.dislikeIcon}>{isDisliked ? '💸' : '○'}</span>
+                  <span className={styles.dislikeCount}>{blog.dislikes || 0}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

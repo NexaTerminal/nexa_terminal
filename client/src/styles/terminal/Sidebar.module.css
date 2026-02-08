@@ -29,15 +29,15 @@
 
 .dashboard-main {
   flex: 1;
-  margin-left: 0;
+  margin-left: 280px; /* Account for fixed sidebar width */
   margin-right: 0;
   background-color: var(--color-background);
   min-height: calc(100vh - 60px);
   overflow-y: auto;
   z-index: 1;
   margin-top: 60px;
-  width: 100%;
-  max-width: 100%;
+  width: calc(100% - 280px);
+  max-width: calc(100% - 280px);
   box-sizing: border-box;
 }
 
@@ -265,6 +265,12 @@
 @media (max-width: 768px) {
   .dashboard-sidebar {
     display: none;
+  }
+
+  .dashboard-main {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .submenu {

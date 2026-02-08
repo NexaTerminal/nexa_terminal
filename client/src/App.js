@@ -26,9 +26,6 @@ import ManageServiceProviders from './pages/terminal/admin/ManageServiceProvider
 import ManageOfferRequests from './pages/terminal/admin/ManageOfferRequests';
 import ManageChatbot from './pages/terminal/admin/ManageChatbot';
 import AddBlog from './pages/terminal/admin/AddBlog';
-import ManageNewsletterSubscribers from './pages/terminal/admin/ManageNewsletterSubscribers';
-import CreateNewsletter from './pages/terminal/admin/CreateNewsletter';
-import NewsletterAnalytics from './pages/terminal/admin/NewsletterAnalytics';
 import ManageBlogs from './pages/terminal/admin/ManageBlogs';
 import EditBlog from './pages/terminal/admin/EditBlog';
 
@@ -295,11 +292,6 @@ function App() {
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />
       <Route path="/terminal/admin/chatbot" element={<PrivateRoute><ManageChatbot /></PrivateRoute>} />
-
-      {/* Newsletter Admin Routes */}
-      <Route path="/terminal/admin/newsletter/subscribers" element={<PrivateRoute><ManageNewsletterSubscribers /></PrivateRoute>} />
-      <Route path="/terminal/admin/newsletter/create" element={<PrivateRoute><CreateNewsletter /></PrivateRoute>} />
-      <Route path="/terminal/admin/newsletter/analytics" element={<PrivateRoute><NewsletterAnalytics /></PrivateRoute>} />
     </Routes>
   );
 }

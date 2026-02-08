@@ -40,6 +40,11 @@ const BLOG_IMAGES = [
   'business, marketing, managment7.jpg',
   'business, marketing, managment8.jpg',
   'business, marketing, managment9.jpg',
+  'corporate1.jpg',
+  'corporate2.jpg',
+  'corporate3.jpg',
+  'corporate4.jpg',
+  'corporate5.jpg',
 ];
 
 const EditBlog = () => {
@@ -346,7 +351,7 @@ const EditBlog = () => {
                           className={`${styles.imagePickerItem} ${formData.featuredImage === `/images/blog/${img}` ? styles.imagePickerItemSelected : ''}`}
                           onClick={() => handleImageSelect(img)}
                         >
-                          <img src={`/images/blog/${img}`} alt={img} />
+                          <img src={encodeURI(`/images/blog/${img}`)} alt={img} />
                           <span className={styles.imagePickerName}>{img}</span>
                         </div>
                       ))}

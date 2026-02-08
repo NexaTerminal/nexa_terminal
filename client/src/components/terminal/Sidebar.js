@@ -70,9 +70,6 @@ const Sidebar = () => {
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
     { path: '/terminal/admin/offer-requests', label: 'Барања за понуди' },
     { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' },
-    { path: '/terminal/admin/newsletter/subscribers', label: 'Претплатници' },
-    { path: '/terminal/admin/newsletter/create', label: 'Креирај билтен' },
-    { path: '/terminal/admin/newsletter/analytics', label: 'Аналитика' },
   ];
 
   return (

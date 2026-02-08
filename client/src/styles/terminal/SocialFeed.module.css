@@ -1192,6 +1192,52 @@
   font-weight: 500;
 }
 
+.reactionButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dislikeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.dislikeButton:hover {
+  background: transparent;
+}
+
+.dislikeButton:hover .dislikeIcon {
+  transform: scale(1.1);
+}
+
+.dislikeButton.disliked {
+  background: transparent;
+  color: #dc2626;
+}
+
+.dislikeButton.disliked .dislikeIcon {
+  filter: drop-shadow(0 0 2px rgba(220, 38, 38, 0.5));
+}
+
+.dislikeIcon {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.dislikeCount {
+  font-weight: 500;
+}
+
 .noPosts {
   text-align: center;
   padding: 40px;
@@ -1206,7 +1252,7 @@
     align-items: flex-start;
   }
 
-  .likeButton {
+  .reactionButtons {
     align-self: flex-end;
   }
 }

@@ -199,7 +199,8 @@ const Header = ({ isTerminal = false }) => {
   const screeningSubItems = [
     { path: '/terminal/legal-screening', label: 'Правен', icon: '⚖️' },
     { path: '/terminal/marketing-screening', label: 'Маркетинг', icon: '📈' },
-    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност', icon: '🔒' }
+    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност', icon: '🔒' },
+    { path: '/terminal/hr-screening', label: 'HR и Оперативен', icon: '👥' }
   ];
 
   // AI submenu items

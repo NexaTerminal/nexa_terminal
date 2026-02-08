@@ -100,6 +100,9 @@ app.use('/api/mhc', require('./routes/mhc'));
 // Mount CHC (Cyber Security Health Check) routes (JWT-protected API)
 app.use('/api/chc', require('./routes/chc'));
 
+// Mount HHC (HR & Operational Health Check) routes (JWT-protected API)
+app.use('/api/hhc', require('./routes/hhc'));
+
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));
 

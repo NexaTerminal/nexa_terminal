@@ -47,6 +47,8 @@ import MarketingQuestionnaire from './pages/terminal/mhc/MarketingQuestionnaire'
 import MarketingReport from './pages/terminal/mhc/MarketingReport';
 import CyberQuestionnaire from './pages/terminal/chc/CyberQuestionnaire';
 import CyberReport from './pages/terminal/chc/CyberReport';
+import HRQuestionnaire from './pages/terminal/hhc/HRQuestionnaire';
+import HRReport from './pages/terminal/hhc/HRReport';
 import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import BlogDetail from './pages/terminal/BlogDetail';
@@ -210,6 +212,8 @@ function App() {
       <Route path="/terminal/marketing-screening/report/:id" element={<PrivateRoute><VerificationRequired><MarketingReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/cyber-screening" element={<PrivateRoute><VerificationRequired><CyberQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired><CyberReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/hr-screening" element={<PrivateRoute><VerificationRequired><HRQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/hr-screening/report/:id" element={<PrivateRoute><VerificationRequired><HRReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />

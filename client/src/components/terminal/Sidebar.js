@@ -40,7 +40,8 @@ const Sidebar = () => {
   const screeningSubItems = [
     { path: '/terminal/legal-screening', label: 'Правен' },
     { path: '/terminal/marketing-screening', label: 'Маркетинг' },
-    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
+    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' },
+    { path: '/terminal/hr-screening', label: 'HR и Оперативен' }
   ];
 
   // AI submenu items

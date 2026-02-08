@@ -53,6 +53,7 @@ const creditConfig = {
     LHC_REPORT: 1,           // Cost per Legal Health Check report
     MHC_REPORT: 1,           // Cost per Marketing Health Check report
     CHC_REPORT: 1,           // Cost per Cyber Security Health Check report
+    HHC_REPORT: 1,           // Cost per HR & Operational Health Check report
   },
 
   // ============ REFERRAL SYSTEM ============

@@ -8,6 +8,7 @@ import { ArticleSchema } from '../../components/seo/StructuredData';
 import { sanitizeHTML } from '../../utils/sanitizer';
 import api from '../../services/api';
 import { getPromotedToolById } from '../../config/promotedTools';
+import didYouKnowFacts from '../../data/didYouKnowFacts.json';
 import styles from '../../styles/website/BlogPost.module.css';
 
 export default function BlogPost() {
@@ -180,6 +181,34 @@ export default function BlogPost() {
     return getPromotedToolById(post.promotedTool);
   }, [post?.promotedTool]);
 
+  // Get random facts based on post category
+  const sidebarFacts = useMemo(() => {
+    if (!post?.category) return [];
+
+    // Map post categories to fact categories
+    const categoryMap = {
+      'legal': 'legal',
+      'LEGAL': 'legal',
+      'compliance': 'legal',
+      'business': 'business',
+      'BUSINESS': 'business',
+      'entrepreneurship': 'business',
+      'ENTREPRENEURSHIP': 'business',
+      'marketing': 'marketing',
+      'MARKETING': 'marketing',
+      'investments': 'investments',
+      'INVESTMENTS': 'investments',
+      'investment': 'investments'
+    };
+
+    const factCategory = categoryMap[post.category] || 'general';
+    const categoryFacts = didYouKnowFacts[factCategory] || didYouKnowFacts.general;
+
+    // Shuffle and pick 3 random facts
+    const shuffled = [...categoryFacts].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 3);
+  }, [post?.category]);
+
   function translateCategory(category) {
     if (!category) return '';
     const categoryTranslations = {
@@ -317,7 +346,8 @@ export default function BlogPost() {
         </div>
       </header>
 
-      {/* Article Content */}
+      {/* Article Layout with Sidebar */}
+      <div className={styles.articleLayout}>
       <article className={styles.article}>
         {/* Table of Contents */}
         {showToc && (
@@ -387,6 +417,32 @@ export default function BlogPost() {
           />
         )}
       </article>
+
+      {/* Sidebar - Did You Know Facts */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarSticky}>
+          <div className={styles.didYouKnow}>
+            <div className={styles.didYouKnowHeader}>
+              <svg className={styles.didYouKnowIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2C7.23858 2 5 4.23858 5 7C5 8.95608 6.12432 10.6488 7.75 11.4649V13C7.75 13.5523 8.19772 14 8.75 14H11.25C11.8023 14 12.25 13.5523 12.25 13V11.4649C13.8757 10.6488 15 8.95608 15 7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 17H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M9 14V17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M11 14V17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <h3 className={styles.didYouKnowTitle}>Дали знаевте?</h3>
+            </div>
+            <div className={styles.factsList}>
+              {sidebarFacts.map((fact, index) => (
+                <div key={fact.id} className={styles.factCard}>
+                  <p className={styles.factText}>{fact.fact}</p>
+                  <span className={styles.factSource}>{fact.source}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+      </div>
 
       {/* Back Link */}
       <div className={styles.backSection}>

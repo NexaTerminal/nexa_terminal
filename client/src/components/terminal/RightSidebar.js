@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import styles from '../../styles/terminal/RightSidebar.module.css';
 import didYouKnowFacts from '../../data/didYouKnowFacts.json';
 // Commented out marketing imports
 // import marketingSpotsData from '../../data/marketingSpots.json';
 
 const RightSidebar = () => {
-  // Get random facts from all categories
-  const sidebarFacts = useMemo(() => {
-    // Collect all facts from all categories
+  // Get 3 random facts from all categories on each page load
+  const [sidebarFacts] = useState(() => {
     const allFacts = [
       ...didYouKnowFacts.legal,
       ...didYouKnowFacts.business,
@@ -15,11 +14,9 @@ const RightSidebar = () => {
       ...didYouKnowFacts.investments,
       ...didYouKnowFacts.general
     ];
-
-    // Shuffle and pick 4 random facts
     const shuffled = [...allFacts].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 4);
-  }, []);
+    return shuffled.slice(0, 3);
+  });
 
   // Commented out marketing carousel state and logic
   /*

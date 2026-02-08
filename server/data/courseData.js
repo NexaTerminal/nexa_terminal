@@ -151,6 +151,71 @@ const courseData = {
     title: 'Работни односи',
     description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',
     modules: [] // Add other courses as needed
+  },
+  'lokalno-seo': {
+    title: 'Локално SEO',
+    description: 'Научете како да го оптимизирате вашиот бизнис за локално пребарување со Google Business Profile, NAP конзистентност, рецензии и AI SEO стратегии.',
+    modules: [
+      {
+        id: 1,
+        title: 'Модул 1: Вовед во локално SEO',
+        lessons: [
+          { id: 'lseo-lesson-1', title: 'Видео: Вовед во локално SEO', type: 'video', videoId: 'ctRtEzVgTk8', duration: '15 мин' },
+          { id: 'lseo-reading-1', title: 'Читање: Вовед во SEO и локално пребарување', type: 'reading', duration: '15 мин' },
+          { id: 'lseo-reading-2', title: 'Читање: Map Pack - најважната недвижност на интернетот', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-quiz-1', title: 'Квиз: Модул 1', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Модул 2: Crawlers и Discovery',
+        lessons: [
+          { id: 'lseo-lesson-2', title: 'Видео: Crawlers и Discovery', type: 'video', videoId: '0oVpwH06j_Y', duration: '15 мин' },
+          { id: 'lseo-reading-3', title: 'Читање: Како пребарувачите ја наоѓаат вашата фирма', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-reading-4', title: 'Читање: Sitemaps и backlinks како патоказ', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-quiz-2', title: 'Квиз: Модул 2', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Модул 3: NAP конзистентност и цитати',
+        lessons: [
+          { id: 'lseo-lesson-3', title: 'Видео: NAP конзистентност', type: 'video', videoId: '46w_o7Y3-98', duration: '15 мин' },
+          { id: 'lseo-reading-5', title: 'Читање: Дигиталниот пасош - NAP податоци', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-reading-6', title: 'Читање: Citations и директориуми', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-quiz-3', title: 'Квиз: Модул 3', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 4,
+        title: 'Модул 4: Рецензии и Trust сигнали',
+        lessons: [
+          { id: 'lseo-lesson-4', title: 'Видео: Рецензии и Trust сигнали', type: 'video', videoId: 'nJ14EOTkTSA', duration: '15 мин' },
+          { id: 'lseo-reading-7', title: 'Читање: Review Velocity - брзината е поважна од бројот', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-reading-8', title: 'Читање: Ranking Layer Cake - слоеви на доверба', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-quiz-4', title: 'Квиз: Модул 4', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 5,
+        title: 'Модул 5: AI SEO и максимална дистрибуција',
+        lessons: [
+          { id: 'lseo-lesson-5', title: 'Видео: AI SEO и дистрибуција', type: 'video', videoId: 'mm1qlQGNBUw', duration: '15 мин' },
+          { id: 'lseo-reading-9', title: 'Читање: AI препораки - како ChatGPT и Gemini препорачуваат бизниси', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-reading-10', title: 'Читање: Answer-First содржина и максимална дистрибуција', type: 'reading', duration: '10 мин' },
+          { id: 'lseo-infographic', title: 'Инфографик: Локално SEO 2026 стратегија', type: 'reading', duration: '5 мин' },
+          { id: 'lseo-quiz-5', title: 'Квиз: Модул 5', type: 'quiz', passingScore: 67, duration: '5 мин' }
+        ]
+      },
+      {
+        id: 6,
+        title: 'Финален тест',
+        lessons: [
+          { id: 'lseo-download', title: 'Преземи: Локално SEO водич', type: 'download', duration: '2 мин' },
+          { id: 'lseo-quiz-final', title: 'Финален квиз', type: 'quiz', passingScore: 70, duration: '15 мин', isFinal: true }
+        ]
+      }
+    ]
   }
 };
 

@@ -43,6 +43,13 @@ const courses = [
     available: true
   },
   {
+    id: 'lokalno-seo',
+    title: 'Локално SEO',
+    description: 'Научете како да го оптимизирате вашиот бизнис за локално пребарување со Google Business Profile, NAP конзистентност, рецензии и AI SEO стратегии.',
+    image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80',
+    available: true
+  },
+  {
     id: 'email-marketing',
     title: 'Емаил маркетинг - како до нови клиенти на ваков начин',
     description: 'Научете како да градите ефективни емаил кампањи, да привлекувате клиенти и да зголемите продажбата преку професионален емаил маркетинг.',

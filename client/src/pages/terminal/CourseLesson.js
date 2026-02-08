@@ -357,6 +357,31 @@ const CourseLesson = () => {
       );
     }
 
+    if (currentLesson.type === 'download') {
+      return (
+        <div className={courseStyles.downloadContainer}>
+          <div className={courseStyles.downloadIcon}>📥</div>
+          <h1>{currentLesson.title}</h1>
+          <p className={courseStyles.downloadDescription}>
+            {currentLesson.description || 'Преземете го овој материјал за понатамошно учење и референца.'}
+          </p>
+          <a
+            href={currentLesson.fileUrl}
+            download
+            className={courseStyles.downloadButton}
+            onClick={() => markLessonComplete(currentLesson.id)}
+          >
+            Преземи PDF
+          </a>
+          <div className={courseStyles.downloadActions}>
+            {completedLessons.includes(currentLesson.id) && (
+              <span className={courseStyles.successMessage}>✓ Материјалот е преземен</span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (currentLesson.type === 'quiz') {
       const quiz = quizData[currentLesson.id];
       const passingScore = currentLesson.passingScore || 70;

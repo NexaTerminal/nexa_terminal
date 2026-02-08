@@ -37,6 +37,14 @@ import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTempla
 import LegalScreening from './pages/terminal/LegalScreening';
 import EmploymentQuestionnaire from './pages/terminal/lhc/EmploymentQuestionnaire';
 import EmploymentReport from './pages/terminal/lhc/EmploymentReport';
+import EmploymentPart1Questionnaire from './pages/terminal/lhc/EmploymentPart1Questionnaire';
+import EmploymentPart1Report from './pages/terminal/lhc/EmploymentPart1Report';
+import EmploymentPart2Questionnaire from './pages/terminal/lhc/EmploymentPart2Questionnaire';
+import EmploymentPart2Report from './pages/terminal/lhc/EmploymentPart2Report';
+import EmploymentPart3Questionnaire from './pages/terminal/lhc/EmploymentPart3Questionnaire';
+import EmploymentPart3Report from './pages/terminal/lhc/EmploymentPart3Report';
+import EmploymentPart4Questionnaire from './pages/terminal/lhc/EmploymentPart4Questionnaire';
+import EmploymentPart4Report from './pages/terminal/lhc/EmploymentPart4Report';
 import HealthAndSafetyQuestionnaire from './pages/terminal/lhc/HealthAndSafetyQuestionnaire';
 import HealthAndSafetyReport from './pages/terminal/lhc/HealthAndSafetyReport';
 import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
@@ -202,6 +210,14 @@ function App() {
       <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired><LegalScreening /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/employment" element={<PrivateRoute><VerificationRequired><EmploymentQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/employment/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part1" element={<PrivateRoute><VerificationRequired><EmploymentPart1Questionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part1/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentPart1Report /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part2" element={<PrivateRoute><VerificationRequired><EmploymentPart2Questionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part2/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentPart2Report /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part3" element={<PrivateRoute><VerificationRequired><EmploymentPart3Questionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part3/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentPart3Report /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part4" element={<PrivateRoute><VerificationRequired><EmploymentPart4Questionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/employment-part4/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentPart4Report /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/health-safety" element={<PrivateRoute><VerificationRequired><HealthAndSafetyQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />

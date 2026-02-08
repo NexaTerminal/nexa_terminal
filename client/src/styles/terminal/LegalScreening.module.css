@@ -101,8 +101,15 @@
 .category-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
   color: var(--color-dark);
+}
+
+.category-subtitle {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-sm);
 }
 
 .category-description {

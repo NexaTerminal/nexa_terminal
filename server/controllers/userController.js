@@ -8,6 +8,8 @@ class UserController {
     this.updateProfile = this.updateProfile.bind(this);
     this.createOrUpdateCompany = this.createOrUpdateCompany.bind(this);
     this.updateCredentials = this.updateCredentials.bind(this);
+    this.regenerateCompanyCode = this.regenerateCompanyCode.bind(this);
+    this.joinCompany = this.joinCompany.bind(this);
   }
 
   // Get user profile
@@ -21,11 +23,22 @@ class UserController {
       const userId = req.user._id.toString ? req.user._id : req.user._id;
       
       // Get user profile
-      const user = await userService.findById(userId);
-      
+      let user = await userService.findById(userId);
+
+      // Backfill: existing verified users who pre-date the company code feature
+      // get promoted to companyAdmin automatically on next profile fetch
+      if (user && user.isVerified && !user.isCompanyAdmin && !user.companyAdminId && !user.companyCode) {
+        const companyCode = await userService.generateUniqueCompanyCode();
+        await userService.collection.updateOne(
+          { _id: user._id },
+          { $set: { isCompanyAdmin: true, companyCode, companyCodeGeneratedAt: new Date() } }
+        );
+        user = await userService.findById(userId);
+      }
+
       // Get company profile if exists
       const company = await companiesCollection.findOne({ userId: userId });
-      
+
       res.json({
         user: userService.sanitizeUser(user),
         company: company || null
@@ -48,6 +61,35 @@ class UserController {
 
       // Handle both old format (direct fields) and new format (nested companyInfo)
       const { companyInfo: incomingCompanyInfo, email, companyManager, officialEmail, termsAccepted, marketplaceInfo } = req.body;
+
+      // Block members from editing company info
+      if (currentUser.companyAdminId && !currentUser.isCompanyAdmin) {
+        // Allow other profile fields but strip companyInfo
+        const memberPayload = {};
+        if (email?.trim()) memberPayload.email = email.trim();
+        if (officialEmail?.trim()) memberPayload.officialEmail = officialEmail.trim();
+        const userService = new UserService(req.app.locals.db);
+        const updated = await userService.updateUser(currentUser._id || currentUser.id, memberPayload);
+        const finalUser = await userService.findById(currentUser._id || currentUser.id);
+        return res.json({ message: 'Profile updated successfully', user: userService.sanitizeUser(finalUser) });
+      }
+
+      // Block duplicate tax number (only for non-members trying to register a new company)
+      const incomingTaxNumber = incomingCompanyInfo?.companyTaxNumber?.trim();
+      if (incomingTaxNumber) {
+        const userService = new UserService(req.app.locals.db);
+        const existingByTax = await userService.findByTaxNumber(incomingTaxNumber);
+        const currentUserId = (currentUser._id || currentUser.id).toString();
+        const isAlreadyLinkedToThisCompany = existingByTax?._id.toString() === currentUser.companyAdminId?.toString();
+
+        if (existingByTax && existingByTax._id.toString() !== currentUserId && !isAlreadyLinkedToThisCompany) {
+          return res.status(409).json({
+            message: 'Компанија со овој даночен број веќе постои.',
+            code: 'TAX_NUMBER_CONFLICT',
+            canJoinWithCode: true
+          });
+        }
+      }
 
       // Prepare company info update - merge with existing data
       let companyInfoUpdate = {};
@@ -141,9 +183,19 @@ class UserController {
 
       if (hasCompleteCompanyInfo && !updatedUser.isVerified) {
         console.log('✅ Auto-verifying user - all required company data is complete');
+
+        // Generate a unique company code if this user doesn't have one yet
+        let companyCode = updatedUser.companyCode;
+        if (!companyCode) {
+          companyCode = await userService.generateUniqueCompanyCode();
+        }
+
         await userService.updateUser(currentUser._id || currentUser.id, {
           isVerified: true,
           verificationStatus: 'approved',
+          isCompanyAdmin: true,
+          companyCode,
+          companyCodeGeneratedAt: new Date(),
           updatedAt: new Date()
         });
 
@@ -152,7 +204,7 @@ class UserController {
 
         return res.json({
           message: 'Profile updated and verified successfully! You now have access to all features.',
-          user: finalUser,
+          user: userService.sanitizeUser(finalUser),
           autoVerified: true
         });
       }
@@ -280,6 +332,117 @@ class UserController {
     } catch (error) {
       console.error('❌ Company profile save error:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+
+  // Regenerate company code (company admins only)
+  async regenerateCompanyCode(req, res) {
+    try {
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const user = await userService.findById(req.user._id || req.user.id);
+
+      if (!user) return res.status(404).json({ message: 'User not found' });
+      if (!user.isCompanyAdmin) {
+        return res.status(403).json({ message: 'Only company admins can regenerate the company code' });
+      }
+
+      const companyCode = await userService.generateUniqueCompanyCode();
+      await userService.updateUser(user._id, {
+        companyCode,
+        companyCodeGeneratedAt: new Date()
+      });
+
+      return res.json({ companyCode, generatedAt: new Date() });
+    } catch (error) {
+      console.error('Error regenerating company code:', error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+
+  // Join a company using a 5-digit company code
+  async joinCompany(req, res) {
+    try {
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const { companyCode } = req.body;
+
+      // 1. Validate input format
+      if (!companyCode || !/^\d{5}$/.test(companyCode.toString().trim())) {
+        return res.status(400).json({ message: 'Невалиден код. Кодот мора да содржи точно 5 цифри.' });
+      }
+
+      const code = companyCode.toString().trim();
+
+      // 2. Load the requesting user fresh from DB for rate-limit state
+      const requestingUser = await userService.findById(req.user._id || req.user.id);
+      if (!requestingUser) return res.status(404).json({ message: 'User not found' });
+
+      // 3. Guard: cannot join if already an admin or already linked
+      if (requestingUser.isCompanyAdmin) {
+        return res.status(409).json({ message: 'Company admins cannot join another company.' });
+      }
+      if (requestingUser.companyAdminId) {
+        return res.status(409).json({ message: 'You are already a member of a company.' });
+      }
+
+      // 4. Per-user rate limiting: max 5 attempts per 15 min window
+      const now = new Date();
+      const windowMs = 15 * 60 * 1000;
+      const attempts = requestingUser.companyCodeAttempts || { count: 0, windowStart: now };
+
+      if (now - new Date(attempts.windowStart) > windowMs) {
+        // Reset window
+        attempts.count = 0;
+        attempts.windowStart = now;
+      }
+
+      attempts.count += 1;
+
+      // Persist updated attempt count before lookup (prevents TOCTOU)
+      await userService.collection.updateOne(
+        { _id: requestingUser._id },
+        { $set: { companyCodeAttempts: attempts } }
+      );
+
+      if (attempts.count > 5) {
+        return res.status(429).json({
+          message: 'Премногу неуспешни обиди. Обидете се повторно по 15 минути.',
+          retryAfter: '15 minutes'
+        });
+      }
+
+      // 5. Find admin by code
+      const adminUser = await userService.findByCompanyCode(code);
+      if (!adminUser) {
+        return res.status(404).json({ message: 'Невалиден код. Проверете го кодот и обидете се повторно.' });
+      }
+
+      // 6. Cannot use your own code
+      if (adminUser._id.toString() === requestingUser._id.toString()) {
+        return res.status(400).json({ message: 'Не можете да го користите сопствениот код.' });
+      }
+
+      // 7. Link the user to the admin's company
+      const updatedUser = await userService.updateUser(requestingUser._id, {
+        companyAdminId: adminUser._id,
+        companyJoinedAt: new Date(),
+        isVerified: true,
+        verificationStatus: 'approved',
+        profileComplete: true
+      });
+
+      const finalUser = await userService.findById(requestingUser._id);
+
+      return res.json({
+        message: 'Успешно се приклучивте на компанијата!',
+        companyName: adminUser.companyInfo?.companyName || '',
+        user: userService.sanitizeUser(finalUser)
+      });
+
+    } catch (error) {
+      console.error('Error joining company:', error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
 

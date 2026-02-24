@@ -288,12 +288,35 @@ class UserService {
     };
   }
 
+  // Find user by company code
+  async findByCompanyCode(code) {
+    return await this.collection.findOne({ companyCode: code.trim() });
+  }
+
+  // Generate a unique 5-digit company code
+  async generateUniqueCompanyCode() {
+    for (let i = 0; i < 10; i++) {
+      const code = String(Math.floor(10000 + Math.random() * 90000));
+      if (!await this.findByCompanyCode(code)) return code;
+    }
+    throw new Error('Could not generate unique company code');
+  }
+
+  // Find all members linked to a company admin
+  async findMembersByAdminId(adminId) {
+    return await this.collection
+      .find({ companyAdminId: new ObjectId(adminId) })
+      .project({ password: 0, companyCode: 0, companyCodeAttempts: 0 })
+      .toArray();
+  }
+
   // Sanitize user data for API responses (remove sensitive fields)
   sanitizeUser(user) {
     if (!user) return null;
-    
+
     const sanitized = { ...user };
     delete sanitized.password;
+    delete sanitized.companyCodeAttempts;
     return sanitized;
   }
 

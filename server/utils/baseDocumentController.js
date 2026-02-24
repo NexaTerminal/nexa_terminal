@@ -33,7 +33,21 @@ const createDocumentController = (config) => {
       const user = req.user;
       
       // Extract and normalize company information from user object
-      const companyInfo = user.companyInfo || {};
+      // For linked members, resolve companyInfo from their company admin
+      let effectiveCompanyInfo = user.companyInfo || {};
+      if (user.companyAdminId && !user.isCompanyAdmin) {
+        try {
+          const UserService = require('../services/userService');
+          const userService = new UserService(req.app.locals.db);
+          const adminUser = await userService.findById(user.companyAdminId.toString());
+          if (adminUser?.companyInfo) {
+            effectiveCompanyInfo = adminUser.companyInfo;
+          }
+        } catch (e) {
+          console.error(`[${documentName}] Could not resolve admin companyInfo:`, e.message);
+        }
+      }
+      const companyInfo = effectiveCompanyInfo;
       
       // Map company fields to standardized format for templates
       const company = {

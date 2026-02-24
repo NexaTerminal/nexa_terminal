@@ -181,6 +181,29 @@ const EditProfile = () => {
         {error && <div className={styles.error}>{error}</div>}
         {success && <div className={styles.success}>{success}</div>}
 
+        {/* Company admin: display company code */}
+        {currentUser?.isCompanyAdmin && (
+          <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f0f4ff', borderRadius: '8px', border: '1px solid #c7d2fe'}}>
+            <h3 style={{margin: '0 0 0.4rem', color: '#1E4DB7'}}>Код за приклучување на компанијата</h3>
+            <p style={{margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#555'}}>
+              Споделете го овој код со вашите вработени.
+            </p>
+            <span style={{fontSize: '2rem', fontWeight: 'bold', letterSpacing: '0.3em', fontFamily: 'monospace', color: '#1E4DB7'}}>
+              {currentUser.companyCode || '—'}
+            </span>
+          </div>
+        )}
+
+        {/* Linked member notice */}
+        {currentUser?.companyAdminId && !currentUser?.isCompanyAdmin && (
+          <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'}}>
+            <h3 style={{margin: '0 0 0.4rem', color: '#166534'}}>Сте член на компанија</h3>
+            <p style={{margin: 0, color: '#166534', fontSize: '0.85rem'}}>
+              Вашиот акаунт е поврзан со компаниски профил. Компаниските податоци се управуваат од администраторот на компанијата и не можат да се уредуваат овде.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className={styles.form}>
           {/* Personal Information Section */}
           <div className={styles.section}>
@@ -200,8 +223,8 @@ const EditProfile = () => {
             </div>
           </div>
 
-          {/* Company Information Section */}
-          <div className={styles.section}>
+          {/* Company Information Section — hidden for linked members */}
+          {!(currentUser?.companyAdminId && !currentUser?.isCompanyAdmin) && <div className={styles.section}>
             <h2>Компаниски податоци</h2>
             
             <div className={styles.row}>
@@ -312,10 +335,10 @@ const EditProfile = () => {
                 />
               </div>
             </div>
-          </div>
+          </div>}
 
-          {/* Legal and Contact Information */}
-          <div className={styles.section}>
+          {/* Legal and Contact Information — hidden for linked members */}
+          {!(currentUser?.companyAdminId && !currentUser?.isCompanyAdmin) && <div className={styles.section}>
             <h2>Правни и контакт податоци</h2>
             
             <div className={styles.row}>
@@ -381,7 +404,7 @@ const EditProfile = () => {
                 placeholder="Улица, број, град"
               />
             </div>
-          </div>
+          </div>}
 
           <div className={styles.actions}>
             <button 

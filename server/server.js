@@ -239,13 +239,22 @@ async function fixDatabaseIndexes(database) {
     
     try {
       await collection.createIndex(
-        { username: 1 }, 
+        { username: 1 },
         { unique: true, sparse: true, name: 'username_unique_sparse' }
       );
     } catch (error) {
       // Username index creation failed
     }
-    
+
+    try {
+      await collection.createIndex(
+        { companyCode: 1 },
+        { unique: true, sparse: true, name: 'companyCode_unique_sparse' }
+      );
+    } catch (error) {
+      // companyCode index creation failed
+    }
+
   } catch (error) {
     console.error('❌ Database index fix failed:', error.message);
     // Don't exit - continue with normal startup

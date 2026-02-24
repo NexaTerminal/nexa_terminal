@@ -159,7 +159,9 @@ class ApiService {
             errorMessageToShow = `Server error: ${response.status} - Unable to read error body.`;
           }
         }
-        throw new Error(errorMessageToShow);
+        const err = new Error(errorMessageToShow);
+        if (errorData?.code) err.code = errorData.code;
+        throw err;
       }
 
       // If response is OK, try to parse JSON.
@@ -482,6 +484,23 @@ class ApiService {
    */
   static async deleteBlog(id) {
     return this.delete(`/blogs/${id}`);
+  }
+
+  // ==================== COMPANY CODE METHODS ====================
+
+  /**
+   * Join a company using a 5-digit code
+   * @param {string} companyCode - The 5-digit company code
+   */
+  static async joinCompany(companyCode) {
+    return this.post('/users/companies/join', { companyCode });
+  }
+
+  /**
+   * Regenerate company code (company admins only)
+   */
+  static async regenerateCompanyCode() {
+    return this.post('/users/companies/regenerate-code', {});
   }
 
 }

@@ -256,6 +256,8 @@
   max-width: none;
   letter-spacing: 0.015em;
   word-spacing: 0.05em;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 /* Headings with proper spacing */

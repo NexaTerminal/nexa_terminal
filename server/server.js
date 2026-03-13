@@ -725,28 +725,32 @@ async function initializeServer() {
 // Traditional server environment
 async function startServer() {
   try {
+    const PORT = process.env.PORT || 5002;
+    const http = require('http');
+    const { Server } = require('socket.io');
+
+    const server = http.createServer(app);
+    const io = new Server(server, {
+      cors: {
+        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        methods: ["GET", "POST"]
+      }
+    });
+
+    // Start listening immediately so health checks pass during initialization
+    server.listen(PORT, () => {
+      console.log(`🚀 Server listening on port ${PORT} (initializing services...)`);
+    });
+
+    // Run full initialization after server is already listening
     await initializeServer();
 
-    // Only start the server if initialization was successful
     if (app.locals.initialized) {
-      const PORT = process.env.PORT || 5002;
-      const http = require('http');
-      const { Server } = require('socket.io');
-
-      const server = http.createServer(app);
-      const io = new Server(server, {
-        cors: {
-          origin: process.env.CLIENT_URL || "http://localhost:3000",
-          methods: ["GET", "POST"]
-        }
-      });
-
-      // Initialize real-time monitoring
+      // Initialize real-time monitoring (requires database from initializeServer)
       const UserAnalyticsService = require('./services/userAnalyticsService');
       const RealtimeAdminController = require('./controllers/realtimeAdminController');
       const { setRealtimeController } = require('./routes/realtimeAdmin');
 
-      // Get database connection (available in app.locals)
       const database = app.locals.database;
       if (database) {
         const userAnalyticsService = new UserAnalyticsService(database);
@@ -756,9 +760,7 @@ async function startServer() {
         console.warn('⚠️ Real-time monitoring disabled - no database connection');
       }
 
-      server.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT} with Socket.io enabled`);
-      });
+      console.log(`✅ Server fully initialized on port ${PORT}`);
     }
   } catch (error) {
     console.error('❌ Server startup error:', error);

@@ -41,29 +41,40 @@ start_servers() {
     # Set up cleanup trap
     trap cleanup INT TERM
 
-    # Start server in background
+    # Start server in background (use nodemon directly to avoid npm startup overhead)
     echo "📡 Starting server on http://localhost:5002..."
     cd server
-    npm run dev > ../server.log 2>&1 &
+    NODE_ENV=development ./node_modules/.bin/nodemon server.js > ../server.log 2>&1 &
     SERVER_PID=$!
     cd ..
 
-    # Wait for server to complete marketplace initialization
-    sleep 15
+    # Poll health endpoint until server responds (up to 60 seconds)
+    TIMEOUT=60
+    ELAPSED=0
+    SERVER_STARTED=0
+    while [ $ELAPSED -lt $TIMEOUT ]; do
+        if curl -s http://127.0.0.1:5002/health > /dev/null 2>&1; then
+            SERVER_STARTED=1
+            break
+        fi
+        sleep 1
+        ELAPSED=$((ELAPSED + 1))
+    done
 
     # Check if server started successfully
-    if curl -s http://localhost:5002/health > /dev/null; then
+    if [ $SERVER_STARTED -eq 1 ]; then
         echo "✅ Server running on http://localhost:5002"
     else
-        echo "❌ Server failed to start. Check server.log for details."
+        echo "❌ Server failed to start after ${TIMEOUT}s. Check server.log for details."
         kill $SERVER_PID 2>/dev/null
         exit 1
     fi
 
     # Start client in background
+    # PORT and BROWSER=none prevent interactive prompts that crash in non-TTY environments
     echo "⚛️  Starting React app on http://localhost:3000..."
     cd client
-    npm start > ../client.log 2>&1 &
+    PORT=3000 BROWSER=none npm start > ../client.log 2>&1 &
     CLIENT_PID=$!
     cd ..
 

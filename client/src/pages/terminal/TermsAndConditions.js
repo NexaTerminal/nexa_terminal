@@ -27,6 +27,14 @@ const TermsAndConditions = () => {
                 Последно ажурирано: Декември 2025 година
               </p>
 
+              {/* Owner */}
+              <section style={{marginBottom: '3rem'}}>
+                <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>Сопственик на платформата</h2>
+                <p>
+                  Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги ТХУ БУЗИНЕСС ГУИДЕ ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+                </p>
+              </section>
+
               {/* Key Points */}
               <section style={{marginBottom: '3rem'}}>
                 <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>Најважни точки</h2>

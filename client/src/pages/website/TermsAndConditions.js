@@ -21,9 +21,17 @@ const TermsAndConditions = () => {
           Последно ажурирано: Декември 2025 година
         </div>
 
+        {/* Owner */}
+        <section className={styles.section}>
+          <h2>1. Сопственик на платформата</h2>
+          <p>
+            Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги ТХУ БУЗИНЕСС ГУИДЕ ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+          </p>
+        </section>
+
         {/* Acceptance */}
         <section className={styles.section}>
-          <h2>1. Прифаќање на условите</h2>
+          <h2>2. Прифаќање на условите</h2>
           <p>
             Со пристапување и користење на Nexa Terminal платформата, се согласувате да ги прифатите и да ги почитувате овие Услови за користење. Доколку не се согласувате со овие услови, ве молиме не ја користете платформата.
           </p>
@@ -37,7 +45,7 @@ const TermsAndConditions = () => {
 
         {/* Service Description */}
         <section className={styles.section}>
-          <h2>2. Опис на услугите</h2>
+          <h2>3. Опис на услугите</h2>
           <p>Nexa Terminal нуди следните услуги:</p>
           <ul>
             <li><strong>Автоматизирано генерирање на правни документи</strong> - шаблони за договори, одлуки и правни акти</li>
@@ -50,7 +58,7 @@ const TermsAndConditions = () => {
 
         {/* Legal Disclaimer */}
         <section className={styles.section}>
-          <h2>3. КРИТИЧНО: Правен дисклејмер</h2>
+          <h2>4. КРИТИЧНО: Правен дисклејмер</h2>
 
           <div className={styles.warningBox}>
             <p><strong>ВАЖНО: НЕ ДАВАМЕ ПРАВЕН СОВЕТ</strong></p>
@@ -80,7 +88,7 @@ const TermsAndConditions = () => {
 
         {/* Company Verification */}
         <section className={styles.section}>
-          <h2>4. Верификација на компанија</h2>
+          <h2>5. Верификација на компанија</h2>
           <p>
             За пристап до нашите функции, Вие ќе морате да ја верификувате вашата компанија со обезбедување на:
           </p>
@@ -97,7 +105,7 @@ const TermsAndConditions = () => {
 
         {/* Credit System */}
         <section className={styles.section}>
-          <h2>5. Систем со кредити</h2>
+          <h2>6. Систем со кредити</h2>
           <p>
             Nexa Terminal користи систем со кредити за генерирање на документи. Секој документ чини одреден број кредити.
           </p>
@@ -109,7 +117,7 @@ const TermsAndConditions = () => {
 
         {/* Prohibited Use */}
         <section className={styles.section}>
-          <h2>6. Забрането користење</h2>
+          <h2>7. Забрането користење</h2>
           <p>НЕ смеете да ја користите платформата за:</p>
           <ul>
             <li>Нелегални активности или кршење на закони</li>
@@ -124,7 +132,7 @@ const TermsAndConditions = () => {
 
         {/* Intellectual Property */}
         <section className={styles.section}>
-          <h2>7. Интелектуална сопственост</h2>
+          <h2>8. Интелектуална сопственост</h2>
           <p>
             Сите содржини на Nexa Terminal платформата (шаблони, дизајн, код, текст, графика) се интелектуална сопственост на Nexa Terminal и се заштитени со закони за авторски права.
           </p>
@@ -139,7 +147,7 @@ const TermsAndConditions = () => {
 
         {/* Find Lawyer Terms */}
         <section className={styles.section}>
-          <h2>8. Find Lawyer - Посредничка услуга</h2>
+          <h2>9. Find Lawyer - Посредничка услуга</h2>
 
           <div className={styles.infoBox}>
             <p><strong>Важно:</strong> Nexa Terminal е само посредник кој ги поврзува компаниите со правни провајдери. Ние НЕ сме страна во договорот помеѓу вас и провајдерот.</p>
@@ -160,7 +168,7 @@ const TermsAndConditions = () => {
 
         {/* Limitation of Liability */}
         <section className={styles.section}>
-          <h2>9. Ограничување на одговорноста</h2>
+          <h2>10. Ограничување на одговорноста</h2>
 
           <div className={styles.warningBox}>
             <p><strong>Услугите се нудат "AS IS" (како што се)</strong></p>
@@ -191,7 +199,7 @@ const TermsAndConditions = () => {
 
         {/* Account Termination */}
         <section className={styles.section}>
-          <h2>10. Раскинување на сметка</h2>
+          <h2>11. Раскинување на сметка</h2>
 
           <h3>Ваше право:</h3>
           <p>
@@ -212,7 +220,7 @@ const TermsAndConditions = () => {
 
         {/* Modifications */}
         <section className={styles.section}>
-          <h2>11. Измени и дополнувања</h2>
+          <h2>12. Измени и дополнувања</h2>
           <p>
             Задржуваме право да ги изменуваме овие Услови за користење во секое време. Значајните промени ќе ви бидат соопштени преку:
           </p>
@@ -228,7 +236,7 @@ const TermsAndConditions = () => {
 
         {/* Governing Law */}
         <section className={styles.section}>
-          <h2>12. Применливо право</h2>
+          <h2>13. Применливо право</h2>
           <p>
             Овие Услови за користење се уредени и толкуваат според законите на <strong>Република Северна Македонија</strong>.
           </p>
@@ -242,7 +250,7 @@ const TermsAndConditions = () => {
 
         {/* Miscellaneous */}
         <section className={styles.section}>
-          <h2>13. Разно</h2>
+          <h2>14. Разно</h2>
 
           <h3>Делива клаузула (Severability):</h3>
           <p>
@@ -267,7 +275,7 @@ const TermsAndConditions = () => {
 
         {/* Contact */}
         <div className={styles.contactSection}>
-          <h3>14. Контакт информации</h3>
+          <h3>15. Контакт информации</h3>
           <p>За прашања во врска со овие Услови за користење:</p>
           <p><strong>Email:</strong> <a href="mailto:info@nexa.mk">info@nexa.mk</a></p>
           <p><strong>Платформа:</strong> Контакт форма во Dashboard</p>

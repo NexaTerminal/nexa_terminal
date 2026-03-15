@@ -1272,3 +1272,12 @@ html::before, html::after, body::before, body::after {
 .body-no-scroll {
   overflow: hidden;
 }
+
+/* Feature Tour - Active target highlight */
+[data-tour-active="true"] {
+  position: relative;
+  z-index: 9999;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
+}

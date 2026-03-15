@@ -52,12 +52,12 @@ const Sidebar = () => {
 
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard' },
-    { path: '/terminal/documents', label: 'dashboard.documentGenerator' },
-    { path: '/terminal/my-templates', label: 'Мои шаблони', noTranslate: true },
+    { path: '/terminal/documents', label: 'dashboard.documentGenerator', tourId: 'documents' },
+    { path: '/terminal/my-templates', label: 'Мои шаблони', noTranslate: true, tourId: 'my-templates' },
     // { path: '/terminal/template-marketplace', label: 'Маркетплејс', noTranslate: true },
-    { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true },
+    { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true, tourId: 'find-lawyer' },
     { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
-    { path: '/terminal/education', label: 'Обуки', noTranslate: true }
+    { path: '/terminal/education', label: 'Обуки', noTranslate: true, tourId: 'education' }
   ];
 
   // Check if any screening route is active
@@ -84,13 +84,14 @@ const Sidebar = () => {
 
       <nav className={styles["dashboard-menu"]}>
         {/* Dashboard, Documents, My Templates */}
-        {regularMenuItems.slice(0, 3).map(({ path, label, noTranslate }) => (
+        {regularMenuItems.slice(0, 3).map(({ path, label, noTranslate, tourId }) => (
           <Link
             key={path}
             to={path}
             className={`${styles["menu-item"]} ${
               location.pathname === path ? styles.active : ""
             }`}
+            {...(tourId ? { 'data-tour': tourId } : {})}
           >
             <h3>{noTranslate ? label : t(label)}</h3>
           </Link>
@@ -102,6 +103,7 @@ const Sidebar = () => {
             className={`${styles["menu-item"]} ${isScreeningActive ? styles.active : ""}`}
             onClick={handleScreeningClick}
             style={{ cursor: 'pointer' }}
+            data-tour="screening"
           >
             <h3>Скрининг</h3>
             <span className={styles["submenu-arrow"]}>{isSubmenuOpen ? '▼' : '▶'}</span>
@@ -130,6 +132,7 @@ const Sidebar = () => {
             className={`${styles["menu-item"]} ${isAIActive ? styles.active : ""}`}
             onClick={handleAIClick}
             style={{ cursor: 'pointer' }}
+            data-tour="ai"
           >
             <h3>Nexa AI</h3>
             <span className={styles["submenu-arrow"]}>{isAISubmenuOpen ? '▼' : '▶'}</span>
@@ -153,7 +156,7 @@ const Sidebar = () => {
         </div>
 
         {/* Remaining Menu Items */}
-        {regularMenuItems.slice(3).map(({ path, label, noTranslate, disabled, comingSoon }) =>
+        {regularMenuItems.slice(3).map(({ path, label, noTranslate, disabled, comingSoon, tourId }) =>
           disabled ? (
             <div
               key={path}
@@ -170,6 +173,7 @@ const Sidebar = () => {
               className={`${styles["menu-item"]} ${
                 location.pathname === path ? styles.active : ""
               }`}
+              {...(tourId ? { 'data-tour': tourId } : {})}
             >
               <h3>{noTranslate ? label : t(label)}</h3>
             </Link>

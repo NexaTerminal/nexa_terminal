@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import SocialFeed from "../../components/terminal/SocialFeed";
 import ProfileReminderBanner from "../../components/terminal/ProfileReminderBanner";
+import FeatureTour from "../../components/terminal/FeatureTour";
 
 const Dashboard = () => {
   const { currentUser, token } = useAuth();
@@ -44,6 +45,7 @@ const Dashboard = () => {
     <>
       <Header isTerminal={true} />
       <Sidebar />
+      <FeatureTour />
       {error && (
         <div className="text-center" style={{ color: "red", marginTop: 20 }}>
           {error}

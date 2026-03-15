@@ -42,7 +42,6 @@ const MyTemplateBuilder = () => {
   // Save state
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
-  const [templateCategory, setTemplateCategory] = useState('');
 
   // --- UPLOAD HANDLERS ---
 
@@ -370,8 +369,7 @@ const MyTemplateBuilder = () => {
         originalFileId,
         originalFileName,
         fields,
-        htmlPreview,
-        category: templateCategory
+        htmlPreview
       });
 
       navigate('/terminal/my-templates');
@@ -796,23 +794,6 @@ const MyTemplateBuilder = () => {
                     placeholder="Краток опис на шаблонот..."
                     rows={3}
                   />
-                </div>
-
-                <div className={styles.saveField}>
-                  <label className={styles.saveLabel}>Категорија (опционално)</label>
-                  <select
-                    className={styles.saveInput}
-                    value={templateCategory}
-                    onChange={e => setTemplateCategory(e.target.value)}
-                  >
-                    <option value="">-- Без категорија --</option>
-                    <option value="Вработување">Вработување</option>
-                    <option value="Договори">Договори</option>
-                    <option value="Лични податоци">Лични податоци</option>
-                    <option value="Финансии">Финансии</option>
-                    <option value="Администрација">Администрација</option>
-                    <option value="Друго">Друго</option>
-                  </select>
                 </div>
 
                 <div className={styles.saveSummary}>

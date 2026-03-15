@@ -8,9 +8,8 @@ function getAuthHeaders() {
   };
 }
 
-export async function listTemplates(category) {
-  const params = category ? `?category=${encodeURIComponent(category)}` : '';
-  const res = await fetch(`${API_BASE}${params}`, { headers: getAuthHeaders() });
+export async function listTemplates() {
+  const res = await fetch(API_BASE, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error('Грешка при вчитување на шаблоните');
   return res.json();
 }
@@ -114,13 +113,6 @@ export async function duplicateTemplate(id) {
   return res.json();
 }
 
-// Feature #5: Categories
-export async function getCategories() {
-  const res = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error('Грешка при вчитување на категориите');
-  return res.json();
-}
-
 // Feature #3: Versions
 export async function getVersions(id) {
   const res = await fetch(`${API_BASE}/${id}/versions`, { headers: getAuthHeaders() });
@@ -169,10 +161,9 @@ export async function deleteHistoryRecord(recordId) {
 }
 
 // Feature #4: Marketplace
-export async function browsePublicTemplates({ search, category, page = 1, limit = 20 } = {}) {
+export async function browsePublicTemplates({ search, page = 1, limit = 20 } = {}) {
   const params = new URLSearchParams();
   if (search) params.set('search', search);
-  if (category) params.set('category', category);
   params.set('page', page);
   params.set('limit', limit);
 

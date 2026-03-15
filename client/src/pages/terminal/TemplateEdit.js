@@ -37,7 +37,6 @@ const TemplateEdit = () => {
   const [template, setTemplate] = useState(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
   const [fields, setFields] = useState([]);
   const [versions, setVersions] = useState([]);
   const [showVersions, setShowVersions] = useState(false);
@@ -74,7 +73,6 @@ const TemplateEdit = () => {
       setTemplate(data);
       setName(data.name);
       setDescription(data.description || '');
-      setCategory(data.category || '');
       setFields(data.fields || []);
     } catch (err) {
       setError('Шаблонот не е пронајден');
@@ -280,7 +278,6 @@ const TemplateEdit = () => {
       await updateTemplate(templateId, {
         name: name.trim(),
         description: description.trim(),
-        category,
         fields
       });
       setSuccess('Шаблонот е успешно ажуриран');
@@ -378,22 +375,6 @@ const TemplateEdit = () => {
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Краток опис (опционално)"
                 />
-              </div>
-              <div className={styles.infoBarField}>
-                <label className={styles.infoBarLabel}>Категорија</label>
-                <select
-                  className={styles.infoBarInput}
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                >
-                  <option value="">-- Без категорија --</option>
-                  <option value="Вработување">Вработување</option>
-                  <option value="Договори">Договори</option>
-                  <option value="Лични податоци">Лични податоци</option>
-                  <option value="Финансии">Финансии</option>
-                  <option value="Администрација">Администрација</option>
-                  <option value="Друго">Друго</option>
-                </select>
               </div>
             </div>
             <div className={styles.infoBarActions}>

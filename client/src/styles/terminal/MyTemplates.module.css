@@ -181,44 +181,6 @@
 }
 
 /* ========================================
-   CATEGORY FILTER
-   ======================================== */
-
-.categoryFilter {
-  display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-.categoryPill {
-  padding: 0.375rem 0.875rem;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  font-size: 0.8125rem;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.categoryPill:hover {
-  border-color: #cbd5e1;
-  color: #334155;
-}
-
-.categoryPillActive {
-  background: #0f172a;
-  border-color: #0f172a;
-  color: #ffffff;
-}
-
-.categoryPillActive:hover {
-  background: #1e293b;
-  color: #ffffff;
-}
-
-/* ========================================
    TEMPLATE GRID
    ======================================== */
 
@@ -255,15 +217,6 @@
   margin-bottom: 0.625rem;
   flex-wrap: wrap;
   min-height: 22px;
-}
-
-.categoryBadge {
-  font-size: 0.6875rem;
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 0.125rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 500;
 }
 
 .publicBadge {

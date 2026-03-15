@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
-import { listTemplates, deleteTemplate, duplicateTemplate, getCategories, publishTemplate, unpublishTemplate } from '../../services/customTemplateApi';
+import { listTemplates, deleteTemplate, duplicateTemplate, publishTemplate, unpublishTemplate } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/MyTemplates.module.css';
 
 const MyTemplates = () => {
@@ -15,36 +15,20 @@ const MyTemplates = () => {
   const [duplicatingId, setDuplicatingId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: '' });
 
-  // Category filter
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-
   useEffect(() => {
     fetchTemplates();
-    fetchCategories();
   }, []);
-
-  useEffect(() => {
-    fetchTemplates();
-  }, [selectedCategory]);
 
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const data = await listTemplates(selectedCategory || undefined);
+      const data = await listTemplates();
       setTemplates(data);
     } catch (err) {
       setError('Грешка при вчитување на шаблоните');
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const cats = await getCategories();
-      setCategories(cats);
-    } catch (err) { /* ignore */ }
   };
 
   const openDeleteModal = (e, id, name) => {
@@ -156,27 +140,6 @@ const MyTemplates = () => {
             </div>
           </div>
 
-          {/* Category filter pills */}
-          {categories.length > 0 && (
-            <div className={styles.categoryFilter}>
-              <button
-                className={`${styles.categoryPill} ${!selectedCategory ? styles.categoryPillActive : ''}`}
-                onClick={() => setSelectedCategory('')}
-              >
-                Сите
-              </button>
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-
           {error && (
             <div className={styles.errorBanner}>
               {error}
@@ -223,14 +186,11 @@ const MyTemplates = () => {
                   onClick={() => handleCardClick(template._id)}
                 >
                   {/* Badges row */}
-                  <div className={styles.cardBadges}>
-                    {template.category && (
-                      <span className={styles.categoryBadge}>{template.category}</span>
-                    )}
-                    {template.isPublic && (
+                  {template.isPublic && (
+                    <div className={styles.cardBadges}>
                       <span className={styles.publicBadge}>Објавен</span>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   <h3 className={styles.cardTitle}>{template.name}</h3>
                   {template.description && (

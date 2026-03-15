@@ -14,7 +14,6 @@ const bulkUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize:
 
 // Static routes BEFORE parameterized ones
 router.post('/suggest-fields', ...auth, controller.suggestFields);
-router.get('/categories', ...auth, controller.getCategories);
 router.get('/public/browse', ...auth, controller.listPublicTemplates);
 router.get('/history', ...auth, historyController.listHistory);
 

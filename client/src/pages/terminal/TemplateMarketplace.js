@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
-import { browsePublicTemplates, clonePublicTemplate, getCategories } from '../../services/customTemplateApi';
+import { browsePublicTemplates, clonePublicTemplate } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/TemplateMarketplace.module.css';
 
 const TemplateMarketplace = () => {
@@ -11,34 +11,20 @@ const TemplateMarketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [categories, setCategories] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [cloningId, setCloningId] = useState(null);
   const [cloneSuccess, setCloneSuccess] = useState('');
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
     fetchTemplates();
-  }, [page, selectedCategory]);
-
-  const fetchCategories = async () => {
-    try {
-      const cats = await getCategories();
-      setCategories(cats);
-    } catch (err) { /* ignore */ }
-  };
+  }, [page]);
 
   const fetchTemplates = async () => {
     try {
       setLoading(true);
       const data = await browsePublicTemplates({
         search: search || undefined,
-        category: selectedCategory || undefined,
         page
       });
       setTemplates(data.templates);
@@ -105,25 +91,6 @@ const TemplateMarketplace = () => {
             <button type="submit" className={styles.searchButton}>Пребарај</button>
           </form>
 
-          {/* Category pills */}
-          <div className={styles.categoryFilter}>
-            <button
-              className={`${styles.categoryPill} ${!selectedCategory ? styles.categoryPillActive : ''}`}
-              onClick={() => { setSelectedCategory(''); setPage(1); }}
-            >
-              Сите
-            </button>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
-                onClick={() => { setSelectedCategory(cat); setPage(1); }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
           {error && (
             <div className={styles.errorBanner}>
               {error}
@@ -165,9 +132,6 @@ const TemplateMarketplace = () => {
                     <div className={styles.cardMeta}>
                       {template.publisherName && (
                         <span className={styles.publisher}>{template.publisherName}</span>
-                      )}
-                      {template.category && (
-                        <span className={styles.categoryBadge}>{template.category}</span>
                       )}
                     </div>
 

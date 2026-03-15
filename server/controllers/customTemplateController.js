@@ -92,7 +92,7 @@ const MAX_EDITS_PER_TEMPLATE = 3;
  */
 async function createTemplate(req, res) {
   try {
-    const { name, description, originalFileId, originalFileName, fields, htmlPreview, category } = req.body;
+    const { name, description, originalFileId, originalFileName, fields, htmlPreview } = req.body;
     const userId = req.user._id || req.user.id;
 
     if (!name || !originalFileId || !fields || !Array.isArray(fields)) {
@@ -132,7 +132,6 @@ async function createTemplate(req, res) {
       originalFileId: new ObjectId(originalFileId),
       fields,
       htmlPreview: htmlPreview || '',
-      category: category || '',
       currentVersion: 1,
       generationCount: 0,
       isPublic: false,
@@ -156,15 +155,11 @@ async function createTemplate(req, res) {
 async function listTemplates(req, res) {
   try {
     const userId = req.user._id || req.user.id;
-    const { category } = req.query;
     const db = req.app.locals.db;
     const collection = db.collection('custom_templates');
 
-    const query = { userId: new ObjectId(userId) };
-    if (category) query.category = category;
-
     const templates = await collection
-      .find(query)
+      .find({ userId: new ObjectId(userId) })
       .sort({ createdAt: -1 })
       .project({ htmlPreview: 0 }) // Exclude large HTML from listing
       .toArray();
@@ -207,7 +202,7 @@ async function getTemplate(req, res) {
 async function updateTemplate(req, res) {
   try {
     const userId = req.user._id || req.user.id;
-    const { name, description, fields, category } = req.body;
+    const { name, description, fields } = req.body;
     const db = req.app.locals.db;
     const collection = db.collection('custom_templates');
     const versionsCollection = db.collection('template_versions');
@@ -239,14 +234,12 @@ async function updateTemplate(req, res) {
       fileId: existing.fileId,
       originalFileId: existing.originalFileId,
       htmlPreview: existing.htmlPreview,
-      category: existing.category,
       createdAt: new Date()
     });
 
     const updateData = { updatedAt: new Date(), currentVersion: currentVersion + 1 };
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (category !== undefined) updateData.category = category;
 
     // If fields changed, re-generate the tagged .docx from the original
     if (fields !== undefined && Array.isArray(fields)) {
@@ -653,7 +646,6 @@ async function duplicateTemplate(req, res) {
       originalFileId: newOriginalFileId,
       fields: template.fields,
       htmlPreview: template.htmlPreview || '',
-      category: template.category || '',
       currentVersion: 1,
       generationCount: 0,
       isPublic: false,
@@ -668,30 +660,6 @@ async function duplicateTemplate(req, res) {
   } catch (error) {
     console.error('Error duplicating template:', error);
     res.status(500).json({ error: 'Грешка при дуплирање на шаблонот' });
-  }
-}
-
-/**
- * Get all categories (predefined + user-defined)
- */
-async function getCategories(req, res) {
-  try {
-    const userId = req.user._id || req.user.id;
-    const db = req.app.locals.db;
-    const collection = db.collection('custom_templates');
-
-    const predefined = ['Вработување', 'Договори', 'Лични податоци', 'Финансии', 'Администрација', 'Друго'];
-
-    const userCategories = await collection.distinct('category', {
-      userId: new ObjectId(userId),
-      category: { $nin: ['', null, undefined] }
-    });
-
-    const allCategories = [...new Set([...predefined, ...userCategories])];
-    res.json(allCategories);
-  } catch (error) {
-    console.error('Error getting categories:', error);
-    res.status(500).json({ error: 'Грешка при вчитување на категориите' });
   }
 }
 
@@ -756,7 +724,6 @@ async function rollbackToVersion(req, res) {
       fileId: template.fileId,
       originalFileId: template.originalFileId,
       htmlPreview: template.htmlPreview,
-      category: template.category,
       createdAt: new Date()
     });
 
@@ -770,7 +737,6 @@ async function rollbackToVersion(req, res) {
         fileId: version.fileId,
         originalFileId: version.originalFileId,
         htmlPreview: version.htmlPreview,
-        category: version.category,
         currentVersion: currentVersion + 1,
         updatedAt: new Date()
       }}
@@ -846,10 +812,9 @@ async function listPublicTemplates(req, res) {
   try {
     const db = req.app.locals.db;
     const collection = db.collection('custom_templates');
-    const { search, category, page = 1, limit = 20 } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
 
     const query = { isPublic: true };
-    if (category) query.category = category;
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -918,7 +883,6 @@ async function clonePublicTemplate(req, res) {
       originalFileId: newOriginalFileId,
       fields: original.fields,
       htmlPreview: original.htmlPreview || '',
-      category: original.category || '',
       currentVersion: 1,
       generationCount: 0,
       isPublic: false,
@@ -1118,7 +1082,6 @@ module.exports = {
   deleteTemplate,
   generateDocument,
   duplicateTemplate,
-  getCategories,
   listVersions,
   rollbackToVersion,
   publishTemplate,

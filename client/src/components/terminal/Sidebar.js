@@ -83,8 +83,8 @@ const Sidebar = () => {
         </div> */}
 
       <nav className={styles["dashboard-menu"]}>
-        {/* Dashboard and Documents */}
-        {regularMenuItems.slice(0, 2).map(({ path, label, noTranslate }) => (
+        {/* Dashboard, Documents, My Templates */}
+        {regularMenuItems.slice(0, 3).map(({ path, label, noTranslate }) => (
           <Link
             key={path}
             to={path}
@@ -153,7 +153,7 @@ const Sidebar = () => {
         </div>
 
         {/* Remaining Menu Items */}
-        {regularMenuItems.slice(2).map(({ path, label, noTranslate, disabled, comingSoon }) =>
+        {regularMenuItems.slice(3).map(({ path, label, noTranslate, disabled, comingSoon }) =>
           disabled ? (
             <div
               key={path}

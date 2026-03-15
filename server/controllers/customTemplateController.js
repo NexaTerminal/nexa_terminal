@@ -83,6 +83,10 @@ async function uploadTemplate(req, res) {
   }
 }
 
+// Limits
+const MAX_TEMPLATES_PER_USER = 5;
+const MAX_EDITS_PER_TEMPLATE = 3;
+
 /**
  * Save a template with field definitions (creates tagged .docx)
  */
@@ -96,6 +100,12 @@ async function createTemplate(req, res) {
     }
 
     const db = req.app.locals.db;
+
+    // Check template limit
+    const templateCount = await db.collection('custom_templates').countDocuments({ userId: new ObjectId(userId) });
+    if (templateCount >= MAX_TEMPLATES_PER_USER) {
+      return res.status(403).json({ error: `Максимален број на шаблони е ${MAX_TEMPLATES_PER_USER}. Избришете постоечки шаблон за да креирате нов.` });
+    }
     const templateStorage = new TemplateStorageService(db);
 
     // Load original .docx from GridFS
@@ -212,8 +222,13 @@ async function updateTemplate(req, res) {
       return res.status(404).json({ error: 'Шаблонот не е пронајден' });
     }
 
-    // Snapshot current state as a version before applying updates
+    // Check edit limit (version starts at 1, so 3 edits = version 4)
     const currentVersion = existing.currentVersion || 1;
+    if (currentVersion > MAX_EDITS_PER_TEMPLATE) {
+      return res.status(403).json({ error: `Максимален број на уредувања по шаблон е ${MAX_EDITS_PER_TEMPLATE}. Креирајте нов шаблон.` });
+    }
+
+    // Snapshot current state as a version before applying updates
     await versionsCollection.insertOne({
       templateId: existing._id,
       version: currentVersion,
@@ -597,6 +612,12 @@ async function duplicateTemplate(req, res) {
     const db = req.app.locals.db;
     const collection = db.collection('custom_templates');
 
+    // Check template limit
+    const templateCount = await collection.countDocuments({ userId: new ObjectId(userId) });
+    if (templateCount >= MAX_TEMPLATES_PER_USER) {
+      return res.status(403).json({ error: `Максимален број на шаблони е ${MAX_TEMPLATES_PER_USER}. Избришете постоечки шаблон за да дуплирате.` });
+    }
+
     const template = await collection.findOne({
       _id: new ObjectId(req.params.id),
       userId: new ObjectId(userId)
@@ -862,6 +883,12 @@ async function clonePublicTemplate(req, res) {
     const userId = req.user._id || req.user.id;
     const db = req.app.locals.db;
     const collection = db.collection('custom_templates');
+
+    // Check template limit
+    const templateCount = await collection.countDocuments({ userId: new ObjectId(userId) });
+    if (templateCount >= MAX_TEMPLATES_PER_USER) {
+      return res.status(403).json({ error: `Максимален број на шаблони е ${MAX_TEMPLATES_PER_USER}. Избришете постоечки шаблон за да клонирате.` });
+    }
 
     const original = await collection.findOne({
       _id: new ObjectId(req.params.id),

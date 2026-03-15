@@ -53,6 +53,8 @@ const Sidebar = () => {
   const regularMenuItems = [
     { path: '/terminal', label: 'common.dashboard' },
     { path: '/terminal/documents', label: 'dashboard.documentGenerator' },
+    { path: '/terminal/my-templates', label: 'Мои шаблони', noTranslate: true },
+    { path: '/terminal/template-marketplace', label: 'Маркетплејс', noTranslate: true },
     { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true },
     { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', noTranslate: true }

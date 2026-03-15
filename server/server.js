@@ -88,6 +88,9 @@ app.use(sanitizeRequest); // Sanitize all incoming requests
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', require('./routes/autoDocuments'));
 
+// Mount custom templates routes (JWT-protected API)
+app.use('/api/custom-templates', require('./routes/customTemplates'));
+
 // Mount marketing documents routes (JWT-protected API)
 app.use('/api/marketing-documents', require('./routes/marketingDocuments'));
 

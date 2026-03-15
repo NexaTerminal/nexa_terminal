@@ -76,6 +76,13 @@ import CourseDetail from './pages/terminal/CourseDetail';
 import CourseLesson from './pages/terminal/CourseLesson';
 import Credits from './pages/terminal/Credits';
 import Invite from './pages/terminal/Invite';
+import MyTemplates from './pages/terminal/MyTemplates';
+import MyTemplateBuilder from './pages/terminal/MyTemplateBuilder';
+import TemplateFormFill from './pages/terminal/TemplateFormFill';
+import TemplateEdit from './pages/terminal/TemplateEdit';
+import TemplateHistory from './pages/terminal/TemplateHistory';
+import TemplateBulkGenerate from './pages/terminal/TemplateBulkGenerate';
+import TemplateMarketplace from './pages/terminal/TemplateMarketplace';
 
 // Marketing Pages
 import Marketing from './pages/terminal/marketing/Marketing';
@@ -230,6 +237,13 @@ function App() {
       <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired><CyberReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/hr-screening" element={<PrivateRoute><VerificationRequired><HRQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/hr-screening/report/:id" element={<PrivateRoute><VerificationRequired><HRReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates" element={<PrivateRoute><VerificationRequired><MyTemplates /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates/new" element={<PrivateRoute><VerificationRequired><MyTemplateBuilder /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates/:templateId/fill" element={<PrivateRoute><VerificationRequired><TemplateFormFill /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates/:templateId/edit" element={<PrivateRoute><VerificationRequired><TemplateEdit /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates/history" element={<PrivateRoute><VerificationRequired><TemplateHistory /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/my-templates/:templateId/bulk" element={<PrivateRoute><VerificationRequired><TemplateBulkGenerate /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/template-marketplace" element={<PrivateRoute><VerificationRequired><TemplateMarketplace /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />

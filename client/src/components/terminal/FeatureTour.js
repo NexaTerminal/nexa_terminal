@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '../../styles/terminal/FeatureTour.module.css';
 
-const STORAGE_KEY = 'nexa_tour_completed';
+const STORAGE_KEY = 'nexa_tour_views';
+const MAX_TOUR_VIEWS = 3;
 
 const TOUR_STEPS = [
   {
@@ -50,9 +51,9 @@ const FeatureTour = () => {
   const [arrowStyle, setArrowStyle] = useState({});
 
   useEffect(() => {
-    // Check if tour was already completed
-    const completed = localStorage.getItem(STORAGE_KEY);
-    if (completed) return;
+    // Check how many times tour has been shown
+    const views = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    if (views >= MAX_TOUR_VIEWS) return;
 
     // Small delay to let the sidebar render
     const timer = setTimeout(() => setIsVisible(true), 800);
@@ -121,7 +122,8 @@ const FeatureTour = () => {
   };
 
   const completeTour = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    const views = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    localStorage.setItem(STORAGE_KEY, String(views + 1));
     setIsVisible(false);
     document.querySelectorAll('[data-tour-active]').forEach(el => {
       el.removeAttribute('data-tour-active');

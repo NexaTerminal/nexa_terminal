@@ -313,23 +313,23 @@
 }
 
 .iconBtn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: 1px solid transparent;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .iconBtn:hover {
   background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #475569;
+  border-color: #cbd5e1;
+  color: #334155;
 }
 
 .iconBtn:disabled {

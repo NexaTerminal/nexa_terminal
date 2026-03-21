@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import styles from '../../styles/terminal/ConversationSidebar.module.css';
+
+const CONFIRM_PHRASE = 'ИЗБРИШИ БОТ';
 
 /**
  * ConversationItem Component
@@ -13,6 +16,8 @@ const ConversationItem = ({ conversation, isActive, onClick, onDelete, onRename 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(conversation.title);
   const [showActions, setShowActions] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
 
   const handleRenameClick = (e) => {
     e.stopPropagation();
@@ -35,9 +40,21 @@ const ConversationItem = ({ conversation, isActive, onClick, onDelete, onRename 
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
-    if (window.confirm('Дали сте сигурни дека сакате да ја избришете оваа конверзација?')) {
+    setShowDeleteModal(true);
+    setConfirmText('');
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmText === CONFIRM_PHRASE) {
       onDelete(conversation._id);
+      setShowDeleteModal(false);
+      setConfirmText('');
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setConfirmText('');
   };
 
   const handleKeyDown = (e) => {
@@ -138,6 +155,52 @@ const ConversationItem = ({ conversation, isActive, onClick, onDelete, onRename 
             🗑
           </button>
         </div>
+      )}
+
+      {showDeleteModal && createPortal(
+        <div className={styles.deleteModalOverlay} onClick={handleCancelDelete}>
+          <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.deleteModalIcon}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <h3 className={styles.deleteModalTitle}>Избриши конверзација</h3>
+            <p className={styles.deleteModalText}>
+              Дали сте сигурни дека сакате да ја избришете конверзацијата <strong>"{conversation.title}"</strong>? Оваа акција не може да се поврати.
+            </p>
+            <p className={styles.deleteModalPrompt}>
+              Напишете <strong>{CONFIRM_PHRASE}</strong> за да потврдите:
+            </p>
+            <input
+              type="text"
+              className={styles.deleteModalInput}
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={CONFIRM_PHRASE}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirmDelete();
+                if (e.key === 'Escape') handleCancelDelete();
+              }}
+            />
+            <div className={styles.deleteModalActions}>
+              <button className={styles.deleteModalCancel} onClick={handleCancelDelete}>
+                Откажи
+              </button>
+              <button
+                className={styles.deleteModalConfirm}
+                onClick={handleConfirmDelete}
+                disabled={confirmText !== CONFIRM_PHRASE}
+              >
+                Избриши
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -38,6 +38,25 @@ const EmploymentPart4Report = () => {
     }));
   };
 
+  const normalizeSeverity = (severity) => {
+    if (severity === 'sanction1' || severity === 'sanction3' || severity === 'high') return 'high';
+    if (severity === 'sanction2' || severity === 'medium') return 'medium';
+    if (severity === 'low') return 'low';
+    return 'none';
+  };
+
+  const getSeverityClass = (severity) => {
+    return styles[`severity-${normalizeSeverity(severity)}`] || styles["severity-none"];
+  };
+
+  const getSeverityLabel = (severity) => {
+    const level = normalizeSeverity(severity);
+    if (level === 'high') return 'Висок ризик';
+    if (level === 'medium') return 'Среден ризик';
+    if (level === 'low') return 'Низок ризик';
+    return 'Информативно';
+  };
+
   const groupFindingsByCategory = () => {
     if (!assessment || !assessment.violations) return {};
 
@@ -188,6 +207,11 @@ const EmploymentPart4Report = () => {
                           key={index}
                           className={`${styles["finding-card"]} ${styles["finding-card-violation"]}`}
                         >
+                          <div className={styles["finding-header"]}>
+                            <span className={`${styles["severity-badge"]} ${getSeverityClass(finding.severity)}`}>
+                              {getSeverityLabel(finding.severity)}
+                            </span>
+                          </div>
                           <div className={styles["finding-question"]}>
                             <strong>Прашање:</strong> {finding.question}
                           </div>

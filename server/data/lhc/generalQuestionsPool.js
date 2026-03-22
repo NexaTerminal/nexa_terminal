@@ -55,9 +55,11 @@ const normalizeSanctionLevel = (sanctionLevel, sourceCategory) => {
   return 'medium';
 };
 
-// Extract and enrich employment questions (84 questions)
+// Extract and enrich employment questions - prefix IDs to avoid collisions
 const employmentQuestions = employmentData.questions.map(q => ({
   ...q,
+  id: `emp_${q.id}`,
+  originalId: q.id,
   sourceCategory: SOURCE_CATEGORIES.EMPLOYMENT.id,
   sourceCategoryName: SOURCE_CATEGORIES.EMPLOYMENT.name,
   sourceCategoryIcon: SOURCE_CATEGORIES.EMPLOYMENT.icon,
@@ -69,9 +71,11 @@ const employmentQuestions = employmentData.questions.map(q => ({
   originalCategoryNames: employmentData.categoryNames
 }));
 
-// Extract and enrich GDPR questions (39 questions)
+// Extract and enrich GDPR questions - prefix IDs to avoid collisions
 const gdprQuestionsEnriched = gdprQuestions.map(q => ({
   ...q,
+  id: `gdpr_${q.id}`,
+  originalId: q.id,
   sourceCategory: SOURCE_CATEGORIES.GDPR.id,
   sourceCategoryName: SOURCE_CATEGORIES.GDPR.name,
   sourceCategoryIcon: SOURCE_CATEGORIES.GDPR.icon,
@@ -79,9 +83,11 @@ const gdprQuestionsEnriched = gdprQuestions.map(q => ({
   normalizedSanctionLevel: normalizeSanctionLevel(q.sanctionLevel, 'gdpr')
 }));
 
-// Extract and enrich Health & Safety questions (46 questions)
+// Extract and enrich Health & Safety questions - prefix IDs to avoid collisions
 const healthSafetyQuestionsEnriched = healthAndSafetyQuestions.map(q => ({
   ...q,
+  id: `hs_${q.id}`,
+  originalId: q.id,
   sourceCategory: SOURCE_CATEGORIES.HEALTH_SAFETY.id,
   sourceCategoryName: SOURCE_CATEGORIES.HEALTH_SAFETY.name,
   sourceCategoryIcon: SOURCE_CATEGORIES.HEALTH_SAFETY.icon,
@@ -123,7 +129,7 @@ function getRandomQuestions(count = 20) {
  */
 function getQuestionsByIds(questionIds) {
   return questionIds.map(id => {
-    return allQuestions.find(q => q.id === id && questionIds.includes(q.id));
+    return allQuestions.find(q => q.id === id);
   }).filter(Boolean);
 }
 

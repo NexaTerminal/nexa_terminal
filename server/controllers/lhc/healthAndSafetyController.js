@@ -32,7 +32,7 @@ const gradeConfig = {
   good: { min: 60, label: 'Определена усогласеност', class: 'good' },
   average: { min: 50, label: 'Делумна усогласеност', class: 'average' },
   low: { min: 40, label: 'Ниска усогласеност', class: 'low' },
-  veryLow: { min: 0, label: 'Исклучително ниска усогласеност', class: 'low' }
+  veryLow: { min: 0, label: 'Исклучително ниска усогласеност', class: 'verylow' }
 };
 
 // Category names in Macedonian

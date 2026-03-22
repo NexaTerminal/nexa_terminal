@@ -67,8 +67,18 @@ class GDPREvaluator {
       score: 0,
       maxScore: 0,
       violations: [],
+      allFindings: [],
       recommendations: []
     };
+  }
+
+  getAnswerLabel(question, answer) {
+    if (question.type === ANSWER_TYPES.CHOICE) {
+      const option = question.options.find(opt => opt.value === answer);
+      return option ? option.label : answer;
+    }
+    const labels = { yes: 'Да', no: 'Не', partially: 'Делумно', partial: 'Делумно', not_applicable: 'Не е применливо', na: 'Не е применливо' };
+    return labels[answer] || answer;
   }
 
   evaluate(answers) {
@@ -79,6 +89,18 @@ class GDPREvaluator {
 
       this.results.maxScore += question.weight;
       const finding = this.evaluateQuestion(question, answer);
+
+      const findingRecord = {
+        question: question.text,
+        answer: this.getAnswerLabel(question, answer),
+        article: question.article,
+        category: categoryNames[question.category],
+        finding: finding.message,
+        severity: question.sanctionLevel,
+        isCompliant: finding.isCompliant
+      };
+
+      this.results.allFindings.push(findingRecord);
 
       if (!finding.isCompliant) {
         this.results.violations.push({
@@ -222,6 +244,7 @@ class GDPREvaluator {
       gradeClass: gradeInfo.class,
       gradeDescription: this.getGradeDescription(gradeInfo.label),
       violations: this.results.violations,
+      allFindings: this.results.allFindings,
       recommendations: [...new Set(this.results.recommendations)] // Remove duplicates
     };
   }

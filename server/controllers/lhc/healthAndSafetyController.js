@@ -87,8 +87,14 @@ class HealthAndSafetyEvaluator {
       score: 0,
       maxScore: 0,
       violations: [],
+      allFindings: [],
       recommendations: []
     };
+  }
+
+  getAnswerLabel(question, answer) {
+    const labels = { yes: 'Да', no: 'Не', partially: 'Делумно', partial: 'Делумно', true: 'Точно', false: 'Неточно', not_applicable: 'Не е применливо', na: 'Не е применливо' };
+    return labels[answer] || answer;
   }
 
   evaluate(answers) {
@@ -105,6 +111,18 @@ class HealthAndSafetyEvaluator {
 
       this.results.maxScore += question.weight;
       const finding = this.evaluateQuestion(question, answer);
+
+      const findingRecord = {
+        question: question.text,
+        answer: this.getAnswerLabel(question, answer),
+        article: question.article,
+        category: categoryNames[question.category],
+        finding: finding.message,
+        severity: question.sanctionLevel,
+        isCompliant: finding.isCompliant
+      };
+
+      this.results.allFindings.push(findingRecord);
 
       if (!finding.isCompliant) {
         this.results.violations.push({
@@ -130,11 +148,13 @@ class HealthAndSafetyEvaluator {
     let checkedCount = 0;
     let totalOptions = question.options.length;
     const uncheckedItems = [];
+    const checkedItems = [];
 
     question.options.forEach(option => {
       const isChecked = answers[option.id] === '1' || answers[option.id] === true;
       if (isChecked) {
         checkedCount++;
+        checkedItems.push(option.label);
         this.results.score += option.weight;
       } else {
         uncheckedItems.push(option.label);
@@ -143,7 +163,11 @@ class HealthAndSafetyEvaluator {
       this.results.maxScore += option.weight;
     });
 
-    // If any items are unchecked, add violation
+    const isFullyCompliant = uncheckedItems.length === 0;
+    const answerText = checkedItems.length > 0
+      ? `Означени: ${checkedItems.join('; ')}${uncheckedItems.length > 0 ? ` | Неозначени: ${uncheckedItems.join('; ')}` : ''}`
+      : `Ниту една мерка не е означена`;
+
     if (uncheckedItems.length > 0) {
       const message = `✗ Следните мерки не се преземени: ${uncheckedItems.join('; ')}.${this.getSanctionText(question.sanctionLevel)}`;
 
@@ -155,8 +179,28 @@ class HealthAndSafetyEvaluator {
         severity: question.sanctionLevel
       });
 
+      this.results.allFindings.push({
+        question: question.text,
+        answer: answerText,
+        article: question.article,
+        category: categoryNames[question.category],
+        finding: message,
+        severity: question.sanctionLevel,
+        isCompliant: false
+      });
+
       const customRecommendation = question.recommendation + ': ' + uncheckedItems.join('; ');
       this.results.recommendations.push(customRecommendation);
+    } else {
+      this.results.allFindings.push({
+        question: question.text,
+        answer: answerText,
+        article: question.article,
+        category: categoryNames[question.category],
+        finding: `✓ Сите мерки се преземени во согласност со ${question.article}.`,
+        severity: question.sanctionLevel,
+        isCompliant: true
+      });
     }
   }
 
@@ -273,6 +317,7 @@ class HealthAndSafetyEvaluator {
       gradeClass: gradeInfo.class,
       gradeDescription: this.getGradeDescription(gradeInfo.label),
       violations: this.results.violations,
+      allFindings: this.results.allFindings,
       recommendations: [...new Set(this.results.recommendations)] // Remove duplicates
     };
   }

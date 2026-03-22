@@ -58,14 +58,15 @@ const GDPRReport = () => {
   };
 
   const groupFindingsByCategory = () => {
-    if (!assessment || !assessment.violations) return {};
+    const findings = assessment?.allFindings || assessment?.violations || [];
+    if (findings.length === 0) return {};
 
     const grouped = {};
-    assessment.violations.forEach(violation => {
-      if (!grouped[violation.category]) {
-        grouped[violation.category] = [];
+    findings.forEach(finding => {
+      if (!grouped[finding.category]) {
+        grouped[finding.category] = [];
       }
-      grouped[violation.category].push(violation);
+      grouped[finding.category].push(finding);
     });
     return grouped;
   };
@@ -187,7 +188,10 @@ const GDPRReport = () => {
                 Подолу е детален преглед на сите прашања и наоди по секоја категорија:
               </p>
 
-              {Object.entries(groupedFindings).map(([categoryName, findings]) => (
+              {Object.entries(groupedFindings).map(([categoryName, findings]) => {
+                const compliantCount = findings.filter(f => f.isCompliant).length;
+                const violationCount = findings.length - compliantCount;
+                return (
                 <div key={categoryName} className={styles["category-findings"]}>
                   <button
                     className={styles["category-toggle"]}
@@ -200,7 +204,7 @@ const GDPRReport = () => {
                       {categoryName}
                     </span>
                     <span className={styles["category-toggle-count"]}>
-                      ({findings.length} прашања)
+                      ({findings.length} прашања - {compliantCount} усогласени, {violationCount} неусогласени)
                     </span>
                   </button>
 
@@ -209,16 +213,21 @@ const GDPRReport = () => {
                       {findings.map((finding, index) => (
                         <div
                           key={index}
-                          className={`${styles["finding-card"]} ${styles["finding-card-violation"]}`}
+                          className={`${styles["finding-card"]} ${finding.isCompliant ? styles["finding-card-compliant"] : styles["finding-card-violation"]}`}
                         >
                           <div className={styles["finding-header"]}>
-                            <span className={`${styles["severity-badge"]} ${getSeverityClass(finding.severity)}`}>
-                              {getSeverityLabel(finding.severity)}
+                            <span className={`${styles["severity-badge"]} ${finding.isCompliant ? styles["severity-none"] : getSeverityClass(finding.severity)}`}>
+                              {finding.isCompliant ? 'Усогласено' : getSeverityLabel(finding.severity)}
                             </span>
                           </div>
                           <div className={styles["finding-question"]}>
                             <strong>Прашање:</strong> {finding.question}
                           </div>
+                          {finding.answer && (
+                            <div className={styles["finding-answer"]}>
+                              <strong>Ваш одговор:</strong> {finding.answer}
+                            </div>
+                          )}
                           <div className={styles["finding-article"]}>
                             <strong>Законска основа:</strong> {finding.article}
                           </div>
@@ -230,7 +239,8 @@ const GDPRReport = () => {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Actions */}

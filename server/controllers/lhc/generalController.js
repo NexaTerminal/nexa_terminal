@@ -16,9 +16,26 @@ class GeneralComplianceEvaluator {
       score: 0,
       maxScore: 0,
       violations: [],
+      allFindings: [],
       recommendations: [],
       categoryBreakdown: {}
     };
+  }
+
+  getAnswerLabel(question, answer) {
+    if (question.type === 'choice') {
+      const option = question.options.find(opt => opt.value === answer);
+      return option ? option.label : answer;
+    }
+    if (question.type === 'multi_check' && typeof answer === 'object') {
+      const checked = question.options.filter(opt => answer[opt.id]).map(opt => opt.label);
+      const unchecked = question.options.filter(opt => !answer[opt.id]).map(opt => opt.label);
+      return checked.length > 0
+        ? `Означени: ${checked.join('; ')}${unchecked.length > 0 ? ` | Неозначени: ${unchecked.join('; ')}` : ''}`
+        : 'Ниту една мерка не е означена';
+    }
+    const labels = { yes: 'Да', no: 'Не', partially: 'Делумно', partial: 'Делумно', true: 'Точно', false: 'Неточно', not_applicable: 'Не е применливо', na: 'Не е применливо' };
+    return labels[answer] || answer;
   }
 
   evaluate(answers, questions) {
@@ -46,14 +63,32 @@ class GeneralComplianceEvaluator {
 
       const finding = this.evaluateQuestion(question, answer);
 
+      const categoryLabel = question.originalCategoryNames
+        ? question.originalCategoryNames[question.category]
+        : question.category;
+
+      const findingRecord = {
+        questionId: question.id,
+        question: question.text,
+        answer: this.getAnswerLabel(question, answer),
+        article: question.article,
+        category: categoryLabel,
+        sourceCategory: question.sourceCategory,
+        sourceCategoryName: question.sourceCategoryName,
+        sourceCategoryIcon: question.sourceCategoryIcon,
+        finding: finding.message,
+        severity: question.normalizedSanctionLevel,
+        isCompliant: finding.isCompliant
+      };
+
+      this.results.allFindings.push(findingRecord);
+
       if (!finding.isCompliant) {
         this.results.violations.push({
           questionId: question.id,
           question: question.text,
           article: question.article,
-          category: question.originalCategoryNames
-            ? question.originalCategoryNames[question.category]
-            : question.category,
+          category: categoryLabel,
           sourceCategory: question.sourceCategory,
           sourceCategoryName: question.sourceCategoryName,
           sourceCategoryIcon: question.sourceCategoryIcon,
@@ -265,6 +300,7 @@ class GeneralComplianceEvaluator {
       gradeClass: gradeInfo.class,
       gradeDescription: this.getGradeDescription(gradeInfo.label),
       violations: this.results.violations,
+      allFindings: this.results.allFindings,
       recommendations: uniqueRecommendations,
       categoryBreakdown: this.results.categoryBreakdown
     };

@@ -39,18 +39,19 @@ const GeneralReport = () => {
   };
 
   const groupFindingsBySourceCategory = () => {
-    if (!assessment || !assessment.violations) return {};
+    const findings = assessment?.allFindings || assessment?.violations || [];
+    if (findings.length === 0) return {};
 
     const grouped = {};
-    assessment.violations.forEach(violation => {
-      const key = violation.sourceCategoryName || 'Друго';
+    findings.forEach(finding => {
+      const key = finding.sourceCategoryName || 'Друго';
       if (!grouped[key]) {
         grouped[key] = {
-          icon: violation.sourceCategoryIcon || '📋',
+          icon: finding.sourceCategoryIcon || '📋',
           findings: []
         };
       }
-      grouped[key].findings.push(violation);
+      grouped[key].findings.push(finding);
     });
     return grouped;
   };
@@ -235,10 +236,13 @@ const GeneralReport = () => {
             <div className={styles["detailed-findings-section"]}>
               <h2>📊 Детален извештај по области</h2>
               <p className={styles["findings-intro"]}>
-                Подолу е детален преглед на сите идентификувани пропусти, групирани по област:
+                Подолу е детален преглед на сите одговори и наоди, групирани по област:
               </p>
 
-              {Object.entries(groupedFindings).map(([categoryName, categoryData]) => (
+              {Object.entries(groupedFindings).map(([categoryName, categoryData]) => {
+                const compliantCount = categoryData.findings.filter(f => f.isCompliant).length;
+                const violationCount = categoryData.findings.length - compliantCount;
+                return (
                 <div key={categoryName} className={styles["category-findings"]}>
                   <button
                     className={styles["category-toggle"]}
@@ -254,7 +258,7 @@ const GeneralReport = () => {
                       {categoryName}
                     </span>
                     <span className={styles["category-toggle-count"]}>
-                      ({categoryData.findings.length} пропусти)
+                      ({categoryData.findings.length} прашања - {compliantCount} усогласени, {violationCount} неусогласени)
                     </span>
                   </button>
 
@@ -263,11 +267,11 @@ const GeneralReport = () => {
                       {categoryData.findings.map((finding, index) => (
                         <div
                           key={index}
-                          className={`${styles["finding-card"]} ${styles["finding-card-violation"]}`}
+                          className={`${styles["finding-card"]} ${finding.isCompliant ? styles["finding-card-compliant"] : styles["finding-card-violation"]}`}
                         >
                           <div className={styles["finding-header"]}>
-                            <span className={`${styles["severity-badge"]} ${getSeverityClass(finding.severity)}`}>
-                              {getSeverityLabel(finding.severity)}
+                            <span className={`${styles["severity-badge"]} ${finding.isCompliant ? styles["severity-none"] : getSeverityClass(finding.severity)}`}>
+                              {finding.isCompliant ? 'Усогласено' : getSeverityLabel(finding.severity)}
                             </span>
                             {finding.category && (
                               <span className={styles["finding-subcategory"]}>
@@ -278,6 +282,11 @@ const GeneralReport = () => {
                           <div className={styles["finding-question"]}>
                             <strong>Прашање:</strong> {finding.question}
                           </div>
+                          {finding.answer && (
+                            <div className={styles["finding-answer"]}>
+                              <strong>Ваш одговор:</strong> {finding.answer}
+                            </div>
+                          )}
                           <div className={styles["finding-article"]}>
                             <strong>Законска основа:</strong> {finding.article}
                           </div>
@@ -289,10 +298,11 @@ const GeneralReport = () => {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
 
-              {/* No violations message */}
-              {assessment.violations.length === 0 && (
+              {/* No findings message */}
+              {(!assessment.allFindings || assessment.allFindings.length === 0) && assessment.violations.length === 0 && (
                 <div className={styles["no-violations"]}>
                   <span className={styles["no-violations-icon"]}>🎉</span>
                   <p>Честитки! Не се идентификувани пропусти во проверените области.</p>

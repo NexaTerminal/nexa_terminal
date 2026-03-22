@@ -559,6 +559,11 @@
   border-left-color: #dc3545;
 }
 
+.finding-card-partial {
+  background: #fff3cd;
+  border-left-color: #ffc107;
+}
+
 .finding-question {
   margin-bottom: var(--spacing-sm);
   line-height: 1.6;

@@ -389,6 +389,92 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
 });
 
 /**
+ * @route   POST /api/chatbot/conversations/:id/ask-stream
+ * @desc    Send a message and stream the response via SSE
+ * @access  Private (requires authentication)
+ * @body    { question: string }
+ */
+router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), async (req, res) => {
+  try {
+    const conversationId = req.params.id;
+    const { question } = req.body;
+    const userId = req.user._id.toString();
+    const conversationService = getConversationService(req);
+
+    if (!question || question.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'Прашањето не може да биде празно.' });
+    }
+    if (question.length > 500) {
+      return res.status(400).json({ success: false, message: 'Прашањето е премногу долго. Максимум 500 карактери.' });
+    }
+
+    // Verify conversation belongs to user
+    await conversationService.getConversation(conversationId, userId);
+
+    // Deduct credits BEFORE streaming starts
+    const creditService = req.app.locals.creditService;
+    let creditsRemaining = null;
+    if (creditService) {
+      try {
+        const creditResult = await creditService.deductCredits(
+          req.user._id, 1, 'AI_QUESTION',
+          { conversationId, endpoint: req.originalUrl }
+        );
+        creditsRemaining = creditResult.newBalance;
+      } catch (creditError) {
+        console.error('Credit deduction error:', creditError);
+      }
+    }
+
+    // Set SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+
+    // Handle client disconnect
+    let clientDisconnected = false;
+    req.on('close', () => { clientDisconnected = true; });
+
+    // Stream the response
+    await chatBotService.askQuestionStream(question, userId, conversationId, (event) => {
+      if (clientDisconnected) return;
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+
+    // Send credits info as final event
+    if (!clientDisconnected && creditsRemaining !== null) {
+      res.write(`data: ${JSON.stringify({ type: 'credits', data: { creditsRemaining } })}\n\n`);
+    }
+
+    if (!clientDisconnected) {
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
+
+  } catch (error) {
+    console.error('❌ Error in conversation ask-stream:', error);
+
+    // If headers already sent, try to send error as SSE event
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ type: 'error', data: error.message })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+    } else {
+      if (error.message.includes('достигнавте')) {
+        return res.status(429).json({ success: false, message: error.message, limitExceeded: true });
+      }
+      if (error.message.includes('not found') || error.message.includes('unauthorized')) {
+        return res.status(404).json({ success: false, message: 'Конверзацијата не е пронајдена.' });
+      }
+      return res.status(500).json({ success: false, message: 'Се случи грешка при обработка на вашето прашање.' });
+    }
+  }
+});
+
+/**
  * @route   PUT /api/chatbot/conversations/:id/archive
  * @desc    Archive a conversation (mark as inactive)
  * @access  Private (requires authentication)
@@ -502,6 +588,39 @@ router.put('/conversations/:id/title', authenticateJWT, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Не можевме да го ажурираме насловот.',
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/chatbot/conversations/:conversationId/messages/:messageId/feedback
+ * @desc    Rate an AI message (thumbs up/down)
+ * @access  Private (requires authentication)
+ * @body    { rating: "up" | "down" | null }
+ */
+router.put('/conversations/:conversationId/messages/:messageId/feedback', authenticateJWT, async (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    const { rating } = req.body;
+    const userId = req.user._id;
+    const conversationService = getConversationService(req);
+
+    await conversationService.rateMessage(conversationId, messageId, userId, rating);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Оценката е зачувана.',
+    });
+  } catch (error) {
+    console.error('❌ Error rating message:', error);
+
+    if (error.message.includes('not found') || error.message.includes('unauthorized')) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Не можевме да ја зачуваме оценката.',
     });
   }
 });

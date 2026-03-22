@@ -388,6 +388,9 @@ class DocumentProcessingService {
       { upsert: true }
     );
 
+    // Ensure full-text index exists for hybrid search
+    await this.ensureFullTextIndex();
+
     return {
       fileName,
       pageCount,
@@ -396,6 +399,31 @@ class DocumentProcessingService {
       uploaded: uploadResult.uploaded,
       batches: uploadResult.batches
     };
+  }
+
+  /**
+   * Ensure a full-text payload index exists on pageContent for keyword search.
+   * Idempotent - safe to call multiple times.
+   */
+  async ensureFullTextIndex() {
+    try {
+      await this.qdrantClient.createPayloadIndex(this.collectionName, {
+        field_name: 'pageContent',
+        field_schema: {
+          type: 'text',
+          tokenizer: 'word',
+          lowercase: true,
+        },
+      });
+      console.log('✓ Full-text index on pageContent ensured.');
+    } catch (err) {
+      // Index already exists or other non-critical error
+      if (err.message && err.message.includes('already exists')) {
+        console.log('✓ Full-text index on pageContent already exists.');
+      } else {
+        console.warn('⚠️  Could not create full-text index:', err.message);
+      }
+    }
   }
 }
 

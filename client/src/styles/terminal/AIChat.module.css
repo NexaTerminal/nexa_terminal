@@ -305,6 +305,82 @@
   }
 }
 
+/* Feedback buttons */
+.feedbackRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.feedbackBtn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.5;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.feedbackBtn:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.feedbackActive {
+  opacity: 1;
+  background-color: rgba(30, 77, 183, 0.1);
+  border-color: var(--color-primary, #1E4DB7);
+}
+
+/* Suggestion chips */
+.suggestionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.suggestionChip {
+  background-color: rgba(30, 77, 183, 0.08);
+  color: var(--color-primary, #1E4DB7);
+  border: 1px solid rgba(30, 77, 183, 0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  text-align: left;
+}
+
+.suggestionChip:hover:not(:disabled) {
+  background-color: rgba(30, 77, 183, 0.15);
+  border-color: var(--color-primary, #1E4DB7);
+}
+
+.suggestionChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Streaming cursor animation */
+.streamingCursor {
+  display: inline-block;
+  font-weight: bold;
+  color: var(--color-primary, #1E4DB7);
+  animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 .errorMessage {
   background: var(--color-error-bg, #fef2f2);
   border: 1px solid var(--color-error-light, #ef4444);

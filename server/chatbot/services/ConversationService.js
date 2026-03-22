@@ -339,6 +339,59 @@ class ConversationService {
   }
 
   /**
+   * Rate an AI message (thumbs up/down)
+   * @param {string} conversationId - Conversation ID
+   * @param {string} messageId - Message ID
+   * @param {string} userId - User ID (for authorization)
+   * @param {string|null} rating - "up", "down", or null to remove
+   * @returns {Object} - { success: true }
+   */
+  async rateMessage(conversationId, messageId, userId, rating) {
+    try {
+      if (rating !== null && rating !== 'up' && rating !== 'down') {
+        throw new Error('Rating must be "up", "down", or null');
+      }
+
+      // Verify conversation belongs to user
+      const conversation = await this.collection.findOne({
+        _id: new ObjectId(conversationId),
+        userId: userId.toString(),
+      });
+
+      if (!conversation) {
+        throw new Error('Conversation not found or unauthorized');
+      }
+
+      // Verify the message exists and is an AI message
+      const message = conversation.messages?.find(m => m.messageId === messageId);
+      if (!message) {
+        throw new Error('Message not found');
+      }
+      if (message.type !== 'ai') {
+        throw new Error('Can only rate AI messages');
+      }
+
+      // Update the feedback on the specific message
+      const feedback = rating ? { rating, ratedAt: new Date() } : null;
+
+      await this.collection.updateOne(
+        {
+          _id: new ObjectId(conversationId),
+          'messages.messageId': messageId,
+        },
+        {
+          $set: { 'messages.$.feedback': feedback },
+        }
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error rating message:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get recent messages for RAG context
    * @param {string} conversationId - Conversation ID
    * @param {number} limit - Number of recent messages (default 10)

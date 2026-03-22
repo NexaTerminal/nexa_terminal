@@ -26,6 +26,7 @@ const AIChat = () => {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
   const [limits, setLimits] = useState({
     remaining: 4,
@@ -105,7 +106,9 @@ const AIChat = () => {
           type: msg.type,
           content: msg.content,
           sources: msg.sources || [],
-          timestamp: new Date(msg.timestamp)
+          timestamp: new Date(msg.timestamp),
+          messageId: msg.messageId || null,
+          feedback: msg.feedback || null,
         }));
 
         setMessages(formattedMessages);
@@ -123,20 +126,18 @@ const AIChat = () => {
   };
 
   /**
-   * Handle sending a question to the chatbot
+   * Handle sending a question to the chatbot (with streaming)
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!question.trim()) return;
 
-    // Check if user has questions remaining
     if (limits.remaining <= 0) {
       setError('Ја достигнавте вашата неделна граница од прашања.');
       return;
     }
 
-    // Add user's question to messages
     const userMessage = {
       type: 'user',
       content: question,
@@ -144,9 +145,10 @@ const AIChat = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const questionText = question; // Store before clearing
-    setQuestion(''); // Clear input
+    const questionText = question;
+    setQuestion('');
     setIsLoading(true);
+    setIsStreaming(false);
     setError(null);
 
     try {
@@ -161,55 +163,119 @@ const AIChat = () => {
         }
       }
 
-      // Send message to conversation with credit handling
-      const data = await handleCreditOperation(
-        async () => ChatbotApiService.sendMessage(conversationId, questionText),
-        'AI прашање',
-        1
-      );
+      // Add empty AI message placeholder for streaming
+      const aiMessage = {
+        type: 'ai',
+        content: '',
+        sources: [],
+        timestamp: new Date(),
+        isStreaming: true,
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setIsLoading(false);
+      setIsStreaming(true);
 
-      // If null, it means insufficient credits (handled by modal)
-      if (!data) {
-        setMessages(prev => prev.slice(0, -1));
-        setIsLoading(false);
-        return;
-      }
+      await ChatbotApiService.sendMessageStream(conversationId, questionText, {
+        onToken: (token) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.type === 'ai') {
+              updated[updated.length - 1] = { ...last, content: last.content + token };
+            }
+            return updated;
+          });
+        },
+        onSources: (sources) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.type === 'ai') {
+              updated[updated.length - 1] = { ...last, sources };
+            }
+            return updated;
+          });
+        },
+        onSuggestions: (suggestions) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.type === 'ai') {
+              // Remove [SUGGESTIONS]...[/SUGGESTIONS] tags from displayed content
+              const cleanContent = last.content.replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/, '').trim();
+              updated[updated.length - 1] = { ...last, content: cleanContent, suggestions };
+            }
+            return updated;
+          });
+        },
+        onDone: (data) => {
+          if (data.creditsOnly) return;
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.type === 'ai') {
+              updated[updated.length - 1] = { ...last, isStreaming: false, messageId: data.messageId };
+            }
+            return updated;
+          });
+          if (data.remainingQuestions !== undefined) {
+            setLimits(prev => ({ ...prev, remaining: data.remainingQuestions }));
+          }
+          setIsStreaming(false);
+          setRefreshTrigger(prev => prev + 1);
+          refreshCredits();
+        },
+        onError: (errorMsg) => {
+          setError(errorMsg || 'Се случи грешка при обработка на вашето прашање.');
+          setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
+          setIsStreaming(false);
+        },
+      });
 
-      if (data.success) {
-        // Add AI response to messages
-        const aiMessage = {
-          type: 'ai',
-          content: data.data.answer,
-          sources: data.data.sources,
-          timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Update remaining questions
-        setLimits(prev => ({
-          ...prev,
-          remaining: data.data.remainingQuestions
-        }));
-
-        // Trigger conversation list refresh
-        setRefreshTrigger(prev => prev + 1);
-
-        // Refresh credits after successful operation
-        await refreshCredits();
-      } else {
-        // Handle error response
-        setError(data.message || 'Се случи грешка. Ве молиме обидете се повторно.');
-
-        // Remove the user message if request failed
-        setMessages(prev => prev.slice(0, -1));
-      }
     } catch (err) {
       console.error('Error asking question:', err);
-      setError('Не можевме да се поврземе со серверот. Ве молиме обидете се повторно.');
 
-      // Remove the user message if request failed
-      setMessages(prev => prev.slice(0, -1));
+      // Fallback to non-streaming
+      try {
+        // Remove the streaming AI message if it exists
+        setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming)));
+        setIsLoading(true);
+        setIsStreaming(false);
+
+        let conversationId = currentConversationId;
+        const data = await handleCreditOperation(
+          async () => ChatbotApiService.sendMessage(conversationId, questionText),
+          'AI прашање',
+          1
+        );
+
+        if (!data) {
+          setMessages(prev => prev.slice(0, prev.length - 1));
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.success) {
+          const aiMessage = {
+            type: 'ai',
+            content: data.data.answer,
+            sources: data.data.sources,
+            suggestions: data.data.suggestions || [],
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setLimits(prev => ({ ...prev, remaining: data.data.remainingQuestions }));
+          setRefreshTrigger(prev => prev + 1);
+          await refreshCredits();
+        } else {
+          setError(data.message || 'Се случи грешка. Ве молиме обидете се повторно.');
+          setMessages(prev => prev.slice(0, -1));
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback also failed:', fallbackErr);
+        setError('Не можевме да се поврземе со серверот. Ве молиме обидете се повторно.');
+        setMessages(prev => prev.filter(m => m.type !== 'ai' || m.content));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -220,6 +286,38 @@ const AIChat = () => {
    */
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  /**
+   * Handle clicking a suggestion chip - fills the input
+   */
+  const handleSuggestionClick = (suggestion) => {
+    setQuestion(suggestion);
+  };
+
+  /**
+   * Handle feedback (thumbs up/down) on AI messages
+   */
+  const handleFeedback = async (messageIndex, rating) => {
+    const message = messages[messageIndex];
+    if (!message || message.type !== 'ai' || !message.messageId || !currentConversationId) return;
+
+    // Toggle: if same rating clicked, remove it
+    const newRating = message.feedback?.rating === rating ? null : rating;
+
+    try {
+      await ChatbotApiService.rateMessage(currentConversationId, message.messageId, newRating);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[messageIndex] = {
+          ...updated[messageIndex],
+          feedback: newRating ? { rating: newRating } : null,
+        };
+        return updated;
+      });
+    } catch (err) {
+      console.error('Error rating message:', err);
+    }
   };
 
   /**
@@ -326,7 +424,44 @@ const AIChat = () => {
 
                     <div className={styles.messageContent}>
                       {message.content}
+                      {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
                     </div>
+
+                    {/* Feedback buttons for AI messages (not during streaming) */}
+                    {message.type === 'ai' && !message.isStreaming && message.content && (
+                      <div className={styles.feedbackRow}>
+                        <button
+                          className={`${styles.feedbackBtn} ${message.feedback?.rating === 'up' ? styles.feedbackActive : ''}`}
+                          onClick={() => handleFeedback(index, 'up')}
+                          title="Корисен одговор"
+                        >
+                          👍
+                        </button>
+                        <button
+                          className={`${styles.feedbackBtn} ${message.feedback?.rating === 'down' ? styles.feedbackActive : ''}`}
+                          onClick={() => handleFeedback(index, 'down')}
+                          title="Некорисен одговор"
+                        >
+                          👎
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Suggestion chips for AI messages */}
+                    {message.type === 'ai' && !message.isStreaming && message.suggestions && message.suggestions.length > 0 && (
+                      <div className={styles.suggestionsRow}>
+                        {message.suggestions.map((suggestion, sIdx) => (
+                          <button
+                            key={sIdx}
+                            className={styles.suggestionChip}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            disabled={isLoading || isStreaming}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -365,15 +500,15 @@ const AIChat = () => {
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Поставете ваше прашање..."
                 className={styles.input}
-                disabled={isLoading || limits.remaining <= 0}
+                disabled={isLoading || isStreaming || limits.remaining <= 0}
                 maxLength={500}
               />
               <button
                 type="submit"
                 className={styles.sendButton}
-                disabled={isLoading || !question.trim() || limits.remaining <= 0}
+                disabled={isLoading || isStreaming || !question.trim() || limits.remaining <= 0}
               >
-                {isLoading ? 'Се обработува...' : 'Прашај'}
+                {isLoading || isStreaming ? 'Се обработува...' : 'Прашај'}
               </button>
             </form>
             <div className={styles.charCount}>

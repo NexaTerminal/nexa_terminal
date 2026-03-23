@@ -73,8 +73,10 @@ const EmploymentPart4Questionnaire = () => {
     e.preventDefault();
 
     const answeredCount = Object.keys(answers).length;
-    if (answeredCount === 0) {
-      setError('Мора да одговорите на барем едно прашање.');
+    let totalQuestions = 0;
+    categories.forEach(cat => totalQuestions += cat.questions.length);
+    if (answeredCount < totalQuestions) {
+      setError(`Мора да одговорите на сите прашања. Преостануваат уште ${totalQuestions - answeredCount}.`);
       return;
     }
 
@@ -322,10 +324,14 @@ const EmploymentPart4Questionnaire = () => {
                 ) : (
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || Object.keys(answers).length < categories.reduce((sum, cat) => sum + cat.questions.length, 0)}
                     className={styles["btn-submit"]}
                   >
-                    {submitting ? 'Се обработува...' : 'Поднеси проценка'}
+                    {submitting ? 'Се обработува...' : (() => {
+                      const total = categories.reduce((sum, cat) => sum + cat.questions.length, 0);
+                      const answered = Object.keys(answers).length;
+                      return answered < total ? `Одговорете на сите прашања (${answered}/${total})` : 'Поднеси проценка';
+                    })()}
                   </button>
                 )}
               </div>

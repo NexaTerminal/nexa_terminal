@@ -87,8 +87,9 @@ const GeneralQuestionnaire = () => {
     e.preventDefault();
 
     const answeredCount = Object.keys(answers).length;
-    if (answeredCount === 0) {
-      setError('Мора да одговорите на барем едно прашање.');
+    const totalQuestions = questions.length;
+    if (answeredCount < totalQuestions) {
+      setError(`Мора да одговорите на сите прашања. Преостануваат уште ${totalQuestions - answeredCount}.`);
       return;
     }
 
@@ -416,10 +417,12 @@ const GeneralQuestionnaire = () => {
                 ) : (
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || Object.keys(answers).length < questions.length}
                     className={styles["btn-submit"]}
                   >
-                    {submitting ? 'Се обработува...' : 'Поднеси проценка'}
+                    {submitting ? 'Се обработува...' : Object.keys(answers).length < questions.length
+                      ? `Одговорете на сите прашања (${Object.keys(answers).length}/${questions.length})`
+                      : 'Поднеси проценка'}
                   </button>
                 )}
               </div>

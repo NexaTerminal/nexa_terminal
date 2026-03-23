@@ -19,6 +19,8 @@ const ConversationSidebar = ({
   onSelectConversation,
   onNewConversation,
   refreshTrigger,
+  isOpen,
+  onClose,
 }) => {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,11 +118,25 @@ const ConversationSidebar = ({
     fetchConversations(false);
   };
 
+  // Handle selecting a conversation and close sidebar on mobile
+  const handleSelectConversation = (conversationId) => {
+    onSelectConversation(conversationId);
+    if (onClose) onClose();
+  };
+
+  // Handle new conversation and close sidebar on mobile
+  const handleNewConversation = () => {
+    onNewConversation();
+    if (onClose) onClose();
+  };
+
   return (
-    <div className={styles.conversationSidebar}>
+    <>
+      {isOpen && <div className={styles.sidebarBackdrop} onClick={onClose} />}
+      <div className={`${styles.conversationSidebar} ${isOpen ? styles.conversationSidebarOpen : ''}`}>
       {/* New Chat Button */}
       <div className={styles.newChatButtonContainer}>
-        <button className={styles.newChatButton} onClick={onNewConversation}>
+        <button className={styles.newChatButton} onClick={handleNewConversation}>
           <span className={styles.newChatIcon}>+</span>
           Нова конверзација
         </button>
@@ -147,7 +163,7 @@ const ConversationSidebar = ({
                   key={conversation._id}
                   conversation={conversation}
                   isActive={conversation._id === currentConversationId}
-                  onClick={onSelectConversation}
+                  onClick={handleSelectConversation}
                   onDelete={handleDelete}
                   onRename={handleRename}
                 />
@@ -170,6 +186,7 @@ const ConversationSidebar = ({
         )}
       </div>
     </div>
+    </>
   );
 };
 
@@ -178,6 +195,8 @@ ConversationSidebar.propTypes = {
   onSelectConversation: PropTypes.func.isRequired,
   onNewConversation: PropTypes.func.isRequired,
   refreshTrigger: PropTypes.number.isRequired,
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
 };
 
 export default ConversationSidebar;

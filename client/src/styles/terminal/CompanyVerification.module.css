@@ -346,11 +346,17 @@
   line-height: 1.4;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* Tablet Responsive */
+@media (max-width: 1024px) {
   .dashboard-main {
     margin-left: 0;
     max-width: 100%;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dashboard-main {
     padding: var(--spacing-md);
   }
 

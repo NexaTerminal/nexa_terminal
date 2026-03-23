@@ -372,10 +372,16 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .dashboard-main {
     margin-left: 0;
     max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: var(--spacing-md);
   }
 
   .form-grid {

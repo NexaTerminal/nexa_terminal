@@ -37,6 +37,7 @@ const AIChat = () => {
   // Conversation history state
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef(null);
@@ -345,11 +346,19 @@ const AIChat = () => {
           onSelectConversation={handleSelectConversation}
           onNewConversation={handleNewConversation}
           refreshTrigger={refreshTrigger}
+          isOpen={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
         />
 
         <main className={styles.chatMain}>
           <div className={styles.container}>
           <div className={styles.header}>
+            <button
+              className={styles.mobileSidebarToggle}
+              onClick={() => setMobileSidebarOpen(true)}
+            >
+              ☰ Конверзации
+            </button>
             <h1 className={styles.title}>AI Правен Асистент</h1>
             <p className={styles.subtitle}>
               Поставувајте прашања за правни документи и постапки

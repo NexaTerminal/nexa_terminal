@@ -134,7 +134,18 @@
   box-shadow: var(--shadow-sm);
 }
 
+@media (max-width: 1024px) {
+  .dashboard-main {
+    margin-left: 0;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  .dashboard-main {
+    padding: var(--spacing-md);
+  }
+
   .investments-grid {
     grid-template-columns: 1fr;
   }

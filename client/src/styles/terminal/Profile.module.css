@@ -102,16 +102,21 @@
   border-radius: var(--border-radius-sm);
 }
 
+@media (max-width: 1024px) {
+  .dashboard-main {
+    margin-left: 0;
+    max-width: 100%;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
     min-height: 100vh;
   }
   .dashboard-main {
-    margin-left: 0;
-    max-width: 100%;
     padding: var(--spacing-md);
-    box-shadow: none;
   }
   .profile-container {
     padding: var(--spacing-md);

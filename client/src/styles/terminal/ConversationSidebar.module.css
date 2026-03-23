@@ -421,10 +421,45 @@
   cursor: not-allowed;
 }
 
+/* Mobile sidebar backdrop */
+.sidebarBackdrop {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .conversationSidebar {
-    width: 100%;
-    max-width: 300px;
+    display: none;
   }
+
+  .conversationSidebarOpen {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.25s ease;
+  }
+
+  .sidebarBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    animation: fadeIn 0.2s ease;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

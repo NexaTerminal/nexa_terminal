@@ -138,7 +138,7 @@ const ConversationSidebar = ({
       <div className={styles.newChatButtonContainer}>
         <button className={styles.newChatButton} onClick={handleNewConversation}>
           <span className={styles.newChatIcon}>+</span>
-          Нова конверзација
+          <span className={styles.newChatLabel}>Нова конверзација</span>
         </button>
       </div>
 

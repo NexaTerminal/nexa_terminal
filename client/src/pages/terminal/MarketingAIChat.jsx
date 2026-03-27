@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
+import Sidebar from '../../components/terminal/Sidebar';
 import MarketingConversationSidebar from '../../components/chatbot/MarketingConversationSidebar';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
@@ -229,6 +230,7 @@ const MarketingAIChat = () => {
   return (
     <div>
       <Header isTerminal={true} />
+      <Sidebar />
 
       <div className={styles.chatLayout}>
         {/* Conversation History Sidebar */}
@@ -242,30 +244,30 @@ const MarketingAIChat = () => {
         <main className={styles.chatMain}>
           <div className={styles.container}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Маркетинг Стратег AI</h1>
-            <p className={styles.subtitle}>
-              Вашиот персонален маркетинг консултант - заедно градиме стратегија за вашиот бизнис
-            </p>
-
-            {/* Question counter */}
-            <div className={styles.limitsCard}>
-              <div className={styles.limitsInfo}>
-                <span className={styles.limitsLabel}>Преостанати прашања:</span>
-                <span className={styles.limitsCount}>
-                  {limits.remaining} / {limits.total}
-                </span>
+            <div className={styles.titleRow}>
+              <div>
+                <h1 className={styles.title}>Маркетинг Стратег AI</h1>
+                <p className={styles.subtitle}>
+                  Вашиот персонален маркетинг консултант - заедно градиме стратегија за вашиот бизнис
+                </p>
               </div>
-              {limits.resetDate && (
-                <div className={styles.resetInfo}>
-                  Ресетирање: {formatResetDate(limits.resetDate)}
-                </div>
-              )}
+              <div className={styles.limitsBadge}>
+                <span className={styles.limitsCount}>
+                  {limits.remaining}/{limits.total}
+                </span>
+                <span className={styles.limitsLabel}>прашања</span>
+                {limits.resetDate && (
+                  <span className={styles.resetInfo}>
+                    · {formatResetDate(limits.resetDate)}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Marketing info */}
-            <div className={styles.disclaimer} style={{ borderLeftColor: '#10b981', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02))' }}>
-              💡 <strong>Совет:</strong> Опишете го вашиот бизнис или предизвик - AI консултантот ќе ви постави прашања за да ве разбере подобро и да ви даде персонализирани препораки.
-            </div>
+            <p className={styles.disclaimer}>
+              Опишете го вашиот бизнис или предизвик - AI консултантот ќе ви постави прашања за да ве разбере подобро и да ви даде персонализирани препораки.
+            </p>
           </div>
 
           {/* Chat messages area */}

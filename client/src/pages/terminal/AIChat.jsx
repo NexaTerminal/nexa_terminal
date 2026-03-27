@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
+import Sidebar from '../../components/terminal/Sidebar';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
 import ChatbotApiService from '../../services/chatbotApi';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
 import styles from '../../styles/terminal/AIChat.module.css';
-import dashboardStyles from '../../styles/terminal/Dashboard.module.css';
 
 /**
  * AIChat Component
@@ -39,8 +39,9 @@ const AIChat = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Ref for auto-scrolling to bottom
+  // Refs
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Fetch user's remaining question limits on component mount
   useEffect(() => {
@@ -148,6 +149,7 @@ const AIChat = () => {
     setMessages(prev => [...prev, userMessage]);
     const questionText = question;
     setQuestion('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsLoading(true);
     setIsStreaming(false);
     setError(null);
@@ -338,6 +340,7 @@ const AIChat = () => {
   return (
     <div>
       <Header isTerminal={true} />
+      <Sidebar />
 
       <div className={styles.chatLayout}>
         {/* Conversation History Sidebar */}
@@ -353,36 +356,29 @@ const AIChat = () => {
         <main className={styles.chatMain}>
           <div className={styles.container}>
           <div className={styles.header}>
-            <button
-              className={styles.mobileSidebarToggle}
-              onClick={() => setMobileSidebarOpen(true)}
-            >
-              ☰ Конверзации
-            </button>
-            <h1 className={styles.title}>AI Правен Асистент</h1>
-            <p className={styles.subtitle}>
-              Поставувајте прашања за правни документи и постапки
-            </p>
-
-            {/* Question counter */}
-            <div className={styles.limitsCard}>
-              <div className={styles.limitsInfo}>
-                <span className={styles.limitsLabel}>Преостанати прашања:</span>
-                <span className={styles.limitsCount}>
-                  {limits.remaining} / {limits.total}
-                </span>
+            <div className={styles.titleRow}>
+              <div>
+                <h1 className={styles.title}>AI Правен Асистент</h1>
+                <p className={styles.subtitle}>
+                  Поставувајте прашања за правни документи и постапки
+                </p>
               </div>
-              {limits.resetDate && (
-                <div className={styles.resetInfo}>
-                  Ресетирање: {formatResetDate(limits.resetDate)}
-                </div>
-              )}
+              <div className={styles.limitsBadge}>
+                <span className={styles.limitsCount}>
+                  {limits.remaining}/{limits.total}
+                </span>
+                <span className={styles.limitsLabel}>прашања</span>
+                {limits.resetDate && (
+                  <span className={styles.resetInfo}>
+                    · {formatResetDate(limits.resetDate)}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Disclaimer */}
-            <div className={styles.disclaimer}>
-              ⚠️ <strong>Важно:</strong> Овој асистент не е лиценциран адвокат.
-              За специфични правни прашања, консултирајте се со{' '}
+            <p className={styles.disclaimer}>
+              Овој асистент не е лиценциран адвокат. За специфични правни прашања, консултирајте се со{' '}
               <a
                 href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati"
                 target="_blank"
@@ -391,7 +387,7 @@ const AIChat = () => {
               >
                 квалификуван правен професионалец
               </a>.
-            </div>
+            </p>
           </div>
 
           {/* Chat messages area */}
@@ -404,9 +400,9 @@ const AIChat = () => {
                 <div className={styles.exampleQuestions}>
                   <p className={styles.examplesTitle}>Примери на прашања:</p>
                   <ul>
-                    <li>Кои се основните елементи на работен договор?</li>
-                    <li>Какви се правата на вработените при отпуштање?</li>
-                    <li>Што содржи согласност за обработка на лични податоци?</li>
+                    <li>Кои се основните елементи на договор за вработување?</li>
+                    <li>Какви се правата на вработените при отказ од деловни причини?</li>
+                    <li>Што треба да содржи согласноста за обработка на лични податоци?</li>
                   </ul>
                 </div>
               </div>
@@ -421,7 +417,7 @@ const AIChat = () => {
                   >
                     <div className={styles.messageHeader}>
                       <span className={styles.messageAuthor}>
-                        {message.type === 'user' ? '👤 Вие' : '🤖 AI Асистент'}
+                        {message.type === 'user' ? 'Вие' : 'NexaAI'}
                       </span>
                       <span className={styles.messageTime}>
                         {message.timestamp.toLocaleTimeString('mk-MK', {
@@ -478,7 +474,7 @@ const AIChat = () => {
                 {isLoading && (
                   <div className={`${styles.message} ${styles.aiMessage}`}>
                     <div className={styles.messageHeader}>
-                      <span className={styles.messageAuthor}>🤖 AI Асистент</span>
+                      <span className={styles.messageAuthor}>NexaAI</span>
                     </div>
                     <div className={styles.loadingIndicator}>
                       <span className={styles.dot}></span>
@@ -503,25 +499,48 @@ const AIChat = () => {
           {/* Input form */}
           <div className={styles.inputContainer}>
             <form onSubmit={handleSubmit} className={styles.inputForm}>
-              <input
-                type="text"
+              <textarea
+                ref={textareaRef}
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={(e) => {
+                  setQuestion(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (question.trim() && !isLoading && !isStreaming && limits.remaining > 0) {
+                      handleSubmit(e);
+                    }
+                  }
+                }}
                 placeholder="Поставете ваше прашање..."
                 className={styles.input}
                 disabled={isLoading || isStreaming || limits.remaining <= 0}
                 maxLength={500}
+                rows={1}
               />
               <button
                 type="submit"
-                className={styles.sendButton}
+                className={`${styles.sendButton} ${question.trim() && !isLoading && !isStreaming && limits.remaining > 0 ? styles.sendButtonActive : ''}`}
                 disabled={isLoading || isStreaming || !question.trim() || limits.remaining <= 0}
+                aria-label="Испрати"
               >
-                {isLoading || isStreaming ? 'Се обработува...' : 'Прашај'}
+                {isLoading || isStreaming ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={styles.sendIconSpinner}>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="50" strokeDashoffset="20" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 19V5" />
+                    <path d="M5 12l7-7 7 7" />
+                  </svg>
+                )}
               </button>
             </form>
             <div className={styles.charCount}>
-              {question.length} / 500 карактери
+              {question.length} / 500 · Enter за испраќање, Shift+Enter за нов ред
             </div>
           </div>
         </div>

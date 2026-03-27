@@ -1166,7 +1166,7 @@ class EmailService {
                             📄 Генерирај документи
                           </a>
                           <a href="${process.env.CLIENT_URL || 'https://nexa.mk'}/terminal/ai-chat" style="display: inline-block; background: rgba(59, 130, 246, 0.9); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin: 5px;">
-                            🤖 AI Асистент
+                            Nexa AI
                           </a>
                         </td>
                       </tr>

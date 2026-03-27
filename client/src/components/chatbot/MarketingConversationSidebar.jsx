@@ -126,7 +126,7 @@ const MarketingConversationSidebar = ({
       <div className={styles.newChatButtonContainer}>
         <button className={styles.newChatButton} onClick={onNewConversation}>
           <span className={styles.newChatIcon}>+</span>
-          Нова конверзација
+          <span className={styles.newChatLabel}>Нова конверзација</span>
         </button>
       </div>
 

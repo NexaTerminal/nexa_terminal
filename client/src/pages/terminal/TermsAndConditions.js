@@ -31,7 +31,10 @@ const TermsAndConditions = () => {
               <section style={{marginBottom: '3rem'}}>
                 <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>Сопственик на платформата</h2>
                 <p>
-                  Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги ТХУ БУЗИНЕСС ГУИДЕ ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+                  Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги НЕКСА АМД ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+                </p>
+                <p>
+                  <strong>Контакт телефон:</strong> <a href="tel:+38978534258" style={{color: 'var(--color-primary)'}}>+389 78 534 258</a>
                 </p>
               </section>
 
@@ -110,6 +113,7 @@ const TermsAndConditions = () => {
                 <h3 style={{color: 'white', marginBottom: '1rem'}}>Прочитајте ги целосните услови</h3>
                 <p>Целосните Услови за користење се достапни на: <a href="/terms-conditions" target="_blank" style={{color: 'white', textDecoration: 'underline'}}>nexa.mk/terms-conditions</a></p>
                 <p><strong>Email за прашања:</strong> <a href="mailto:info@nexa.mk" style={{color: 'white', textDecoration: 'underline'}}>info@nexa.mk</a></p>
+                <p><strong>Телефон:</strong> <a href="tel:+38978534258" style={{color: 'white', textDecoration: 'underline'}}>+389 78 534 258</a></p>
               </div>
             </div>
           </div>

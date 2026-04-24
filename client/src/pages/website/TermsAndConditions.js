@@ -25,7 +25,10 @@ const TermsAndConditions = () => {
         <section className={styles.section}>
           <h2>1. Сопственик на платформата</h2>
           <p>
-            Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги ТХУ БУЗИНЕСС ГУИДЕ ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+            Веб апликацијата Nexa Terminal е во сопственост на <strong>Друштво за услуги НЕКСА АМД ДООЕЛ Скопје</strong>, со седиште на <strong>БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14</strong>.
+          </p>
+          <p>
+            <strong>Контакт телефон:</strong> <a href="tel:+38978534258">+389 78 534 258</a>
           </p>
         </section>
 
@@ -278,6 +281,7 @@ const TermsAndConditions = () => {
           <h3>15. Контакт информации</h3>
           <p>За прашања во врска со овие Услови за користење:</p>
           <p><strong>Email:</strong> <a href="mailto:info@nexa.mk">info@nexa.mk</a></p>
+          <p><strong>Телефон:</strong> <a href="tel:+38978534258">+389 78 534 258</a></p>
           <p><strong>Платформа:</strong> Контакт форма во Dashboard</p>
           <p>
             <strong>Важно:</strong> Ве потсетуваме дека Nexa Terminal е образовна платформа и не дава правен совет. За правни прашања, консултирајте адвокат.

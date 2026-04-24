@@ -24,8 +24,8 @@ const Footer = ({ isTerminal = false }) => {
           </div>
           <div className={styles.footerSection}>
             <h3>{t('footer.contact', 'Contact')}</h3>
-            <div>Email: info@nexa.com</div>
-            <div>Phone: +389 70 123 456</div>
+            <div>Email: info@nexa.mk</div>
+            <div>Phone: +389 78 534 258</div>
             <div>{t('footer.address', 'Skopje, Macedonia')}</div>
           </div>
         </div>

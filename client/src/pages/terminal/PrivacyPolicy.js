@@ -33,6 +33,9 @@ const PrivacyPolicy = () => {
                 <p>
                   Добредојдовте на Nexa Terminal. Вашата приватност е од клучно значење за нас. Оваа Политика за приватност објаснува кои податоци ги собираме, како ги користиме и како ги заштитуваме вашите лични податоци во согласност со Законот за заштита на лични податоци на Република Северна Македонија и GDPR принципите.
                 </p>
+                <p>
+                  <strong>Контролор на податоци / Сопственик на платформата:</strong> Друштво за услуги НЕКСА АМД ДООЕЛ Скопје, со седиште на БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14. Контакт телефон: <a href="tel:+38978534258" style={{color: 'var(--color-primary)'}}>+389 78 534 258</a>.
+                </p>
                 <div style={{background: '#FEF3C7', borderLeft: '4px solid #F59E0B', padding: '1.25rem', margin: '1.5rem 0', borderRadius: '8px'}}>
                   <p style={{color: '#92400E', margin: 0, fontWeight: 500}}><strong>Важно:</strong> Nexa Terminal НЕ ги чува документите кои ги генерирате. Вашите документи се креираат во реално време и се испраќаат директно до вас. Податоците што ги внесувате во формуларите се бришат веднаш по генерирањето на документот.</p>
                 </div>
@@ -53,7 +56,9 @@ const PrivacyPolicy = () => {
 
               <div style={{background: 'linear-gradient(135deg, #1E4DB7 0%, #3B82F6 100%)', color: 'white', padding: '2rem', borderRadius: '12px', textAlign: 'center', marginTop: '2rem'}}>
                 <h3 style={{color: 'white', marginBottom: '1rem'}}>Контакт за прашања за приватност</h3>
+                <p><strong>Контролор на податоци:</strong> Друштво за услуги НЕКСА АМД ДООЕЛ Скопје</p>
                 <p><strong>Email:</strong> <a href="mailto:info@nexa.mk" style={{color: 'white', textDecoration: 'underline'}}>info@nexa.mk</a></p>
+                <p><strong>Телефон:</strong> <a href="tel:+38978534258" style={{color: 'white', textDecoration: 'underline'}}>+389 78 534 258</a></p>
                 <p>Целосната политика за приватност е достапна на: <a href="/privacy-policy" target="_blank" style={{color: 'white', textDecoration: 'underline'}}>nexa.mk/privacy-policy</a></p>
               </div>
             </div>

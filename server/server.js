@@ -265,125 +265,136 @@ async function fixDatabaseIndexes(database) {
 }
 
 // Service initialization function
+// Each init step is isolated so a failure in one (e.g. Qdrant unreachable
+// for the chatbot) does NOT prevent later, unrelated services (credits,
+// document gen) from initializing.
 async function initializeServices(database) {
+  const activityLogger = require('./middleware/activityLogger');
+
+  // --- Core services (synchronous, cannot fail) ---
+  const UserService = require('./services/userService');
+  const SocialPostService = require('./services/socialPostService');
+  const InvestmentService = require('./services/investmentService');
+  const UserAnalyticsService = require('./services/userAnalyticsService');
+
+  const userService = new UserService(database);
+  new SocialPostService(database);
+  new InvestmentService(database);
+  new UserAnalyticsService(database);
+  app.locals.userService = userService;
+
+  // --- Credit System (initialized FIRST after userService because it
+  //     is a core dependency for almost every premium route) ---
   try {
-    // Import and initialize services
-    const UserService = require('./services/userService');
-    const SocialPostService = require('./services/socialPostService');
-    const InvestmentService = require('./services/investmentService');
-    const UserAnalyticsService = require('./services/userAnalyticsService');
-    const activityLogger = require('./middleware/activityLogger');
-
-    const userService = new UserService(database);
-    new SocialPostService(database);
-    new InvestmentService(database);
-    new UserAnalyticsService(database);
-
-    // Make userService available globally
-    app.locals.userService = userService;
-
-    // Initialize marketplace database if feature is enabled
-    if (settings.isFeatureEnabled('marketplace')) {
-      console.log('🏪 Initializing marketplace database...');
-      const { initializeMarketplaceDatabase } = require('./config/marketplaceIndexes');
-      await initializeMarketplaceDatabase(database);
-    }
-
-    // Initialize AI Chatbot service if feature is enabled
-    if (settings.isFeatureEnabled('aiChatbot')) {
-      console.log('🤖 Initializing AI Chatbot service...');
-
-      // Initialize chatbot database (collections and indexes)
-      const { initializeChatbotDatabase } = require('./config/chatbotIndexes');
-      await initializeChatbotDatabase(database);
-
-      // Initialize ChatBotService
-      const chatBotService = require('./chatbot/ChatBotService');
-      await chatBotService.setDatabase(database);
-
-      // Initialize ConversationService
-      const ConversationService = require('./chatbot/services/ConversationService');
-      const conversationService = new ConversationService(database);
-
-      // Connect conversation service to chatbot service
-      chatBotService.setConversationService(conversationService);
-
-      // Make services available to routes via app.locals
-      app.locals.conversationService = conversationService;
-      app.locals.chatBotService = chatBotService;
-
-      console.log('✅ AI Chatbot with conversation history initialized');
-
-      // Initialize Marketing ChatBot Service
-      const marketingBotService = require('./chatbot/MarketingBotService');
-      await marketingBotService.setDatabase(database);
-      marketingBotService.setConversationService(conversationService);
-      app.locals.marketingBotService = marketingBotService;
-      console.log('✅ Marketing AI Chatbot initialized');
-    }
-
-    // Initialize Credit System
     console.log('💳 Initializing Credit System...');
     const CreditService = require('./services/creditService');
     const ReferralService = require('./services/referralService');
     const CreditScheduler = require('./services/creditScheduler');
     const emailService = require('./services/emailService');
 
-    // Create credit service instance
     const creditService = new CreditService(database, userService);
     app.locals.creditService = creditService;
 
-    // Create referral service instance
     const referralService = new ReferralService(database, userService, creditService);
-
-    // Initialize Shared Documents Service
-    console.log('📄 Initializing Shared Documents Service...');
-    const SharedDocumentsController = require('./controllers/sharedDocumentsController');
-    const sharedDocumentsController = new SharedDocumentsController(database);
-    await sharedDocumentsController.createIndexes(); // Create MongoDB indexes
-    app.locals.sharedDocumentsController = sharedDocumentsController;
-    console.log('✅ Shared Documents Service initialized');
-
-    // Initialize Document Preview Service
-    console.log('👁️  Initializing Document Preview Service...');
-    const DocumentPreviewController = require('./controllers/documentPreviewController');
-    const documentPreviewController = new DocumentPreviewController();
-    app.locals.documentPreviewController = documentPreviewController;
-    console.log('✅ Document Preview Service initialized');
-
     app.locals.referralService = referralService;
 
-    // Create and start credit scheduler
     const creditScheduler = new CreditScheduler(creditService, referralService, emailService);
     app.locals.creditScheduler = creditScheduler;
 
-    // Check for missed resets on startup
-    await creditService.checkAndPerformMissedResets();
+    // Best-effort: catch up any missed resets. Failures here must not
+    // unset app.locals.creditService — log and continue.
+    creditService.checkAndPerformMissedResets()
+      .then(count => count > 0 && console.log(`💳 Backfilled ${count} missed credit resets`))
+      .catch(err => console.error('⚠️  checkAndPerformMissedResets failed (continuing):', err.message));
 
-    // Start scheduler (if enabled)
     creditScheduler.startAll();
+    console.log('✅ Credit System initialized');
+  } catch (error) {
+    console.error('❌ Credit System init FAILED:', error.message);
+    console.error(error.stack);
+  }
 
-    console.log('✅ Credit System initialized successfully');
+  // --- Marketplace (optional feature) ---
+  if (settings.isFeatureEnabled('marketplace')) {
+    try {
+      console.log('🏪 Initializing marketplace database...');
+      const { initializeMarketplaceDatabase } = require('./config/marketplaceIndexes');
+      await initializeMarketplaceDatabase(database);
+    } catch (error) {
+      console.error('⚠️  Marketplace init failed (continuing):', error.message);
+    }
+  }
 
-    // Initialize activity logger
+  // --- AI Chatbot (optional feature, can fail if Qdrant/OpenAI down) ---
+  if (settings.isFeatureEnabled('aiChatbot')) {
+    try {
+      console.log('🤖 Initializing AI Chatbot service...');
+      const { initializeChatbotDatabase } = require('./config/chatbotIndexes');
+      await initializeChatbotDatabase(database);
+
+      const chatBotService = require('./chatbot/ChatBotService');
+      await chatBotService.setDatabase(database);
+
+      const ConversationService = require('./chatbot/services/ConversationService');
+      const conversationService = new ConversationService(database);
+      chatBotService.setConversationService(conversationService);
+
+      app.locals.conversationService = conversationService;
+      app.locals.chatBotService = chatBotService;
+      console.log('✅ AI Chatbot with conversation history initialized');
+
+      try {
+        const marketingBotService = require('./chatbot/MarketingBotService');
+        await marketingBotService.setDatabase(database);
+        marketingBotService.setConversationService(conversationService);
+        app.locals.marketingBotService = marketingBotService;
+        console.log('✅ Marketing AI Chatbot initialized');
+      } catch (mbErr) {
+        console.error('⚠️  Marketing chatbot init failed (continuing):', mbErr.message);
+      }
+    } catch (error) {
+      console.error('⚠️  AI Chatbot init failed (continuing):', error.message);
+    }
+  }
+
+  // --- Shared Documents ---
+  try {
+    console.log('📄 Initializing Shared Documents Service...');
+    const SharedDocumentsController = require('./controllers/sharedDocumentsController');
+    const sharedDocumentsController = new SharedDocumentsController(database);
+    await sharedDocumentsController.createIndexes();
+    app.locals.sharedDocumentsController = sharedDocumentsController;
+    console.log('✅ Shared Documents Service initialized');
+  } catch (error) {
+    console.error('⚠️  Shared Documents init failed (continuing):', error.message);
+  }
+
+  // --- Document Preview ---
+  try {
+    console.log('👁️  Initializing Document Preview Service...');
+    const DocumentPreviewController = require('./controllers/documentPreviewController');
+    app.locals.documentPreviewController = new DocumentPreviewController();
+    console.log('✅ Document Preview Service initialized');
+  } catch (error) {
+    console.error('⚠️  Document Preview init failed (continuing):', error.message);
+  }
+
+  // --- Activity logger ---
+  try {
     activityLogger.initialize(database);
     app.locals.activityLogger = activityLogger;
-
   } catch (error) {
-    console.error('❌ Error initializing services:', error);
-    console.error('Stack trace:', error.stack);
-
-    // Log which services were successfully initialized
-    console.log('📋 Service initialization status:');
-    console.log('   - userService:', app.locals.userService ? '✅' : '❌');
-    console.log('   - creditService:', app.locals.creditService ? '✅' : '❌');
-    console.log('   - referralService:', app.locals.referralService ? '✅' : '❌');
-    console.log('   - conversationService:', app.locals.conversationService ? '✅' : '❌');
-    console.log('   - chatBotService:', app.locals.chatBotService ? '✅' : '❌');
-    console.log('   - marketingBotService:', app.locals.marketingBotService ? '✅' : '❌');
-
-    // Don't exit, just log the error as services might still work
+    console.error('⚠️  Activity logger init failed (continuing):', error.message);
   }
+
+  // --- Final status report ---
+  console.log('📋 Service initialization status:');
+  console.log('   - userService:', app.locals.userService ? '✅' : '❌');
+  console.log('   - creditService:', app.locals.creditService ? '✅' : '❌');
+  console.log('   - referralService:', app.locals.referralService ? '✅' : '❌');
+  console.log('   - conversationService:', app.locals.conversationService ? '✅' : '❌');
+  console.log('   - chatBotService:', app.locals.chatBotService ? '✅' : '❌');
+  console.log('   - marketingBotService:', app.locals.marketingBotService ? '✅' : '❌');
 }
 
 async function connectToDatabase() {

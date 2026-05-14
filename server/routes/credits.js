@@ -12,20 +12,41 @@ const { authenticateJWT, isAdmin } = require('../middleware/auth');
  */
 
 /**
- * Helper function to get creditService with validation
+ * Helper function to get creditService with validation.
+ * If creditService isn't on app.locals (e.g. an earlier init step crashed
+ * during cold start), lazily construct it from db + userService — those
+ * are core and always present. This makes /credits/* self-heal instead of
+ * returning 503 forever until the next deploy.
  */
 function getCreditService(req, res) {
-  const creditService = req.app.locals.creditService;
-  if (!creditService) {
-    console.error('❌ CreditService not initialized - app.locals.creditService is undefined');
-    res.status(503).json({
-      error: 'Credit system temporarily unavailable',
-      code: 'CREDIT_SERVICE_UNAVAILABLE',
-      message: 'Please try again in a moment'
-    });
-    return null;
+  let creditService = req.app.locals.creditService;
+  if (creditService) return creditService;
+
+  const db = req.app.locals.db;
+  const userService = req.app.locals.userService;
+  if (db && userService) {
+    try {
+      console.warn('⚠️  [Credits] creditService missing on app.locals — lazy-initializing');
+      const CreditService = require('../services/creditService');
+      creditService = new CreditService(db, userService);
+      req.app.locals.creditService = creditService;
+      // Best-effort missed-reset catch-up, fire-and-forget
+      creditService.checkAndPerformMissedResets().catch(err =>
+        console.error('[Credits] lazy missed-reset check failed:', err.message)
+      );
+      return creditService;
+    } catch (err) {
+      console.error('❌ [Credits] lazy init failed:', err.message);
+    }
   }
-  return creditService;
+
+  console.error('❌ CreditService not initialized and lazy-init not possible');
+  res.status(503).json({
+    error: 'Credit system temporarily unavailable',
+    code: 'CREDIT_SERVICE_UNAVAILABLE',
+    message: 'Please try again in a moment'
+  });
+  return null;
 }
 
 // ============ USER ENDPOINTS ============

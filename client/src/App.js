@@ -69,6 +69,7 @@ import EditProfile from './pages/terminal/EditProfile';
 import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
 import MarketingAIChat from './pages/terminal/MarketingAIChat';
+import ContractAnalysis from './pages/terminal/ContractAnalysis';
 // import CompleteProfile from './pages/terminal/CompleteProfile';
 import SimpleCompleteProfile from './pages/terminal/SimpleCompleteProfile';
 import Education from './pages/terminal/Education';
@@ -246,6 +247,7 @@ function App() {
       <Route path="/terminal/template-marketplace" element={<PrivateRoute><VerificationRequired><TemplateMarketplace /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/contract-analysis" element={<PrivateRoute><VerificationRequired><ContractAnalysis /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
       <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />

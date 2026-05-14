@@ -465,6 +465,8 @@ function registerRoutes() {
     /^\/certificates\/.*$/,                // All certificate routes (JWT protected)
     '/chatbot',                            // AI Chatbot endpoints (JWT protected)
     /^\/chatbot\/.*$/,                     // All chatbot sub-routes (JWT protected)
+    '/contract-analysis',                  // AI Contract Analysis (JWT protected)
+    /^\/contract-analysis\/.*$/,           // All contract-analysis sub-routes (JWT protected)
     '/marketing-bot',                      // Marketing AI Chatbot endpoints (JWT protected)
     /^\/marketing-bot\/.*$/,               // All marketing-bot sub-routes (JWT protected)
     '/credits',                            // Credit system endpoints (JWT protected)
@@ -555,6 +557,19 @@ function registerRoutes() {
     } catch (error) {
       console.log('⚠️  Marketing AI Chatbot routes not found');
       console.error('Marketing bot routes error:', error.message);
+    }
+  }
+
+  // AI Contract Analysis routes
+  if (settings.isRouteEnabled('contractAnalysis')) {
+    try {
+      const contractAnalysisService = require('./contractAnalysis/ContractAnalysisService');
+      contractAnalysisService.setDatabase(database);
+      app.use('/api/contract-analysis', require('./routes/contractAnalysis'));
+      console.log('✅ AI Contract Analysis routes loaded successfully');
+    } catch (error) {
+      console.log('⚠️  AI Contract Analysis routes not found - feature not available');
+      console.error('Contract analysis routes error:', error.message);
     }
   }
 

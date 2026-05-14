@@ -7,6 +7,7 @@
     "legalHealthCheck": true,
     "blog": true,
     "marketplace": true,
-    "aiChatbot": true
+    "aiChatbot": true,
+    "contractAnalysis": true
   }
 }

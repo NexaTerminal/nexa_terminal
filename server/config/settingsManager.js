@@ -22,7 +22,8 @@ class SettingsManager {
           legalHealthCheck: true,
           blog: true,
           marketplace: true,
-          aiChatbot: true
+          aiChatbot: true,
+          contractAnalysis: true
         };
         return;
       }
@@ -65,6 +66,7 @@ class SettingsManager {
         legal: features.legalHealthCheck,
         marketplace: features.marketplace,
         chatbot: features.aiChatbot,
+        contractAnalysis: features.contractAnalysis,
         admin: true, // Always enabled for admin functionality
         verification: true // Always enabled for company verification
       },
@@ -84,7 +86,9 @@ class SettingsManager {
           service_categories: features.marketplace,
           chatbot_conversations: features.aiChatbot,
           chatbot_usage: features.aiChatbot,
-          chatbot_documents: features.aiChatbot
+          chatbot_documents: features.aiChatbot,
+          contract_analyses: features.contractAnalysis,
+          contract_analysis_usage: features.contractAnalysis
         }
       },
       // Use middleware settings from VS Code
@@ -111,7 +115,8 @@ class SettingsManager {
         legalHealthCheck: true,
         blog: true,  // Enable blogs for online version
         marketplace: true,
-        aiChatbot: true
+        aiChatbot: true,
+        contractAnalysis: true
       },
       database: {
         collections: {
@@ -128,7 +133,9 @@ class SettingsManager {
           service_categories: true,
           chatbot_conversations: true,
           chatbot_usage: true,
-          chatbot_documents: true
+          chatbot_documents: true,
+          contract_analyses: true,
+          contract_analysis_usage: true
         }
       },
       routes: {
@@ -140,6 +147,7 @@ class SettingsManager {
         legal: true,
         marketplace: true,
         chatbot: true,
+        contractAnalysis: true,
         admin: true,  // Enable admin routes
         verification: true  // Enable verification routes
       },

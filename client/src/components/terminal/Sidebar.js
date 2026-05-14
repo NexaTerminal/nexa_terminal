@@ -47,7 +47,8 @@ const Sidebar = () => {
   // AI submenu items
   const aiSubItems = [
     { path: '/terminal/ai-chat', label: 'Правен AI' },
-    { path: '/terminal/marketing-ai', label: 'Маркетинг AI' }
+    { path: '/terminal/marketing-ai', label: 'Маркетинг AI' },
+    { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
   ];
 
   const regularMenuItems = [

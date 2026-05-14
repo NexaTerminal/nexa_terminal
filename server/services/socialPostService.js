@@ -123,7 +123,7 @@ class SocialPostService {
     const result = await this.collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
       { $set: updateDoc },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;
@@ -171,7 +171,7 @@ class SocialPostService {
     const result = await this.collection.findOneAndUpdate(
       { _id: new ObjectId(postId) },
       updateDoc,
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;
@@ -196,7 +196,7 @@ class SocialPostService {
         $push: { comments: comment },
         $set: { updatedAt: new Date() }
       },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;
@@ -214,7 +214,7 @@ class SocialPostService {
         $pull: { comments: { _id: new ObjectId(commentId) } },
         $set: { updatedAt: new Date() }
       },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;

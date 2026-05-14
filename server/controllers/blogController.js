@@ -357,7 +357,7 @@ class BlogController {
       const result = await blogsCollection.findOneAndUpdate(
         { _id: id },
         { $set: updateData },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       if (!result.value) {
@@ -382,7 +382,10 @@ class BlogController {
       const blogsCollection = db.collection('blogs');
 
       // Find and delete the blog
-      const result = await blogsCollection.findOneAndDelete({ _id: id });
+      const result = await blogsCollection.findOneAndDelete(
+        { _id: id },
+        { includeResultMetadata: true }
+      );
 
       if (!result.value) {
         return res.status(404).json({ message: 'Blog post not found' });
@@ -455,7 +458,7 @@ class BlogController {
       const result = await blogsCollection.findOneAndUpdate(
         { _id: id },
         updateOperation,
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       res.json({
@@ -518,7 +521,7 @@ class BlogController {
       const result = await blogsCollection.findOneAndUpdate(
         { _id: id },
         updateOperation,
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       res.json({

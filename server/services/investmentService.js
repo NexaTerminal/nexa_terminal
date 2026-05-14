@@ -144,7 +144,7 @@ class InvestmentService {
     const result = await this.collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
       { $set: sanitizedUpdate },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;

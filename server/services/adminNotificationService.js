@@ -349,7 +349,7 @@ class AdminNotificationService extends EventEmitter {
             updatedAt: new Date()
           }
         },
-        { upsert: true, returnDocument: 'after' }
+        { upsert: true, returnDocument: 'after', includeResultMetadata: true }
       );
 
       return result.value;

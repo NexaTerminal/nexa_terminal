@@ -41,21 +41,19 @@ export const CreditProvider = ({ children }) => {
 
       const response = await api.get('/credits/balance');
 
-      if (response.success) {
+      if (response && response.success && response.credits) {
         setCredits(response.credits);
+      } else {
+        // Server responded but didn't include credits — surface as error rather than faking 0/14
+        throw new Error(response?.message || 'Невалиден одговор од серверот');
       }
     } catch (err) {
       console.error('❌ Failed to fetch credits:', err);
       setError(err.message || 'Failed to load credits');
-
-      // Initialize with default values on error
-      setCredits({
-        balance: 0,
-        weeklyAllocation: 14,
-        lifetimeEarned: 0,
-        lifetimeSpent: 0,
-        nextResetDate: null
-      });
+      // Do NOT silently fall back to {balance: 0, weeklyAllocation: 14}.
+      // That made every fetch failure look like "0/14 used" in the UI.
+      // Leave credits as null so callers can detect the unknown state.
+      setCredits(null);
     } finally {
       setLoading(false);
     }

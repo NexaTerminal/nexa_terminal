@@ -123,10 +123,11 @@ class CreditService {
     // --- End Enhanced Debugging ---
 
     // Atomic update using MongoDB's $inc
+    // Driver v5: includeResultMetadata restores the {value, ok} envelope used below.
     const result = await this.usersCollection.findOneAndUpdate(
       findQuery,
       updateQuery,
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     // --- More Debugging ---

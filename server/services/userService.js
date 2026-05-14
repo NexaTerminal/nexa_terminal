@@ -191,7 +191,7 @@ class UserService {
     const result = await this.collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
       { $set: updateDoc },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
     return result.value;
   }
@@ -627,7 +627,7 @@ class UserService {
     const result = await this.collection.findOneAndUpdate(
       { _id: new ObjectId(userId) },
       { $set: updateDoc },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', includeResultMetadata: true }
     );
 
     return result.value;

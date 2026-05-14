@@ -204,7 +204,7 @@ class SocialController {
       const result = await socialPostsCollection.findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: updateData },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       res.json({
@@ -284,7 +284,7 @@ class SocialController {
       const result = await socialPostsCollection.findOneAndUpdate(
         { _id: new ObjectId(id) },
         updateOperation,
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       res.json({
@@ -335,7 +335,7 @@ class SocialController {
       const result = await socialPostsCollection.findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $push: { comments: comment } },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       if (!result.value) {

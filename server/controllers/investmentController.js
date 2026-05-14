@@ -92,7 +92,7 @@ class InvestmentController {
       const result = await investmentsCollection.findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $inc: { views: 1 } },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
       
       if (!result.value) {
@@ -208,7 +208,7 @@ class InvestmentController {
       const result = await investmentsCollection.findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: updateData },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', includeResultMetadata: true }
       );
 
       if (!result.value) {

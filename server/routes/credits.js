@@ -12,42 +12,84 @@ const { authenticateJWT, isAdmin } = require('../middleware/auth');
  */
 
 /**
- * Helper function to get creditService with validation.
- * If creditService isn't on app.locals (e.g. an earlier init step crashed
- * during cold start), lazily construct it from db + userService — those
- * are core and always present. This makes /credits/* self-heal instead of
- * returning 503 forever until the next deploy.
+ * Bulletproof getCreditService. The /credits/* endpoints must always work
+ * as long as the database is connected — they should NEVER 503 just
+ * because some other init step (chatbot, marketplace, etc.) crashed.
+ *
+ * Resolution order:
+ *   1. Reuse app.locals.creditService if already built.
+ *   2. If only db is available, lazy-build userService too, then creditService.
+ *   3. Only if even db is missing do we 503 — that means the entire DB
+ *      connection failed and nothing in the app can work anyway.
  */
 function getCreditService(req, res) {
   let creditService = req.app.locals.creditService;
   if (creditService) return creditService;
 
   const db = req.app.locals.db;
-  const userService = req.app.locals.userService;
-  if (db && userService) {
-    try {
-      console.warn('⚠️  [Credits] creditService missing on app.locals — lazy-initializing');
-      const CreditService = require('../services/creditService');
-      creditService = new CreditService(db, userService);
-      req.app.locals.creditService = creditService;
-      // Best-effort missed-reset catch-up, fire-and-forget
-      creditService.checkAndPerformMissedResets().catch(err =>
-        console.error('[Credits] lazy missed-reset check failed:', err.message)
-      );
-      return creditService;
-    } catch (err) {
-      console.error('❌ [Credits] lazy init failed:', err.message);
-    }
+  if (!db) {
+    console.error('❌ [Credits] app.locals.db is missing — DB connection failed');
+    res.status(503).json({
+      error: 'Database unavailable',
+      code: 'DB_UNAVAILABLE',
+      message: 'Please try again in a moment'
+    });
+    return null;
   }
 
-  console.error('❌ CreditService not initialized and lazy-init not possible');
-  res.status(503).json({
-    error: 'Credit system temporarily unavailable',
-    code: 'CREDIT_SERVICE_UNAVAILABLE',
-    message: 'Please try again in a moment'
-  });
-  return null;
+  try {
+    let userService = req.app.locals.userService;
+    if (!userService) {
+      console.warn('⚠️  [Credits] userService missing on app.locals — lazy-building');
+      const UserService = require('../services/userService');
+      userService = new UserService(db);
+      req.app.locals.userService = userService;
+    }
+
+    console.warn('⚠️  [Credits] creditService missing on app.locals — lazy-building');
+    const CreditService = require('../services/creditService');
+    creditService = new CreditService(db, userService);
+    req.app.locals.creditService = creditService;
+
+    // Best-effort missed-reset catch-up, fire-and-forget so the request
+    // doesn't wait on it.
+    creditService.checkAndPerformMissedResets().catch(err =>
+      console.error('[Credits] lazy missed-reset check failed:', err.message)
+    );
+
+    return creditService;
+  } catch (err) {
+    console.error('❌ [Credits] lazy build failed:', err.message);
+    console.error(err.stack);
+    res.status(500).json({
+      error: 'Credit system error',
+      code: 'CREDIT_SERVICE_ERROR',
+      message: err.message
+    });
+    return null;
+  }
 }
+
+// ============ DIAGNOSTICS ============
+
+/**
+ * GET /api/credits/_diagnostics
+ * Public endpoint to verify which build is running and what's initialized.
+ * Returns no user data — safe to expose.
+ */
+router.get('/_diagnostics', (req, res) => {
+  res.json({
+    build: 'lazy-init-v2',
+    initialized: {
+      db: !!req.app.locals.db,
+      userService: !!req.app.locals.userService,
+      creditService: !!req.app.locals.creditService,
+      referralService: !!req.app.locals.referralService,
+      chatBotService: !!req.app.locals.chatBotService,
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // ============ USER ENDPOINTS ============
 

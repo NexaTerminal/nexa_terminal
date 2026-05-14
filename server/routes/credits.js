@@ -78,14 +78,42 @@ function getCreditService(req, res) {
  * Returns no user data — safe to expose.
  */
 router.get('/_diagnostics', (req, res) => {
+  // Try to require each suspect module so failures surface in diagnostics
+  // instead of being buried in Railway startup logs.
+  const probes = {};
+  const probeModule = (label, path) => {
+    try {
+      require(path);
+      probes[label] = 'ok';
+    } catch (err) {
+      probes[label] = `FAIL: ${err.message}`;
+    }
+  };
+  probeModule('chatbot/ChatBotService', '../chatbot/ChatBotService');
+  probeModule('chatbot/LegalDataHunterService', '../chatbot/LegalDataHunterService');
+  probeModule('chatbot/MarketingBotService', '../chatbot/MarketingBotService');
+  probeModule('routes/chatbot', './chatbot');
+  probeModule('routes/marketing-bot', './marketing-bot');
+  probeModule('routes/contractAnalysis', './contractAnalysis');
+  probeModule('contractAnalysis/ContractAnalysisService', '../contractAnalysis/ContractAnalysisService');
+
   res.json({
-    build: 'lazy-init-v2',
+    build: 'lazy-init-v3',
     initialized: {
       db: !!req.app.locals.db,
       userService: !!req.app.locals.userService,
       creditService: !!req.app.locals.creditService,
       referralService: !!req.app.locals.referralService,
       chatBotService: !!req.app.locals.chatBotService,
+      marketingBotService: !!req.app.locals.marketingBotService,
+      contractAnalysisService: !!req.app.locals.contractAnalysisService,
+    },
+    moduleProbes: probes,
+    nodeVersion: process.version,
+    env: {
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasQdrant: !!process.env.QDRANT_URL,
+      hasLDH: !!process.env.LDH_API_KEY,
     },
     timestamp: new Date().toISOString(),
   });

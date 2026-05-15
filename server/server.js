@@ -575,7 +575,8 @@ function registerRoutes() {
   if (settings.isRouteEnabled('contractAnalysis')) {
     try {
       const contractAnalysisService = require('./contractAnalysis/ContractAnalysisService');
-      contractAnalysisService.setDatabase(database);
+      // Use app.locals.db — `database` is not in scope inside registerRoutes()
+      contractAnalysisService.setDatabase(app.locals.db);
       app.use('/api/contract-analysis', require('./routes/contractAnalysis'));
       console.log('✅ AI Contract Analysis routes loaded successfully');
     } catch (error) {

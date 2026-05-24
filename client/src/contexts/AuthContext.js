@@ -1,9 +1,38 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { clearCSRFTokenCache } from '../services/csrfService';
 import { trackLogin, trackSignup } from '../utils/analytics';
+
+// ---------------------------------------------------------------------------
+// Global axios 402 interceptor — fires a custom DOM event whenever any
+// authenticated API call is blocked by `subscriptionGuard`. The
+// SubscriptionGate component listens for this event and shows the gate modal.
+// Installed once at module load (axios singleton).
+// ---------------------------------------------------------------------------
+let __subscriptionInterceptorInstalled = false;
+const install402Interceptor = () => {
+  if (__subscriptionInterceptorInstalled) return;
+  __subscriptionInterceptorInstalled = true;
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const status = error?.response?.status;
+      const code = error?.response?.data?.code;
+      if (status === 402 && typeof code === 'string' && code.startsWith('SUBSCRIPTION_')) {
+        try {
+          window.dispatchEvent(new CustomEvent('subscription:blocked', {
+            detail: error.response.data
+          }));
+        } catch (_) { /* SSR / older browsers */ }
+      }
+      return Promise.reject(error);
+    }
+  );
+};
+install402Interceptor();
 
 // API Configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
@@ -165,29 +194,29 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Simple registration with just username and password
-  const registerSimple = async (username, password) => {
+  const registerSimple = async (username, password, intendedPlan = 'standard') => {
     setError(null);
-    
+
     try {
       // Fetch CSRF token
       const csrfResponse = await fetch(`${API_BASE_URL}/csrf-token`, {
         credentials: 'include',
       });
-      
+
       if (!csrfResponse.ok) {
         throw new Error(`Failed to fetch CSRF token: ${csrfResponse.status} ${csrfResponse.statusText}`);
       }
-      
+
       const csrfData = await csrfResponse.json();
       const csrfToken = csrfData.csrfToken;
-      
+
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, intendedPlan }),
         credentials: 'include',
       });
 

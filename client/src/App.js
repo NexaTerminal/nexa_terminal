@@ -4,6 +4,10 @@ import { trackPageView } from './utils/analytics';
 
 // Public pages
 import Login from './pages/website/Login';
+import Home from './pages/website/Home';
+import ForProfessionals from './pages/website/ForProfessionals';
+import Pricing from './pages/website/Pricing';
+import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
 import ProviderResponse from './pages/public/ProviderResponse';
@@ -22,6 +26,13 @@ import About from './pages/website/About';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
+import ManageSubscriptions from './pages/terminal/admin/ManageSubscriptions';
+import AllUsers from './pages/terminal/admin/AllUsers';
+import Team from './pages/terminal/admin-user/Team';
+import AdminUserDashboard from './pages/terminal/admin-user/Dashboard';
+import LeadsInbox from './pages/terminal/admin-user/LeadsInbox';
+import ChangePassword from './pages/terminal/ChangePassword';
+import ManageLeads from './pages/terminal/admin/ManageLeads';
 import ManageServiceProviders from './pages/terminal/admin/ManageServiceProviders';
 import ManageOfferRequests from './pages/terminal/admin/ManageOfferRequests';
 import ManageChatbot from './pages/terminal/admin/ManageChatbot';
@@ -164,8 +175,12 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/for-professionals" element={<ForProfessionals />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/contact" element={<ContactPublic />} />
+      <Route path="/ecosystem" element={<About />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       {/* <Route path="/complete-profile" element={<CompleteProfile />} /> */}
@@ -325,6 +340,13 @@ function App() {
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/blogs/edit/:id" element={<PrivateRoute><EditBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
+      <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
+      <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />
+      <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
+      <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />
+      <Route path="/terminal/admin-user/leads" element={<PrivateRoute><LeadsInbox /></PrivateRoute>} />
+      <Route path="/terminal/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
+      <Route path="/terminal/admin/leads" element={<PrivateRoute><ManageLeads /></PrivateRoute>} />
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />
       <Route path="/terminal/admin/chatbot" element={<PrivateRoute><ManageChatbot /></PrivateRoute>} />

@@ -1,6 +1,32 @@
 // server/middleware/creditMiddleware.js
 
 const creditConfig = require('../config/creditConfig');
+const { ROLES } = require('../constants/roles');
+
+/**
+ * Resolve the "credit bearer" — for sub-seats, that's the parent admin_user;
+ * for everyone else, that's the user themselves. The bearer's _id is what
+ * we check / deduct against.
+ *
+ * Falls back to the caller's own _id on any error so that we never accidentally
+ * block a real user because of a misconfigured parent linkage.
+ */
+async function resolveCreditBearerId(user, db) {
+  if (!user) return null;
+  if (user.role !== ROLES.SUB_SEAT) return user._id;
+  if (!user.parentSuperUserId) return user._id;
+  try {
+    const { ObjectId } = require('mongodb');
+    const parent = await db.collection('users').findOne(
+      { _id: user.parentSuperUserId instanceof ObjectId ? user.parentSuperUserId : new ObjectId(user.parentSuperUserId) },
+      { projection: { _id: 1, role: 1 } }
+    );
+    return parent ? parent._id : user._id;
+  } catch (e) {
+    console.error('[creditMiddleware] resolveCreditBearerId failed:', e.message);
+    return user._id;
+  }
+}
 
 /**
  * Credit Middleware
@@ -25,7 +51,6 @@ const checkCredits = (cost = 1) => {
         });
       }
 
-      const userId = req.user._id;
       const creditService = req.app.locals.creditService;
 
       if (!creditService) {
@@ -35,6 +60,11 @@ const checkCredits = (cost = 1) => {
           code: 'CREDIT_SERVICE_UNAVAILABLE'
         });
       }
+
+      // For sub_seat users, redirect credit ops to the parent admin_user's pool.
+      const userId = await resolveCreditBearerId(req.user, req.app.locals.database || req.app.locals.db);
+      req.creditBearerId = userId;
+      req.creditPooled = String(userId) !== String(req.user._id);
 
       // Check if user has sufficient credits
       const hasCredits = await creditService.checkBalance(userId, cost);
@@ -87,7 +117,8 @@ const deductCredits = (type) => {
     const deductAndSend = async (body) => {
       if (!creditsDeducted && req.creditsChecked && res.statusCode < 400) {
         try {
-          const userId = req.user._id;
+          // Honor the credit-bearer resolution from checkCredits (sub-seats → parent's pool).
+          const userId = req.creditBearerId || req.user._id;
           const cost = req.creditCost || 1;
           const creditService = req.app.locals.creditService;
 
@@ -186,7 +217,7 @@ const refundOnError = () => {
       if (statusCode >= 400 && req.creditDeducted && req.creditTransactionId) {
         try {
           const creditService = req.app.locals.creditService;
-          const userId = req.user._id;
+          const userId = req.creditBearerId || req.user._id;
 
           const errorMessage = typeof body === 'object' && body.error
             ? body.error

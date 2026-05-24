@@ -188,5 +188,13 @@ if (featureName && featureName !== 'auth') {
   console.log('  - socialPosts');
   console.log('  - legalHealthCheck');
   console.log('  - blog');
+  console.log('  - marketplace');
+  console.log('  - aiChatbot');
+  console.log('  - contractAnalysis');
+  console.log('  - adminUserPlan      (Admin-plan role machinery)');
+  console.log('  - subSeats           (Admin user can invite sub-seats)');
+  console.log('  - leadRouting        (Inbound lead webhook + assignment)');
+  console.log('  - topicsSlots        (Quarterly Topics slot reservation)');
+  console.log('  - blogSubmissions    (Newsletter blog submission queue)');
   console.log('\nNote: authentication is always enabled');
 }

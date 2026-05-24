@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import SimpleNavbar from '../../components/common/SimpleNavbar';
-import PublicFooter from '../../components/common/PublicFooter';
+import PublicNavbarV2 from '../../components/website/PublicNavbarV2';
+import PublicFooterV2 from '../../components/website/PublicFooterV2';
+import '../../styles/website/brand.css';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import { OrganizationSchema } from '../../components/seo/StructuredData';
 import api from '../../services/api';
+import { resolveBlogImage } from '../../utils/blogImage';
 import styles from '../../styles/website/Blog.module.css';
 
 // Category translation mapping (English -> Macedonian)
@@ -169,7 +171,7 @@ export default function Blog() {
       />
       <OrganizationSchema />
 
-      <SimpleNavbar />
+      <PublicNavbarV2 />
 
       <div className={styles.page}>
         {/* Hero Header */}
@@ -218,7 +220,7 @@ export default function Blog() {
                   <Link to={`/blog/${featuredPost.slug || featuredPost._id}`} className={styles.featuredLink}>
                     {featuredPost.featuredImage && !brokenImages.has(featuredPost._id) ? (
                       <img
-                        src={featuredPost.featuredImage}
+                        src={resolveBlogImage(featuredPost.featuredImage)}
                         alt={featuredPost.title}
                         className={styles.featuredImage}
                         onError={() => handleImageError(featuredPost._id)}
@@ -263,7 +265,7 @@ export default function Blog() {
                           {post.featuredImage && !brokenImages.has(post._id) && (
                             <div className={styles.cardImageWrapper}>
                               <img
-                                src={post.featuredImage}
+                                src={resolveBlogImage(post.featuredImage)}
                                 alt={post.title}
                                 loading="lazy"
                                 className={styles.cardImage}
@@ -295,7 +297,7 @@ export default function Blog() {
           )}
         </main>
 
-        <PublicFooter />
+        <PublicFooterV2 />
       </div>
     </>
   );

@@ -1,0 +1,35 @@
+.page {
+  padding: 72px 0 96px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.page h1 {
+  font-size: 36px;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+.updated {
+  color: var(--nx-muted);
+  font-size: 13px;
+  margin-bottom: 36px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.page section { margin: 0 0 28px; }
+.page h2 {
+  font-size: 18px;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+  color: var(--nx-ink);
+}
+.page p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--nx-text);
+  margin: 0;
+}
+@media (max-width: 768px) {
+  .page { padding: 48px 0 64px; }
+  .page h1 { font-size: 26px; }
+}

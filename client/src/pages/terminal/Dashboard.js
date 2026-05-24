@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import SocialFeed from "../../components/terminal/SocialFeed";
-import ProfileReminderBanner from "../../components/terminal/ProfileReminderBanner";
+import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
 
 const Dashboard = () => {
@@ -54,7 +54,7 @@ const Dashboard = () => {
 
       <div className={styles["dashboard-layout"]}>
         <main className={styles["dashboard-main"]}>
-          <ProfileReminderBanner />
+          <SubscriptionStatusBanner />
 
           {/* Removed dashboard-header section - profile info now in header dropdown */}
 

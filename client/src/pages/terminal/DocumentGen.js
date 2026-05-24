@@ -4,7 +4,7 @@ import styles from '../../styles/terminal/DocumentGen.module.css';
 import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from "../../components/terminal/Sidebar";
-import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
+import CompanyInfoPrompt from '../../components/terminal/CompanyInfoPrompt';
 import documentCategoriesData from '../../data/documentCategories.json';
 
 const DocumentGen = () => {
@@ -784,7 +784,7 @@ const DocumentGen = () => {
         <Sidebar />
 
         <main className={styles["dashboard-main"]}>
-          <ProfileReminderBanner />
+          <CompanyInfoPrompt />
           {renderCurrentStep()}
         </main>
       </div>

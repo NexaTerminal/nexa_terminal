@@ -15,6 +15,8 @@ import SimpleNavbar from '../../components/common/SimpleNavbar';
 const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
+  // Plan is always standard at signup; admins/upgrades happen post-trial via the gate modal.
+  const intendedPlan = 'standard';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -98,7 +100,7 @@ const Login = () => {
           throw new Error(passwordMatch.error);
         }
         
-        const result = await registerSimple(username, password);
+        const result = await registerSimple(username, password, intendedPlan || 'standard');
         if (result.success) {
           setSuccess('Успешна регистрација! Добредојдовте во Nexa Terminal!');
           setTimeout(() => {
@@ -263,6 +265,11 @@ const Login = () => {
               />
               
               <form className={styles.loginForm} onSubmit={handleSubmit}>
+                {!isLogin && (
+                  <p className={styles.trialNote}>
+                    🎁 8 дена бесплатен пристап. Без картичка, без обврска.
+                  </p>
+                )}
                 {/* Username field */}
                 <div className={styles.formGroup}>
                   <label htmlFor="username" className={styles.formLabel}>

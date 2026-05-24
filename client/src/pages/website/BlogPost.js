@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import SimpleNavbar from '../../components/common/SimpleNavbar';
+import PublicNavbarV2 from '../../components/website/PublicNavbarV2';
 import LoginModal from '../../components/common/LoginModal';
-import PublicFooter from '../../components/common/PublicFooter';
+import PublicFooterV2 from '../../components/website/PublicFooterV2';
+import '../../styles/website/brand.css';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import { ArticleSchema } from '../../components/seo/StructuredData';
 import { sanitizeHTML } from '../../utils/sanitizer';
 import api from '../../services/api';
+import { resolveBlogImage } from '../../utils/blogImage';
 import { getPromotedToolById } from '../../config/promotedTools';
 import didYouKnowFacts from '../../data/didYouKnowFacts.json';
 import styles from '../../styles/website/BlogPost.module.css';
@@ -271,7 +273,7 @@ export default function BlogPost() {
   if (loading) {
     return (
       <>
-        <SimpleNavbar />
+        <PublicNavbarV2 />
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
           <p>Се вчитува блогот...</p>
@@ -283,7 +285,7 @@ export default function BlogPost() {
   if (error || !post) {
     return (
       <>
-        <SimpleNavbar />
+        <PublicNavbarV2 />
         <div className={styles.error}>
           <p className={styles.errorMessage}>{error || 'Блогот не е пронајден'}</p>
           <Link to="/blog" className={styles.errorLink}>← Назад кон блогот</Link>
@@ -320,13 +322,13 @@ export default function BlogPost() {
         author={post.author?.name || 'Nexa Terminal'}
       />
 
-      <SimpleNavbar />
+      <PublicNavbarV2 />
 
       {/* Hero Section - Full Width Image with Title Overlay */}
       <header className={styles.hero}>
         {post.featuredImage && (
           <img
-            src={post.featuredImage}
+            src={resolveBlogImage(post.featuredImage)}
             alt={post.title}
             className={styles.heroImage}
             loading="eager"
@@ -488,7 +490,7 @@ export default function BlogPost() {
               >
                 {suggestedPost.featuredImage && (
                   <div className={styles.suggestedImage}>
-                    <img src={suggestedPost.featuredImage} alt={suggestedPost.title} loading="lazy" />
+                    <img src={resolveBlogImage(suggestedPost.featuredImage)} alt={suggestedPost.title} loading="lazy" />
                   </div>
                 )}
                 <div className={styles.suggestedContent}>
@@ -587,7 +589,7 @@ export default function BlogPost() {
         redirectPath="/terminal"
       />
 
-      <PublicFooter />
+      <PublicFooterV2 />
     </>
   );
 }

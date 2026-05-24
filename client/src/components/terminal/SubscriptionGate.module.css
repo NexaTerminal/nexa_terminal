@@ -1,0 +1,295 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: 36px 36px 28px;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.30);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #B45309;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0B1220;
+  margin: 0 0 8px;
+}
+
+.lead {
+  color: #4B5563;
+  font-size: 14.5px;
+  margin: 0 0 18px;
+  line-height: 1.55;
+}
+
+.warnNote {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  color: #92400E;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin: 12px 0 20px;
+}
+
+/* Plan tiles (only shown for admin_users where 2 plans are picker-eligible) */
+.planTiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0 22px;
+}
+.planTile {
+  background: #FFFFFF;
+  border: 1.5px solid #E6E8EC;
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.planTile:hover { border-color: #D1D5DB; }
+.planTileActive {
+  border-color: #1E4DB7;
+  background: #F2F5FB;
+}
+.planTileName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0B1220;
+  margin-bottom: 2px;
+}
+.planTilePrice {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.cycleLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #6B7280;
+  margin: 18px 0 8px;
+}
+.cycleRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.cycleBtn {
+  background: #FFFFFF;
+  border: 1.5px solid #E6E8EC;
+  border-radius: 10px;
+  padding: 12px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.cycleBtn:hover { border-color: #D1D5DB; }
+.cycleBtnActive {
+  border-color: #0B1220;
+  background: #0B1220;
+}
+.cycleBtnActive .cycleName,
+.cycleBtnActive .cyclePrice {
+  color: #FFFFFF;
+}
+.cycleName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0B1220;
+  margin-bottom: 2px;
+}
+.cyclePrice {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+.field {
+  margin: 0 0 18px;
+}
+.field label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #0B1220;
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.field input:focus {
+  outline: none;
+  border-color: #1E4DB7;
+  box-shadow: 0 0 0 3px rgba(30,77,183,0.15);
+}
+
+.error {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.ctaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 18px;
+}
+.btnPrimary, .btnSecondary {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  padding: 13px 18px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+.btnPrimary {
+  background: #0B1220;
+  color: #FFFFFF;
+  border-color: #0B1220;
+}
+.btnPrimary:hover { background: #1a2438; transform: translateY(-1px); }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btnSecondary {
+  background: #FFFFFF;
+  color: #0B1220;
+  border-color: #D1D5DB;
+}
+.btnSecondary:hover { background: #F7F8FA; border-color: #0B1220; }
+.btnSecondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.ctaSub {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.bottomActions {
+  text-align: center;
+  margin-top: 8px;
+}
+.btnText {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 8px 12px;
+  text-decoration: underline;
+}
+.btnText:hover { color: #0B1220; }
+
+.btnGhost {
+  background: #F7F8FA;
+  border: 1px solid #E6E8EC;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0B1220;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+/* Close button — top right corner of the modal */
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+  transition: background 120ms ease, color 120ms ease;
+  font-family: inherit;
+}
+.closeBtn:hover { background: #F7F8FA; color: #0B1220; }
+
+/* Success state */
+.successBlock { text-align: center; padding: 12px 0 4px; }
+.checkIcon {
+  width: 56px; height: 56px; line-height: 56px;
+  background: #ECFDF5; color: #15803D;
+  border-radius: 50%;
+  font-size: 32px; font-weight: 700;
+  margin: 8px auto 16px;
+  display: block;
+}
+
+/* Email hint when account already has email */
+.emailHint {
+  background: #F2F5FB;
+  border: 1px solid rgba(30, 77, 183, 0.18);
+  color: #1E4DB7;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.emailHint strong { color: #0B1220; }
+
+/* The modal needs position:relative for the close button */
+.modal { position: relative; }

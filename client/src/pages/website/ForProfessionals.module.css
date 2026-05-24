@@ -1,0 +1,266 @@
+/* ============ HERO ============ */
+.hero {
+  padding: 128px 0 96px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.heroInner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.hero h1 {
+  max-width: 900px;
+  margin: 24px auto 20px;
+  font-size: 56px;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
+}
+.heroSub {
+  font-size: 19px;
+  max-width: 760px;
+  margin: 0 auto 36px;
+  color: rgba(255,255,255,0.82) !important;
+  line-height: 1.55;
+}
+.heroCtas {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .hero { padding: 80px 0 64px; }
+  .hero h1 { font-size: 32px; }
+  .heroSub { font-size: 16px; }
+}
+
+/* ============ Section heads ============ */
+.sectionHead {
+  max-width: 720px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+
+/* ============ What you get ============ */
+.whatGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.whatCard h3 { font-size: 18px; margin: 0 0 8px; }
+.whatCard p { color: var(--nx-text-soft); font-size: 14.5px; margin: 0; line-height: 1.6; }
+@media (max-width: 720px) { .whatGrid { grid-template-columns: 1fr; } }
+
+/* ============ Big quote ============ */
+.quoteSection { padding: 80px 0; }
+.quoteBox {
+  max-width: 880px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border-radius: var(--nx-r-xl);
+  padding: 56px 64px;
+  position: relative;
+  box-shadow: var(--nx-shadow-modern);
+  border: 1px solid var(--nx-line);
+}
+.quoteMark {
+  position: absolute;
+  top: 8px;
+  left: 32px;
+  font-size: 110px;
+  line-height: 1;
+  color: var(--nx-primary-100);
+  font-family: Georgia, serif;
+}
+.bigQuote {
+  font-size: 26px;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--nx-ink);
+  margin: 0 0 24px;
+  position: relative;
+  z-index: 1;
+}
+.quoteFoot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nx-primary-500);
+}
+@media (max-width: 720px) {
+  .quoteBox { padding: 36px 28px; }
+  .bigQuote { font-size: 20px; }
+}
+
+/* ============ Exclusivity ============ */
+.exclusivityCard {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  background: linear-gradient(155deg, var(--nx-primary-50) 0%, #FFFFFF 100%);
+  border: 1px solid var(--nx-primary-100);
+  border-radius: var(--nx-r-xl);
+  padding: 56px 40px;
+}
+.exclusivityIcon {
+  color: var(--nx-primary-500);
+  margin-bottom: 16px;
+}
+.exclusivityCard h2 { font-size: 28px; margin-bottom: 14px; }
+.exclusivityCard p { color: var(--nx-text-soft); font-size: 16px; margin: 0; line-height: 1.6; }
+
+/* ============ Pricing row ============ */
+.priceRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.priceCard {
+  padding: 32px 28px;
+  text-align: center;
+  position: relative;
+  border-radius: var(--nx-r-lg);
+}
+.priceCheck {
+  color: var(--nx-secondary-500);
+  background: var(--nx-secondary-50);
+  border-radius: 50%;
+  padding: 6px;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 14px;
+}
+.priceTag { font-size: 22px; font-weight: 700; color: var(--nx-ink); letter-spacing: -0.02em; }
+.priceCardAccent {
+  background: linear-gradient(155deg, #FFFFFF 0%, var(--nx-bg-tint) 100%);
+  border-color: rgba(30, 77, 183, 0.20);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -16px rgba(30, 77, 183, 0.25);
+}
+.note { margin-top: 24px; color: var(--nx-muted); font-size: 13.5px; text-align: center; }
+@media (max-width: 720px) { .priceRow { grid-template-columns: 1fr; } .priceCardAccent { transform: none; } }
+
+/* ============ Steps ============ */
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: #FFFFFF;
+  border: 1px solid var(--nx-line);
+  border-radius: var(--nx-r-lg);
+  box-shadow: var(--nx-shadow-1);
+}
+.stepCircle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nx-primary-500), var(--nx-primary-700));
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  box-shadow: 0 8px 16px -6px rgba(30, 77, 183, 0.40);
+}
+.stepLabel { font-size: 15px; color: var(--nx-ink); font-weight: 500; }
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+
+/* ============ Form ============ */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #FFFFFF;
+  padding: 40px;
+  border: 1px solid var(--nx-line);
+  border-radius: var(--nx-r-xl);
+  box-shadow: var(--nx-shadow-2);
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--nx-ink);
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.form input, .form textarea {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+.areas {
+  border: 1px solid var(--nx-line);
+  background: var(--nx-bg-soft);
+  border-radius: var(--nx-r);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0;
+}
+.areas legend {
+  padding: 0 8px;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--nx-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.areaItem {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  font-weight: 400 !important;
+  font-size: 13.5px !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  color: var(--nx-text) !important;
+  align-items: center;
+}
+.areaItem input { width: auto !important; accent-color: var(--nx-primary-500); }
+.err { color: #B91C1C; font-size: 13.5px; margin: 0; }
+
+.successCard {
+  background: var(--nx-secondary-50);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--nx-r-xl);
+  padding: 36px;
+  text-align: center;
+  color: var(--nx-secondary-600);
+}
+.successCard svg {
+  margin-bottom: 8px;
+  background: var(--nx-secondary-500);
+  color: #FFFFFF;
+  border-radius: 50%;
+  padding: 6px;
+  width: 42px;
+  height: 42px;
+}
+.successCard p { font-size: 16px; color: var(--nx-secondary-600); margin: 0; font-weight: 500; }

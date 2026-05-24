@@ -8,6 +8,11 @@
     "blog": true,
     "marketplace": true,
     "aiChatbot": true,
-    "contractAnalysis": true
+    "contractAnalysis": true,
+    "adminUserPlan": true,
+    "subSeats": true,
+    "leadRouting": true,
+    "topicsSlots": false,
+    "blogSubmissions": false
   }
 }

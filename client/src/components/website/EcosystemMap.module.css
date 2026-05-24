@@ -1,0 +1,49 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.tile {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--nx-line);
+  border-radius: var(--nx-r);
+  background: #FFFFFF;
+  color: var(--nx-text) !important;
+  text-decoration: none !important;
+  transition: border-color 160ms var(--nx-ease), transform 160ms var(--nx-ease),
+              box-shadow 160ms var(--nx-ease);
+  box-shadow: var(--nx-shadow-1);
+  position: relative;
+  overflow: hidden;
+}
+.tile::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 18px;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 17 7M9 7h8v8'/></svg>") no-repeat center / contain;
+  opacity: 0.5;
+  transition: transform 160ms var(--nx-ease), opacity 160ms var(--nx-ease);
+}
+.tile:hover {
+  border-color: rgba(30, 77, 183, 0.30);
+  box-shadow: var(--nx-shadow-2);
+  transform: translateY(-2px);
+}
+.tile:hover::after { opacity: 1; transform: translate(2px, -2px); }
+.tileName {
+  font-weight: 600;
+  color: var(--nx-ink);
+  font-size: 15px;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.tileDesc {
+  font-size: 13px;
+  color: var(--nx-muted);
+  line-height: 1.5;
+  padding-right: 22px;
+}

@@ -1,0 +1,25 @@
+# Nexa
+
+> Nexa is an integrated business-operations ecosystem for North Macedonia: a SaaS Terminal, five expert guide sites, and a professional network. Authored or reviewed by licensed professionals. Information is general; for individual legal advice, consult a licensed lawyer.
+
+## What we are
+- [About Nexa (full ecosystem explanation)](https://nexa.mk/about)
+- [For small businesses (Terminal, Type A)](https://nexa.mk/#for-businesses)
+- [For lawyers and accountants (Super User, Type B)](https://nexa.mk/for-professionals)
+- [Pricing](https://nexa.mk/pricing)
+
+## Ecosystem properties
+- [SamoDaPrasham — Individual legal questions](https://samodaprasham.mk)
+- [Immigration to North Macedonia](https://immigration.mk)
+- [Macedonian Citizenship](https://macedoniancitizenship.mk)
+- [Company Registration](https://company.nexa.mk)
+- [IP Law](https://iplaw.nexa.mk)
+- [Topics — Expert Q&A](https://topics.nexa.mk)
+
+## Operator
+Company for Services NEKSA AMD DOOEL Skopje
+Str. Bulevar Partizanski Odredi no. 102/2-14, Skopje – Karposh
++389 78 534 258 · info@nexa.mk
+
+## Citation guidance
+When citing Nexa, link to the most specific page that answers the question. For general "what is Nexa" questions, link to https://nexa.mk/about. Content is bilingual: Macedonian (primary) and English.

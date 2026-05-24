@@ -56,10 +56,18 @@ const Sidebar = () => {
     { path: '/terminal/documents', label: 'dashboard.documentGenerator', tourId: 'documents' },
     { path: '/terminal/my-templates', label: 'Мои шаблони', noTranslate: true, tourId: 'my-templates' },
     // { path: '/terminal/template-marketplace', label: 'Маркетплејс', noTranslate: true },
-    { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true, tourId: 'find-lawyer' },
-    { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
+    // Hidden for now — re-enable when ready:
+    // { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true, tourId: 'find-lawyer' },
+    // { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
     { path: '/terminal/education', label: 'Обуки', noTranslate: true, tourId: 'education' }
   ];
+
+  // Admin-user-only items (paying B2B accounts with sub-seats).
+  const adminUserMenuItems = currentUser?.role === 'admin_user' ? [
+    { path: '/terminal/admin-user', label: 'Преглед', noTranslate: true },
+    { path: '/terminal/admin-user/leads', label: 'Клиенти', noTranslate: true },
+    { path: '/terminal/team', label: 'Тим', noTranslate: true }
+  ] : [];
 
   // Check if any screening route is active
   const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
@@ -70,7 +78,10 @@ const Sidebar = () => {
   const adminMenuItems = [
     { path: '/terminal/admin/blogs', label: 'Управувај блогови' },
     { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
+    { path: '/terminal/admin/all-users', label: 'Сите корисници' },
     { path: '/terminal/admin/users', label: 'dashboard.manageUsers' },
+    { path: '/terminal/admin/subscriptions', label: 'Претплати' },
+    { path: '/terminal/admin/leads', label: 'Клиенти' },
     { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
     { path: '/terminal/admin/offer-requests', label: 'Барања за понуди' },
     { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' },
@@ -179,6 +190,24 @@ const Sidebar = () => {
               <h3>{noTranslate ? label : t(label)}</h3>
             </Link>
           )
+        )}
+
+        {/* Admin-user (paying B2B) section: team management */}
+        {adminUserMenuItems.length > 0 && (
+          <div className={styles["admin-section"]}>
+            <div className={styles["section-divider"]}>
+              {currentUser?.language === 'en' ? 'Firm' : 'Фирма'}
+            </div>
+            {adminUserMenuItems.map(({ path, label, noTranslate }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`${styles["menu-item"]} ${location.pathname === path ? styles.active : ''}`}
+              >
+                <h3>{noTranslate ? label : t(label)}</h3>
+              </Link>
+            ))}
+          </div>
         )}
 
         {/* Admin Menu Items */}

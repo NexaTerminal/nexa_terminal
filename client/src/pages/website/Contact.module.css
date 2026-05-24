@@ -1,0 +1,94 @@
+.hero {
+  padding: 96px 0 64px;
+  border-bottom: 1px solid var(--nx-line);
+}
+.heroInner { position: relative; z-index: 2; text-align: center; }
+.hero h1 { font-size: 48px; letter-spacing: -0.03em; margin: 20px auto 14px; }
+.heroSub {
+  font-size: 18px;
+  color: var(--nx-text-soft) !important;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+@media (max-width: 768px) {
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 32px; }
+  .heroSub { font-size: 16px; }
+}
+
+/* ============ Contact methods ============ */
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.methodCard {
+  padding: 32px;
+  text-align: left;
+  text-decoration: none !important;
+  color: inherit;
+  display: block;
+  border-radius: var(--nx-r-xl);
+}
+.methodCard h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--nx-muted); margin: 0 0 10px; font-weight: 700; }
+.methodCard p { font-size: 20px; font-weight: 600; color: var(--nx-ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+.methodHint { font-size: 13px; color: var(--nx-text-soft); }
+@media (max-width: 880px) { .methodGrid { grid-template-columns: 1fr; max-width: 460px; } }
+
+/* ============ Form ============ */
+.formHead { max-width: 600px; margin: 0 auto 36px; text-align: center; }
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #FFFFFF;
+  padding: 40px;
+  border-radius: var(--nx-r-xl);
+  border: 1px solid var(--nx-line);
+  box-shadow: var(--nx-shadow-modern);
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--nx-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.form input, .form select, .form textarea {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.row2 label { gap: 8px; }
+@media (max-width: 600px) { .row2 { grid-template-columns: 1fr; } .form { padding: 28px; } }
+.err { color: #B91C1C; font-size: 13.5px; margin: 0; }
+
+.successCard {
+  background: var(--nx-secondary-50);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--nx-r-xl);
+  padding: 40px;
+  text-align: center;
+  color: var(--nx-secondary-600);
+}
+.successCard svg {
+  margin-bottom: 12px;
+  background: var(--nx-secondary-500);
+  color: #FFFFFF;
+  border-radius: 50%;
+  padding: 6px;
+  width: 42px;
+  height: 42px;
+}
+.successCard p { font-size: 16px; margin: 0; font-weight: 500; }

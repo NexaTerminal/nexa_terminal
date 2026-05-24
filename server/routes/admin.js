@@ -121,7 +121,7 @@ router.get('/test-users', async (req, res) => {
 // All admin routes require authentication and admin privileges
 router.use(authenticateJWT, isAdmin);
 
-// User Management
+// User Management (legacy)
 router.get('/users', adminController.getUsers);
 router.get('/users/:id', adminController.getUserDetails);
 router.post('/users/:id/suspend', adminController.suspendUser);
@@ -130,6 +130,29 @@ router.patch('/users/:id/role', adminController.updateUserRole);
 router.patch('/users/:id/status', adminController.updateUserStatus);
 router.delete('/users/:id', adminController.deleteUser);
 router.get('/users/:id/activity', adminController.getUserActivity);
+
+// User Management (new — role + subscription + sub-seat lens)
+// Lazily wired so the AdminUsersController only spins up when the request fires.
+const AdminUsersController = require('../controllers/adminUsersController');
+let adminUsersInstance = null;
+const getAdminUsersController = (req) => {
+  if (!adminUsersInstance) {
+    let emailService = null;
+    try { emailService = require('../services/emailService'); } catch {}
+    let auditLoggingService = null;
+    try { auditLoggingService = require('../services/auditLoggingService'); } catch {}
+    adminUsersInstance = new AdminUsersController({
+      subscriptionService: req.app.locals.subscriptionService || null,
+      emailService,
+      auditLoggingService
+    });
+  }
+  return adminUsersInstance;
+};
+router.get('/all-users',                        (req, res) => getAdminUsersController(req).list(req, res));
+router.get('/all-users/:id',                    (req, res) => getAdminUsersController(req).getOne(req, res));
+router.post('/all-users/:id/reset-password',    (req, res) => getAdminUsersController(req).resetPassword(req, res));
+router.post('/all-users/:id/change-role',       (req, res) => getAdminUsersController(req).changeRole(req, res));
 
 // Platform Analytics
 router.get('/analytics', adminController.getPlatformAnalytics);

@@ -1,0 +1,80 @@
+/* Single-line slim status strip. Deliberately less prominent than the
+ * profile-reminder card so the two don't compete for attention.
+ */
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin: 0 0 12px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid;
+}
+.icon {
+  flex: 0 0 auto;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.text {
+  flex: 1;
+  min-width: 0;
+}
+.link {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none !important;
+  padding: 3px 0 3px 8px;
+  white-space: nowrap;
+  border-left: 1px solid currentColor;
+  opacity: 0.85;
+}
+.link:hover { opacity: 1; }
+.arrow { margin-left: 2px; }
+
+/* Variants — soft tints, no heavy borders, no shouting */
+.trial {
+  background: #ECFEFF;
+  border-color: rgba(14, 116, 144, 0.18);
+  color: #0E7490;
+}
+.trial .link { color: #0E7490; }
+
+.info {
+  background: #F2F5FB;
+  border-color: rgba(30, 77, 183, 0.18);
+  color: #1E4DB7;
+}
+.info .link { color: #1E4DB7; }
+
+.warn {
+  background: #FFFBEB;
+  border-color: rgba(180, 83, 9, 0.20);
+  color: #B45309;
+}
+.warn .link { color: #B45309; }
+
+.danger {
+  background: #FEF2F2;
+  border-color: rgba(185, 28, 28, 0.22);
+  color: #B91C1C;
+}
+.danger .link { color: #B91C1C; }
+
+@media (max-width: 640px) {
+  .strip {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+  }
+  .text { flex: 1 1 100%; order: 2; }
+  .link {
+    order: 3;
+    border-left: 0;
+    padding-left: 0;
+    margin-top: 4px;
+  }
+  .icon { order: 1; }
+}

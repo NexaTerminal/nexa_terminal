@@ -1,339 +1,192 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
-import styles from '../../styles/website/About.module.css';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n';
+import PublicLayout from '../../components/website/PublicLayout';
+import SEOHelmet from '../../components/seo/SEOHelmet';
+import EcosystemMap from '../../components/website/EcosystemMap';
+import FaqAccordion from '../../components/website/FaqAccordion';
+import Icon from '../../components/website/Icon';
+import useScrollReveal from '../../hooks/useScrollReveal';
+import { NEXA_ORG, NEXA_WEBSITE, webPage, faqPage, personMartin } from '../../components/seo/schemaGraph';
+import styles from './About.module.css';
 
-// Extract YouTube ID from URL
-const getYouTubeId = (url) => {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/);
-  return match ? match[1] : null;
-};
+const FAQ_KEYS = [
+  'isLawFirm', 'legalAdvice', 'whoCanUse', 'cost', 'data', 'languages', 'becomeSuper', 'noLawyer'
+];
 
-// Memoized Video Section Component to prevent re-renders
-const VideoSection = memo(({ videoUrl, title }) => {
-  const videoId = useMemo(() => getYouTubeId(videoUrl), [videoUrl]);
+const SECTIONS = [
+  { id: 'what-is-nexa', k: 's1Heading' },
+  { id: 'problem', k: 's2Heading' },
+  { id: 'ecosystem-map', k: 's3Heading' },
+  { id: 'terminal', k: 's4Heading' },
+  { id: 'guide-sites', k: 's5Heading' },
+  { id: 'topics', k: 's6Heading' },
+  { id: 'newsletter', k: 's7Heading' },
+  { id: 'for-businesses', k: 's8Heading' },
+  { id: 'for-professionals', k: 's9Heading' },
+  { id: 'how-it-connects', k: 's10Heading' },
+  { id: 'trust', k: 's11Heading' },
+  { id: 'faq', k: 's12Heading' },
+  { id: 'contact', k: 's13Heading' }
+];
 
-  return (
-    <div className={styles.videoWrapper}>
-      <div className={styles.videoContainer}>
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=0&rel=0&modestbranding=1`}
-          title={title}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className={styles.videoPlayer}
-          loading="lazy"
-        />
-      </div>
-    </div>
-  );
-});
+const GUIDE_SITES = [
+  { name: 'SamoDaPrasham', href: 'https://samodaprasham.mk', areaMK: 'Правни прашања за физички лица', areaEN: 'Legal questions for individuals' },
+  { name: 'Immigration.mk', href: 'https://immigration.mk', areaMK: 'Имиграција во Северна Македонија', areaEN: 'Immigration to North Macedonia' },
+  { name: 'Macedonian Citizenship', href: 'https://macedoniancitizenship.mk', areaMK: 'Аплицирање за државјанство', areaEN: 'Citizenship applications' },
+  { name: 'Company.nexa.mk', href: 'https://company.nexa.mk', areaMK: 'Регистрација на компанија (ДОО/АД)', areaEN: 'Company registration (DOO/AD)' },
+  { name: 'IPLaw.nexa.mk', href: 'https://iplaw.nexa.mk', areaMK: 'Трговски марки, патенти, авторски права', areaEN: 'Trademarks, patents, copyright' }
+];
 
-VideoSection.displayName = 'VideoSection';
+export default function About() {
+  const { t } = useTranslation('website');
+  useScrollReveal();
+  const lang = i18n.language || 'mk';
+  const url = 'https://nexa.mk/about';
 
-const About = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [visibleSections, setVisibleSections] = useState(new Set());
+  const faqItems = FAQ_KEYS.map(k => ({
+    q: t(`faq.${k}.q`),
+    a: t(`faq.${k}.a`)
+  }));
 
-  // Track scroll progress with throttling
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const windowHeight = window.innerHeight;
-          const documentHeight = document.documentElement.scrollHeight - windowHeight;
-          const scrolled = window.scrollY;
-          const progress = (scrolled / documentHeight) * 100;
-          setScrollProgress(progress);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Smooth scroll to section
-  const scrollToSection = (e, sectionId) => {
-    e.preventDefault();
-    const element = document.getElementById(sectionId);
-    const navHeight = 80;
-    const elementPosition = element.offsetTop - navHeight;
-
-    window.scrollTo({
-      top: elementPosition,
-      behavior: 'smooth'
-    });
-  };
-
-  // Track visible sections with Intersection Observer (only for non-feature sections)
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.2) {
-            setVisibleSections((prev) => new Set([...prev, entry.target.id]));
-          }
-        });
-      },
-      {
-        rootMargin: '-15% 0px -15% 0px',
-        threshold: 0.2
-      }
-    );
-
-    // Only observe journey section, not feature sections
-    const sectionsToObserve = document.querySelectorAll('#journey');
-    sectionsToObserve.forEach((section) => {
-      observer.observe(section);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Feature sections data - memoized to prevent re-creation on every render
-  const features = useMemo(() => [
-    {
-      id: 'dokumenti',
-      title: 'Правна документација со брзина на светлината',
-      tagline: 'Брзина. Прецизност. Без грешки.',
-      description: 'Генерирајте стандардизирани договори и решенија за помалку од 60 секунди. Нашата база на професионални документи е целосно усогласена со македонското законодавство и подготвена за инстант употреба.',
-      videoUrl: 'https://www.youtube.com/watch?v=WG9Z0NadFJg',
-      highlights: [
-        'Генерирање за < 60 секунди',
-        'Целосна усогласеност со МК законодавство',
-        'Стандардизирани професионални шаблони',
-        'Инстант готови за употреба'
-      ]
-    },
-    {
-      id: 'proverka',
-      title: 'Станете имуни на инспекции',
-      tagline: 'Од реактивен кон проактивен бизнис',
-      description: 'Не чекајте проблем за да реагирате. Нашата дијагностика прави 360° преглед на вашата фирма и ви дава јасен план за елиминирање на сите законски ризици пред тие да станат трошок.',
-      videoUrl: 'https://www.youtube.com/watch?v=98R2bDGKbgc',
-      highlights: [
-        '360° преглед на комплајанс статус',
-        'Идентификација на законски ризици',
-        'Приоритизиран акционен план',
-        'Превенција на инспекциски казни'
-      ]
-    },
-    {
-      id: 'chatbot',
-      title: 'Вашиот дигитален правен стратег',
-      tagline: 'Инстант експертиза 24/7',
-      description: 'Добијте инстантна јасност за македонските закони 24/7. Нашиот АИ асистент не само што одговара на прашања, туку цитира релевантни закони и судска пракса, заменувајќи ги десетиците часови истражување.',
-      videoUrl: 'https://www.youtube.com/watch?v=IbTsGXAXHdY',
-      highlights: [
-        'Цитирање на релевантни закони и пракса',
-        'Заменува часови на правно истражување',
-        'Достапен 24/7 без чекање',
-        'Обучен на македонска регулатива'
-      ]
-    },
-    {
-      id: 'informativnaSodrzina',
-      title: 'Стратешко знаење за пазарна доминација',
-      tagline: 'Неправедна предност пред конкуренцијата',
-      description: 'Пристапете до инсајдерски анализи, стратегии за маркетинг и водичи за инвестиции. Едуцирајте се со содржини кои ви даваат неправедна предност пред конкуренцијата.',
-      videoUrl: 'https://www.youtube.com/watch?v=LJXQtz--Sm8',
-      highlights: [
-        'Инсајдерски правни анализи',
-        'Стратегии за маркетинг доминација',
-        'Практични водичи за инвестиции',
-        'Ексклузивни бизнис информации'
-      ]
-    },
-    {
-      id: 'advokat',
-      title: 'Директен пристап до елитни експерти',
-      tagline: 'Анонимно до најдобрата понуда',
-      description: 'Кога ви е потребна специфична правна помош, Nexa ве поврзува со верифицирани адвокати. Добијте понуди анонимно и изберете го најдобриот партнер за вашиот следен голем чекор.',
-      videoUrl: 'https://www.youtube.com/watch?v=1Z9nMueisuk',
-      highlights: [
-        'Верифицирани правни експерти',
-        'Анонимно барање на понуди',
-        'Споредба на повеќе профили',
-        'Избор на најдобар партнер за вашиот бизнис'
-      ]
-    },
-    {
-      id: 'edukacija',
-      title: 'Професионална едукација за модерен бизнис',
-      tagline: 'Од основи до напредни стратегии',
-      description: 'Комплетна библиотека на курсеви, вебинари и анализи за правни и бизнис теми. Стекнете ги знаењата кои ги имаат само големите играчи на пазарот.',
-      videoUrl: 'https://www.youtube.com/watch?v=IrgddYz1bQM',
-      highlights: [
-        'Структурирани онлајн курсеви',
-        'Вебинари со индустриски експерти',
-        'Казуси од реални ситуации',
-        'Сертификати за завршени курсеви'
-      ]
-    },
-    // {
-    //   id: 'vmrezhuvanje',
-    //   title: 'Вмрежување',
-    //   tagline: 'Градење на професионална заедница',
-    //   description: 'Поврзи се со други бизниси, споделувај искуства и соработувај. Градење на вредна професионална мрежа со единствена цел - раст.',
-    //   videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    //   highlights: [
-    //     'Форуми за дискусии и прашања',
-    //     'Групи по индустрии и интереси',
-    //     'Настани и вебинари',
-    //     'Можности за партнерства'
-    //   ]
-    // }
-  ], []);
+  const jsonLd = [
+    NEXA_ORG,
+    NEXA_WEBSITE,
+    webPage({ url, name: t('about.title'), description: t('about.seoDesc'), language: lang }),
+    faqPage(faqItems),
+    personMartin
+  ];
 
   return (
-    <div className={styles.aboutPage}>
-      {/* Scroll Progress Bar */}
-      <div className={styles.progressBar} style={{ width: `${scrollProgress}%` }} />
+    <PublicLayout>
+      <SEOHelmet
+        title={t('about.seoTitle')}
+        description={t('about.seoDesc')}
+        canonical="/about"
+        locale={lang === 'mk' ? 'mk_MK' : 'en_US'}
+        altLocale={lang === 'mk' ? 'en_US' : 'mk_MK'}
+        jsonLd={jsonLd}
+      />
+      <header className={`nx-hero-aurora ${styles.hero}`}>
+        <span className="nx-orb nx-orb-1" aria-hidden></span>
+        <span className="nx-orb nx-orb-2" aria-hidden></span>
+        <div className={`nexa-container ${styles.heroInner}`}>
+          <span className="nx-pill nx-fade-in-up">
+            <Icon name="network" size={14} />
+            {lang === 'mk' ? 'Деловен екосистем' : 'Business ecosystem'}
+          </span>
+          <h1 className="nx-fade-in-up nx-d-100">{t('about.title')}</h1>
+          <p className={`${styles.lead} nx-fade-in-up nx-d-200`}>{t('about.s1P1')}</p>
+        </div>
+      </header>
+      <div className={`nexa-container ${styles.layout}`}>
+        <aside className={styles.sidebar} aria-label={t('about.sidebarHeading')}>
+          <div className={styles.sidebarSticky}>
+            <h4>{t('about.sidebarHeading')}</h4>
+            <ul>
+              {SECTIONS.map(s => (
+                <li key={s.id}><a href={`#${s.id}`}>{t(`about.${s.k}`)}</a></li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+        <article className={styles.article}>
 
-      {/* Hero Section */}
-      <div className={styles.heroSection}>
-        <div className={styles.heroBackground}>
-          <div className={styles.wavePattern}></div>
-        </div>
-        <div className={styles.heroContent}>
-          <span className={styles.heroLabel}>Nexa</span>
-          <h1 className={styles.heroTitle}>
-            Оперативниот систем за<br />
-            <span className={styles.highlight}>моќен бизнис</span>
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Поставете ја вашата фирма на цврсти темели. Nexa Terminal ви ја нуди правната и оперативната инфраструктура на големите корпорации, со брзина на стартап.
-          </p>
-          <button
-            className={styles.ctaButton}
-            onClick={(e) => scrollToSection(e, 'journey')}
-          >
-            Обезбеди Early Access профил
-          </button>
-        </div>
-        <div className={styles.scrollIndicator}>
-          <div className={styles.scrollLine}></div>
-          <span>Прочитај како</span>
-        </div>
+          <section id="what-is-nexa">
+            <h2>{t('about.s1Heading')}</h2>
+            <p>{t('about.s1P1')}</p>
+            <p>{t('about.s1P2')}</p>
+            <p>{t('about.s1P3')}</p>
+          </section>
+
+          <section id="problem">
+            <h2>{t('about.s2Heading')}</h2>
+            <p>{t('about.s2P1')}</p>
+            <p>{t('about.s2P2')}</p>
+          </section>
+
+          <section id="ecosystem-map">
+            <h2>{t('about.s3Heading')}</h2>
+            <p>{t('about.s3P1')}</p>
+            <EcosystemMap />
+          </section>
+
+          <section id="terminal">
+            <h2>{t('about.s4Heading')}</h2>
+            <p>{t('about.s4P1')}</p>
+            <h3>{t('about.s4DocsTitle')}</h3>
+            <p>{t('about.s4DocsDesc')}</p>
+            <h3>{t('about.s4AiTitle')}</h3>
+            <p>{t('about.s4AiDesc')}</p>
+            <h3>{t('about.s4HealthTitle')}</h3>
+            <p>{t('about.s4HealthDesc')}</p>
+            <h3>{t('about.s4MarketTitle')}</h3>
+            <p>{t('about.s4MarketDesc')}</p>
+            <h3>{t('about.s4CreditsTitle')}</h3>
+            <p>{t('about.s4CreditsDesc')}</p>
+          </section>
+
+          <section id="guide-sites">
+            <h2>{t('about.s5Heading')}</h2>
+            <p>{t('about.s5P1')}</p>
+            <ul className={styles.siteList}>
+              {GUIDE_SITES.map(s => (
+                <li key={s.name}>
+                  <h3>
+                    <a href={s.href} rel="noopener">{s.name} →</a>
+                  </h3>
+                  <p>{lang === 'mk' ? s.areaMK : s.areaEN}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section id="topics">
+            <h2>{t('about.s6Heading')}</h2>
+            <p>{t('about.s6P1')}</p>
+            <p><a href="https://topics.nexa.mk" rel="noopener">topics.nexa.mk →</a></p>
+          </section>
+
+          <section id="newsletter">
+            <h2>{t('about.s7Heading')}</h2>
+            <p>{t('about.s7P1')}</p>
+          </section>
+
+          <section id="for-businesses">
+            <h2>{t('about.s8Heading')}</h2>
+            <p>{t('about.s8P1')}</p>
+            <p><a href="/pricing">{t('home.pricingTeaserHeading')} →</a></p>
+          </section>
+
+          <section id="for-professionals">
+            <h2>{t('about.s9Heading')}</h2>
+            <p>{t('about.s9P1')}</p>
+            <p><a href="/for-professionals">{t('forPro.heroTitle')} →</a></p>
+          </section>
+
+          <section id="how-it-connects">
+            <h2>{t('about.s10Heading')}</h2>
+            <p>{t('about.s10P1')}</p>
+          </section>
+
+          <section id="trust">
+            <h2>{t('about.s11Heading')}</h2>
+            <p>{t('about.s11P1')}</p>
+            <p>{t('about.s11P2')} <a href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati" rel="noopener">mba.org.mk →</a></p>
+          </section>
+
+          <section id="faq">
+            <h2>{t('about.s12Heading')}</h2>
+            <FaqAccordion items={faqItems} />
+          </section>
+
+          <section id="contact">
+            <h2>{t('about.s13Heading')}</h2>
+            <p>{t('about.s13P1')}</p>
+            <p><a href="/contact" className="nexa-btn nexa-btn-accent">{t('nav.contact')} →</a></p>
+          </section>
+
+        </article>
       </div>
-
-      {/* Journey Introduction */}
-      <section
-        id="journey"
-        className={`${styles.journeyIntro} ${visibleSections.has('journey') ? styles.visible : ''}`}
-      >
-        <div className={styles.container}>
-          <div className={styles.journeyContent}>
-            <span className={styles.badge}>01 — Почеток</span>
-            <h2 className={styles.sectionTitle}>Вашиот Business OS</h2>
-            <p className={styles.leadText}>Nexa Terminal не е само платформа. Тоа е сеопфатен систем за модерен македонски бизнис.</p>
-            <p className={styles.leadText}>Од правна документација до стратешки информации, од дијагностика за усогласеност до пристап до врвни експерти – сè што ви треба за да го водите вашиот бизнис со сигурност и брзина.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Sections with Scrollytelling */}
-      {features.map((feature, index) => (
-        <section
-          key={feature.id}
-          id={feature.id}
-          className={`${styles.featureSection} ${index % 2 === 0 ? styles.leftAlign : styles.rightAlign}`}
-        >
-          <div className={styles.container}>
-            <div className={styles.featureWrapper}>
-              <div className={styles.featureContent}>
-                <span className={styles.featureLabel}>
-                  {String(index + 2).padStart(2, '0')} — {feature.tagline}
-                </span>
-                <h2 className={styles.featureTitle}>{feature.title}</h2>
-                <p className={styles.featureDescription}>{feature.description}</p>
-
-                <div className={styles.featureHighlights}>
-                  <h3 className={styles.highlightsTitle}>Клучни карактеристики</h3>
-                  <ul className={styles.highlightsList}>
-                    {feature.highlights.map((highlight, i) => (
-                      <li key={i} className={styles.highlightItem}>
-                        <span className={styles.highlightDot}></span>
-                        {highlight}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className={styles.featureMedia}>
-                <VideoSection videoUrl={feature.videoUrl} title={feature.title} />
-              </div>
-            </div>
-          </div>
-
-          {/* Decorative elements */}
-          <div className={styles.featureNumber}>{String(index + 2).padStart(2, '0')}</div>
-        </section>
-      ))}
-
-      {/* Free Signup Trust Section - Story Conclusion */}
-      <section className={styles.trustSection}>
-        <div className={styles.trustBackground}>
-          <div className={styles.container}>
-            <div className={styles.trustLayout}>
-              <div className={styles.trustHero}>
-                <span className={styles.trustBadge}>07 — Early Access</span>
-                <h2 className={styles.trustMainTitle}>
-                  Започнете ја вашата трансформација <span className={styles.trustHighlight}>без бариери</span>
-                </h2>
-                <p className={styles.trustDescription}>
-                  Ние го поставуваме стандардот за модерен бизнис во Македонија. Како дел од нашата Early Access програма, добивате 14 гратис кредити за користење на сите функции веднаш. Без банкарски картички. Без скриени трошоци. Само чиста вредност.
-                </p>
-                <div className={styles.trustStats}>
-                  <div className={styles.statItem}>
-                    <div className={styles.statNumber}>14</div>
-                    <div className={styles.statLabel}>кредити за добредојде</div>
-                  </div>
-                  <div className={styles.statItem}>
-                    <div className={styles.statNumber}>0</div>
-                    <div className={styles.statLabel}>денари трошок</div>
-                  </div>
-                  <div className={styles.statItem}>
-                    <div className={styles.statNumber}>60</div>
-                    <div className={styles.statLabel}>секунди регистрација</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.trustCards}>
-                <div className={styles.trustCard}>
-                  <h3>14 кредити - кои се обновуваат секоја седмица</h3>
-                  <p>Користете ги сите функции бесплатно. Генерирајте документи, проверете усогласеност, консултирајте се со AI.</p>
-                </div>
-                <div className={styles.trustCard}>
-                  <h3>Без банкарски картички</h3>
-                  <p>Не бараме картички. Само email и лозинка. Почнете со користење веднаш.</p>
-                </div>
-                <div className={styles.trustCard}>
-                  <h3>Безбедност на податоци</h3>
-                  <p>Чуваме само јавни информации што ги обезбедувате. Вашите податоци се целосно заштитени.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.trustCtaWrapper}>
-              <a href="/login" className={styles.trustCtaButton}>
-                Земи ги твоите 14 кредити →
-              </a>
-              <p className={styles.trustDisclaimer}>
-                Без обврски • Без договори • Само чиста вредност
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+    </PublicLayout>
   );
-};
-
-export default About;
+}

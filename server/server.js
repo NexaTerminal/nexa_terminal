@@ -85,26 +85,32 @@ app.use(cookieParser()); // For CSRF token cookies
 // Input sanitization
 app.use(sanitizeRequest); // Sanitize all incoming requests
 
+// Subscription gate (late-bound): pulls SubscriptionService from app.locals at
+// request time, so it can be mounted before the service is initialized. Returns
+// HTTP 402 with SUBSCRIPTION_* code when a non-admin's status is not
+// trial / active / grace.
+const subscriptionGuard = require('./middleware/subscriptionGuard');
+
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
-app.use('/api/auto-documents', require('./routes/autoDocuments'));
+app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocuments'));
 
 // Mount custom templates routes (JWT-protected API)
-app.use('/api/custom-templates', require('./routes/customTemplates'));
+app.use('/api/custom-templates', subscriptionGuard, require('./routes/customTemplates'));
 
 // Mount marketing documents routes (JWT-protected API)
-app.use('/api/marketing-documents', require('./routes/marketingDocuments'));
+app.use('/api/marketing-documents', subscriptionGuard, require('./routes/marketingDocuments'));
 
 // Mount LHC (Legal Health Check) routes (JWT-protected API)
-app.use('/api/lhc', require('./routes/lhc'));
+app.use('/api/lhc', subscriptionGuard, require('./routes/lhc'));
 
 // Mount MHC (Marketing Health Check) routes (JWT-protected API)
-app.use('/api/mhc', require('./routes/mhc'));
+app.use('/api/mhc', subscriptionGuard, require('./routes/mhc'));
 
 // Mount CHC (Cyber Security Health Check) routes (JWT-protected API)
-app.use('/api/chc', require('./routes/chc'));
+app.use('/api/chc', subscriptionGuard, require('./routes/chc'));
 
 // Mount HHC (HR & Operational Health Check) routes (JWT-protected API)
-app.use('/api/hhc', require('./routes/hhc'));
+app.use('/api/hhc', subscriptionGuard, require('./routes/hhc'));
 
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));
@@ -314,6 +320,105 @@ async function initializeServices(database) {
     console.error(error.stack);
   }
 
+  // --- Subscription System (Admin-user plan machinery) ---
+  //     Always instantiates the service (so role/status reads work even
+  //     when the feature flag is off). Routes + cron only when the flag
+  //     `adminUserPlan` is on.
+  try {
+    const SubscriptionService = require('./services/subscriptionService');
+    const subscriptionService = new SubscriptionService(database);
+    app.locals.subscriptionService = subscriptionService;
+    await subscriptionService.ensureIndexes();
+
+    // ROUTES ALWAYS MOUNT — feature flags only kill the daily cron.
+    // (Previously the routes were gated behind flags, which caused 404s when
+    // the flags weren't toggled. Killing that footgun.)
+    const SubscriptionController = require('./controllers/subscriptionController');
+    const SubscriptionScheduler  = require('./services/subscriptionScheduler');
+    const subscriptionRoutes     = require('./routes/subscriptions');
+    const emailService           = require('./services/emailService');
+    const auditLoggingService    = (() => {
+      try { return require('./services/auditLoggingService'); } catch { return null; }
+    })();
+
+    const subscriptionController = new SubscriptionController({
+      subscriptionService, emailService, auditLoggingService
+    });
+
+    app.use('/api/subscription',        subscriptionRoutes.userRoutes(subscriptionController));
+    app.use('/api/admin/subscriptions', subscriptionRoutes.adminRoutes(subscriptionController));
+    console.log('✅ /api/subscription + /api/admin/subscriptions mounted');
+
+    // Leads pipeline — always mount.
+    const LeadsService        = require('./services/leadsService');
+    const LeadsController     = require('./controllers/leadsController');
+    const LeadRoutingService  = require('./services/leadRoutingService');
+    const buildLeadRoutes     = require('./routes/leads');
+
+    const leadsService = new LeadsService(database);
+    await leadsService.ensureIndexes();
+    app.locals.leadsService = leadsService;
+
+    const leadRoutingService = new LeadRoutingService({
+      leadsService, usersCollection: database.collection('users'),
+      emailService, io: app.locals.io
+    });
+    app.locals.leadRoutingService = leadRoutingService;
+
+    const leadsController = new LeadsController({
+      leadsService, usersCollection: database.collection('users'),
+      io: app.locals.io, emailService, leadRoutingService
+    });
+    app.locals.leadsController = leadsController;
+
+    app.use('/api/leads',            buildLeadRoutes.publicRoutes(leadsController));
+    app.use('/api/admin/leads',      buildLeadRoutes.adminRoutes(leadsController));
+    app.use('/api/admin-user/leads', buildLeadRoutes.adminUserRoutes(leadsController));
+    console.log('✅ /api/leads + /api/admin/leads + /api/admin-user/leads mounted');
+
+    // Sub-seat (team) management — always mount.
+    const SubSeatService = require('./services/subSeatService');
+    const AdminUserController = require('./controllers/adminUserController');
+    const buildAdminUserRoutes = require('./routes/adminUser');
+
+    const subSeatService = new SubSeatService(database);
+    const adminUserController = new AdminUserController({
+      subSeatService, emailService, auditLoggingService,
+      leadsService: app.locals.leadsService || null,
+      usersCollection: database.collection('users')
+    });
+    app.locals.subSeatService = subSeatService;
+    app.use('/api/admin-user', buildAdminUserRoutes(adminUserController));
+    console.log('✅ /api/admin-user mounted (team + dashboard)');
+
+    // Daily stale-leads cron — only when leadRouting flag is on.
+    if (settings.isFeatureEnabled('leadRouting')) {
+      try {
+        const cron = require('node-cron');
+        cron.schedule('15 2 * * *', async () => {
+          try {
+            const n = await leadRoutingService.markStaleLeads();
+            if (n) console.log(`[leadRouting] marked ${n} stale leads`);
+          } catch (e) { console.error('[leadRouting] stale-cron failed:', e.message); }
+        });
+        console.log('⏰ Stale-leads cron started');
+      } catch (e) { /* node-cron missing — non-critical */ }
+    }
+
+    // Subscription daily cron — only when adminUserPlan flag is on.
+    if (settings.isFeatureEnabled('adminUserPlan')) {
+      const subscriptionScheduler = new SubscriptionScheduler(subscriptionService, emailService);
+      app.locals.subscriptionScheduler = subscriptionScheduler;
+      subscriptionScheduler.startAll();
+      console.log('⏰ Subscription scheduler started (trial reminders + suspension cron)');
+    }
+
+    console.log('✅ Admin-user / subscription / leads endpoints ready');
+  } catch (error) {
+    console.error('❌ Subscription System init FAILED:', error.message);
+    console.error(error.stack);
+  }
+
   // --- Marketplace (optional feature) ---
   if (settings.isFeatureEnabled('marketplace')) {
     try {
@@ -492,6 +597,19 @@ function registerRoutes() {
     /^\/shared-documents\/[^\/]+\/confirm$/,  // Confirm document (PUBLIC)
     /^\/shared-documents\/[^\/]+\/comment$/,  // Add comment (PUBLIC)
     /^\/document-preview\/[^\/]+$/,           // Generate document preview (PUBLIC)
+    // Admin-user plan + subscription + lead pipeline (JWT protected, no CSRF needed)
+    '/subscription',
+    /^\/subscription\/.*$/,
+    '/admin/subscriptions',
+    /^\/admin\/subscriptions\/.*$/,
+    '/admin/leads',
+    /^\/admin\/leads\/.*$/,
+    '/admin-user',
+    /^\/admin-user\/.*$/,
+    '/leads/inbound',
+    '/auth/change-password',
+    '/admin/all-users',
+    /^\/admin\/all-users\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -524,8 +642,16 @@ function registerRoutes() {
 
   // Marketplace routes
   if (settings.isRouteEnabled('marketplace')) {
+    // Sub-seat guard runs first — sub_seat users (team members of an admin_user)
+    // are blocked from the entire marketplace surface and the offer-request flow.
+    // Guard is soft: if no JWT is attached yet, it passes through and the
+    // route module's own authenticateJWT does its job.
+    const subSeatGuard = (settings.isFeatureEnabled('subSeats'))
+      ? require('./middleware/subSeatGuard')
+      : (req, _res, next) => next();
+
     try {
-      app.use('/api/marketplace', require('./routes/marketplace'));
+      app.use('/api/marketplace', subSeatGuard, require('./routes/marketplace'));
     } catch (error) {
       console.log('⚠️  Marketplace routes not found - will be created in next phase');
     }
@@ -534,7 +660,7 @@ function registerRoutes() {
     try {
       const { router: offerRequestRouter, initializeController: initOfferRequestController } = require('./routes/offerRequests');
       initOfferRequestController(db);
-      app.use('/api/offer-requests', offerRequestRouter);
+      app.use('/api/offer-requests', subSeatGuard, offerRequestRouter);
       console.log('✅ Offer request routes loaded successfully');
     } catch (error) {
       console.log('⚠️  Offer request routes not found - marketplace feature incomplete');
@@ -554,7 +680,7 @@ function registerRoutes() {
   // AI Chatbot routes
   if (settings.isRouteEnabled('chatbot')) {
     try {
-      app.use('/api/chatbot', require('./routes/chatbot'));
+      app.use('/api/chatbot', subscriptionGuard, require('./routes/chatbot'));
       console.log('✅ AI Chatbot routes loaded successfully');
     } catch (error) {
       console.log('⚠️  AI Chatbot routes not found - feature not available');
@@ -563,7 +689,7 @@ function registerRoutes() {
 
     // Marketing AI Chatbot routes
     try {
-      app.use('/api/marketing-bot', require('./routes/marketing-bot'));
+      app.use('/api/marketing-bot', subscriptionGuard, require('./routes/marketing-bot'));
       console.log('✅ Marketing AI Chatbot routes loaded successfully');
     } catch (error) {
       console.log('⚠️  Marketing AI Chatbot routes not found');
@@ -577,7 +703,7 @@ function registerRoutes() {
       const contractAnalysisService = require('./contractAnalysis/ContractAnalysisService');
       // Use app.locals.db — `database` is not in scope inside registerRoutes()
       contractAnalysisService.setDatabase(app.locals.db);
-      app.use('/api/contract-analysis', require('./routes/contractAnalysis'));
+      app.use('/api/contract-analysis', subscriptionGuard, require('./routes/contractAnalysis'));
       console.log('✅ AI Contract Analysis routes loaded successfully');
     } catch (error) {
       console.log('⚠️  AI Contract Analysis routes not found - feature not available');
@@ -633,7 +759,10 @@ function registerRoutes() {
   
   if (settings.isRouteEnabled('social')) {
     try {
-      app.use('/api/social', require('./routes/social'));
+      const socialSubSeatGuard = (settings.isFeatureEnabled('subSeats'))
+        ? require('./middleware/subSeatGuard')
+        : (req, _res, next) => next();
+      app.use('/api/social', socialSubSeatGuard, require('./routes/social'));
     } catch (error) {
       // Social routes file not found - skipping
     }
@@ -766,6 +895,9 @@ async function startServer() {
         methods: ["GET", "POST"]
       }
     });
+    // Expose io to controllers via app.locals so the leads pipeline can
+    // emit "lead:new" / "lead:assigned" to the admin dashboard.
+    app.locals.io = io;
 
     // Start listening immediately so health checks pass during initialization
     server.listen(PORT, () => {

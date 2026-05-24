@@ -15,7 +15,12 @@ root.render(
   // <React.StrictMode>
     <div>
       <HelmetProvider>
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <LanguageProvider>
           <AuthProvider>
             <CreditProvider>

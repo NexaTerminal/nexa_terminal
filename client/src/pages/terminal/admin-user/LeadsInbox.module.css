@@ -1,0 +1,75 @@
+.page { max-width: 1280px; margin: 0 auto; }
+.header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; color: #0B1220; margin: 0 0 6px; }
+.header p { color: #6B7280; font-size: 14px; margin: 0 0 24px; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid #E6E8EC; margin-bottom: 20px; }
+.tab { background: transparent; border: 0; padding: 11px 16px;
+  font-family: inherit; font-size: 14px; font-weight: 500; color: #6B7280;
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: #0B1220; }
+.tabActive { color: #0B1220; border-bottom-color: #1E4DB7; }
+
+.flash { background: #ECFDF5; color: #15803D; padding: 8px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; border: 1px solid #BBF7D0; }
+.error { background: #FEF2F2; color: #B91C1C; padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; border: 1px solid #FECACA; }
+
+.layoutTwo { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+@media (max-width: 920px) { .layoutTwo { grid-template-columns: 1fr; } }
+
+.list { background: #FFFFFF; border: 1px solid #E6E8EC; border-radius: 12px; overflow: hidden;
+  max-height: 75vh; overflow-y: auto; }
+.loading, .empty { padding: 40px 24px; text-align: center; color: #6B7280; font-size: 14px; }
+.row { display: block; width: 100%; padding: 14px 16px; background: transparent; border: 0;
+  border-bottom: 1px solid #F1F3F6; cursor: pointer; text-align: left; font-family: inherit; }
+.row:hover { background: #FAFBFC; }
+.rowActive { background: #F2F5FB; }
+.rowTop { display: flex; justify-content: space-between; align-items: center; }
+.rowName { font-weight: 600; color: #0B1220; font-size: 14px; }
+.rowDate { font-size: 11.5px; color: #9CA3AF; }
+.rowMeta { font-size: 12.5px; color: #6B7280; margin-top: 4px; }
+.tag { background: #F2F5FB; color: #1E4DB7; font-size: 11px; font-weight: 600;
+  padding: 2px 7px; border-radius: 999px; }
+.dim { color: #9CA3AF; }
+
+.detail { background: #FFFFFF; border: 1px solid #E6E8EC; border-radius: 12px; padding: 24px 28px;
+  min-height: 400px; }
+.placeholder { color: #9CA3AF; font-size: 14px; text-align: center; padding: 80px 24px; }
+.detailInner h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #0B1220; margin: 0 0 12px; }
+
+.contactBlock { background: #F7F8FA; border: 1px solid #E6E8EC; border-radius: 8px;
+  padding: 12px 14px; margin-bottom: 16px; font-size: 14px; }
+.contactBlock div { padding: 3px 0; }
+.contactBlock a { color: #1E4DB7 !important; text-decoration: none !important; }
+
+.kv { display: grid; grid-template-columns: 110px 1fr; row-gap: 5px; column-gap: 12px;
+  font-size: 13.5px; margin-bottom: 4px; }
+.kv span { color: #6B7280; }
+.kv strong { color: #0B1220; font-weight: 600; }
+
+.subhead { font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #6B7280; margin: 22px 0 8px; }
+.message { background: #FAFBFC; border: 1px solid #F1F3F6; border-radius: 8px; padding: 12px 14px;
+  font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; }
+
+.statusRow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.statusBtn { padding: 7px 14px; font-size: 12.5px; font-weight: 600;
+  border: 1px solid #D1D5DB; border-radius: 6px; background: #FFFFFF; color: #1F2937;
+  cursor: pointer; font-family: inherit; }
+.statusBtn:hover { background: #F7F8FA; }
+.statusBtnActive { background: #0B1220; color: #FFFFFF; border-color: #0B1220; }
+
+.detailInner textarea {
+  width: 100%; min-height: 80px; padding: 10px 12px;
+  border: 1px solid #D1D5DB; border-radius: 6px; font-family: inherit; font-size: 14px;
+  resize: vertical; box-sizing: border-box; margin-bottom: 8px;
+}
+.detailInner textarea:focus { outline: none; border-color: #1E4DB7; box-shadow: 0 0 0 3px rgba(30,77,183,0.15); }
+
+.btnPrimary { background: #0B1220; color: #FFFFFF; border: 0; border-radius: 6px;
+  padding: 9px 16px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btnPrimary:hover { background: #1a2438; }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.notes { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+.notes li { padding: 8px 0; border-bottom: 1px solid #F1F3F6; }
+.notes li:last-child { border-bottom: 0; }
+.notes li span { color: #9CA3AF; font-size: 11.5px; margin-right: 8px; }

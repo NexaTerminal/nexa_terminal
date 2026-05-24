@@ -13,7 +13,8 @@ class SettingsManager {
       // Check for production override
       if (process.env.NODE_ENV === 'production' || process.env.NEXA_ALL_FEATURES === 'true') {
         this.settings = this.getDefaultSettings();
-        // Enable all features in production
+        // Enable all features in production, EXCEPT the OFF_IN_PROD allowlist —
+        // new feature flags must stay dark in prod until their slice is reviewed.
         this.settings.features = {
           authentication: true,
           documentAutomation: true,
@@ -23,7 +24,14 @@ class SettingsManager {
           blog: true,
           marketplace: true,
           aiChatbot: true,
-          contractAnalysis: true
+          contractAnalysis: true,
+          // Admin-user / lead-routing machinery (built in slices 0–7). Default off in
+          // prod; flip true via env override or once a slice is reviewed and signed off.
+          adminUserPlan:    process.env.NEXA_FF_ADMIN_USER_PLAN    === 'true',
+          subSeats:         process.env.NEXA_FF_SUB_SEATS          === 'true',
+          leadRouting:      process.env.NEXA_FF_LEAD_ROUTING       === 'true',
+          topicsSlots:      process.env.NEXA_FF_TOPICS_SLOTS       === 'true',
+          blogSubmissions:  process.env.NEXA_FF_BLOG_SUBMISSIONS   === 'true'
         };
         return;
       }
@@ -116,7 +124,13 @@ class SettingsManager {
         blog: true,  // Enable blogs for online version
         marketplace: true,
         aiChatbot: true,
-        contractAnalysis: true
+        contractAnalysis: true,
+        // Admin-user feature machinery. Off by default; gated per-slice.
+        adminUserPlan: false,
+        subSeats: false,
+        leadRouting: false,
+        topicsSlots: false,
+        blogSubmissions: false
       },
       database: {
         collections: {

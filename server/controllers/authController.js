@@ -35,13 +35,17 @@ class AuthController {
   formatUserResponse(user) {
     return {
       id: user._id,
+      _id: user._id,
       username: user.username,
       email: user.email || '',
       role: user.role || 'user',
       isAdmin: user.isAdmin || false,
       profileComplete: user.profileComplete,
       companyInfo: user.companyInfo,
-      isVerified: user.isVerified
+      isVerified: user.isVerified,
+      mustChangePassword: user.mustChangePassword === true,
+      parentSuperUserId: user.parentSuperUserId || null,
+      intendedPlan: user.intendedPlan || null
     };
   }
 
@@ -153,7 +157,7 @@ class AuthController {
   // Register new user
   register = async (req, res) => {
     try {
-      const { username, password, referralCode } = req.body;
+      const { username, password, referralCode, intendedPlan } = req.body;
 
       // Basic field validation
       if (!username || !password) {
@@ -221,11 +225,19 @@ class AuthController {
         }
       }
 
+      // Determine role from intendedPlan (Step "I'm signing up as a…").
+      // Falls back to 'standard_user' if not provided (legacy clients).
+      const { roleForPlan, seatsForPlan, isValidPlan } = require('../constants/roles');
+      const planChoice = isValidPlan(intendedPlan) ? intendedPlan : 'standard';
+      const intendedRole = roleForPlan(planChoice);
+      const intendedSeats = seatsForPlan(planChoice);
+
       // Create new user with minimal required information
       const userData = {
         username: username.trim().toLowerCase(),
         password: hashedPassword,
-        role: 'user',
+        role: intendedRole,
+        intendedPlan: planChoice,
         referredBy: referredByCode,
         companyInfo: {
           companyName: '',
@@ -256,16 +268,38 @@ class AuthController {
 
       const newUser = await userService.createUser(userData);
 
+      // Seed the admin_user's superUser sub-doc with the plan's seat limit
+      // so the Team UI works during trial.
+      if (intendedRole === 'admin_user') {
+        try {
+          await req.app.locals.db.collection('users').updateOne(
+            { _id: newUser._id },
+            { $set: { superUser: {
+                seatLimit: intendedSeats,
+                practiceAreas: [],
+                cities: [],
+                topicsSlotsPerQuarter: 2,
+                blogPostsPerMonth: 1,
+                lastAssignedAt: null
+            } } }
+          );
+        } catch (e) { console.error('superUser init warning:', e.message); }
+      }
+
+      // Start the 8-day trial.
+      try {
+        const sub = req.app.locals.subscriptionService;
+        if (sub) await sub.startTrial(newUser._id);
+      } catch (e) { console.error('startTrial warning:', e.message); }
+
       // Initialize credits for the new user
       try {
         const creditService = req.app.locals.creditService;
         if (creditService) {
-          // This will initialize credits for the new user
           await creditService.getUserCredits(newUser._id);
           console.log(`✅ Credits initialized for new user: ${username}`);
         }
       } catch (creditError) {
-        // Don't fail registration if credit initialization fails
         console.error('⚠️ Credit initialization warning:', creditError.message);
       }
 
@@ -916,6 +950,15 @@ class AuthController {
 
       // Update password
       await userService.updatePassword(userId, hashedNewPassword);
+
+      // Clear the "must change on first login" flag if it was set.
+      try {
+        const { ObjectId } = require('mongodb');
+        await db.collection('users').updateOne(
+          { _id: new ObjectId(userId) },
+          { $set: { mustChangePassword: false, updatedAt: new Date() } }
+        );
+      } catch (e) { /* non-critical */ }
 
       // Reset any failed login attempts
       await userService.resetFailedAttempts(userId);

@@ -206,7 +206,7 @@ const subscriptionSuspended = ({ name }, language = 'mk') => {
 const paymentInstructions = ({ name, plan, cycle, billingEmail, triggeredBy = 'subscribe' }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
   const price = priceOf(plan, cycle);
-  const amountLine = price !== null ? `€${price}` : '—';
+  const amountLine = price !== null ? `${price.toLocaleString('mk-MK')} ден` : '—';
   const refLine = `NEXA-${plan}-${cycle}`.toUpperCase();
 
   if (lang === 'mk') {

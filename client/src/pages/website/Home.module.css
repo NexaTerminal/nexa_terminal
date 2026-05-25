@@ -28,6 +28,7 @@
   max-width: 720px;
   margin: 0 auto 36px;
   line-height: 1.6;
+  text-align: center;
 }
 .heroCtas {
   display: flex;
@@ -250,3 +251,307 @@
 .ctaInner p { color: rgba(255,255,255,0.78); font-size: 17px; margin-bottom: 32px; }
 .ctaButtons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 @media (max-width: 640px) { .ctaInner h2 { font-size: 28px; } }
+
+/* ============ Satellite showcase — compact 3-col grid ============ */
+.satelliteList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+.satellite {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid var(--nx-line, #e5e7eb);
+  border-radius: var(--nx-r-lg, 14px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.satellite:hover {
+  transform: translateY(-3px);
+  border-color: rgba(30, 77, 183, 0.30);
+  box-shadow: 0 18px 36px -16px rgba(11, 18, 32, 0.22);
+}
+.satelliteFlip { /* legacy, harmless in grid layout */ }
+
+.satelliteImage {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--nx-bg-tint, #F4F7FB);
+}
+.satelliteImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.satellite:hover .satelliteImage img { transform: scale(1.05); }
+
+.satelliteDomainBadge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(11, 18, 32, 0.78);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.satelliteContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 14px;
+  flex: 1 1 auto;
+}
+.satelliteTag {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--nx-primary-500, #1e4db7);
+  padding: 3px 8px;
+  background: var(--nx-bg-tint, #F4F7FB);
+  border-radius: 999px;
+}
+.satelliteTitle {
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  margin: 0;
+  color: var(--nx-ink, #0B1220);
+  font-weight: 700;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.satelliteBody {
+  font-size: 13px;
+  color: var(--nx-text-soft, #475569);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.satelliteMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--nx-line, #e5e7eb);
+  margin-top: auto;
+}
+.satelliteAudience {
+  font-size: 11.5px;
+  color: var(--nx-muted, #64748b);
+  font-weight: 500;
+}
+.satelliteLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--nx-primary-500, #1e4db7);
+  text-decoration: none;
+  transition: gap 0.2s ease, color 0.2s ease;
+}
+.satelliteLink:hover { gap: 8px; color: var(--nx-primary-700, #173a8a); }
+
+@media (max-width: 980px) {
+  .satelliteList { grid-template-columns: 1fr 1fr; gap: 18px; }
+}
+@media (max-width: 640px) {
+  .satelliteList { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+}
+
+/* ============ Topics.nexa highlight ============ */
+.topicsSection { padding-top: 24px; }
+.topicsCard {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  background: linear-gradient(155deg, #FFFFFF 0%, var(--nx-bg-tint, #F4F7FB) 100%);
+  border: 1px solid rgba(30, 77, 183, 0.18);
+  border-radius: 24px;
+  padding: 56px;
+  box-shadow: 0 28px 64px -32px rgba(30, 77, 183, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+.topicsCard::before {
+  content: '';
+  position: absolute;
+  inset: -100px -120px auto auto;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(closest-side, rgba(43, 179, 192, 0.22), transparent 70%);
+  pointer-events: none;
+}
+.topicsContent { position: relative; z-index: 1; }
+.topicsHeading {
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  margin: 12px 0 16px;
+  color: var(--nx-ink, #0B1220);
+  line-height: 1.2;
+}
+.topicsBody {
+  font-size: 16px;
+  color: var(--nx-text-soft, #475569);
+  line-height: 1.65;
+  margin: 0 0 22px;
+}
+.topicsPoints {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.topicsPoints li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 14.5px;
+  color: var(--nx-ink, #0B1220);
+  line-height: 1.5;
+}
+.topicsPoints li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 14px;
+  height: 2px;
+  background: var(--nx-primary-500, #1e4db7);
+  border-radius: 2px;
+}
+
+.topicsVisual { position: relative; z-index: 1; min-height: 320px; }
+.topicsCardStack { position: relative; height: 100%; min-height: 320px; }
+.topicsMockCard {
+  position: absolute;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #FFFFFF;
+  border: 1px solid var(--nx-line, #e5e7eb);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 18px 36px -18px rgba(11, 18, 32, 0.22);
+  width: 88%;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.topicsMockCard:hover { transform: translateY(-3px); box-shadow: 0 22px 44px -16px rgba(11, 18, 32, 0.28); }
+.topicsMockCard1 { top: 0;   left: 0;  z-index: 3; transform: rotate(-2.2deg); }
+.topicsMockCard2 { top: 100px; left: 8%; z-index: 2; transform: rotate(1.4deg); }
+.topicsMockCard3 { top: 200px; left: 0;  z-index: 1; transform: rotate(-1.0deg); }
+.topicsMockCard1:hover { transform: rotate(-2.2deg) translateY(-3px); }
+.topicsMockCard2:hover { transform: rotate(1.4deg)  translateY(-3px); }
+.topicsMockCard3:hover { transform: rotate(-1.0deg) translateY(-3px); }
+.topicsMockQ {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--nx-primary-500, #1e4db7), var(--nx-teal, #2BB3C0));
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.topicsMockTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nx-ink, #0B1220);
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+.topicsMockMeta {
+  font-size: 12px;
+  color: var(--nx-muted, #64748b);
+  font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .topicsCard { grid-template-columns: 1fr; padding: 32px 24px; gap: 32px; }
+  .topicsHeading { font-size: 24px; }
+  .topicsCardStack { min-height: 280px; }
+}
+
+/* ============ Chapter markers (story flow) ============ */
+.chapterMarker {
+  position: relative;
+  max-width: 720px;
+  margin: 72px 0 36px;
+  padding-left: 22px;
+  border-left: 3px solid var(--nx-primary-500, #1e4db7);
+}
+.chapterMarkerCentered {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  border-left: none;
+  text-align: center;
+}
+.chapterNum {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nx-primary-500, #1e4db7);
+  margin-bottom: 10px;
+}
+.chapterMarkerCentered .chapterNum::before,
+.chapterMarkerCentered .chapterNum::after {
+  content: '';
+  width: 28px;
+  height: 2px;
+  background: var(--nx-primary-500, #1e4db7);
+  border-radius: 2px;
+  opacity: 0.55;
+}
+.chapterTitle {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 10px;
+  color: var(--nx-ink, #0B1220);
+  line-height: 1.25;
+}
+.chapterLead {
+  font-size: 16px;
+  color: var(--nx-text-soft, #475569);
+  line-height: 1.6;
+  margin: 0;
+}
+@media (max-width: 860px) {
+  .chapterMarker { margin: 56px 0 28px; }
+  .chapterTitle { font-size: 22px; }
+}

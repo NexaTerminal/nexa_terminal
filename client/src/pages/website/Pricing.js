@@ -33,11 +33,14 @@ const PLANS = [
   }
 ];
 
+// Prices in MKD (Macedonian denar). Round to 100. Built so quarterly = 20% off
+// vs monthly × 3 and annual = 30% off vs monthly × 12 across all tiers.
 const PRICES = {
-  standard: { monthly: 40,  quarterly: 90,  annual: 360 },
-  admin_5:  { monthly: 80,  quarterly: 240, annual: 720 },
-  admin_10: { monthly: 150, quarterly: 450, annual: 1350 }
+  standard: { monthly: 2500,  quarterly: 6000,  annual: 21000 },
+  admin_5:  { monthly: 5000,  quarterly: 12000, annual: 42000 },
+  admin_10: { monthly: 10000, quarterly: 24000, annual: 84000 }
 };
+const fmtMKD = (n) => n.toLocaleString('mk-MK');
 
 const baseline12mo = (apiPlan) => PRICES[apiPlan].monthly * 12;
 const annualSpend  = (apiPlan, cycle) => {
@@ -105,7 +108,8 @@ export default function Pricing() {
       aria-pressed={cycle === value}
     >
       {label}
-      {value === 'annual' && <span className={styles.cycleHint}>−25%</span>}
+      {value === 'quarterly' && <span className={styles.cycleHint}>−20%</span>}
+      {value === 'annual'    && <span className={styles.cycleHint}>−30%</span>}
     </button>
   );
 
@@ -135,14 +139,14 @@ export default function Pricing() {
 
         <div className={styles.priceBlock}>
           <div className={styles.priceLine}>
-            <span className={styles.currency}>€</span>
-            <span className={styles.priceNum}>{price}</span>
+            <span className={styles.priceNum}>{fmtMKD(price)}</span>
+            <span className={styles.currency}>ден</span>
             <span className={styles.priceSuffix}>{suffix}</span>
           </div>
           <div className={styles.priceMeta}>
             <span>{t(`pricing.billedAs.${cycle}`)}</span>
             {cycle !== 'monthly' && (
-              <span className={styles.eff}>{t('pricing.effective', { value: eff })}</span>
+              <span className={styles.eff}>{t('pricing.effective', { value: fmtMKD(eff) })}</span>
             )}
             {save > 0 && (
               <span className={styles.saveTag}>{t('pricing.save', { percent: save })}</span>

@@ -43,7 +43,7 @@
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 64px;
-  margin-top: 56px;
+  margin-top: 96px;
   margin-bottom: 32px;
 }
 .sidebar { position: relative; }

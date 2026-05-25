@@ -3,11 +3,13 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './SubscriptionGate.module.css';
 
+// Prices in MKD (ден). Match Pricing.js: quarterly −20%, annual −30% vs monthly baseline.
 const PRICES = {
-  standard: { monthly: 40,  quarterly: 90,  annual: 360 },
-  admin_5:  { monthly: 80,  quarterly: 240, annual: 720 },
-  admin_10: { monthly: 150, quarterly: 450, annual: 1350 }
+  standard: { monthly: 2500,  quarterly: 6000,  annual: 21000 },
+  admin_5:  { monthly: 5000,  quarterly: 12000, annual: 42000 },
+  admin_10: { monthly: 10000, quarterly: 24000, annual: 84000 }
 };
+const fmtMKD = (n) => n.toLocaleString('mk-MK');
 const PLAN_LABEL = {
   standard: 'Стандарден',
   admin_5:  'Admin · 5',
@@ -166,7 +168,7 @@ export default function SubscriptionGate() {
                 >
                   <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
                   <div className={styles.planTileShort}>{PLAN_SHORT[p]}</div>
-                  <div className={styles.planTileFrom}>од €{PRICES[p].monthly}/мес</div>
+                  <div className={styles.planTileFrom}>од {fmtMKD(PRICES[p].monthly)} ден/мес</div>
                 </button>
               ))}
             </div>
@@ -185,7 +187,7 @@ export default function SubscriptionGate() {
                   <div className={styles.cycleName}>
                     {c === 'monthly' ? 'Месечно' : c === 'quarterly' ? 'Квартално' : 'Годишно'}
                   </div>
-                  <div className={styles.cyclePrice}>€{PRICES[plan][c]}</div>
+                  <div className={styles.cyclePrice}>{fmtMKD(PRICES[plan][c])} ден</div>
                 </button>
               ))}
             </div>
@@ -221,7 +223,7 @@ export default function SubscriptionGate() {
               </span>
               {!submitting && (
                 <span className={styles.btnOrderPrice}>
-                  €{price} {cycleSuffix}
+                  {fmtMKD(price)} ден {cycleSuffix}
                 </span>
               )}
             </button>

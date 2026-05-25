@@ -1256,3 +1256,545 @@
     align-self: flex-end;
   }
 }
+
+/* ============================================================
+   MIXED FEED — REDESIGN
+   Card system for heterogeneous dashboard stream.
+   All overrides defensive against aggressive global button rules.
+   ============================================================ */
+
+.feedStream {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.feedLoading,
+.feedError {
+  background: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+.feedError { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+
+/* ---------- eyebrow chip (used by every card type) ---------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.eyebrowDot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; display: inline-block; }
+.dotBlue   { background: #2563eb; }
+.dotInk    { background: #0f172a; }
+.dot_teal  { background: #0d9488; }
+.dot_amber { background: #d97706; }
+.dot_rose  { background: #e11d48; }
+.dot_indigo{ background: #4f46e5; }
+
+/* ---------- accent icon wrap (shared across cards) ---------- */
+.accent_blue   { background: #eff6ff; color: #2563eb; }
+.accent_teal   { background: #ecfdf5; color: #0d9488; }
+.accent_amber  { background: #fff7ed; color: #d97706; }
+.accent_rose   { background: #fff1f2; color: #e11d48; }
+.accent_indigo { background: #eef2ff; color: #4f46e5; }
+
+/* ============================================================
+   ACTION GRID CARD (top hero)
+   ============================================================ */
+.actionCard {
+  background: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 10px 14px 6px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+.actionHeader { margin-bottom: 4px; }
+.actionTitle {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.005em;
+}
+.actionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.actionTile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 7px;
+  background: transparent;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  min-height: 44px;
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s;
+}
+.actionTile:hover {
+  background-color: #f8fafc;
+  border-left-color: var(--color-primary, #1e4db7);
+  color: var(--color-primary, #1e4db7);
+  transform: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+.actionIconWrap {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.actionTileBody { flex: 1 1 auto; min-width: 0; }
+.actionTileTitle { font-size: 13.5px; font-weight: 600; color: #0f172a; line-height: 1.25; }
+.actionTileDesc  { font-size: 11.5px; color: #64748b; margin-top: 1px; line-height: 1.35; }
+.actionTile:hover .actionTileTitle { color: var(--color-primary, #1e4db7); }
+.actionTileArrow {
+  flex: 0 0 auto;
+  color: #cbd5e1;
+  transition: color 0.18s, transform 0.18s;
+}
+.actionTile:hover .actionTileArrow { color: var(--color-primary, #1e4db7); transform: translateX(2px); }
+
+@media (max-width: 640px) { .actionGrid { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   SPOTLIGHT / EDUCATION CARD
+   ============================================================ */
+.spotlight {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+.spotlight::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 16px 0 0 16px;
+  background: #94a3b8;
+}
+.spotAccent_teal::before   { background: #0d9488; }
+.spotAccent_amber::before  { background: #d97706; }
+.spotAccent_rose::before   { background: #e11d48; }
+.spotAccent_indigo::before { background: #4f46e5; }
+
+.spotlightInner {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+.spotlightIcon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.spotlightBody { flex: 1 1 auto; min-width: 0; }
+.spotlightTitle {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+}
+.spotlightDesc {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.55;
+}
+.spotlightCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  background-color: #0f172a;
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  min-height: 0;
+  box-shadow: none;
+  transition: background-color 0.15s, transform 0.15s;
+}
+.spotlightCta:hover { background-color: #1e293b; transform: none; }
+
+/* ============================================================
+   BLOG POST CARD (compact, lower-key)
+   ============================================================ */
+.blogPost {
+  background: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.blogPost:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 18px -10px rgba(15, 23, 42, 0.15);
+}
+.blogPostBody {
+  display: flex;
+  text-decoration: none;
+  color: inherit;
+}
+.blogPostImage {
+  flex: 0 0 180px;
+  background: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+.blogPostImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.blogPostContent {
+  flex: 1 1 auto;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.blogPostMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.blogPostTime {
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.blogPostTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.blogPostExcerpt {
+  margin: 0;
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.blogPostFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 20px 14px 200px; /* aligns with content (image 180 + 20 padding) */
+  border-top: 1px solid #f1f5f9;
+  margin-top: -1px;
+}
+.blogPostTags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.blogPostTag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.blogPostReactions { display: flex; gap: 6px; }
+.reactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: #64748b;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  min-height: 0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.reactBtn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #e5e7eb;
+  color: #0f172a;
+  transform: none;
+  box-shadow: none;
+}
+.reactBtnLiked    { color: #16a34a; background-color: #f0fdf4; border-color: #bbf7d0; }
+.reactBtnDisliked { color: #dc2626; background-color: #fef2f2; border-color: #fecaca; }
+.reactIcon { font-size: 14px; line-height: 1; }
+
+/* mobile: stack image on top */
+@media (max-width: 720px) {
+  .blogPostBody { flex-direction: column; }
+  .blogPostImage { flex: 0 0 180px; height: 180px; width: 100%; }
+  .blogPostFooter { padding-left: 20px; }
+}
+
+/* ============================================================
+   TOPIC FILTER BAR — minimal text-only sort
+   ============================================================ */
+.topicBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 6px 4px 12px;
+  margin: 0 0 4px;
+  background: transparent;
+  border-bottom: 1px solid #f1f5f9;
+}
+.topicBtn {
+  appearance: none;
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 4px 0;
+  min-height: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.topicBtn:hover:not(:disabled) {
+  background: transparent;
+  background-color: transparent;
+  color: #0f172a;
+  transform: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+.topicBtnActive,
+.topicBtnActive:hover:not(:disabled) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.topicEmpty {
+  padding: 14px 4px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ============================================================
+   SHORTCUT GROUPS inside ActionGridCard
+   ============================================================ */
+.shortcutGroup {
+  padding: 10px 0 4px;
+  border-top: 1px solid #f1f5f9;
+}
+.shortcutGroup:first-of-type { border-top: none; padding-top: 4px; }
+
+.shortcutGroupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.shortcutGroupTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.shortcutGroupAll {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.shortcutGroupAll:hover { color: var(--color-primary, #1e4db7); text-decoration: none; }
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 6px 7px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #0f172a;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  min-height: 0;
+  box-shadow: none;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.chip:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--color-primary, #1e4db7);
+  transform: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+.chipIcon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chipLabel { white-space: nowrap; }
+
+/* ============================================================
+   3-COLUMN SHORTCUTS — text-only, no borders, no icons
+   ============================================================ */
+.shortcutCols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  padding-top: 6px;
+}
+.shortcutCol { min-width: 0; }
+.shortcutColTitle {
+  position: relative;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.shortcutColTitle::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary, #1e4db7);
+  opacity: 0.55;
+}
+.shortcutList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.shortcutLink {
+  display: inline;
+  font-size: 13px;
+  color: #0f172a;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  line-height: 1.45;
+  transition: color 0.15s;
+}
+.shortcutLink:hover {
+  color: var(--color-primary, #1e4db7);
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .shortcutCols { grid-template-columns: 1fr; gap: 10px; }
+}
+
+.shortcutLinkAll {
+  color: #94a3b8;
+  font-style: italic;
+}
+.shortcutLinkAll:hover { color: var(--color-primary, #1e4db7); }
+
+/* ============================================================
+   SECTION BREAK — divider between "Брзи дејства" and the feed
+   Hairline with a small floating label centered over it.
+   ============================================================ */
+.sectionBreak {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 2px;
+}
+.sectionBreak::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e5e7eb 18%, #e5e7eb 82%, transparent 100%);
+}
+.sectionBreakLabel {
+  position: relative;
+  z-index: 1;
+  padding: 0 14px;
+  background: #f8fafc; /* matches dashboard-main neutral; falls back gracefully */
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}

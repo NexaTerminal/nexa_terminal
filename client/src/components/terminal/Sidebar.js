@@ -12,6 +12,8 @@ const Sidebar = () => {
   const aiRef = useRef(null);
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const [isAISubmenuOpen, setIsAISubmenuOpen] = useState(false);
+  const [openAdminGroups, setOpenAdminGroups] = useState({});
+  const toggleAdminGroup = (key) => setOpenAdminGroups((s) => ({ ...s, [key]: !s[key] }));
 
   // Close submenus when clicking outside
   useEffect(() => {
@@ -76,14 +78,31 @@ const Sidebar = () => {
   const isAIActive = aiSubItems.some(item => location.pathname === item.path);
 
   const adminMenuItems = [
-    { path: '/terminal/admin/blogs', label: 'Управувај блогови' },
-    { path: '/terminal/admin/blogs/add', label: 'Додади блог' },
-    { path: '/terminal/admin/all-users', label: 'Сите корисници' },
-    { path: '/terminal/admin/users', label: 'dashboard.manageUsers' },
-    { path: '/terminal/admin/subscriptions', label: 'Претплати' },
-    { path: '/terminal/admin/leads', label: 'Клиенти' },
-    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
-    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди' },
+    {
+      key: 'blogs',
+      label: 'Блогови',
+      children: [
+        { path: '/terminal/admin/blogs',     label: 'Управувај блогови' },
+        { path: '/terminal/admin/blogs/add', label: 'Додади блог' }
+      ]
+    },
+    {
+      key: 'users',
+      label: 'Корисници',
+      children: [
+        { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
+        { path: '/terminal/admin/subscriptions', label: 'Претплати' }
+      ]
+    },
+    {
+      key: 'marketplace',
+      label: 'Маркетплејс',
+      children: [
+        { path: '/terminal/admin/leads',             label: 'Клиенти' },
+        { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
+        { path: '/terminal/admin/offer-requests',    label: 'Барања за понуди' }
+      ]
+    },
     { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' },
   ];
 
@@ -216,29 +235,50 @@ const Sidebar = () => {
             <div className={styles["section-divider"]}>
               {t('dashboard.adminSection')}
             </div>
-            {adminMenuItems.map(({ path, label, external }) => (
-              external ? (
-                <a
-                  key={path}
-                  href={path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles["menu-item"]}
-                >
-                  <h3>{t(label)}</h3>
-                </a>
-              ) : (
+            {adminMenuItems.map((item) => {
+              if (item.children) {
+                const childActive = item.children.some((c) => location.pathname === c.path);
+                const open = !!openAdminGroups[item.key] || childActive;
+                return (
+                  <div key={item.key} className={styles["menu-item-with-submenu"]}>
+                    <div
+                      className={`${styles["menu-item"]} ${childActive ? styles.active : ""}`}
+                      onClick={() => toggleAdminGroup(item.key)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <h3>{item.label}</h3>
+                      <span className={styles["submenu-arrow"]}>{open ? '▼' : '▶'}</span>
+                    </div>
+                    {open && (
+                      <div className={styles["submenu-inline"]}>
+                        {item.children.map(({ path, label }) => (
+                          <Link
+                            key={path}
+                            to={path}
+                            className={`${styles["submenu-item-inline"]} ${
+                              location.pathname === path ? styles.active : ""
+                            }`}
+                          >
+                            {label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
                 <Link
-                  key={path}
-                  to={path}
+                  key={item.path}
+                  to={item.path}
                   className={`${styles["menu-item"]} ${
-                    location.pathname === path ? styles.active : ""
+                    location.pathname === item.path ? styles.active : ""
                   }`}
                 >
-                  <h3>{t(label)}</h3>
+                  <h3>{t(item.label)}</h3>
                 </Link>
-              )
-            ))}
+              );
+            })}
           </div>
         )}
       </nav>

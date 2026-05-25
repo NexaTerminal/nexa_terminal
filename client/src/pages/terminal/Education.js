@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
@@ -26,6 +26,7 @@ const courses = [
     title: 'Работни односи',
     description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',
     image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
+    category: 'legal',
     available: true
   },
   {
@@ -33,6 +34,7 @@ const courses = [
     title: 'Удел во трговско друштво',
     description: 'Комплетен курс за разбирање на уделот во друштвото, права на сопствениците, процедури за стекнување и пренесување на удел.',
     image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
+    category: 'legal',
     available: true
   },
   {
@@ -40,6 +42,7 @@ const courses = [
     title: 'Извршување врз недвижности',
     description: 'Комплетен курс за постапката на извршување врз недвижности - од прибелешка до намирување на доверителите.',
     image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    category: 'legal',
     available: true
   },
   {
@@ -47,28 +50,8 @@ const courses = [
     title: 'Локално SEO',
     description: 'Научете како да го оптимизирате вашиот бизнис за локално пребарување со Google Business Profile, NAP конзистентност, рецензии и AI SEO стратегии.',
     image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80',
+    category: 'marketing',
     available: true
-  },
-  {
-    id: 'email-marketing',
-    title: 'Емаил маркетинг - како до нови клиенти на ваков начин',
-    description: 'Научете како да градите ефективни емаил кампањи, да привлекувате клиенти и да зголемите продажбата преку професионален емаил маркетинг.',
-    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
-    available: false
-  },
-  {
-    id: 'seo-principi',
-    title: 'SEO принципи - како да ве најдат на интернет',
-    description: 'Комплетен курс за оптимизација на пребарувачите. Научете како да го подобрите рангирањето на вашата веб-страница и да привлечете повеќе посетители.',
-    image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80',
-    available: false
-  },
-  {
-    id: 'investiranje-nedvizhnosti',
-    title: 'Инвестирање во недвижности во Македонија',
-    description: 'Како да најдете добри понуди, извршител, стечај, катастар и сл. Сите техники и постапки кои ќе ви требаат за успешно инвестирање во недвижности.',
-    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-    available: false
   },
   // {
   //   id: 'zastita-licni-podatoci',
@@ -93,8 +76,16 @@ const courses = [
   // }
 ];
 
+const CATEGORIES = [
+  { key: 'all',        label: 'Сите' },
+  { key: 'legal',      label: 'Правни' },
+  { key: 'marketing',  label: 'Маркетинг' },
+  { key: 'management', label: 'Менаџмент' }
+];
+
 const Education = () => {
   const navigate = useNavigate();
+  const [filter, setFilter] = useState('all');
 
   const handleCourseClick = (course) => {
     if (course.available) {
@@ -102,12 +93,10 @@ const Education = () => {
     }
   };
 
-  // Sort courses: available first, then coming soon
-  const sortedCourses = [...courses].sort((a, b) => {
-    if (a.available && !b.available) return -1;
-    if (!a.available && b.available) return 1;
-    return 0;
-  });
+  // Filter by category, then sort: available first, then coming soon.
+  const visibleCourses = courses
+    .filter(c => filter === 'all' || c.category === filter)
+    .sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1));
 
   return (
     <div>
@@ -115,8 +104,25 @@ const Education = () => {
       <div className={styles['dashboard-layout']}>
         <Sidebar />
         <main className={styles['dashboard-main']}>
+          <div className={educationStyles.filterBar} role="tablist" aria-label="Категории">
+            {CATEGORIES.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={filter === key}
+                className={`${educationStyles.filterBtn} ${filter === key ? educationStyles.filterBtnActive : ''}`}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className={educationStyles.grid}>
-            {sortedCourses.map((course, idx) => (
+            {visibleCourses.length === 0 && (
+              <p className={educationStyles.emptyState}>Нема курсеви во оваа категорија.</p>
+            )}
+            {visibleCourses.map((course, idx) => (
               <div
                 key={idx}
                 className={`${educationStyles.card} ${course.available ? educationStyles.available : educationStyles.unavailable}`}

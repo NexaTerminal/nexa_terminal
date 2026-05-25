@@ -1,21 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
+import Icon from '../website/Icon';
 import styles from '../../styles/terminal/SocialFeed.module.css';
+
+/**
+ * Mixed terminal dashboard feed.
+ * Cards are heterogeneous: a static action grid at the top, then blog posts
+ * with feature spotlights, education promo, and (for admin_user) a lead nudge
+ * interleaved at fixed positions so the feed never feels blog-only.
+ */
+
+const TEMPLATE_SHORTCUTS = [
+  { to: '/terminal/documents/employment/employment-agreement',  label: 'Договор за вработување' },
+  { to: '/terminal/documents/employment/termination-agreement', label: 'Спогодба за престанок' },
+  { to: '/terminal/documents/employment/annual-leave-decision', label: 'Одлука за годишен одмор' }
+];
+
+const SCREENING_SHORTCUTS = [
+  { to: '/terminal/legal-screening',     label: 'Правна проверка' },
+  { to: '/terminal/hr-screening',        label: 'HR и оперативна' },
+  { to: '/terminal/marketing-screening', label: 'Маркетинг проверка' }
+];
+
+const AI_SHORTCUTS = [
+  { to: '/terminal/ai-chat',           label: 'Правен AI помошник' },
+  { to: '/terminal/contract-analysis', label: 'Анализа на договор' },
+  { to: '/terminal/marketing-ai',      label: 'Маркетинг AI' }
+];
+
+// Display labels for blog categories. DB stores English (or unknown) slugs;
+// we render Macedonian to the user but keep the raw value as the filter key.
+const CATEGORY_LABELS_MK = {
+  legal:            'Правни',
+  law:              'Правни',
+  marketing:        'Маркетинг',
+  business:         'Бизнис',
+  finance:          'Финансии',
+  hr:               'Човечки ресурси',
+  tax:              'Даноци',
+  taxation:         'Даноци',
+  compliance:       'Усогласеност',
+  technology:       'Технологија',
+  tech:             'Технологија',
+  management:       'Менаџмент',
+  news:             'Вести',
+  general:          'Општи',
+  entrepreneurship: 'Претприемништво',
+  investment:       'Инвестиции',
+  investments:      'Инвестиции'
+};
+const labelForCategory = (raw) => {
+  if (!raw) return '';
+  const key = String(raw).trim().toLowerCase();
+  return CATEGORY_LABELS_MK[key] || raw;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const SocialFeed = () => {
   const { token, currentUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all');
 
-  // Fetch posts
   const fetchPosts = async () => {
     try {
       setLoading(true);
       const data = await ApiService.request('/blogs?limit=10&page=1');
       setPosts(data?.blogs || []);
-    } catch (error) {
+    } catch (err) {
       setError('Настана грешка при вчитување на објавите. Обидете се повторно.');
       setPosts([]);
     } finally {
@@ -23,259 +79,230 @@ const SocialFeed = () => {
     }
   };
 
-  // Handle like/unlike
-  const handleLike = async (blogId) => {
+  useEffect(() => { fetchPosts(); }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleReact = async (blogId, kind) => {
     try {
-      const response = await ApiService.post(`/blogs/${blogId}/like`);
-      // Update local state
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
-          if ((post.id || post._id) === blogId) {
-            const userId = currentUser?._id || currentUser?.id;
-            const isNowLiked = response.isLiked;
-            const newLikedBy = isNowLiked
-              ? [...(post.likedBy || []), userId]
-              : (post.likedBy || []).filter(id => id !== userId);
-            // If liked, remove from dislikedBy
-            const newDislikedBy = isNowLiked
-              ? (post.dislikedBy || []).filter(id => id !== userId)
-              : post.dislikedBy || [];
-            return {
-              ...post,
-              likes: response.likes,
-              likedBy: newLikedBy,
-              dislikedBy: newDislikedBy,
-              dislikes: isNowLiked && post.dislikedBy?.includes(userId) ? (post.dislikes || 1) - 1 : post.dislikes
-            };
-          }
-          return post;
-        })
-      );
-    } catch (err) {
-      console.error('Error liking post:', err);
-    }
+      const response = await ApiService.post(`/blogs/${blogId}/${kind}`);
+      const userId = currentUser?._id || currentUser?.id;
+      setPosts(prev => prev.map(post => {
+        if ((post.id || post._id) !== blogId) return post;
+        const isLiked    = response.isLiked    ?? (kind === 'like'    && true);
+        const isDisliked = response.isDisliked ?? (kind === 'dislike' && true);
+        const likedBy    = kind === 'like'
+          ? (isLiked    ? [...(post.likedBy    || []), userId] : (post.likedBy    || []).filter(id => id !== userId))
+          : (isDisliked ? (post.likedBy    || []).filter(id => id !== userId) : (post.likedBy    || []));
+        const dislikedBy = kind === 'dislike'
+          ? (isDisliked ? [...(post.dislikedBy || []), userId] : (post.dislikedBy || []).filter(id => id !== userId))
+          : (isLiked    ? (post.dislikedBy || []).filter(id => id !== userId) : (post.dislikedBy || []));
+        return { ...post, likes: response.likes, dislikes: response.dislikes, likedBy, dislikedBy };
+      }));
+    } catch (err) { console.error('react error', err); }
   };
 
-  // Handle dislike/un-dislike
-  const handleDislike = async (blogId) => {
-    try {
-      const response = await ApiService.post(`/blogs/${blogId}/dislike`);
-      // Update local state
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
-          if ((post.id || post._id) === blogId) {
-            const userId = currentUser?._id || currentUser?.id;
-            const isNowDisliked = response.isDisliked;
-            const newDislikedBy = isNowDisliked
-              ? [...(post.dislikedBy || []), userId]
-              : (post.dislikedBy || []).filter(id => id !== userId);
-            // If disliked, remove from likedBy
-            const newLikedBy = isNowDisliked
-              ? (post.likedBy || []).filter(id => id !== userId)
-              : post.likedBy || [];
-            return {
-              ...post,
-              dislikes: response.dislikes,
-              likes: response.likes,
-              dislikedBy: newDislikedBy,
-              likedBy: newLikedBy
-            };
-          }
-          return post;
-        })
-      );
-    } catch (err) {
-      console.error('Error disliking post:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
-
-
-
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return `пред ${diffInSeconds}с`;
-    }
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-      return `пред ${diffInMinutes}м`;
-    }
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-      return `пред ${diffInHours}ч`;
-    }
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `пред ${diffInDays}д`;
-  };
-
-
-  if (loading && posts.length === 0) { // Show loading only if there are no posts yet
-    return <div className={styles.loading}>Се вчитуваат објави...</div>;
+  // Build distinct category list from loaded posts. Compare on lowercase keys
+  // but preserve the first raw value seen so we can echo it back in the filter.
+  const seen = new Map();
+  for (const p of posts) {
+    const raw = (p.category || '').trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    if (!seen.has(key)) seen.set(key, raw);
   }
+  const categories = Array.from(seen.values());
+
+  const visiblePosts = filter === 'all'
+    ? posts
+    : posts.filter(p => (p.category || '').trim().toLowerCase() === filter.toLowerCase());
+
+  const noMatches = filter !== 'all' && visiblePosts.length === 0;
+
+  const buildFeed = () => {
+    const items = [{ kind: 'action' }];
+    visiblePosts.forEach(blog => items.push({ kind: 'blog', data: blog }));
+    return items;
+  };
+
+  if (loading && posts.length === 0) {
+    return <div className={styles.feedLoading}>Се вчитува…</div>;
+  }
+
+  const feed = buildFeed();
+  const userId = currentUser?._id || currentUser?.id;
+
+  const blogItems = feed.filter(it => it.kind === 'blog');
 
   return (
     <div className={styles.socialFeed}>
+      {error && <div className={styles.feedError}>{error}</div>}
 
-      {error && (
-        <div className={styles.error}>
-          {error}
-        </div>
-      )}
+      <div className={styles.feedStream}>
+        <ActionGridCard />
 
-      {/* Posts list */}
-      {!loading && posts.length === 0 && !error && (
-         <div className={styles.noPosts}>Нема објави за прикажување.</div>
-      )}
-      
-      <div className={styles.postsList}>
-        {posts.map(blog => (
-          <BlogCard
-            key={blog.id || blog._id}
-            blog={blog}
-            formatDate={formatDate}
-            currentUserId={currentUser?._id || currentUser?.id}
-            onLike={handleLike}
-            onDislike={handleDislike}
-          />
+        {categories.length > 0 && (
+          <div className={styles.sectionBreak} role="separator" aria-hidden="true">
+            <span className={styles.sectionBreakLabel}>Од блогот</span>
+          </div>
+        )}
+
+        {categories.length > 0 && (
+          <div className={styles.topicBar} role="tablist" aria-label="Категории на објави">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filter === 'all'}
+              className={`${styles.topicBtn} ${filter === 'all' ? styles.topicBtnActive : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              Сите
+            </button>
+            {categories.map(c => (
+              <button
+                key={c}
+                type="button"
+                role="tab"
+                aria-selected={filter === c}
+                className={`${styles.topicBtn} ${filter === c ? styles.topicBtnActive : ''}`}
+                onClick={() => setFilter(c)}
+              >
+                {labelForCategory(c)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {noMatches && (
+          <div className={styles.topicEmpty}>Нема објави во оваа категорија.</div>
+        )}
+
+        {blogItems.map(it => (
+          <BlogCard key={it.data.id || it.data._id} blog={it.data} userId={userId} onReact={handleReact} />
         ))}
       </div>
-
     </div>
   );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Decode HTML entities (e.g. &nbsp; &amp;) in plain text strings
+const ShortcutColumn = ({ title, items, allTo }) => (
+  <div className={styles.shortcutCol}>
+    <div className={styles.shortcutColTitle}>{title}</div>
+    <ul className={styles.shortcutList}>
+      {items.map(s => (
+        <li key={s.to}>
+          <Link to={s.to} className={styles.shortcutLink}>{s.label}</Link>
+        </li>
+      ))}
+      {allTo && (
+        <li>
+          <Link to={allTo} className={`${styles.shortcutLink} ${styles.shortcutLinkAll}`}>Сите</Link>
+        </li>
+      )}
+    </ul>
+  </div>
+);
+
+const ActionGridCard = () => (
+  <section className={styles.actionCard} aria-label="Брзи дејства">
+    <header className={styles.actionHeader}>
+      <span className={styles.eyebrow}>
+        <span className={`${styles.eyebrowDot} ${styles.dotBlue}`} aria-hidden />
+        Брзи дејства
+      </span>
+    </header>
+    <div className={styles.shortcutCols}>
+      <ShortcutColumn title="Шаблони"   items={TEMPLATE_SHORTCUTS}  allTo="/terminal/documents" />
+      <ShortcutColumn title="Проверки"  items={SCREENING_SHORTCUTS} allTo="/terminal/legal-screening" />
+      <ShortcutColumn title="AI алатки" items={AI_SHORTCUTS}        allTo="/terminal/ai-chat" />
+    </div>
+  </section>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function decodeEntities(text) {
   if (!text) return '';
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = text;
-  return textarea.value;
+  const ta = document.createElement('textarea');
+  ta.innerHTML = text;
+  return ta.value;
 }
 
-// Blog Card Component
-const BlogCard = ({ blog, formatDate, currentUserId, onLike, onDislike }) => {
-  const isLiked = blog.likedBy && blog.likedBy.includes(currentUserId);
-  const isDisliked = blog.dislikedBy && blog.dislikedBy.includes(currentUserId);
+const formatRelative = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const s = Math.floor((Date.now() - date) / 1000);
+  if (s < 60)         return `пред ${s}с`;
+  if (s < 3600)       return `пред ${Math.floor(s / 60)}м`;
+  if (s < 86400)      return `пред ${Math.floor(s / 3600)}ч`;
+  return `пред ${Math.floor(s / 86400)}д`;
+};
 
-  const handleLike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onLike) {
-      onLike(blog.id || blog._id);
-    }
-  };
+const resolveBlogImg = (src) => {
+  if (!src) return null;
+  if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/images/')) {
+    return encodeURI(src);
+  }
+  return `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${encodeURIComponent(src)}`;
+};
 
-  const handleDislike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onDislike) {
-      onDislike(blog.id || blog._id);
-    }
-  };
+const BlogCard = ({ blog, userId, onReact }) => {
+  const isLiked    = blog.likedBy?.includes(userId);
+  const isDisliked = blog.dislikedBy?.includes(userId);
+  const excerpt = blog.excerpt ? decodeEntities(blog.excerpt) : '';
+  const trimmed = excerpt.length > 140 ? excerpt.slice(0, 140).trimEnd() + '…' : excerpt;
 
   return (
-    <div className={styles.blogCard}>
-      <a href={`/terminal/blogs/${blog.id || blog._id}`} className={styles.blogCardLink}>
-        <div className={styles.blogCardLayout}>
-          {/* Blog Featured Image - Left Half */}
-          <div className={styles.blogImageContainer}>
-            {blog.featuredImage ? (
-              <img
-                src={
-                  blog.featuredImage.startsWith('data:') ||
-                  blog.featuredImage.startsWith('http://') ||
-                  blog.featuredImage.startsWith('https://') ||
-                  blog.featuredImage.startsWith('/images/')
-                    ? encodeURI(blog.featuredImage)
-                    : `${process.env.REACT_APP_API_URL || 'http://localhost:5002'}/uploads/blogs/${encodeURIComponent(blog.featuredImage)}`
-                }
-                alt={blog.title}
-                className={styles.blogFeaturedImage}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  const placeholderElement = document.createElement('div');
-                  placeholderElement.className = styles.blogImagePlaceholder;
-                  placeholderElement.innerHTML = '<span>📝</span>';
-                  e.target.parentNode.appendChild(placeholderElement);
-                }}
-              />
-            ) : (
-              <div className={styles.blogImagePlaceholder}>
-                <span>📝</span>
-              </div>
-            )}
+    <article className={styles.blogPost}>
+      <Link to={`/terminal/blogs/${blog.id || blog._id}`} className={styles.blogPostBody}>
+        {blog.featuredImage && (
+          <div className={styles.blogPostImage}>
+            <img
+              src={resolveBlogImg(blog.featuredImage)}
+              alt={blog.title}
+              onError={(e) => { e.target.parentNode.style.display = 'none'; }}
+            />
           </div>
-
-          {/* Blog Content - Right Half */}
-          <div className={styles.blogCardContent}>
-
-            {/* Blog Title */}
-            <h3 className={styles.blogCardTitle}>{blog.title}</h3>
-
-            {/* Blog Excerpt */}
-            {blog.excerpt && (
-              <p className={styles.blogCardExcerpt}>
-                {(() => {
-                  const decoded = decodeEntities(blog.excerpt);
-                  return decoded.length > 150 ? decoded.slice(0, 150) + '...' : decoded;
-                })()}
-              </p>
-            )}
-
-            {/* Tags and Like */}
-            <div className={styles.blogFooter}>
-              {blog.tags && Array.isArray(blog.tags) && blog.tags.length > 0 && (
-                <div className={styles.blogTags}>
-                  {blog.tags.slice(0, 2).map((tag, index) => (
-                    <span key={index} className={styles.blogTag}>#{tag}</span>
-                  ))}
-                </div>
-              )}
-              <div className={styles.reactionButtons}>
-                <button
-                  className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
-                  onClick={handleLike}
-                  title="Добра идеја"
-                >
-                  <span className={styles.likeIcon}>{isLiked ? '💡' : '○'}</span>
-                  <span className={styles.likeCount}>{blog.likes || 0}</span>
-                </button>
-                <button
-                  className={`${styles.dislikeButton} ${isDisliked ? styles.disliked : ''}`}
-                  onClick={handleDislike}
-                  title="Губење пари"
-                >
-                  <span className={styles.dislikeIcon}>{isDisliked ? '💸' : '○'}</span>
-                  <span className={styles.dislikeCount}>{blog.dislikes || 0}</span>
-                </button>
-              </div>
+        )}
+        <div className={styles.blogPostContent}>
+          {blog.publishedAt && (
+            <div className={styles.blogPostMeta}>
+              <span className={styles.blogPostTime}>{formatRelative(blog.publishedAt)}</span>
             </div>
-          </div>
+          )}
+          <h3 className={styles.blogPostTitle}>{blog.title}</h3>
+          {trimmed && <p className={styles.blogPostExcerpt}>{trimmed}</p>}
         </div>
-      </a>
-    </div>
+      </Link>
+      <footer className={styles.blogPostFooter}>
+        <div className={styles.blogPostTags}>
+          {(blog.tags || []).slice(0, 2).map(tag => (
+            <span key={tag} className={styles.blogPostTag}>#{tag}</span>
+          ))}
+        </div>
+        <div className={styles.blogPostReactions}>
+          <button
+            type="button"
+            className={`${styles.reactBtn} ${isLiked ? styles.reactBtnLiked : ''}`}
+            onClick={(e) => { e.preventDefault(); onReact(blog.id || blog._id, 'like'); }}
+            title="Добра идеја"
+          >
+            <span className={styles.reactIcon}>{isLiked ? '💡' : '○'}</span>
+            <span>{blog.likes || 0}</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.reactBtn} ${isDisliked ? styles.reactBtnDisliked : ''}`}
+            onClick={(e) => { e.preventDefault(); onReact(blog.id || blog._id, 'dislike'); }}
+            title="Губење пари"
+          >
+            <span className={styles.reactIcon}>{isDisliked ? '💸' : '○'}</span>
+            <span>{blog.dislikes || 0}</span>
+          </button>
+        </div>
+      </footer>
+    </article>
   );
 };
 
 export default SocialFeed;
-
-// Removed the old PostCard structure that was split into companySidebar and postMainContent
-// as the new structure is more typical for a social feed post.
-// The data structure for posts (post.user, post.author, post.companyInfo) needs to be consistent
-// from the backend or handled more robustly here.
-// For example, a post might have a `user` object with `name` and `profilePicture`.
-// Admin posts (news, investment) might have a different structure or a generic "Admin" user.
-// This example assumes `post.user.name` and `post.user.profilePicture` for user posts,
-// and `post.author.name` for other types if `post.user` is not present.
-// The `currentUser` prop was removed from PostCard as `useAuth` can be used directly if needed,
-// or better, pass specific user data like `currentUserId` if PostCard shouldn't be coupled with AuthContext.
-// For simplicity, `useAuth` is now used in PostCard to get the current user for like status.

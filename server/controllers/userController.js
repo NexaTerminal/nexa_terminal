@@ -169,6 +169,26 @@ class UserController {
       // Get updated user data
       const updatedUser = await userService.findById(currentUser._id || currentUser.id);
 
+      // If this user is an admin_user and their company info changed, propagate
+      // the new companyInfo to all their shared sub-seats so documents stay in
+      // sync (per the new positioning: a team can share one company profile).
+      // Independent sub-seats keep their own data untouched.
+      try {
+        if (updatedUser.role === 'admin_user' && updatedUser.companyInfo) {
+          const { ObjectId } = require('mongodb');
+          await req.app.locals.db.collection('users').updateMany(
+            {
+              parentSuperUserId: new ObjectId(updatedUser._id),
+              role: 'sub_seat',
+              companyMode: 'shared'
+            },
+            { $set: { companyInfo: updatedUser.companyInfo, updatedAt: new Date() } }
+          );
+        }
+      } catch (e) {
+        console.error('shared-seat propagation warning:', e.message);
+      }
+
       // ============================================
       // AUTO-VERIFICATION (2025-11-29)
       // ============================================

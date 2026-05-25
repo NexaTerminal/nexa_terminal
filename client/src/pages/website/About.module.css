@@ -1,17 +1,29 @@
 .hero {
-  padding: 112px 0 80px;
+  /* extra top space so the gradient-text H1 clears the sticky navbar */
+  padding: 140px 0 88px;
   border-bottom: 1px solid var(--nx-line);
 }
-.heroInner { position: relative; z-index: 2; text-align: center; }
+.heroInner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
 .hero h1 {
   font-size: 56px;
   letter-spacing: -0.03em;
-  margin: 24px auto 18px;
+  margin: 0 auto;
   max-width: 820px;
   background: linear-gradient(135deg, var(--nx-ink) 0%, var(--nx-primary-600) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  /* line-height has to be a touch taller than 1.0 so gradient text doesn't clip */
+  line-height: 1.1;
+  padding-bottom: 6px;
 }
 .lead {
   font-size: 18px;
@@ -19,9 +31,10 @@
   max-width: 740px;
   line-height: 1.6;
   margin: 0 auto;
+  text-align: center;
 }
 @media (max-width: 768px) {
-  .hero { padding: 72px 0 56px; }
+  .hero { padding: 96px 0 64px; }
   .hero h1 { font-size: 34px; }
   .lead { font-size: 16px; }
 }

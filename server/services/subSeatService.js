@@ -61,12 +61,15 @@ class SubSeatService {
    * Returns { user, tempPassword } where tempPassword is shown ONCE
    * in the response so the inviter sees it before the email is sent.
    */
-  async invite(parent, { email, fullName }) {
+  async invite(parent, { email, fullName, companyMode }) {
     if (!parent || parent.role !== ROLES.ADMIN_USER) {
       throw new Error('Only admin_user accounts can invite sub-seats');
     }
     if (!isValidEmail(email)) {
       throw new Error('Невалидна е-пошта / Invalid email');
+    }
+    if (companyMode !== 'shared' && companyMode !== 'independent') {
+      throw new Error('Изберете како се користи седиштето: иста компанија или своја.');
     }
     const normEmail = email.trim().toLowerCase();
 
@@ -99,27 +102,35 @@ class SubSeatService {
       mustChangePassword: true,
       isVerified: false,
       profileComplete: false,
-      // Mirror the shape of register() so other code paths don't choke:
-      companyInfo: {
-        companyName: parent.companyInfo?.companyName || '',
-        companyAddress: '',
-        companyTaxNumber: '',
-        companyManager: '',
-        businessActivity: '',
-        website: '',
-        industry: '',
-        companySize: '',
-        role: '',
-        description: '',
-        crnNumber: '',
-        phone: '',
-        companyPIN: '',
-        contactEmail: '',
-        facebook: '',
-        linkedin: '',
-        missionStatement: '',
-        companyLogo: ''
-      },
+      // 'shared'      → uses the parent's company info (synced on parent updates)
+      // 'independent' → has its own company info, filled in by the seat itself
+      companyMode,
+      // For 'shared' seats: copy parent's companyInfo so legacy code that reads
+      // user.companyInfo keeps working. Updates to the parent's profile propagate
+      // to all shared seats automatically (see userController.updateProfile).
+      // For 'independent' seats: blank skeleton — CompanyInfoPrompt will collect.
+      companyInfo: companyMode === 'shared'
+        ? { ...(parent.companyInfo || {}) }
+        : {
+            companyName: '',
+            companyAddress: '',
+            companyTaxNumber: '',
+            companyManager: '',
+            businessActivity: '',
+            website: '',
+            industry: '',
+            companySize: '',
+            role: '',
+            description: '',
+            crnNumber: '',
+            phone: '',
+            companyPIN: '',
+            contactEmail: '',
+            facebook: '',
+            linkedin: '',
+            missionStatement: '',
+            companyLogo: ''
+          },
       // Sub-seats carry no subscription of their own; gated transitively.
       subscription: null,
       createdAt: now,

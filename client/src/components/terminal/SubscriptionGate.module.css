@@ -56,7 +56,17 @@
   margin: 12px 0 20px;
 }
 
-/* Plan tiles (only shown for admin_users where 2 plans are picker-eligible) */
+/* Plan tiles — 3 tiles always (Standard / Admin · 5 / Admin · 10) */
+.planTiles3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin: 6px 0 18px;
+}
+@media (max-width: 540px) {
+  .planTiles3 { grid-template-columns: 1fr; }
+}
+/* Legacy 2-col grid kept for back-compat with any external callers. */
 .planTiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -64,32 +74,103 @@
   margin: 18px 0 22px;
 }
 .planTile {
+  position: relative;
   background: #FFFFFF;
   border: 1.5px solid #E6E8EC;
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 12px 12px 14px;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
 }
-.planTile:hover { border-color: #D1D5DB; }
-.planTileActive {
-  border-color: #1E4DB7;
-  background: #F2F5FB;
-}
+.planTile:hover { border-color: #D1D5DB; transform: translateY(-1px); }
+.planTileActive { border-color: #1E4DB7; background: #F2F5FB; }
+.planTileActive:hover { border-color: #1E4DB7; }
 .planTileName {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #0B1220;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
 }
-.planTilePrice {
+.planTileShort {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1E4DB7;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.planTileFrom {
+  font-size: 11.5px;
+  color: #6B7280;
+  font-weight: 500;
+}
+.planTilePrice { /* legacy */
   font-size: 12px;
   color: #6B7280;
 }
 
-.cycleLabel {
+/* Hover tooltip — driven by data-tip attribute on each tile. Pure CSS. */
+.planTile[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0B1220;
+  color: #FFFFFF;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: 8px;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+  z-index: 10;
+}
+.planTile[data-tip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border: 6px solid transparent;
+  border-top-color: #0B1220;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+  z-index: 10;
+}
+.planTile[data-tip]:hover::after,
+.planTile[data-tip]:focus-visible::after,
+.planTile[data-tip]:hover::before,
+.planTile[data-tip]:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 150ms;
+}
+@media (max-width: 540px) {
+  .planTile[data-tip]::after  { bottom: auto; top: calc(100% + 8px); }
+  .planTile[data-tip]::before {
+    bottom: auto; top: calc(100% + 2px);
+    border-top-color: transparent;
+    border-bottom-color: #0B1220;
+  }
+}
+
+.cycleLabel,
+.sectionLabel {
   font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
@@ -211,6 +292,53 @@
   font-weight: 400;
   opacity: 0.85;
   margin-top: 4px;
+}
+
+/* ====== Single order CTA ====== */
+.btnOrder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 4px 0 12px;
+  padding: 16px 22px;
+  background: #0B1220;
+  color: #FFFFFF;
+  border: 1.5px solid #0B1220;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 22px -8px rgba(11, 18, 32, 0.40);
+  transition: background 150ms ease, transform 150ms ease, box-shadow 200ms ease;
+}
+.btnOrder:hover {
+  background: #1a2438;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px -10px rgba(11, 18, 32, 0.55);
+}
+.btnOrder:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btnOrderLabel { font-size: 15px; font-weight: 700; }
+.btnOrderPrice {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.9;
+  letter-spacing: -0.005em;
+}
+
+.fineprint {
+  font-size: 11.5px;
+  color: #9CA3AF;
+  line-height: 1.55;
+  margin: 0 0 10px;
+  text-align: center;
 }
 
 .bottomActions {

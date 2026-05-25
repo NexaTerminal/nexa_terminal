@@ -5,7 +5,6 @@
 ## What we are
 - [About Nexa (full ecosystem explanation)](https://nexa.mk/about)
 - [For small businesses (Terminal, Type A)](https://nexa.mk/#for-businesses)
-- [For lawyers and accountants (Super User, Type B)](https://nexa.mk/for-professionals)
 - [Pricing](https://nexa.mk/pricing)
 
 ## Ecosystem properties

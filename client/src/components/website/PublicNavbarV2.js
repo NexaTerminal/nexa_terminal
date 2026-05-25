@@ -13,7 +13,6 @@ export default function PublicNavbarV2() {
 
   const links = [
     { to: '/about', label: t('nav.ecosystem') },
-    { to: '/for-professionals', label: t('nav.forProfessionals') },
     { to: '/pricing', label: t('nav.pricing') },
     { to: '/blog', label: t('nav.blog') },
     { to: '/contact', label: t('nav.contact') }

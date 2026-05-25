@@ -79,8 +79,8 @@ export const superUserService = (language = 'mk') => ({
   areaServed: { '@type': 'Country', name: 'North Macedonia' },
   audience: { '@type': 'BusinessAudience', audienceType: 'Lawyers, accountants, consultants' },
   offers: [
-    { '@type': 'Offer', name: 'Quarterly', price: '180', priceCurrency: 'EUR', url: 'https://nexa.mk/for-professionals' },
-    { '@type': 'Offer', name: 'Annual', price: '550', priceCurrency: 'EUR', url: 'https://nexa.mk/for-professionals' }
+    { '@type': 'Offer', name: 'Quarterly', price: '240', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
+    { '@type': 'Offer', name: 'Annual', price: '720', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
   ]
 });
 

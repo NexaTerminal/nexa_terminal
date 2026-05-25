@@ -15,7 +15,6 @@ Disallow: /api/
 # Allow public pages
 Allow: /
 Allow: /about
-Allow: /for-professionals
 Allow: /pricing
 Allow: /contact
 Allow: /blog

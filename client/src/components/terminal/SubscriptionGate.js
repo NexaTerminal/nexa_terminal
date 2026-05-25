@@ -10,23 +10,33 @@ const PRICES = {
 };
 const PLAN_LABEL = {
   standard: 'Стандарден',
-  admin_5:  'Admin · 5 седишта',
-  admin_10: 'Admin · 10 седишта'
+  admin_5:  'Admin · 5',
+  admin_10: 'Admin · 10'
 };
+// Short MK description for the hover tooltip on each plan tile.
+const PLAN_TOOLTIP = {
+  standard: 'Еден корисник. Целосен пристап до Терминалот: документи, проверки за усогласеност, AI помош, анализа на договор.',
+  admin_5:  'Сè во Стандарден + тим до 5 корисници + промотивни можности преку билтенот, сателитските сајтови и Topics.',
+  admin_10: 'Истото како Admin · 5, со тим до 10 корисници и поголеми лимити.'
+};
+const PLAN_SHORT = {
+  standard: '1 корисник',
+  admin_5:  'Тим до 5',
+  admin_10: 'Тим до 10'
+};
+
+const ALL_PLANS = ['standard', 'admin_5', 'admin_10'];
 
 /**
  * Event-driven subscription gate.
  *
  * Mounted globally inside PrivateRoute, but renders NOTHING by default —
- * the user can navigate freely. When any API call returns 402 with a
- * SUBSCRIPTION_* code, the global axios interceptor (in AuthContext.js)
- * dispatches a `subscription:blocked` event. This component listens and opens.
+ * the user can navigate freely. The strip CTA or the global 402 interceptor
+ * dispatch `subscription:blocked`. This component listens and opens.
  *
- * Modal contents adapt to context:
- *   - If account has no email → email input is shown
- *   - If grace already used  → "Send invoice" CTA is hidden, only "Subscribe & pay" remains
- *   - For admin_user role     → plan picker (admin_5 vs admin_10)
- *   - Default cycle: monthly  (user can switch to quarterly/annual)
+ * Single ordering flow: pick plan (3 tiles), pick cycle (3 tiles), confirm
+ * email if missing, click ONE button — Нарачај. Backend auto-grants the
+ * 3-day grace on first use; silently skips it after grace is consumed.
  */
 export default function SubscriptionGate() {
   const { token, currentUser } = useAuth();
@@ -34,36 +44,34 @@ export default function SubscriptionGate() {
   const [blockedInfo, setBlockedInfo] = useState(null);
   const [cycle, setCycle] = useState('monthly');
   const [email, setEmail] = useState('');
-  const [plan, setPlan] = useState(null);
+  const [plan, setPlan] = useState('standard');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState(null);
+  const [done, setDone] = useState(false);
 
   // Listen for global subscription:blocked events.
   useEffect(() => {
     const onBlocked = (e) => {
-      // Don't pop the modal for sub-seats; their parent's status is the issue.
       if (currentUser?.role === 'sub_seat') return;
-      // Don't pop for platform admin.
       if (currentUser?.role === 'admin') return;
-
       setBlockedInfo(e.detail || null);
       setError('');
-      setDone(null);
+      setDone(false);
       setOpen(true);
     };
     window.addEventListener('subscription:blocked', onBlocked);
     return () => window.removeEventListener('subscription:blocked', onBlocked);
   }, [currentUser]);
 
-  // Init plan/cycle based on user role + the blocking event's hints.
+  // Seed plan/cycle defaults from the user state when the modal opens.
   useEffect(() => {
     if (!open) return;
     const sub = blockedInfo?.subscription || {};
     setCycle(sub.cycle && sub.cycle !== 'trial' ? sub.cycle : 'monthly');
-    const defaultPlan = currentUser?.role === 'admin_user'
-      ? (sub.plan === 'admin_10' ? 'admin_10' : 'admin_5')
-      : (sub.plan && sub.plan !== 'trial' ? sub.plan : 'standard');
+    const defaultPlan =
+      sub.plan && ALL_PLANS.includes(sub.plan)        ? sub.plan
+    : currentUser?.role === 'admin_user'              ? 'admin_5'
+    :                                                   'standard';
     setPlan(defaultPlan);
     setEmail(currentUser?.email || '');
   }, [open, blockedInfo, currentUser]);
@@ -74,20 +82,17 @@ export default function SubscriptionGate() {
   const sub = blockedInfo?.subscription || {};
   const graceUsed = sub.graceUsed === true;
   const userHasEmail = !!(currentUser.email && currentUser.email.includes('@'));
-  const plansForRole = currentUser.role === 'admin_user'
-    ? ['admin_5', 'admin_10']
-    : ['standard'];
-  const price = plan ? PRICES[plan]?.[cycle] : null;
+  const price = PRICES[plan]?.[cycle];
 
-  const headerTitle = sub.status === 'suspended'
-    ? 'Пробниот период истече'
-    : sub.status === 'pending_approval'
-      ? 'Барањето чека одобрување'
-      : 'Изберете план за да продолжите';
+  const headerTitle =
+      sub.status === 'suspended'         ? 'Пробниот период истече'
+    : sub.status === 'pending_approval'  ? 'Барањето чека одобрување'
+    :                                      'Изберете план за да продолжите';
 
-  const submit = async (kind) => {
+  const cycleSuffix = cycle === 'monthly' ? '/ месец' : cycle === 'quarterly' ? '/ квартал' : '/ година';
+
+  const submit = async () => {
     if (!plan) return;
-    // Email is required when account has none — collect it now.
     if (!userHasEmail && (!email || !email.includes('@'))) {
       setError('Внесете валидна е-пошта за да испратиме инструкции за уплата.');
       return;
@@ -95,14 +100,18 @@ export default function SubscriptionGate() {
     setSubmitting(true);
     setError('');
     try {
-      const url = kind === 'invoice'
-        ? '/api/subscription/request-invoice'
-        : '/api/subscription/request-approval';
+      // Always go through request-invoice. Backend grants the 3-day grace
+      // automatically when the user is eligible (post-trial AND grace not yet
+      // used). If grace is already used, it just records the request without
+      // extending access — same single happy path either way.
       const body = { plan, cycle };
       if (!userHasEmail && email) body.billingEmail = email;
       else if (userHasEmail && email && email !== currentUser.email) body.billingEmail = email;
-      await axios.post(url, body, { headers: { Authorization: `Bearer ${token}` } });
-      setDone(kind);
+      await axios.post('/api/subscription/request-invoice', body, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDone(true);
+      try { window.dispatchEvent(new CustomEvent('subscription:updated')); } catch (_) {}
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -112,7 +121,7 @@ export default function SubscriptionGate() {
 
   const close = () => {
     setOpen(false);
-    setDone(null);
+    setDone(false);
     setError('');
   };
 
@@ -124,11 +133,11 @@ export default function SubscriptionGate() {
         {done ? (
           <div className={styles.successBlock}>
             <div className={styles.checkIcon} aria-hidden>✓</div>
-            <h2 className={styles.title}>Готово</h2>
+            <h2 className={styles.title}>Нарачката е примена</h2>
             <p className={styles.lead}>
-              {done === 'invoice'
-                ? 'Проверете ја вашата е-пошта. Имате 3 дена дополнителен пристап додека ја обработуваме уплатата.'
-                : 'Проверете ја вашата е-пошта за инструкциите за уплата.'}
+              {graceUsed
+                ? 'Проверете ја вашата е-пошта за инструкциите за уплата. Активираме штом пристигне уплатата.'
+                : 'Проверете ја вашата е-пошта. Имате 3 дена дополнителен пристап додека ја обработуваме уплатата.'}
             </p>
             <button className={styles.btnPrimary} onClick={close}>Затвори</button>
           </div>
@@ -138,27 +147,32 @@ export default function SubscriptionGate() {
             <h2 className={styles.title}>Продолжете со претплата</h2>
             <p className={styles.lead}>
               {graceUsed
-                ? 'Веќе го искористивте 3-дневниот гејс период. Сега треба прво да пристигне уплатата.'
+                ? 'Веќе го искористивте 3-дневниот гејс период. Сега треба прво да пристигне уплатата за активирање.'
                 : 'Изберете план и циклус. Ќе ви испратиме инструкции за уплата и автоматски ќе ви дадеме 3 дена дополнителен пристап.'}
             </p>
 
-            {plansForRole.length > 1 && (
-              <div className={styles.planTiles}>
-                {plansForRole.map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`${styles.planTile} ${plan === p ? styles.planTileActive : ''}`}
-                    onClick={() => setPlan(p)}
-                  >
-                    <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
-                    <div className={styles.planTilePrice}>€{PRICES[p].monthly} / месец</div>
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* ============ PLAN TILES (always 3) ============ */}
+            <div className={styles.sectionLabel}>План</div>
+            <div className={styles.planTiles3}>
+              {ALL_PLANS.map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`${styles.planTile} ${plan === p ? styles.planTileActive : ''}`}
+                  onClick={() => setPlan(p)}
+                  data-tip={PLAN_TOOLTIP[p]}
+                  title={PLAN_TOOLTIP[p]}
+                  aria-pressed={plan === p}
+                >
+                  <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
+                  <div className={styles.planTileShort}>{PLAN_SHORT[p]}</div>
+                  <div className={styles.planTileFrom}>од €{PRICES[p].monthly}/мес</div>
+                </button>
+              ))}
+            </div>
 
-            <div className={styles.cycleLabel}>Циклус на наплата</div>
+            {/* ============ CYCLE TILES ============ */}
+            <div className={styles.sectionLabel}>Циклус на наплата</div>
             <div className={styles.cycleRow}>
               {['monthly', 'quarterly', 'annual'].map(c => (
                 <button
@@ -166,16 +180,18 @@ export default function SubscriptionGate() {
                   type="button"
                   className={`${styles.cycleBtn} ${cycle === c ? styles.cycleBtnActive : ''}`}
                   onClick={() => setCycle(c)}
+                  aria-pressed={cycle === c}
                 >
                   <div className={styles.cycleName}>
                     {c === 'monthly' ? 'Месечно' : c === 'quarterly' ? 'Квартално' : 'Годишно'}
                   </div>
-                  <div className={styles.cyclePrice}>€{plan ? PRICES[plan][c] : '—'}</div>
+                  <div className={styles.cyclePrice}>€{PRICES[plan][c]}</div>
                 </button>
               ))}
             </div>
 
-            {!userHasEmail && (
+            {/* ============ EMAIL ============ */}
+            {!userHasEmail ? (
               <div className={styles.field}>
                 <label>Е-пошта (за прием на инструкции и фактура)</label>
                 <input
@@ -185,8 +201,7 @@ export default function SubscriptionGate() {
                   placeholder="vie@vasata-firma.mk"
                 />
               </div>
-            )}
-            {userHasEmail && (
+            ) : (
               <div className={styles.emailHint}>
                 Инструкциите ќе ги пратиме на <strong>{currentUser.email}</strong>.
               </div>
@@ -194,32 +209,28 @@ export default function SubscriptionGate() {
 
             {error && <div className={styles.error}>{error}</div>}
 
-            <div className={styles.ctaCol}>
-              {!graceUsed && (
-                <button
-                  type="button"
-                  className={styles.btnPrimary}
-                  disabled={submitting || !plan}
-                  onClick={() => submit('invoice')}
-                >
-                  {submitting ? 'Се испраќа…' : 'Прати ми прединфактура'}
-                  <span className={styles.ctaSub}>
-                    Добивате 3 дена дополнителен пристап додека ја обработуваме уплатата.
-                  </span>
-                </button>
+            {/* ============ SINGLE CTA ============ */}
+            <button
+              type="button"
+              className={styles.btnOrder}
+              disabled={submitting || !plan}
+              onClick={submit}
+            >
+              <span className={styles.btnOrderLabel}>
+                {submitting ? 'Се испраќа…' : 'Нарачај'}
+              </span>
+              {!submitting && (
+                <span className={styles.btnOrderPrice}>
+                  €{price} {cycleSuffix}
+                </span>
               )}
-              <button
-                type="button"
-                className={graceUsed ? styles.btnPrimary : styles.btnSecondary}
-                disabled={submitting || !plan}
-                onClick={() => submit('subscribe')}
-              >
-                {submitting ? 'Се испраќа…' : graceUsed ? 'Претплати се сега' : 'Само инструкции за уплата'}
-                {!graceUsed && (
-                  <span className={styles.ctaSub}>Без дополнителен пристап. Активираме штом пристигне уплатата.</span>
-                )}
-              </button>
-            </div>
+            </button>
+
+            <p className={styles.fineprint}>
+              {graceUsed
+                ? 'Активирањето е автоматско штом пристигне уплатата.'
+                : 'По нарачката добивате 3 дена дополнителен пристап. Уплатата може да се изврши преку банкарски трансфер.'}
+            </p>
 
             <div className={styles.bottomActions}>
               <button type="button" className={styles.btnText} onClick={close}>Не сега</button>

@@ -8,6 +8,8 @@
   font-size: 56px;
   letter-spacing: -0.03em;
   margin: 24px auto 14px;
+  line-height: 1.1;
+  padding-bottom: 6px;
   background: linear-gradient(135deg, var(--nx-ink) 0%, var(--nx-primary-600) 100%);
   -webkit-background-clip: text;
   background-clip: text;

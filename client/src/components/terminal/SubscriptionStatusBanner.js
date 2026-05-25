@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './SubscriptionStatusBanner.module.css';
 
@@ -9,7 +8,6 @@ const daysRemaining = (d) => {
   return Math.ceil((new Date(d).getTime() - Date.now()) / 86400000);
 };
 
-// Macedonian day-noun grammar: 1 → ден, 2-4 → дена, 5+ → дена. We use "ден"/"денови".
 const daysLabel = (n) => {
   if (n === 0) return 'денес';
   if (n === 1) return '1 ден';
@@ -17,12 +15,17 @@ const daysLabel = (n) => {
 };
 
 /**
- * Compact subscription/trial indicator. Renders a single-line slim strip
- * (~32px tall) at the top of the terminal main area. Different visual weight
- * from the profile-reminder card so the two don't compete.
+ * Compact subscription/trial indicator. Single-line slim strip at the top
+ * of the terminal main area.
  *
  * Hidden when status is 'active' and >14 days remain.
  * Localised: Macedonian only (terminal is MK-only).
+ *
+ * CTAs stay INSIDE the terminal: clicking them dispatches the same
+ * `subscription:blocked` window event that the 402 axios interceptor fires.
+ * SubscriptionGate (mounted globally by PrivateRoute) catches it and opens
+ * the in-terminal modal — same pre-invoice / 3-day grace flow. The user is
+ * never navigated back to the public `/pricing` page.
  */
 export default function SubscriptionStatusBanner() {
   const { token } = useAuth();
@@ -32,10 +35,19 @@ export default function SubscriptionStatusBanner() {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    axios.get('/api/subscription/me', { headers: { Authorization: `Bearer ${token}` } })
+    const load = () => axios
+      .get('/api/subscription/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => { if (!cancelled) { setSub(res.data.subscription); setLoaded(true); } })
       .catch(() => { if (!cancelled) setLoaded(true); });
-    return () => { cancelled = true; };
+    load();
+
+    // Refresh after the gate modal succeeds, so the strip reflects new state.
+    const onSuccess = () => load();
+    window.addEventListener('subscription:updated', onSuccess);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('subscription:updated', onSuccess);
+    };
   }, [token]);
 
   if (!loaded || !sub) return null;
@@ -47,41 +59,62 @@ export default function SubscriptionStatusBanner() {
 
   if (status === 'active' && (days === null || days > 14) && !graceActive) return null;
 
-  // variant, line, cta
-  let variant = 'info', line = '', cta = null;
+  let variant = 'info', line = '', ctaLabel = null;
 
   if (graceActive) {
     variant = 'warn';
     line = `Гејс период — останува ${daysLabel(Math.max(0, graceDays))}. Извршете уплата за да го задржите пристапот.`;
-    cta = { to: '/pricing', label: 'Обнови' };
+    ctaLabel = 'Обнови';
   } else if (status === 'trial') {
     variant = 'trial';
     line = days > 0
       ? `Пробен период — остануваат ${daysLabel(days)}. Изберете план за да го задржите пристапот.`
       : 'Пробниот период истекува денес.';
-    cta = { to: '/pricing', label: 'Изберете план' };
+    ctaLabel = 'Изберете план';
   } else if (status === 'active' && days <= 14) {
     variant = days <= 3 ? 'warn' : 'info';
     line = days > 0
       ? `Претплатата истекува за ${daysLabel(days)}. Извршете уплата за следниот период.`
       : 'Претплатата истекува денес.';
-    cta = { to: '/pricing', label: 'Обнови' };
+    ctaLabel = 'Обнови';
   } else if (status === 'pending_approval') {
     variant = 'info';
     line = 'Барањето за претплата чека одобрување. Активирањето е автоматско по потврда на уплатата.';
+    // No CTA — informational only; user already submitted.
   } else if (status === 'suspended') {
     variant = 'danger';
     line = sub.graceUsed
       ? 'Сметката е суспендирана. Прво потврдете уплата за да добиете пристап.'
       : 'Сметката е суспендирана. Податоците се зачувани. Обновете за да продолжите.';
-    cta = { to: '/pricing', label: 'Обнови' };
+    ctaLabel = 'Обнови';
   } else if (status === 'cancelled') {
     variant = 'info';
     line = 'Претплатата е откажана. Можете да ја реактивирате во секое време.';
-    cta = { to: '/pricing', label: 'Реактивирај' };
+    ctaLabel = 'Реактивирај';
   } else {
     return null;
   }
+
+  const openGate = () => {
+    // Synthesize the same payload shape the 402 interceptor produces, so
+    // SubscriptionGate doesn't need to know whether it was triggered by an
+    // API failure or by the user clicking this strip.
+    const detail = {
+      code: 'SUBSCRIPTION_USER_INITIATED',
+      message: line,
+      subscription: {
+        status: sub.status,
+        endsAt: sub.endsAt,
+        plan: sub.plan,
+        cycle: sub.cycle,
+        graceEndsAt: sub.graceEndsAt,
+        graceUsed: sub.graceUsed
+      }
+    };
+    try {
+      window.dispatchEvent(new CustomEvent('subscription:blocked', { detail }));
+    } catch (_) { /* old browser */ }
+  };
 
   return (
     <div className={`${styles.strip} ${styles[variant]}`} role="status">
@@ -89,10 +122,10 @@ export default function SubscriptionStatusBanner() {
         {variant === 'danger' ? '⚠' : variant === 'warn' ? '⏱' : 'ⓘ'}
       </span>
       <span className={styles.text}>{line}</span>
-      {cta && (
-        <Link to={cta.to} className={styles.link}>
-          {cta.label} <span className={styles.arrow} aria-hidden>→</span>
-        </Link>
+      {ctaLabel && (
+        <button type="button" onClick={openGate} className={styles.link}>
+          {ctaLabel} <span className={styles.arrow} aria-hidden>→</span>
+        </button>
       )}
     </div>
   );

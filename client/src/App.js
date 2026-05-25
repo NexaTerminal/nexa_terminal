@@ -5,7 +5,6 @@ import { trackPageView } from './utils/analytics';
 // Public pages
 import Login from './pages/website/Login';
 import Home from './pages/website/Home';
-import ForProfessionals from './pages/website/ForProfessionals';
 import Pricing from './pages/website/Pricing';
 import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
@@ -177,7 +176,6 @@ function App() {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/for-professionals" element={<ForProfessionals />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/ecosystem" element={<About />} />

@@ -13,7 +13,10 @@ const subscriptionEmails = require('../emails/subscriptionEmails');
 // interception that reacts to the 'mk' value.
 const inviteSchema = Joi.object({
   email: Joi.string().email().required(),
-  fullName: Joi.string().trim().max(120).allow('', null)
+  fullName: Joi.string().trim().max(120).allow('', null),
+  // 'shared'      → seat uses the same company profile as the inviter
+  // 'independent' → seat has its own company profile (e.g. a client firm)
+  companyMode: Joi.string().valid('shared', 'independent').required()
 }).unknown(false);   // unknown fields rejected — keeps the surface clean
 
 class AdminUserController {
@@ -85,7 +88,11 @@ class AdminUserController {
       const { error, value } = inviteSchema.validate(req.body);
       if (error) return res.status(400).json({ success: false, message: error.message });
 
-      const { user, tempPassword } = await this.subSeatService.invite(req.user, value);
+      const { user, tempPassword } = await this.subSeatService.invite(req.user, {
+        email: value.email,
+        fullName: value.fullName,
+        companyMode: value.companyMode
+      });
 
       // Send invite email — always Macedonian.
       const tpl = subscriptionEmails.subSeatInvite({

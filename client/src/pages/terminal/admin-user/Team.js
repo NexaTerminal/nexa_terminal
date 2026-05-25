@@ -44,10 +44,10 @@ export default function Team() {
 
   const showFlash = (msg) => { setFlash(msg); setTimeout(() => setFlash(''), 3500); };
 
-  const onInvite = async ({ email, fullName }) => {
+  const onInvite = async ({ email, fullName, companyMode }) => {
     try {
       const res = await axios.post('/api/admin-user/seats',
-        { email, fullName },           // no `language` field — backend always uses Macedonian
+        { email, fullName, companyMode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setInvited({ email, tempPassword: res.data.tempPassword });
@@ -168,7 +168,19 @@ export default function Team() {
                   {seats.map(s => (
                     <tr key={s._id}>
                       <td>
-                        <div className={styles.name}>{s.fullName || s.email}</div>
+                        <div className={styles.name}>
+                          {s.fullName || s.email}
+                          {s.companyMode === 'shared' && (
+                            <span className={`${styles.modeTag} ${styles.modeTagShared}`} title="Користи го профилот на вашата компанија">
+                              🤝 Иста компанија
+                            </span>
+                          )}
+                          {s.companyMode === 'independent' && (
+                            <span className={`${styles.modeTag} ${styles.modeTagIndep}`} title="Користи свој профил на компанија">
+                              🏢 Свој профил
+                            </span>
+                          )}
+                        </div>
                         <div className={styles.email}>{s.email}</div>
                       </td>
                       <td>
@@ -209,16 +221,21 @@ export default function Team() {
 function InviteModal({ onCancel, onSubmit }) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  // No default — user must explicitly choose between "shared" and "independent".
+  const [companyMode, setCompanyMode] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
+    if (!companyMode) {
+      setErr('Изберете како се користи седиштето: иста компанија или своја.');
+      return;
+    }
     setBusy(true);
     try {
-      // Invite emails are always Macedonian — no picker.
-      await onSubmit({ email, fullName });
+      await onSubmit({ email, fullName, companyMode });
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -230,7 +247,10 @@ function InviteModal({ onCancel, onSubmit }) {
     <div className={styles.modalBackdrop} onClick={onCancel}>
       <form className={styles.modal} onClick={(e) => e.stopPropagation()} onSubmit={submit}>
         <h2>Покани член на тимот</h2>
-        <p className={styles.modalSub}>Ќе добие е-пошта со привремена лозинка на македонски.</p>
+        <p className={styles.modalSub}>
+          Ќе добие е-пошта со привремена лозинка. Изберете дали овој корисник
+          ќе работи под вашата компанија или под своја.
+        </p>
 
         <label className={styles.field}>
           Е-пошта
@@ -251,11 +271,50 @@ function InviteModal({ onCancel, onSubmit }) {
           />
         </label>
 
+        <fieldset className={styles.modeFieldset}>
+          <legend>Како се користи ова седиште?</legend>
+          <label className={`${styles.modeCard} ${companyMode === 'shared' ? styles.modeCardActive : ''}`}>
+            <input
+              type="radio"
+              name="companyMode"
+              value="shared"
+              checked={companyMode === 'shared'}
+              onChange={() => setCompanyMode('shared')}
+            />
+            <span className={styles.modeIcon} aria-hidden>🤝</span>
+            <span className={styles.modeBody}>
+              <span className={styles.modeName}>Колега во иста компанија</span>
+              <span className={styles.modeDesc}>
+                Споделете го истиот профил на компанија. Документите се потпишуваат
+                под вашата фирма. Промените во вашите податоци автоматски се
+                ажурираат и кај членот.
+              </span>
+            </span>
+          </label>
+          <label className={`${styles.modeCard} ${companyMode === 'independent' ? styles.modeCardActive : ''}`}>
+            <input
+              type="radio"
+              name="companyMode"
+              value="independent"
+              checked={companyMode === 'independent'}
+              onChange={() => setCompanyMode('independent')}
+            />
+            <span className={styles.modeIcon} aria-hidden>🏢</span>
+            <span className={styles.modeBody}>
+              <span className={styles.modeName}>Свој профил на компанија</span>
+              <span className={styles.modeDesc}>
+                Овој корисник работи под своја фирма — ќе си внесе свои податоци.
+                Корисно ако давате услуги на клиентски фирми.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+
         {err && <div className={styles.modalErr}>{err}</div>}
 
         <div className={styles.modalActions}>
           <button type="button" className={styles.btnGhost} onClick={onCancel} disabled={busy}>Откажи</button>
-          <button type="submit" className={styles.btnPrimary} disabled={busy}>
+          <button type="submit" className={styles.btnPrimary} disabled={busy || !companyMode}>
             {busy ? 'Се испраќа…' : 'Прати покана'}
           </button>
         </div>

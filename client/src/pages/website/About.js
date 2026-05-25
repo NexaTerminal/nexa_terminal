@@ -3,15 +3,10 @@ import i18n from '../../i18n/i18n';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import EcosystemMap from '../../components/website/EcosystemMap';
-import FaqAccordion from '../../components/website/FaqAccordion';
 import Icon from '../../components/website/Icon';
 import useScrollReveal from '../../hooks/useScrollReveal';
-import { NEXA_ORG, NEXA_WEBSITE, webPage, faqPage, personMartin } from '../../components/seo/schemaGraph';
+import { NEXA_ORG, NEXA_WEBSITE, webPage, personMartin } from '../../components/seo/schemaGraph';
 import styles from './About.module.css';
-
-const FAQ_KEYS = [
-  'isLawFirm', 'legalAdvice', 'whoCanUse', 'cost', 'data', 'languages', 'becomeSuper', 'noLawyer'
-];
 
 const SECTIONS = [
   { id: 'what-is-nexa', k: 's1Heading' },
@@ -25,7 +20,6 @@ const SECTIONS = [
   { id: 'for-professionals', k: 's9Heading' },
   { id: 'how-it-connects', k: 's10Heading' },
   { id: 'trust', k: 's11Heading' },
-  { id: 'faq', k: 's12Heading' },
   { id: 'contact', k: 's13Heading' }
 ];
 
@@ -43,16 +37,10 @@ export default function About() {
   const lang = i18n.language || 'mk';
   const url = 'https://nexa.mk/about';
 
-  const faqItems = FAQ_KEYS.map(k => ({
-    q: t(`faq.${k}.q`),
-    a: t(`faq.${k}.a`)
-  }));
-
   const jsonLd = [
     NEXA_ORG,
     NEXA_WEBSITE,
     webPage({ url, name: t('about.title'), description: t('about.seoDesc'), language: lang }),
-    faqPage(faqItems),
     personMartin
   ];
 
@@ -160,7 +148,7 @@ export default function About() {
           <section id="for-professionals">
             <h2>{t('about.s9Heading')}</h2>
             <p>{t('about.s9P1')}</p>
-            <p><a href="/for-professionals">{t('forPro.heroTitle')} →</a></p>
+            <p><a href="/pricing">{t('pricing.title')} →</a></p>
           </section>
 
           <section id="how-it-connects">
@@ -172,11 +160,6 @@ export default function About() {
             <h2>{t('about.s11Heading')}</h2>
             <p>{t('about.s11P1')}</p>
             <p>{t('about.s11P2')} <a href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati" rel="noopener">mba.org.mk →</a></p>
-          </section>
-
-          <section id="faq">
-            <h2>{t('about.s12Heading')}</h2>
-            <FaqAccordion items={faqItems} />
           </section>
 
           <section id="contact">

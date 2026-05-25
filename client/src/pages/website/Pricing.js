@@ -11,11 +11,26 @@ import { useAuth } from '../../contexts/AuthContext';
 import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct, superUserService } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Plan registry — shared with the SubscriptionGate modal.
+// Plan registry — kept deliberately simple. Three tiers, no audience targeting.
+// Standard   = Terminal for one user.
+// Admin · 5  = Standard for a team of 5 + promotional channels.
+// Admin · 10 = same as Admin · 5 with a team of 10 and higher limits.
 const PLANS = [
-  { uiKey: 'plan1', apiPlan: 'standard', role: 'standard_user', features: ['docs','ai','contract','health','market','support'], includesLabel: 'includes' },
-  { uiKey: 'plan2', apiPlan: 'admin_5',  role: 'admin_user',    features: ['seats5','leads','topics','newsletter','badge','priority'], includesLabel: 'everythingPlus' },
-  { uiKey: 'plan3', apiPlan: 'admin_10', role: 'admin_user',    features: ['seats10','leads','topics','newsletter','badge','priority'], includesLabel: 'everythingPlus' }
+  {
+    uiKey: 'plan1', apiPlan: 'standard', role: 'standard_user',
+    features: ['docs', 'news', 'compliance', 'operative', 'marketing', 'contract', 'ai'],
+    includesLabel: 'includes'
+  },
+  {
+    uiKey: 'plan2', apiPlan: 'admin_5', role: 'admin_user',
+    features: ['seats5', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'priority'],
+    includesLabel: 'everythingPlus'
+  },
+  {
+    uiKey: 'plan3', apiPlan: 'admin_10', role: 'admin_user',
+    features: ['seats10', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'creditPool', 'priority'],
+    includesLabel: 'everythingPlus'
+  }
 ];
 
 const PRICES = {

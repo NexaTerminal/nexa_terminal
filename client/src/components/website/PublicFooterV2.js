@@ -59,7 +59,6 @@ export default function PublicFooterV2() {
           </ul>
         </div>
       </div>
-      <p className={styles.disclaimer}>{t('footer.disclaimer')}</p>
       <div className={styles.bottom}>
         <span>{t('footer.copyright')}</span>
         <span>{t('footer.poweredBy')}</span>

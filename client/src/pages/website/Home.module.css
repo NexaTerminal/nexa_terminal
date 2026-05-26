@@ -555,3 +555,196 @@
   .chapterMarker { margin: 56px 0 28px; }
   .chapterTitle { font-size: 22px; }
 }
+
+/* Chapter marker on the dark final-CTA section */
+.chapterMarkerInk .chapterNum {
+  color: rgba(255, 255, 255, 0.92);
+}
+.chapterMarkerInk.chapterMarkerCentered .chapterNum::before,
+.chapterMarkerInk.chapterMarkerCentered .chapterNum::after {
+  background: rgba(255, 255, 255, 0.5);
+}
+.chapterMarkerInk .chapterTitle {
+  color: #FFFFFF;
+}
+.chapterMarkerInk .chapterLead {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Trial line directly under the chapter lead (within final CTA) */
+.ctaTrialLine {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  margin: 0 auto 28px;
+  max-width: 560px;
+  text-align: center;
+}
+
+/* ============================================================
+   FINAL CTA — modern 2-col hero on the dark ink background
+   ============================================================ */
+.finalGrid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.finalContent { max-width: 540px; }
+
+.chapterNumInk {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.92);
+}
+.chapterNumInk::before,
+.chapterNumInk::after {
+  content: '';
+  width: 28px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.50);
+  border-radius: 2px;
+}
+
+.finalTitle {
+  color: #FFFFFF;
+  font-size: 40px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 16px 0 14px;
+  font-weight: 700;
+  /* gradient text accent */
+  background: linear-gradient(110deg, #FFFFFF 0%, #C9DAFF 70%, #9BD0D8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.finalLead {
+  color: #F8FAFC;
+  font-size: 16.5px;
+  line-height: 1.6;
+  margin: 0 0 22px;
+}
+.finalFeatures {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+}
+.finalFeatures li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.finalFeatureDot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nx-primary-500, #1e4db7), var(--nx-teal, #2BB3C0));
+  box-shadow: 0 0 12px rgba(43, 179, 192, 0.45);
+}
+
+/* ---------- Visual mock stack ---------- */
+.finalVisual {
+  position: relative;
+  min-height: 340px;
+}
+.finalMockStack {
+  position: relative;
+  height: 100%;
+  min-height: 340px;
+}
+.finalMockCard {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 14px 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 18px 36px -16px rgba(0, 0, 0, 0.45);
+  width: 88%;
+  color: #FFFFFF;
+  transition: transform 0.35s ease, background 0.35s ease;
+}
+.finalMockCard:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.finalMockCard1 { top: 0;    left: 0;  z-index: 3; transform: rotate(-2deg); }
+.finalMockCard2 { top: 110px; left: 8%; z-index: 2; transform: rotate(1.4deg); }
+.finalMockCard3 { top: 220px; left: 0;  z-index: 1; transform: rotate(-1deg); }
+
+.finalMockIcon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.finalMockIconBlue  { background: rgba(91, 142, 255, 0.18); color: #93B7FF; }
+.finalMockIconAmber { background: rgba(245, 184, 88, 0.18); color: #FFD494; }
+.finalMockIconTeal  { background: rgba(43, 179, 192, 0.22); color: #7ED9DD; }
+
+.finalMockTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.finalMockMeta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  font-weight: 500;
+}
+.finalMockBadge {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.finalMockProgress {
+  margin-left: auto;
+  width: 56px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  display: inline-block;
+}
+.finalMockProgressFill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #FFD494 0%, #FF9E5A 100%);
+  border-radius: 999px;
+}
+
+@media (max-width: 980px) {
+  .finalGrid { grid-template-columns: 1fr; gap: 48px; }
+  .finalTitle { font-size: 30px; }
+  .finalFeatures { grid-template-columns: 1fr; }
+  .finalVisual { min-height: 320px; }
+}
+@media (max-width: 480px) {
+  .finalTitle { font-size: 24px; }
+  .finalMockBadge { display: none; }
+}

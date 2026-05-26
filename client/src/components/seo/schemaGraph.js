@@ -79,9 +79,9 @@ export const superUserService = (language = 'mk') => ({
   areaServed: { '@type': 'Country', name: 'North Macedonia' },
   audience: { '@type': 'BusinessAudience', audienceType: 'Lawyers, accountants, consultants' },
   offers: [
-    { '@type': 'Offer', name: 'Monthly',   price: '5000',  priceCurrency: 'MKD', url: 'https://nexa.mk/pricing' },
-    { '@type': 'Offer', name: 'Quarterly', price: '12000', priceCurrency: 'MKD', url: 'https://nexa.mk/pricing' },
-    { '@type': 'Offer', name: 'Annual',    price: '42000', priceCurrency: 'MKD', url: 'https://nexa.mk/pricing' }
+    { '@type': 'Offer', name: 'Monthly',   price: '79',  priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
+    { '@type': 'Offer', name: 'Quarterly', price: '199', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
+    { '@type': 'Offer', name: 'Annual',    price: '719', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
   ]
 });
 
@@ -93,7 +93,7 @@ export const terminalProduct = (language = 'mk') => ({
     ? 'SaaS платформа за автоматизација на документи, AI помош и проверки за усогласеност.'
     : 'SaaS platform for document automation, AI assistance, and compliance health checks.',
   brand: { '@type': 'Brand', name: 'Nexa' },
-  offers: { '@type': 'Offer', price: '2500', priceCurrency: 'MKD', url: 'https://nexa.mk/pricing' }
+  offers: { '@type': 'Offer', price: '39', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
 });
 
 export const contactPage = ({ url, language = 'mk' }) => ({

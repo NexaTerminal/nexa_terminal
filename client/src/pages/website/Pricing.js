@@ -1,104 +1,50 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
-import Icon from '../../components/website/Icon';
 import useScrollReveal from '../../hooks/useScrollReveal';
-import { useAuth } from '../../contexts/AuthContext';
 import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct, superUserService } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Plan registry — kept deliberately simple. Three tiers, no audience targeting.
-// Standard   = Terminal for one user.
-// Admin · 5  = Standard for a team of 5 + promotional channels.
-// Admin · 10 = same as Admin · 5 with a team of 10 and higher limits.
+// Three plans. All start with the same trial flow — visitor clicks the card,
+// lands on /login, signs up, runs the 8-day trial, then picks plan from inside.
 const PLANS = [
-  {
-    uiKey: 'plan1', apiPlan: 'standard', role: 'standard_user',
+  { uiKey: 'plan1', apiPlan: 'standard',
     features: ['docs', 'news', 'compliance', 'operative', 'marketing', 'contract', 'ai'],
-    includesLabel: 'includes'
-  },
-  {
-    uiKey: 'plan2', apiPlan: 'admin_5', role: 'admin_user',
+    includesLabel: 'includes' },
+  { uiKey: 'plan2', apiPlan: 'admin_5',
     features: ['seats5', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'priority'],
-    includesLabel: 'everythingPlus'
-  },
-  {
-    uiKey: 'plan3', apiPlan: 'admin_10', role: 'admin_user',
+    includesLabel: 'everythingPlus' },
+  { uiKey: 'plan3', apiPlan: 'admin_10',
     features: ['seats10', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'creditPool', 'priority'],
-    includesLabel: 'everythingPlus'
-  }
+    includesLabel: 'everythingPlus' }
 ];
 
-// Prices in MKD (Macedonian denar). Round to 100. Built so quarterly = 20% off
-// vs monthly × 3 and annual = 30% off vs monthly × 12 across all tiers.
+// EUR prices using psychological 9-endings. Quarterly ≈ −15%, Annual ≈ −24%.
 const PRICES = {
-  standard: { monthly: 2500,  quarterly: 6000,  annual: 21000 },
-  admin_5:  { monthly: 5000,  quarterly: 12000, annual: 42000 },
-  admin_10: { monthly: 10000, quarterly: 24000, annual: 84000 }
+  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
+  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
+  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
 };
-const fmtMKD = (n) => n.toLocaleString('mk-MK');
 
-const baseline12mo = (apiPlan) => PRICES[apiPlan].monthly * 12;
-const annualSpend  = (apiPlan, cycle) => {
-  const p = PRICES[apiPlan][cycle];
-  if (cycle === 'monthly')   return p * 12;
-  if (cycle === 'quarterly') return p * 4;
-  return p;
-};
-const savePercent = (apiPlan, cycle) => cycle === 'monthly' ? 0 :
-  Math.round(((baseline12mo(apiPlan) - annualSpend(apiPlan, cycle)) / baseline12mo(apiPlan)) * 100);
-const effectiveMonthly = (apiPlan, cycle) => Math.round(annualSpend(apiPlan, cycle) / 12);
+const baseline12mo  = (p) => PRICES[p].monthly * 12;
+const annualSpend   = (p, c) => c === 'monthly' ? PRICES[p].monthly * 12
+                              : c === 'quarterly' ? PRICES[p].quarterly * 4
+                              : PRICES[p].annual;
+const savePercent   = (p, c) => c === 'monthly' ? 0
+  : Math.round(((baseline12mo(p) - annualSpend(p, c)) / baseline12mo(p)) * 100);
+const effectiveMonthly = (p, c) => Math.round(annualSpend(p, c) / 12);
 
 export default function Pricing() {
   const { t } = useTranslation('website');
   useScrollReveal();
-  const navigate = useNavigate();
-  const { currentUser, token } = useAuth();
   const lang = i18n.language || 'mk';
+  const isMk = lang === 'mk';
   const url = 'https://nexa.mk/pricing';
 
   const [cycle, setCycle] = useState('monthly');
-  const [requestState, setRequestState] = useState({ plan: null, status: 'idle', message: '' });
-
-  const requestApproval = async (apiPlan) => {
-    if (!currentUser) {
-      navigate(`/login?signup=1&plan=${apiPlan}&cycle=${cycle}`);
-      return;
-    }
-    // Block role mismatch: standard_user can't subscribe to admin plan; admin_user can't subscribe to standard.
-    if (currentUser.role && currentUser.role !== 'admin' &&
-        ((currentUser.role === 'standard_user' && apiPlan.startsWith('admin')) ||
-         (currentUser.role === 'admin_user'    && apiPlan === 'standard'))) {
-      setRequestState({
-        plan: apiPlan, status: 'error',
-        message: t('pricing.notAvailableForRole')
-      });
-      return;
-    }
-    setRequestState({ plan: apiPlan, status: 'sending', message: '' });
-    try {
-      await axios.post(
-        '/api/subscription/request-approval',
-        { plan: apiPlan, cycle },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setRequestState({
-        plan: apiPlan, status: 'ok',
-        message: lang === 'mk'
-          ? 'Барањето е примено. Проверете ја вашата е-пошта за инструкциите.'
-          : 'Request received. Check your email for payment instructions.'
-      });
-    } catch (err) {
-      setRequestState({
-        plan: apiPlan, status: 'error',
-        message: err.response?.data?.message || err.message
-      });
-    }
-  };
 
   const CycleBtn = ({ value, label }) => (
     <button
@@ -108,27 +54,29 @@ export default function Pricing() {
       aria-pressed={cycle === value}
     >
       {label}
-      {value === 'quarterly' && <span className={styles.cycleHint}>−20%</span>}
-      {value === 'annual'    && <span className={styles.cycleHint}>−30%</span>}
+      {value === 'quarterly' && <span className={styles.cycleHint}>−15%</span>}
+      {value === 'annual'    && <span className={styles.cycleHint}>−24%</span>}
     </button>
   );
 
-  const Card = ({ uiKey, apiPlan, role, features, includesLabel, accent }) => {
+  const billedAs = isMk
+    ? { monthly: 'месечно',  quarterly: 'квартално', annual: 'годишно' }
+    : { monthly: 'monthly',  quarterly: 'quarterly', annual: 'yearly' };
+  const suffixFor = (c) => c === 'monthly'   ? (isMk ? '/месец'   : '/month')
+                         : c === 'quarterly' ? (isMk ? '/квартал' : '/quarter')
+                         :                     (isMk ? '/година'  : '/year');
+
+  const Card = ({ uiKey, apiPlan, features, includesLabel, accent }) => {
     const price = PRICES[apiPlan][cycle];
-    const suffix = cycle === 'monthly' ? t('pricing.perMonth')
-                 : cycle === 'quarterly' ? t('pricing.perQuarter')
-                 : t('pricing.perYear');
-    const save = savePercent(apiPlan, cycle);
-    const eff = effectiveMonthly(apiPlan, cycle);
-    const roleMismatch = !!currentUser && currentUser.role && currentUser.role !== 'admin' &&
-      ((currentUser.role === 'standard_user' && role === 'admin_user') ||
-       (currentUser.role === 'admin_user'    && role === 'standard_user'));
-    const isLoading = requestState.plan === apiPlan && requestState.status === 'sending';
-    const isDone    = requestState.plan === apiPlan && requestState.status === 'ok';
-    const isErr     = requestState.plan === apiPlan && requestState.status === 'error';
+    const save  = savePercent(apiPlan, cycle);
+    const eff   = effectiveMonthly(apiPlan, cycle);
 
     return (
-      <div className={`${styles.card} ${accent ? styles.cardAccent : ''} ${roleMismatch ? styles.cardMuted : ''}`}>
+      <Link
+        to="/login"
+        className={`${styles.card} ${accent ? styles.cardAccent : ''}`}
+        aria-label={t(`pricing.${uiKey}.name`)}
+      >
         <div className={styles.cardHead}>
           <div className={styles.planMeta}>
             <h3>{t(`pricing.${uiKey}.name`)}</h3>
@@ -139,33 +87,20 @@ export default function Pricing() {
 
         <div className={styles.priceBlock}>
           <div className={styles.priceLine}>
-            <span className={styles.priceNum}>{fmtMKD(price)}</span>
-            <span className={styles.currency}>ден</span>
-            <span className={styles.priceSuffix}>{suffix}</span>
+            <span className={styles.currency}>€</span>
+            <span className={styles.priceNum}>{price}</span>
+            <span className={styles.priceSuffix}>{suffixFor(cycle)}</span>
           </div>
           <div className={styles.priceMeta}>
-            <span>{t(`pricing.billedAs.${cycle}`)}</span>
+            <span>{billedAs[cycle]}</span>
             {cycle !== 'monthly' && (
-              <span className={styles.eff}>{t('pricing.effective', { value: fmtMKD(eff) })}</span>
+              <span className={styles.eff}>{isMk ? `≈ €${eff}/месец` : `≈ €${eff}/month`}</span>
             )}
             {save > 0 && (
-              <span className={styles.saveTag}>{t('pricing.save', { percent: save })}</span>
+              <span className={styles.saveTag}>{isMk ? `Заштеда ${save}%` : `Save ${save}%`}</span>
             )}
           </div>
         </div>
-
-        <button
-          type="button"
-          disabled={isLoading || isDone || roleMismatch}
-          onClick={() => requestApproval(apiPlan)}
-          className={`nexa-btn ${accent ? 'nexa-btn-accent' : 'nexa-btn-primary'} ${styles.cta}`}
-        >
-          {roleMismatch ? t('pricing.notAvailableForRole') :
-           isLoading ? '…' : isDone ? '✓' : t(`pricing.${uiKey}.cta`)}
-        </button>
-        {(isDone || isErr) && (
-          <div className={isErr ? styles.ctaError : styles.ctaSuccess}>{requestState.message}</div>
-        )}
 
         <div className={styles.includes}>
           <div className={styles.includesLabel}>{t(`pricing.${includesLabel}`)}</div>
@@ -180,7 +115,12 @@ export default function Pricing() {
             ))}
           </ul>
         </div>
-      </div>
+
+        <span className={styles.trialBanner}>
+          {isMk ? 'Пробајте бесплатен период, без обврска' : 'Try the free period, no commitment'}
+          <span className={styles.trialArrow} aria-hidden>→</span>
+        </span>
+      </Link>
     );
   };
 
@@ -190,30 +130,32 @@ export default function Pricing() {
         title={t('pricing.seoTitle')}
         description={t('pricing.seoDesc')}
         canonical="/pricing"
-        locale={lang === 'mk' ? 'mk_MK' : 'en_US'}
-        altLocale={lang === 'mk' ? 'en_US' : 'mk_MK'}
+        locale={isMk ? 'mk_MK' : 'en_US'}
+        altLocale={isMk ? 'en_US' : 'mk_MK'}
         jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: t('pricing.title'), description: t('pricing.seoDesc'), language: lang }), terminalProduct(lang), superUserService(lang)]}
       />
 
-      <section className={`nx-hero-aurora ${styles.hero}`}>
-        <span className="nx-orb nx-orb-1" aria-hidden></span>
-        <span className="nx-orb nx-orb-2" aria-hidden></span>
-        <div className={`nexa-container ${styles.heroInner}`}>
-          <span className="nx-pill nx-fade-in-up">
-            <Icon name="bolt" size={14} />
-            {lang === 'mk' ? 'Транспарентни цени' : 'Transparent pricing'}
-          </span>
-          <h1 className="nx-fade-in-up nx-d-100">{t('pricing.title')}</h1>
-          <p className="nx-fade-in-up nx-d-200">{t('pricing.intro')}</p>
-        </div>
-      </section>
-
       <section className={styles.section}>
         <div className="nexa-container">
+          <header className={styles.pageIntro}>
+            <span className={styles.pageIntroEyebrow}>
+              <span className={styles.pageIntroDot} aria-hidden />
+              {isMk ? 'Цени' : 'Pricing'}
+            </span>
+            <h1 className={styles.pageIntroTitle}>
+              {isMk ? 'Едноставни тарифи. Без изненадувања.' : 'Simple plans. No surprises.'}
+            </h1>
+            <p className={styles.pageIntroLead}>
+              {isMk
+                ? 'Започнете со 8-дневен пробен период. Изберете план кога ќе бидете спремни — можете да го смените во секое време.'
+                : 'Start with an 8-day trial. Pick a plan when you are ready — you can change it any time.'}
+            </p>
+          </header>
+
           <div className={styles.cycleWrap} role="group" aria-label="Billing cycle">
-            <CycleBtn value="monthly"   label={t('pricing.billing.monthly')} />
-            <CycleBtn value="quarterly" label={t('pricing.billing.quarterly')} />
-            <CycleBtn value="annual"    label={t('pricing.billing.annual')} />
+            <CycleBtn value="monthly"   label={isMk ? 'Месечно'   : 'Monthly'} />
+            <CycleBtn value="quarterly" label={isMk ? 'Квартално' : 'Quarterly'} />
+            <CycleBtn value="annual"    label={isMk ? 'Годишно'   : 'Yearly'} />
           </div>
 
           <div className={styles.cards}>
@@ -223,6 +165,36 @@ export default function Pricing() {
           </div>
 
           <p className={styles.footnote}>{t('pricing.footnote')}</p>
+
+          <section className={styles.flow} aria-label={isMk ? 'Како функционира уплатата' : 'How payment works'}>
+            <div className={styles.flowHead}>
+              <span className={styles.pageIntroEyebrow}>
+                <span className={styles.pageIntroDot} aria-hidden />
+                {isMk ? 'Како функционира уплатата' : 'How payment works'}
+              </span>
+              <p className={styles.flowLead}>
+                {isMk
+                  ? 'По регистрацијата добивате бесплатен пристап до Терминалот. Во рамки на или по пробниот период, по избор на план, Ви испраќаме профактура. Со уплатата веднаш го отклучувате користењето.'
+                  : 'After signup you get free access to the Terminal. During or after the trial, when you choose a plan, we issue a pro-forma invoice. Payment unlocks usage immediately.'}
+              </p>
+            </div>
+            <ol className={styles.flowSteps}>
+              {[
+                { n: '1', t: isMk ? 'Пробен период'    : 'Trial',          d: isMk ? '8 дена, без картичка'        : '8 days, no card' },
+                { n: '2', t: isMk ? 'Изберете план'    : 'Pick a plan',    d: isMk ? 'Кога ќе бидете спремни'      : 'When you are ready' },
+                { n: '3', t: isMk ? 'Прими профактура' : 'Receive invoice', d: isMk ? 'На е-пошта, за Вашето сметководство' : 'By email, for your books' },
+                { n: '4', t: isMk ? 'Уплати и користи' : 'Pay and use',    d: isMk ? 'Активирањето е веднашно'      : 'Activation is immediate' }
+              ].map((s) => (
+                <li key={s.n} className={styles.flowStep}>
+                  <span className={styles.flowNum}>{s.n}</span>
+                  <div>
+                    <div className={styles.flowStepTitle}>{s.t}</div>
+                    <div className={styles.flowStepDesc}>{s.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
         </div>
       </section>
     </PublicLayout>

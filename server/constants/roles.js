@@ -67,14 +67,13 @@ const DURATION_DAYS = Object.freeze({
 // shown intent (clicked Subscribe / Email-Invoice) but hasn't paid yet.
 const GRACE_DAYS = 3;
 
-// MKD prices per the public pricing page. Quarterly = monthly × 3 × 0.8,
-// annual = monthly × 12 × 0.7.
+// EUR prices per the public pricing page, using 9-ending psychological pricing.
 const PLAN_PRICES = Object.freeze({
-  standard: { monthly: 2500,  quarterly: 6000,  annual: 21000 },
-  admin_5:  { monthly: 5000,  quarterly: 12000, annual: 42000 },
-  admin_10: { monthly: 10000, quarterly: 24000, annual: 84000 }
+  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
+  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
+  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
 });
-const PLAN_CURRENCY = 'MKD';
+const PLAN_CURRENCY = 'EUR';
 
 // Reminder cadence (days before endsAt, negative number = days remaining).
 const REMINDER_SCHEDULE = Object.freeze({

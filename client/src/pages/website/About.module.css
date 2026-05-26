@@ -82,7 +82,7 @@
   border-left-color: var(--nx-ink);
 }
 
-.article { max-width: 720px; }
+.article { max-width: 720px; margin-top: 1.5rem; }
 .article section {
   scroll-margin-top: 88px;
   padding: 0 0 var(--nx-s-7);

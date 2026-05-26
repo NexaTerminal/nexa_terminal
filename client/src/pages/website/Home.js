@@ -21,7 +21,7 @@ export default function Home() {
       url: 'https://samodaprasham.mk',
       domain: 'samodaprasham.mk',
       tag: isMk ? 'Правни прашања од граѓани' : 'Citizen legal questions',
-      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
       title: isMk ? 'Граѓаните имаат правни прашања. Некои се сериозни случаи.' : 'Citizens have legal questions. Some are serious cases.',
       body: isMk
         ? 'Илјадници луѓе годишно бараат одговор за наследство, развод, кривична одбрана, имотни спорови и работни односи. Голем дел од нив имаат потреба од вистинско правно застапување — не само информација. Преку платформата, нивните прашања стигнуваат до правник со соодветна област.'
@@ -33,7 +33,7 @@ export default function Home() {
       url: 'https://immigration.mk',
       domain: 'immigration.mk',
       tag: isMk ? 'Странци кои живеат во Македонија' : 'Foreigners living in Macedonia',
-      image: 'https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80',
       title: isMk ? 'Странците бараат стручна помош за дозвола за престој.' : 'Foreigners need expert help with residence permits.',
       body: isMk
         ? 'Странски државјани, инвеститори и работници постојано имаат потреба од издавање, обновување и пренамена на дозволи за престој. Без локален советник, процесот е тежок. Овие посетители се клиенти со јасна намера да платат — често за итен случај.'
@@ -45,7 +45,7 @@ export default function Home() {
       url: 'https://macedoniancitizenship.mk',
       domain: 'macedoniancitizenship.mk',
       tag: isMk ? 'Дијаспора и потомци' : 'Diaspora and descendants',
-      image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?auto=format&fit=crop&w=1200&q=80',
       title: isMk ? 'Дијаспората бара начин да го врати државјанството.' : 'The diaspora seeks to reclaim citizenship.',
       body: isMk
         ? 'Луѓе со македонско потекло од Австралија, САД, Канада и Европа аплицираат за државјанство преку различни основи — потекло, брак, инвестиција. Случаите бараат правно водство и подготовка на документи во рок од месеци, не недели. Тоа е работа на специјализиран адвокат.'
@@ -57,7 +57,7 @@ export default function Home() {
       url: 'https://company.nexa.mk',
       domain: 'company.nexa.mk',
       tag: isMk ? 'Нови претприемачи' : 'New entrepreneurs',
-      image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
       title: isMk ? 'Претприемачи бараат да отворат фирма.' : 'Entrepreneurs are looking to register a company.',
       body: isMk
         ? 'Регистрација на ДОО, ДООЕЛ, АД, подружница, измена на основач, регистрација во Централен регистар. Секој месец стотици претприемачи го пребаруваат овој процес и имаат потреба од сметководител и адвокат уште од прв ден.'
@@ -75,27 +75,6 @@ export default function Home() {
         ? 'Заштитни знаци, патенти, авторски права, лиценцирање. Компаниите кои растат имаат потреба да го заштитат тоа што го градат. Овие клиенти веќе се успешни — можат да си дозволат професионални услуги и плаќаат за квалитет.'
         : 'Trademarks, patents, copyrights, licensing. Growing companies need to protect what they build. These clients are already successful — they can afford professional services and pay for quality.',
       audience: isMk ? 'Целна публика: компании во раст' : 'Audience: growing companies'
-    }
-  ];
-
-  const STEPS = [
-    {
-      title: isMk ? 'Регистрирајте се за 30 секунди' : 'Sign up in 30 seconds',
-      body:  isMk
-        ? 'Само корисничко име и лозинка. Без картичка, без обврска. 8 дена целосен пристап до сè.'
-        : 'Just a username and password. No card, no commitment. 8 days of full access to everything.'
-    },
-    {
-      title: isMk ? 'Пробајте го Терминалот' : 'Try the Terminal',
-      body:  isMk
-        ? 'Генерирајте договор за 30 секунди. Анализирајте постоен договор. Спроведете проверка на усогласеност. Прашајте го AI помошникот.'
-        : 'Generate a contract in 30 seconds. Analyze an existing contract. Run a compliance check. Ask the AI assistant.'
-    },
-    {
-      title: isMk ? 'Останете кога ќе видите вредност' : 'Stay when you see the value',
-      body:  isMk
-        ? 'По 8 дена изберете план што ви одговара. Ако не сте задоволни — едноставно не плаќате и сметката се суспендира.'
-        : 'After 8 days pick the plan that fits. Not happy — simply don\'t pay and the account suspends.'
     }
   ];
 
@@ -118,7 +97,7 @@ export default function Home() {
         <div className={`nexa-container ${styles.heroInner}`}>
           <span className={`nx-pill ${styles.heroPill} nx-fade-in-up`}>
             <Icon name="globe" size={14} />
-            {isMk ? 'Деловен екосистем за Северна Македонија' : 'Business ecosystem for North Macedonia'}
+            {isMk ? 'Деловен екосистем за мали и средни фирми во Македонија' : 'Business ecosystem for small and medium businesses in Macedonia'}
           </span>
           <h1 className="nx-fade-in-up nx-d-100">{t('home.heroTitle')}</h1>
           <div className={`${styles.heroCtas} nx-fade-in-up nx-d-300`}>
@@ -143,12 +122,12 @@ export default function Home() {
             <span className="nx-eyebrow">{isMk ? 'Екосистем' : 'Ecosystem'}</span>
             <h2>
               {isMk
-                ? 'Nexa е целосен екосистем кој го надградува твојот бизнис.'
+                ? 'Nexa е целосен екосистем кој го надградува Вашиот бизнис.'
                 : 'Nexa is a complete ecosystem that upgrades your business.'}
             </h2>
             <p>
               {isMk
-                ? 'Не е само алатка. Прво ти ги автоматизира внатрешните процеси — документи, проверки за усогласеност, AI помош. Потоа ти носи нови клиенти преку мрежа од специјализирани сајтови. И на крај, те прави видлив како експерт во твојата област. Еве како го правиме сето тоа — еден дел по еден.'
+                ? 'Не е само алатка. Прво Ви ги автоматизира внатрешните процеси — документи, проверки за усогласеност, AI помош. Потоа Ви носи нови клиенти преку мрежа од специјализирани сајтови. И на крај, Ве прави видливи како експерт во Вашата област. Еве како го правиме сето тоа — еден дел по еден.'
                 : 'Not just a tool. First it automates your internal processes — documents, compliance checks, AI assistance. Then it brings you new clients through a network of specialized sites. Finally it makes you visible as an expert in your field. Here is how we do all of this — one part at a time.'}
             </p>
           </div>
@@ -156,11 +135,11 @@ export default function Home() {
           <div className={`${styles.chapterMarker} nx-reveal`}>
             <span className={styles.chapterNum}>{isMk ? 'Дел 1' : 'Part 1'}</span>
             <h3 className={styles.chapterTitle}>
-              {isMk ? 'Носиме клиенти кај тебе' : 'We bring clients to you'}
+              {isMk ? 'Носиме клиенти кај Вас' : 'We bring clients to you'}
             </h3>
             <p className={styles.chapterLead}>
               {isMk
-                ? 'Управуваме мрежа од специјализирани сајтови. Секој покрива конкретна потреба, секој таргетира посетители со јасна намера да платат. Тие посетители — твои клиенти.'
+                ? 'Управуваме мрежа од специјализирани сајтови. Секој покрива конкретна потреба, секој таргетира посетители со јасна намера да платат. Тие посетители — Ваши клиенти.'
                 : 'We run a network of specialized sites. Each covers a specific need, each targets visitors with clear intent to pay. Those visitors — your clients.'}
             </p>
           </div>
@@ -199,11 +178,11 @@ export default function Home() {
           <div className={`${styles.chapterMarker} ${styles.chapterMarkerCentered} nx-reveal`}>
             <span className={styles.chapterNum}>{isMk ? 'Дел 2' : 'Part 2'}</span>
             <h3 className={styles.chapterTitle}>
-              {isMk ? 'Те правиме видлив експерт' : 'We make you a visible expert'}
+              {isMk ? 'Ве правиме видливи како експерт' : 'We make you a visible expert'}
             </h3>
             <p className={styles.chapterLead}>
               {isMk
-                ? 'Содржината што ја создаваш — одговорите на прашања и стручни мислења — стануваат твоја најдобра реклама. Луѓето те препознаваат пред да те побараат.'
+                ? 'Содржината што ја создавате — одговорите на прашања и стручни мислења — станува Ваша најдобра реклама. Луѓето Ве препознаваат пред да Ве побараат.'
                 : 'The content you create — answers to questions and expert opinions — becomes your best advertising. People recognize you before they reach out.'}
             </p>
           </div>
@@ -217,7 +196,7 @@ export default function Home() {
               </h2>
               <p className={styles.topicsBody}>
                 {isMk
-                  ? 'Topics.nexa е платформа за прашања и одговори за бизнис и правни теми во Македонија. Како Admin корисник, твоите одговори стануваат дел од јавна, SEO + GEO оптимизирана содржина. Google и AI асистентите ги пронаоѓаат, а потенцијалните клиенти те препознаваат тебе како експерт.'
+                  ? 'Topics.nexa е платформа за прашања и одговори за бизнис и правни теми во Македонија. Како Admin корисник, Вашите одговори стануваат дел од јавна, SEO + GEO оптимизирана содржина. Google и AI асистентите ги пронаоѓаат, а потенцијалните клиенти Ве препознаваат како експерт.'
                   : 'Topics.nexa is a Q&A platform for business and legal topics in Macedonia. As an Admin user, your answers become part of public, SEO + GEO-optimized content. Google and AI assistants surface them, and prospective clients recognize you as the expert.'}
               </p>
               <ul className={styles.topicsPoints}>
@@ -258,60 +237,89 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ PART 3: TRY THE TERMINAL ============ */}
-      <section className="nx-section nx-section-soft">
-        <div className="nexa-container">
-          <div className={`${styles.chapterMarker} ${styles.chapterMarkerCentered} nx-reveal`}>
-            <span className={styles.chapterNum}>{isMk ? 'Дел 3' : 'Part 3'}</span>
-            <h3 className={styles.chapterTitle}>
-              {isMk ? 'Автоматизирај го твоето работење' : 'Automate your operations'}
-            </h3>
-            <p className={styles.chapterLead}>
-              {isMk
-                ? 'Терминалот ти ја држи внатрешната администрација — документи, проверки, AI помош, анализа на договори. Сè на едно место. Пробај го 8 дена бесплатно, без картичка.'
-                : 'The Terminal handles your internal admin — documents, compliance checks, AI assistance, contract analysis. All in one place. Try it free for 8 days, no card required.'}
-            </p>
-          </div>
-
-          <ol className={styles.steps}>
-            {STEPS.map((s, i) => (
-              <li key={i} className={`nx-reveal ${styles.stepItem}`} style={{ transitionDelay: `${i * 80}ms` }}>
-                <div className={styles.stepNum}>{i + 1}</div>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          <div className={`${styles.stepsCta} nx-reveal`}>
-            <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-              {isMk ? 'Започни бесплатно' : 'Start free'}
-              <Icon name="arrowRight" size={18} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ FINAL CTA ============ */}
+      {/* ============ PART 3: AUTOMATE / FINAL CTA ============ */}
       <section className={`${styles.ctaFinal} nx-section-ink`}>
         <div className="nexa-container">
-          <div className={`${styles.ctaInner} nx-reveal`}>
-            <h2>{isMk ? 'Подготвени сте да го пробате Терминалот?' : 'Ready to try the Terminal?'}</h2>
-            <p>
-              {isMk
-                ? '8 дена бесплатно. Не бара картичка. Откажете во секое време.'
-                : '8 days free. No card required. Cancel any time.'}
-            </p>
-            <div className={styles.ctaButtons}>
-              <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-                {isMk ? 'Започни бесплатно' : 'Start free'}
-                <Icon name="arrowRight" size={18} />
-              </Link>
-              <Link to="/contact" className="nexa-btn nexa-btn-glass nexa-btn-lg">
-                {isMk ? 'Контактирај нé' : 'Contact us'}
-              </Link>
+          <div className={`${styles.finalGrid} nx-reveal`}>
+            <div className={styles.finalContent}>
+              <span className={`${styles.chapterNum} ${styles.chapterNumInk}`}>
+                {isMk ? 'Дел 3' : 'Part 3'}
+              </span>
+              <h2 className={styles.finalTitle}>
+                {isMk ? 'Автоматизирајте го Вашето работење' : 'Automate your operations'}
+              </h2>
+              <ul className={styles.finalFeatures}>
+                {[
+                  isMk ? 'Автоматизирани документи'  : 'Automated documents',
+                  isMk ? 'Проверки за усогласеност'  : 'Compliance health checks',
+                  isMk ? 'AI правен помошник'        : 'AI legal assistant',
+                  isMk ? 'Анализа на договор'        : 'Contract analysis'
+                ].map(f => (
+                  <li key={f}>
+                    <span className={styles.finalFeatureDot} aria-hidden />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <div className={styles.ctaButtons}>
+                <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
+                  {isMk ? 'Започнете бесплатно' : 'Start free'}
+                  <Icon name="arrowRight" size={18} />
+                </Link>
+                <Link to="/contact" className="nexa-btn nexa-btn-glass nexa-btn-lg">
+                  {isMk ? 'Контактирајте нé' : 'Contact us'}
+                </Link>
+              </div>
+            </div>
+
+            <div className={styles.finalVisual} aria-hidden>
+              <div className={styles.finalMockStack}>
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard1}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconBlue}`}>
+                    <Icon name="documents" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'Договор за вработување' : 'Employment agreement'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? 'Генериран за 30 сек' : 'Generated in 30s'}
+                    </div>
+                  </div>
+                  <span className={styles.finalMockBadge}>DOCX</span>
+                </div>
+
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard2}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconAmber}`}>
+                    <Icon name="shield" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'Правна проверка' : 'Legal screening'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? '8 / 12 прашања' : '8 / 12 questions'}
+                    </div>
+                  </div>
+                  <span className={styles.finalMockProgress}>
+                    <span className={styles.finalMockProgressFill} style={{ width: '66%' }} />
+                  </span>
+                </div>
+
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard3}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconTeal}`}>
+                    <Icon name="ai" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'AI одговор' : 'AI answer'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? 'Прашање за ДДВ · готов' : 'VAT question · ready'}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

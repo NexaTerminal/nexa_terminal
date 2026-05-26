@@ -137,8 +137,8 @@ export default function SubscriptionGate() {
             <h2 className={styles.title}>Нарачката е примена</h2>
             <p className={styles.lead}>
               {graceUsed
-                ? 'Проверете ја вашата е-пошта за инструкциите за уплата. Активираме штом пристигне уплатата.'
-                : 'Проверете ја вашата е-пошта. Имате 3 дена дополнителен пристап додека ја обработуваме уплатата.'}
+                ? 'Проверете ја Вашата е-пошта за инструкциите за уплата. Активираме штом пристигне уплатата.'
+                : 'Проверете ја Вашата е-пошта. Имате 3 дена дополнителен пристап додека ја обработуваме уплатата.'}
             </p>
             <button className={styles.btnPrimary} onClick={close}>Затвори</button>
           </div>
@@ -148,8 +148,8 @@ export default function SubscriptionGate() {
             <h2 className={styles.title}>Продолжете со претплата</h2>
             <p className={styles.lead}>
               {graceUsed
-                ? 'Веќе го искористивте 3-дневниот гејс период. Сега треба прво да пристигне уплатата за активирање.'
-                : 'Изберете план и циклус. Ќе ви испратиме инструкции за уплата и автоматски ќе ви дадеме 3 дена дополнителен пристап.'}
+                ? 'Веќе го искористивте 3-дневниот грејс период. Сега треба прво да пристигне уплатата за активирање.'
+                : 'Изберете план и циклус. Ќе Ви испратиме инструкции за уплата и автоматски ќе Ви дадеме 3 дена дополнителен пристап.'}
             </p>
 
             {/* ============ PLAN TILES (always 3) ============ */}
@@ -161,16 +161,18 @@ export default function SubscriptionGate() {
                   type="button"
                   className={`${styles.planTile} ${plan === p ? styles.planTileActive : ''}`}
                   onClick={() => setPlan(p)}
-                  data-tip={PLAN_TOOLTIP[p]}
-                  title={PLAN_TOOLTIP[p]}
                   aria-pressed={plan === p}
                 >
                   <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
                   <div className={styles.planTileShort}>{PLAN_SHORT[p]}</div>
-                  <div className={styles.planTileFrom}>од €{PRICES[p].monthly}/мес</div>
+                  <div className={styles.planTilePriceLine}>
+                    <span className={styles.planTilePriceNum}>€{PRICES[p].monthly}</span>
+                    <span className={styles.planTilePriceUnit}>/ мес</span>
+                  </div>
                 </button>
               ))}
             </div>
+            <p className={styles.planDescription}>{PLAN_TOOLTIP[plan]}</p>
 
             {/* ============ CYCLE TILES ============ */}
             <div className={styles.sectionLabel}>Циклус на наплата</div>
@@ -183,10 +185,10 @@ export default function SubscriptionGate() {
                   onClick={() => setCycle(c)}
                   aria-pressed={cycle === c}
                 >
-                  <div className={styles.cycleName}>
+                  <span className={styles.cycleName}>
                     {c === 'monthly' ? 'Месечно' : c === 'quarterly' ? 'Квартално' : 'Годишно'}
-                  </div>
-                  <div className={styles.cyclePrice}>€{PRICES[plan][c]}</div>
+                  </span>
+                  <span className={styles.cyclePrice}>€{PRICES[plan][c]}</span>
                 </button>
               ))}
             </div>
@@ -204,7 +206,7 @@ export default function SubscriptionGate() {
               </div>
             ) : (
               <div className={styles.emailHint}>
-                Инструкциите ќе ги пратиме на <strong>{currentUser.email}</strong>.
+                Инструкциите ќе Ви ги пратиме на <strong>{currentUser.email}</strong>.
               </div>
             )}
 

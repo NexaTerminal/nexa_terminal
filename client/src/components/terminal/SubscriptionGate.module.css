@@ -15,8 +15,8 @@
   background: #FFFFFF;
   border-radius: 16px;
   width: 100%;
-  max-width: 520px;
-  padding: 36px 36px 28px;
+  max-width: 600px;
+  padding: 32px 32px 24px;
   box-shadow: 0 32px 80px rgba(15, 23, 42, 0.30);
   max-height: 92vh;
   overflow: auto;
@@ -61,10 +61,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
-  margin: 6px 0 18px;
+  margin: 6px 0 12px;
 }
 @media (max-width: 540px) {
   .planTiles3 { grid-template-columns: 1fr; }
+}
+.planDescription {
+  margin: 0 0 20px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
 }
 /* Legacy 2-col grid kept for back-compat with any external callers. */
 .planTiles {
@@ -77,34 +86,66 @@
   position: relative;
   background: #FFFFFF;
   border: 1.5px solid #E6E8EC;
-  border-radius: 10px;
-  padding: 12px 12px 14px;
+  border-radius: 12px;
+  padding: 14px 12px 14px;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   font-family: inherit;
-  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 110px;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
-.planTile:hover { border-color: #D1D5DB; transform: translateY(-1px); }
-.planTileActive { border-color: #1E4DB7; background: #F2F5FB; }
+.planTile:hover {
+  border-color: #C5CBD3;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -8px rgba(15, 23, 42, 0.18);
+}
+.planTileActive {
+  border-color: #1E4DB7;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F2F5FB 100%);
+  box-shadow: 0 6px 14px -8px rgba(30, 77, 183, 0.30);
+}
 .planTileActive:hover { border-color: #1E4DB7; }
+
 .planTileName {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   color: #0B1220;
-  margin-bottom: 4px;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 .planTileShort {
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #1E4DB7;
-  font-weight: 700;
-  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+  color: #64748B;
+  font-weight: 600;
+  white-space: nowrap;
 }
-.planTileFrom {
-  font-size: 11.5px;
-  color: #6B7280;
+.planTileActive .planTileShort { color: #1E4DB7; }
+
+.planTilePriceLine {
+  margin-top: auto;
+  padding-top: 8px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.planTilePriceNum {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0B1220;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.planTilePriceUnit {
+  font-size: 11px;
+  color: #64748B;
   font-weight: 500;
 }
 .planTilePrice { /* legacy */
@@ -188,13 +229,18 @@
   background: #FFFFFF;
   border: 1.5px solid #E6E8EC;
   border-radius: 10px;
-  padding: 12px 8px;
+  padding: 10px 8px;
   cursor: pointer;
   font-family: inherit;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
   transition: border-color 120ms ease, background 120ms ease;
 }
-.cycleBtn:hover { border-color: #D1D5DB; }
+.cycleBtn:hover { border-color: #C5CBD3; }
 .cycleBtnActive {
   border-color: #0B1220;
   background: #0B1220;
@@ -204,15 +250,19 @@
   color: #FFFFFF;
 }
 .cycleName {
+  display: block;
   font-size: 12.5px;
   font-weight: 600;
   color: #0B1220;
-  margin-bottom: 2px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
 }
 .cyclePrice {
-  font-size: 13px;
+  display: block;
+  font-size: 12.5px;
   color: #6B7280;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .field {

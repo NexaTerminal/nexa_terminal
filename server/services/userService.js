@@ -97,9 +97,13 @@ class UserService {
     return { ...user, _id: result.insertedId };
   }
 
-  // Find user by username (updated for simplified schema)
+  // Find user by username. Stored usernames are always lowercased at write
+  // time (register + sub-seat invite both call .trim().toLowerCase()), so we
+  // lowercase the input here too — otherwise users typing their email in
+  // mixed case at login get a false "user not found" 401.
   async findByUsername(username) {
-    return await this.collection.findOne({ username: username.trim() });
+    if (!username) return null;
+    return await this.collection.findOne({ username: username.trim().toLowerCase() });
   }
 
   // Find user by email (updated for simplified schema)  

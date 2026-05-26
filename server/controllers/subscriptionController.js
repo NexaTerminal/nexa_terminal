@@ -49,10 +49,22 @@ class SubscriptionController {
 
   // ----------------- user-facing ----------------- //
 
-  /** GET /api/subscription/me — includes effective status (handles sub-seat → parent). */
+  /** GET /api/subscription/me — includes effective status (handles sub-seat → parent).
+   * Backfills the trial for users who predate the subscription system or whose
+   * trial wasn't initialized at signup. `startTrial` is idempotent. */
   async getMine(req, res) {
     try {
-      const eff = await this.subscriptionService.effectiveStatus(req.user);
+      const isOwnAccount = req.user.role !== 'admin' && req.user.role !== 'sub_seat';
+      const noTrial      = !req.user.subscription?.status;
+      let user = req.user;
+      if (isOwnAccount && noTrial) {
+        try {
+          user = await this.subscriptionService.startTrial(req.user._id);
+        } catch (e) {
+          console.warn('[subscription/me] backfill startTrial failed:', e.message);
+        }
+      }
+      const eff = await this.subscriptionService.effectiveStatus(user);
       res.json({
         success: true,
         subscription: {
@@ -63,7 +75,7 @@ class SubscriptionController {
           cycle: eff.cycle,
           graceEndsAt: eff.graceEndsAt,
           graceUsed:   eff.graceUsed,
-          ownSubscription: req.user.subscription || null
+          ownSubscription: user.subscription || null
         }
       });
     } catch (err) {

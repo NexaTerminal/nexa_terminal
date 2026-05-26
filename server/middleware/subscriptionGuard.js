@@ -53,7 +53,19 @@ async function check(req, res, next, subscriptionService) {
       return next();
     }
 
-    const eff = await subscriptionService.effectiveStatus(user);
+    // Backfill: if this is an own-account user without a subscription record yet
+    // (predates the subscription system or signup didn't initialize), start the
+    // trial now. startTrial is idempotent.
+    let effUser = user;
+    if (user.role !== ROLES.ADMIN && user.role !== ROLES.SUB_SEAT && !user.subscription?.status) {
+      try {
+        effUser = await subscriptionService.startTrial(user._id);
+      } catch (e) {
+        console.warn('[subscriptionGuard] backfill startTrial failed:', e.message);
+      }
+    }
+
+    const eff = await subscriptionService.effectiveStatus(effUser);
 
     if (eff.status === SUBSCRIPTION_STATUSES.TRIAL || eff.status === SUBSCRIPTION_STATUSES.ACTIVE) {
       req.subscription = eff;

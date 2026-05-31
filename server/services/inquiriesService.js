@@ -150,7 +150,26 @@ class InquiriesService {
     const tier = tierService.effectiveTier(user);
     if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN') return [];
 
-    const categories = user.superUser?.practiceAreas || [];
+    // Map the user's declared practiceAreas (kebab-case legal subcategories
+    // from roles.js — 'labor-law', 'tax-accounting', etc.) onto the inquiry
+    // category enum (snake_case service buckets from inquiryEnums.js —
+    // 'legal', 'accounting', 'hr', etc.). Without this mapping, the two
+    // taxonomies share no values and the `$in` filter returns nothing for
+    // any user that has practiceAreas configured.
+    const PA_TO_INQUIRY_CATEGORY = {
+      'consumer-legal':       ['legal'],
+      'immigration':          ['legal'],
+      'citizenship':          ['legal'],
+      'company-registration': ['legal'],
+      'ip-law':               ['legal'],
+      'general-legal':        ['legal'],
+      'labor-law':            ['legal', 'hr'],
+      'tax-accounting':       ['accounting', 'tax']
+    };
+    const rawPracticeAreas = user.superUser?.practiceAreas || [];
+    const categories = Array.from(new Set(
+      rawPracticeAreas.flatMap(pa => PA_TO_INQUIRY_CATEGORY[pa] || [pa])
+    ));
     // City filter: use the declared `superUser.cities` array. Free-text
     // `companyInfo.companyAddress` is NOT a city — it's a street address
     // (e.g., "ул. Македонска 22, Скопје"), so we never use it for matching.

@@ -63,7 +63,6 @@ export default function Contact() {
             {lang === 'mk' ? 'Контакт' : 'Get in touch'}
           </span>
           <h1 className="nx-fade-in-up nx-d-100">{t('contact.title')}</h1>
-          <p className={`${styles.heroSub} nx-fade-in-up nx-d-200`}>{t('contact.intro')}</p>
         </div>
       </section>
 

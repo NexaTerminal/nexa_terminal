@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/terminal/LegalScreening.module.css';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
-import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
 
 const LegalScreening = () => {
   const navigate = useNavigate();
@@ -96,8 +95,6 @@ const LegalScreening = () => {
         <Sidebar />
 
         <main className={styles["dashboard-main"]}>
-          <ProfileReminderBanner />
-
           <div className={styles["page-container"]}>
             {/* Page Header */}
             <div className={styles["page-header"]}>

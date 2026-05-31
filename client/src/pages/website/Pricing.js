@@ -118,16 +118,10 @@ export default function Pricing() {
       featuresHead: isMk ? 'Сè во Про, плус:' : 'Everything in Pro, plus:',
       features: isMk ? [
         'До 10 под-корисници',
-        'Topics Q&A — експертски одговори на јавни прашања',
-        'Приоритетна видливост во Topics',
-        'Повеќе блог позиции месечно',
-        'Препорачано за поголеми тимови и студиа'
+        'Topics Q&A — експертски одговори на јавни прашања'
       ] : [
         'Up to 10 sub-users',
-        'Topics Q&A — expert answers to public questions',
-        'Priority visibility in Topics',
-        'More monthly blog placements',
-        'Recommended for larger teams and studios'
+        'Topics Q&A — expert answers to public questions'
       ]
     }
   };

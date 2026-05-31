@@ -196,13 +196,11 @@ class InquiriesService {
       ];
     }
 
-    let docs = await this.col.find(matchFilter).sort({ postedAt: -1 }).limit(100).toArray();
+    const docs = await this.col.find(matchFilter).sort({ postedAt: -1 }).limit(100).toArray();
 
-    // First-look window: Type C sees inquiries only ≥24h old unless urgent.
-    if (tier === 'C') {
-      const cutoff = Date.now() - FIRST_LOOK_HOURS * 3600 * 1000;
-      docs = docs.filter(d => d.urgency === 'urgent' || new Date(d.postedAt).getTime() <= cutoff);
-    }
+    // First-look window removed (2026-05-31). Both tier B and tier C see
+    // new inquiries the moment they're posted. FIRST_LOOK_HOURS is still
+    // exported in case the product policy changes again.
 
     return docs.map(InquiriesService.publicProjection);
   }

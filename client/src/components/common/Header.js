@@ -228,16 +228,8 @@ const Header = ({ isTerminal = false }) => {
     {
       key: 'network', label: 'Вмрежување и можности',
       items: [
-        { key: 'blogs', label: 'Објави блог', visible: showsBlogs, children: [
-            { path: '/terminal/blogs/submit',         label: 'Поднеси прилог' },
-            { path: '/terminal/blogs/my-submissions', label: 'Мои поднесувања' },
-            { path: '/terminal/blogs/published',      label: 'Објавени' }
-          ]},
-        { key: 'leads', label: 'Случаи', visible: showsLeads, children: [
-            { path: '/terminal/leads',                 label: 'Интерна табла' },
-            { path: '/terminal/leads?tab=claims',      label: 'Мои изразени интереси' },
-            { path: '/terminal/leads?tab=engagements', label: 'Мои ангажмани' }
-          ]},
+        { key: 'blogs', label: 'Објави блог', path: '/terminal/blogs', visible: showsBlogs },
+        { key: 'leads', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
         { key: 'topicsqa', label: 'Topics Q&A', visible: showsTopicsQA, children: [
             { path: '/terminal/topics-qa',               label: 'Отворени прашања' },
             { path: '/terminal/topics-qa?tab=mine',      label: 'Мои одговори' },

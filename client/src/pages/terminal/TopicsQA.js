@@ -76,7 +76,7 @@ export default function TopicsQAPage() {
       <TerminalShell>
         <div className={styles.page}>
           <div className={styles.emptyState}>
-            Topics Q&A е достапно само за Nexa Мрежа · Студио членови.
+            Topics Q&A е достапно само за Ултра членови.
           </div>
         </div>
       </TerminalShell>

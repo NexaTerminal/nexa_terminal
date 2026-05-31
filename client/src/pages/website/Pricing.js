@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
@@ -8,11 +9,32 @@ import useScrollReveal from '../../hooks/useScrollReveal';
 import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Nexa 3.0 — two-card public chooser. The detailed price/cycle/feature
-// breakdowns live inside the Terminal SubscriptionGate (single source of
-// truth for paid signups). The public page presents a binary choice:
-// individual SMB (visible price) vs professional network (application-based).
-const SMB_PRICE_EUR = 19;
+// Nexa 3.0 — three-plan public chooser with EUR/MKD currency toggle.
+// EUR is the source of truth (set per the public pricing spec). MKD is
+// derived at the documented National Bank parity 1 EUR = 61.5 MKD.
+const EUR_TO_MKD = 61.5;
+// Prices mirror server/constants/roles.js PLAN_PRICES (single source of truth).
+const PLANS_EUR = [
+  { key: 'platform', intent: null,      accent: false, prices: { monthly: 19, quarterly: 49,  annual: 179 } },
+  { key: 'kantora',  intent: 'kantora', accent: true,  prices: { monthly: 39, quarterly: 99,  annual: 359 } },
+  { key: 'studio',   intent: 'studio',  accent: false, prices: { monthly: 59, quarterly: 149, annual: 549 } }
+];
+
+const CYCLE_MONTHS = { monthly: 1, quarterly: 3, annual: 12 };
+const savingsPct = (prices, cycle) => {
+  if (cycle === 'monthly') return 0;
+  const baseline = prices.monthly * CYCLE_MONTHS[cycle];
+  return Math.round((1 - prices[cycle] / baseline) * 100);
+};
+
+const fmtPrice = (eur, currency) => {
+  if (currency === 'mkd') {
+    const mkd = Math.round(eur * EUR_TO_MKD);
+    // Format with a thin space as thousands separator: "1 169"
+    return mkd.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+  return String(eur);
+};
 
 export default function Pricing() {
   const { t } = useTranslation('website');
@@ -20,6 +42,95 @@ export default function Pricing() {
   const lang = i18n.language || 'mk';
   const isMk = lang === 'mk';
   const url = 'https://nexa.mk/pricing';
+
+  const [currency, setCurrency] = useState('eur');     // 'eur' | 'mkd'
+  const [cycle, setCycle]       = useState('monthly'); // 'monthly' | 'quarterly' | 'annual'
+
+  const CYCLE_LABEL = isMk
+    ? { monthly: 'Месечно', quarterly: 'Квартално', annual: 'Годишно' }
+    : { monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
+  const CYCLE_SUFFIX = isMk
+    ? { monthly: '/ месец', quarterly: '/ квартал', annual: '/ година' }
+    : { monthly: '/ month',  quarterly: '/ quarter', annual: '/ year' };
+  const CYCLE_SUFFIX_MKD = isMk
+    ? { monthly: 'ден / месец', quarterly: 'ден / квартал', annual: 'ден / година' }
+    : { monthly: 'MKD / month', quarterly: 'MKD / quarter', annual: 'MKD / year' };
+
+  const PLAN_COPY = {
+    platform: {
+      tag:   isMk ? 'За бизнисите'        : 'For SMBs',
+      title: isMk ? 'Основен'             : 'Basic',
+      body:  isMk
+        ? 'Сите алатки на Терминалот за индивидуална употреба.'
+        : 'All Terminal tools for individual use.',
+      featuresHead: isMk ? 'Што добивате' : 'What you get',
+      features: isMk ? [
+        'Автоматизирани шаблони (работни односи, договори, безбедност и здравје, лични податоци, сметководствени и др.)',
+        'Мои шаблони — прикачете свој .docx и автоматизирајте го',
+        'Правен AI помошник',
+        'Маркетинг AI помошник',
+        'Анализа на договор',
+        'Лични AI преференци (тон и стил)',
+        'Правна проверка на усогласеност',
+        'Маркетинг проверка',
+        'HR и оперативна проверка',
+        'Сајбер безбедност проверка',
+        'Курсеви и едукативни ресурси'
+      ] : [
+        'Automated templates (employment, contracts, health & safety, personal data, accounting and more)',
+        'My templates — upload your own .docx and automate it',
+        'Legal AI assistant',
+        'Marketing AI assistant',
+        'Contract analysis',
+        'Personal AI preferences (tone & style)',
+        'Legal compliance check',
+        'Marketing compliance check',
+        'HR & operations compliance check',
+        'Cybersecurity check',
+        'Courses & learning resources'
+      ]
+    },
+    kantora: {
+      tag:   isMk ? 'За кантори / тимови'  : 'For small teams',
+      title: isMk ? 'Про'                  : 'Pro',
+      body:  isMk
+        ? 'Сè во Основен + членство во Nexa мрежата.'
+        : 'Everything in Basic + Nexa Network membership.',
+      featuresHead: isMk ? 'Сè во Основен, плус:' : 'Everything in Basic, plus:',
+      features: isMk ? [
+        'До 5 под-корисници',
+        'Месечна Nexa блог позиција',
+        'Случаи (leads) добиени преку нашите сателит страни',
+        'Позиција во Nexa Newsletter'
+      ] : [
+        'Up to 5 sub-users',
+        'Monthly Nexa blog placement',
+        'Cases (leads) sourced via our satellite sites',
+        'Placement in the Nexa Newsletter'
+      ]
+    },
+    studio: {
+      tag:   isMk ? 'За канцеларии / студиа' : 'For studios',
+      title: isMk ? 'Ултра'                  : 'Ultra',
+      body:  isMk
+        ? 'Сè во Про, со поголеми квоти и Topics Q&A.'
+        : 'Everything in Pro, with larger quotas and Topics Q&A.',
+      featuresHead: isMk ? 'Сè во Про, плус:' : 'Everything in Pro, plus:',
+      features: isMk ? [
+        'До 10 под-корисници',
+        'Topics Q&A — експертски одговори на јавни прашања',
+        'Приоритетна видливост во Topics',
+        'Повеќе блог позиции месечно',
+        'Препорачано за поголеми тимови и студиа'
+      ] : [
+        'Up to 10 sub-users',
+        'Topics Q&A — expert answers to public questions',
+        'Priority visibility in Topics',
+        'More monthly blog placements',
+        'Recommended for larger teams and studios'
+      ]
+    }
+  };
 
   return (
     <PublicLayout>
@@ -49,54 +160,91 @@ export default function Pricing() {
             </p>
           </header>
 
-          <div className={styles.chooserCards}>
-            {/* Card 1 — SMB: Nexa Platform */}
-            <Link to="/login" className={`${styles.chooserCard} nx-reveal`}>
-              <span className={styles.chooserTag}>{isMk ? 'За бизнисите' : 'For SMBs'}</span>
-              <h2 className={styles.chooserCardTitle}>
-                {isMk ? 'Nexa Платформа' : 'Nexa Platform'}
-              </h2>
-              <p className={styles.chooserCardBody}>
-                {isMk
-                  ? 'Сите алатки на Терминалот за индивидуална употреба — автоматизирани документи, AI помош, проверки за усогласеност, анализа на договори.'
-                  : 'All Terminal tools for individual use — automated documents, AI assistance, compliance health checks, contract analysis.'}
-              </p>
-              <div className={styles.chooserPriceLine}>
-                <span className={styles.chooserCurrency}>€</span>
-                <span className={styles.chooserPriceNum}>{SMB_PRICE_EUR}</span>
-                <span className={styles.chooserPriceSuffix}>{isMk ? '/ месец' : '/ month'}</span>
-              </div>
-              <div className={styles.chooserSubline}>
-                {isMk ? '8 дена бесплатен пробен период, без картичка' : '8-day free trial, no card required'}
-              </div>
-              <span className={styles.chooserCta}>
-                {isMk ? 'Започнете' : 'Get started'} <span aria-hidden>→</span>
-              </span>
-            </Link>
+          <div className={styles.toggleStack}>
+            <div className={styles.currencyToggle} role="group" aria-label={isMk ? 'Циклус' : 'Billing cycle'}>
+              {['monthly', 'quarterly', 'annual'].map(c => (
+                <button key={c} type="button"
+                  className={`${styles.currencyToggleBtn} ${cycle === c ? styles.currencyToggleBtnActive : ''}`}
+                  onClick={() => setCycle(c)}
+                  aria-pressed={cycle === c}>
+                  {CYCLE_LABEL[c]}
+                </button>
+              ))}
+            </div>
 
-            {/* Card 2 — Network: application-based, no price shown */}
-            <Link to="/login?intent=network" className={`${styles.chooserCard} ${styles.chooserCardAccent} nx-reveal`}>
-              <span className={styles.chooserTag}>{isMk ? 'За професионалците' : 'For professionals'}</span>
-              <h2 className={styles.chooserCardTitle}>
-                {isMk ? 'Nexa Мрежа' : 'Nexa Network'}
-              </h2>
-              <p className={styles.chooserCardBody}>
-                {isMk
-                  ? 'Терминалот + членство во Nexa мрежата. Дистрибуција преку билтенот, сателитските сајтови и Topics Q&A. Тим од 5 или 10 под-сметки за Вашите клиенти.'
-                  : 'The Terminal plus membership in the Nexa network. Distribution via the newsletter, satellite sites and Topics Q&A. Team of 5 or 10 sub-seats for your clients.'}
-              </p>
-              <div className={styles.chooserPriceLine}>
-                <span className={styles.chooserApplyBased}>
-                  {isMk ? 'По апликација' : 'Application-based'}
-                </span>
+            <div className={styles.currencyToggleWrap} role="group" aria-label={isMk ? 'Валута' : 'Currency'}>
+              <div className={styles.currencyToggle}>
+                <button type="button"
+                  className={`${styles.currencyToggleBtn} ${currency === 'eur' ? styles.currencyToggleBtnActive : ''}`}
+                  onClick={() => setCurrency('eur')}
+                  aria-pressed={currency === 'eur'}>
+                  EUR
+                </button>
+                <button type="button"
+                  className={`${styles.currencyToggleBtn} ${currency === 'mkd' ? styles.currencyToggleBtnActive : ''}`}
+                  onClick={() => setCurrency('mkd')}
+                  aria-pressed={currency === 'mkd'}>
+                  MKD
+                </button>
               </div>
-              <div className={styles.chooserSubline}>
-                {isMk ? 'Оценуваме секоја кандидатура индивидуално' : 'We review each application individually'}
-              </div>
-              <span className={styles.chooserCta}>
-                {isMk ? 'Аплицирајте' : 'Apply'} <span aria-hidden>→</span>
+              <span className={styles.currencyToggleHint}>
+                {isMk ? `1 € = ${EUR_TO_MKD} ден` : `1 € = ${EUR_TO_MKD} MKD`}
               </span>
-            </Link>
+            </div>
+          </div>
+
+          <div className={styles.chooserCards}>
+            {PLANS_EUR.map(plan => {
+              const copy   = PLAN_COPY[plan.key];
+              const to     = plan.intent ? `/login?intent=${plan.intent}` : '/login';
+              const priceE = plan.prices[cycle];
+              const saving = savingsPct(plan.prices, cycle);
+              return (
+                <Link key={plan.key}
+                      to={to}
+                      className={`${styles.chooserCard} ${plan.accent ? styles.chooserCardAccent : ''} nx-reveal`}>
+                  <span className={styles.chooserTag}>{copy.tag}</span>
+                  <h2 className={styles.chooserCardTitle}>{copy.title}</h2>
+                  <p className={styles.chooserCardBody}>{copy.body}</p>
+
+                  <div className={styles.chooserPriceLine}>
+                    {currency === 'eur' && <span className={styles.chooserCurrency}>€</span>}
+                    <span className={styles.chooserPriceNum}>{fmtPrice(priceE, currency)}</span>
+                    <span className={styles.chooserPriceSuffix}>
+                      {currency === 'mkd' ? CYCLE_SUFFIX_MKD[cycle] : CYCLE_SUFFIX[cycle]}
+                    </span>
+                    {saving > 0 && (
+                      <span className={styles.chooserSaveBadge}>
+                        {isMk ? `−${saving}%` : `Save ${saving}%`}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.chooserSubline}>
+                    {isMk ? '8 дена бесплатен пробен период, без картичка' : '8-day free trial, no card required'}
+                  </div>
+
+                  {copy.features && copy.features.length > 0 && (
+                    <div className={styles.chooserFeatures}>
+                      <div className={styles.chooserFeaturesHead}>{copy.featuresHead}</div>
+                      <ul className={styles.chooserFeaturesList}>
+                        {copy.features.map((f, i) => (
+                          <li key={i} className={styles.chooserFeatureItem}>
+                            <svg className={styles.chooserFeatureIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <polyline points="5 12 10 17 19 7"/>
+                            </svg>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <span className={styles.chooserCta}>
+                    {isMk ? 'Пробај бесплатно' : 'Try free'} <span aria-hidden>→</span>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
 
           <p className={styles.footnote}>{t('pricing.footnote')}</p>

@@ -80,9 +80,9 @@ const PLAN_CURRENCY = 'EUR';
 // Public-facing tier labels (Nexa 3.0). Server-side keys above remain stable;
 // only these labels are user-visible.
 const PLAN_LABELS = Object.freeze({
-  standard: { mk: 'Nexa Платформа',       en: 'Nexa Platform' },
-  admin_5:  { mk: 'Nexa Мрежа · Кантора', en: 'Nexa Network · Kantora' },
-  admin_10: { mk: 'Nexa Мрежа · Студио',  en: 'Nexa Network · Studio' }
+  standard: { mk: 'Основен', en: 'Basic' },
+  admin_5:  { mk: 'Про',     en: 'Pro'   },
+  admin_10: { mk: 'Ултра',   en: 'Ultra' }
 });
 const labelForPlan = (plan, lang = 'mk') => {
   const l = PLAN_LABELS[plan];

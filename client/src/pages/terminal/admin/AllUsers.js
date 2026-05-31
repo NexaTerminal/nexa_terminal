@@ -6,17 +6,17 @@ import styles from './AllUsers.module.css';
 
 const ROLE_LABEL = {
   regular:        'Регистриран',
-  standard_user:  'Nexa Платформа',
-  admin_user:     'Nexa Мрежа',
+  standard_user:  'Основен',
+  admin_user:     'Про / Ултра',
   sub_seat:       'Под-сметка',
   admin:          'Платформа админ',
-  verified:       'Nexa Платформа (стар)'
+  verified:       'Основен (стар)'
 };
 const PLAN_LABEL = {
-  standard: 'Nexa Platform',
-  admin_5:  'Nexa Network · Kantora',
-  admin_10: 'Nexa Network · Studio',
-  admin:    'Nexa Network · Kantora'
+  standard: 'Основен',
+  admin_5:  'Про',
+  admin_10: 'Ултра',
+  admin:    'Про'
 };
 const SUB_STATUS_LABEL = {
   trial:            'Пробен',
@@ -428,8 +428,8 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
       <h4 className={styles.subhead}>Промена на улога</h4>
       <label className={styles.fieldLabel}>Нова улога</label>
       <select value={newRole} onChange={e => setNewRole(e.target.value)}>
-        <option value="standard_user">Nexa Платформа</option>
-        <option value="admin_user">Admin корисник</option>
+        <option value="standard_user">Основен</option>
+        <option value="admin_user">Admin корисник (Про / Ултра)</option>
         <option value="regular">Регистриран (без план)</option>
       </select>
 
@@ -437,8 +437,8 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
         <>
           <label className={styles.fieldLabel}>Admin план (определува лимит на седишта)</label>
           <select value={plan} onChange={e => setPlan(e.target.value)}>
-            <option value="admin_5">Nexa Мрежа · Кантора (5 под-сметки)</option>
-            <option value="admin_10">Nexa Мрежа · Студио (10 под-сметки)</option>
+            <option value="admin_5">Про (5 под-сметки)</option>
+            <option value="admin_10">Ултра (10 под-сметки)</option>
           </select>
         </>
       )}

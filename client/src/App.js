@@ -388,8 +388,9 @@ function App() {
 
       {/* Nexa 3.0 · 04 — Blog submission workflow */}
       <Route path="/terminal/blogs/submit"           element={<PrivateRoute><SubmitBlogPage /></PrivateRoute>} />
-      <Route path="/terminal/blogs/my-submissions"   element={<PrivateRoute><MyBlogSubmissionsPage /></PrivateRoute>} />
-      <Route path="/terminal/blogs/published"        element={<PrivateRoute><MyPublishedBlogsPage /></PrivateRoute>} />
+      {/* Legacy sub-tabs merged into the unified /terminal/blogs hub */}
+      <Route path="/terminal/blogs/my-submissions"   element={<Navigate to="/terminal/blogs" replace />} />
+      <Route path="/terminal/blogs/published"        element={<Navigate to="/terminal/blogs" replace />} />
       <Route path="/terminal/admin/blogs/pending"    element={<PrivateRoute><PendingBlogSubmissionsPage /></PrivateRoute>} />
 
       {/* Nexa 3.0 · 05 — Inquiry Board (admin) */}

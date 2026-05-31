@@ -11,9 +11,9 @@ const PRICES = {
 };
 // Public-facing tier labels (Nexa 3.0).
 const PLAN_LABEL = {
-  standard: 'Nexa Платформа',
-  admin_5:  'Nexa Мрежа · Кантора',
-  admin_10: 'Nexa Мрежа · Студио'
+  standard: 'Основен',
+  admin_5:  'Про',
+  admin_10: 'Ултра'
 };
 // Short MK description per plan.
 const PLAN_TOOLTIP = {

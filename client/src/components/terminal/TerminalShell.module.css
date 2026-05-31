@@ -16,9 +16,9 @@
   width: 100%;
 }
 .main {
-  margin-top: 60px;
-  margin-left: 280px;
-  padding: 24px 32px 48px;
+  margin-top: 15px;
+  margin-left: 256px; /* matches sidebar width — content sits beside the rail */
+  padding: 18px 24px 36px; /* −25% from 24/32/48 */
   min-height: calc(100vh - 60px);
   box-sizing: border-box;
 }

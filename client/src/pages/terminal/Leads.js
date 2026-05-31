@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
@@ -14,23 +13,15 @@ const SAMPLE_CARDS = [
     _id: 'sample-1',
     topic: 'Сразмерен преглед — државјанство по потекло',
     summary: 'Граѓанин од Австралија со македонско потекло сака да аплицира за државјанство. Бара адвокат во Скопје.',
-    city: 'Skopje',
-    categories: ['legal', 'translation'],
-    language: 'mk',
-    urgency: 'standard',
-    status: 'open',
-    postedAt: new Date().toISOString()
+    city: 'Skopje', categories: ['legal', 'translation'], language: 'mk',
+    urgency: 'standard', status: 'open', postedAt: new Date().toISOString()
   },
   {
     _id: 'sample-2',
     topic: 'Сразмерен преглед — итна дозвола за престој',
     summary: 'Турски државјанин со склучен брак во Скопје. Бара дозвола за престој со рок од 2 недели.',
-    city: 'Skopje',
-    categories: ['legal'],
-    language: 'tr',
-    urgency: 'urgent',
-    status: 'open',
-    postedAt: new Date().toISOString()
+    city: 'Skopje', categories: ['legal'], language: 'tr',
+    urgency: 'urgent', status: 'open', postedAt: new Date().toISOString()
   }
 ];
 
@@ -38,19 +29,18 @@ const CATEGORY_LABEL = {
   legal: 'Правен', accounting: 'Сметководство', tax: 'Даноци', insurance: 'Осигурување',
   real_estate: 'Недвижности', hr: 'HR', marketing: 'Маркетинг', translation: 'Превод', other: 'Друго'
 };
-const STATUS_LABEL = {
-  open: 'Отворено', interest_received: 'Има интерес',
-  partially_claimed: 'Делумно зафатено', claimed: 'Зафатено', closed: 'Затворено'
-};
-const SIGNAL_LABEL = {
-  pending: 'Чека одлука', approved: 'Одобрено', acknowledged: 'Не сте избрани'
-};
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+
+// Per-card user status (computed from signal + approval state).
+const ITEM_STATE = {
+  OPEN:        { key: 'open',        label: 'Отворено',           cls: 's_open' },
+  REQUESTED:   { key: 'requested',   label: 'Побаран ангажман',   cls: 's_requested' },
+  APPROVED:    { key: 'approved',    label: 'Одобрен ангажман',   cls: 's_approved' },
+  NOT_CHOSEN:  { key: 'not_chosen',  label: 'Не сте избрани',     cls: 's_not_chosen' }
+};
 
 export default function LeadsPage() {
   const { token, currentUser } = useAuth();
-  const [params] = useSearchParams();
-  const tab = params.get('tab') || 'board';
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const trial = isTrial(currentUser);
@@ -62,34 +52,64 @@ export default function LeadsPage() {
   const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalFor, setModalFor] = useState(null);
+  const [detailItem, setDetailItem] = useState(null);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
+    if (trial) {
+      // Trial users see sample cards only — no server calls.
+      setBoard(SAMPLE_CARDS); setClaims([]); setEngagements([]); setLoading(false);
+      return () => { cancelled = true; };
+    }
+    if (!isMember) { setLoading(false); return () => { cancelled = true; }; }
     setLoading(true);
-    const url = tab === 'claims'      ? '/api/my-claims'
-              : tab === 'engagements' ? '/api/my-engagements'
-              :                         '/api/inquiries';
-    if (trial && tab === 'board') {
-      // Don't hit the server at all for trial-on-board; render sample cards.
-      if (!cancelled) { setBoard(SAMPLE_CARDS); setLoading(false); }
-      return () => { cancelled = true; };
-    }
-    if (!isMember) {
-      if (!cancelled) { setLoading(false); }
-      return () => { cancelled = true; };
-    }
-    axios.get(url, auth)
-      .then(res => {
-        if (cancelled) return;
-        if      (tab === 'claims')      setClaims(res.data?.items || []);
-        else if (tab === 'engagements') setEngagements(res.data?.items || []);
-        else                            setBoard(res.data?.items || []);
-      })
-      .catch(e => { if (!cancelled) setToast({ type: 'error', text: e.response?.data?.message || e.message }); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+    Promise.all([
+      axios.get('/api/inquiries',     auth).then(r => r.data?.items || []).catch(() => []),
+      axios.get('/api/my-claims',     auth).then(r => r.data?.items || []).catch(() => []),
+      axios.get('/api/my-engagements',auth).then(r => r.data?.items || []).catch(() => [])
+    ]).then(([b, c, e]) => {
+      if (cancelled) return;
+      setBoard(b); setClaims(c); setEngagements(e);
+    }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [tab, trial, isMember]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [trial, isMember]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Merge into a single per-inquiry view, annotated with the user's state.
+  const items = useMemo(() => {
+    const byId = new Map();
+    board.forEach(inq => {
+      byId.set(String(inq._id), { inquiry: inq, signal: null, approval: null, state: ITEM_STATE.OPEN });
+    });
+    claims.forEach(({ signal, inquiry }) => {
+      const id = String(inquiry?._id || signal.inquiryId);
+      const cur = byId.get(id) || { inquiry: inquiry || { _id: id, topic: '(избришано барање)' }, signal: null, approval: null };
+      cur.signal = signal;
+      // Decide state from signal status; approval below may override.
+      if      (signal.status === 'pending')      cur.state = ITEM_STATE.REQUESTED;
+      else if (signal.status === 'approved')     cur.state = ITEM_STATE.APPROVED;
+      else if (signal.status === 'acknowledged') cur.state = ITEM_STATE.NOT_CHOSEN;
+      byId.set(id, cur);
+    });
+    engagements.forEach(({ inquiry, approval }) => {
+      const id = String(inquiry?._id || approval.inquiryId);
+      const cur = byId.get(id) || { inquiry: inquiry || { _id: id, topic: '(избришано барање)' }, signal: null, approval: null };
+      cur.approval = approval;
+      cur.state = ITEM_STATE.APPROVED;
+      // Use the merged inquiry doc which carries the contact info when approved.
+      if (inquiry) cur.inquiry = { ...cur.inquiry, ...inquiry };
+      byId.set(id, cur);
+    });
+    // Sort: approved → requested → open → not chosen, then by date desc.
+    const order = { approved: 0, requested: 1, open: 2, not_chosen: 3 };
+    return Array.from(byId.values()).sort((a, b) => {
+      const oa = order[a.state.key] ?? 9, ob = order[b.state.key] ?? 9;
+      if (oa !== ob) return oa - ob;
+      const da = new Date(a.approval?.approvedAt || a.signal?.createdAt || a.inquiry?.postedAt || 0).getTime();
+      const db = new Date(b.approval?.approvedAt || b.signal?.createdAt || b.inquiry?.postedAt || 0).getTime();
+      return db - da;
+    });
+  }, [board, claims, engagements]);
 
   const onExpress = (inq) => {
     if (trial) return;
@@ -101,6 +121,8 @@ export default function LeadsPage() {
     const res = await axios.post(`/api/inquiries/${modalFor._id}/interest`, payload, auth);
     setModalFor(null);
     setToast({ type: 'ok', text: 'Интересот е примен. Уредничкиот тим ќе одлучи.' });
+    // Optimistically annotate this inquiry as REQUESTED.
+    setClaims(prev => ([...prev, { signal: { _id: 'tmp-' + Date.now(), inquiryId: modalFor._id, status: 'pending', createdAt: new Date().toISOString() }, inquiry: modalFor }]));
     return res.data;
   };
 
@@ -108,27 +130,40 @@ export default function LeadsPage() {
     <TerminalShell>
       <div className={styles.page}>
         <header className={styles.header}>
-          <span className={styles.eyebrow}>Барања</span>
-          <h1 className={styles.title}>Интерна табла на барања</h1>
-          <p className={styles.lead}>
-            Анонимизирани барања кои стигнуваат преку Nexa сателитските сајтови.
-            Изразете интерес за оние во кои можете да помогнете; уредничкиот тим
-            одлучува кого да поврзе со клиентот.
-          </p>
-        </header>
+          <span className={styles.eyebrow}>Случаи</span>
 
-        <nav className={styles.tabs}>
-          <Link to="/terminal/leads"                  className={`${styles.tab} ${tab === 'board'       ? styles.tabActive : ''}`}>Интерна табла</Link>
-          <Link to="/terminal/leads?tab=claims"       className={`${styles.tab} ${tab === 'claims'      ? styles.tabActive : ''}`}>Мои изразени интереси</Link>
-          <Link to="/terminal/leads?tab=engagements"  className={`${styles.tab} ${tab === 'engagements' ? styles.tabActive : ''}`}>Мои ангажмани</Link>
-        </nav>
+          <div className={styles.commercialNote}>
+            <div className={styles.commercialNoteIcon} aria-hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12h3l3-7 6 14 3-7h3"/>
+              </svg>
+            </div>
+            <div className={styles.commercialNoteBody}>
+              <p className={styles.commercialNoteText}>
+                Анонимизирани барања што стигнуваат преку Nexa сателитските сајтови.
+                Изразувате интерес → Nexa уредникот прави квалификација →
+                ако ангажманот биде одобрен, го добивате контактот на клиентот.
+                Така ги добивате само серозните, филтрирани барања кои
+                одговараат на Вашата практика.
+              </p>
+              <div className={styles.commercialSources}>
+                <span className={styles.commercialSourcesLabel}>Извори:</span>
+                <a href="https://samodaprasham.mk"        target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>samodaprasham.mk</a>
+                <a href="https://immigration.mk"          target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>immigration.mk</a>
+                <a href="https://macedoniancitizenship.mk" target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>macedoniancitizenship.mk</a>
+                <a href="https://company.nexa.mk"         target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>company.nexa.mk</a>
+                <a href="https://iplaw.nexa.mk"           target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>iplaw.nexa.mk</a>
+              </div>
+            </div>
+          </div>
+        </header>
 
         {trial && <TrialDisabledNotice />}
         {!isMember && !trial && (
-          <div className={styles.toastError}>Барањата се достапни за Nexa Мрежа · Кантора и Студио корисници.</div>
+          <div className={styles.toastError}>Случаите се достапни за Про и Ултра корисници.</div>
         )}
         {toast && <div className={toast.type === 'ok' ? styles.toastOk : styles.toastError}>{toast.text}</div>}
-        {trial && tab === 'board' && (
+        {trial && (
           <div className={styles.sampleBanner}>
             Преглед — на пробната верзија гледате примерни картички. Активирајте план за пристап до вистинските барања.
           </div>
@@ -136,70 +171,30 @@ export default function LeadsPage() {
 
         {loading ? (
           <div className={styles.spinner}>Се вчитува…</div>
-        ) : tab === 'board' ? (
-          board.length === 0 ? (
-            <div className={styles.emptyState}>Во моментов нема активни барања во Вашата област.</div>
-          ) : (
-            <div className={styles.list}>
-              {board.map(inq => (
-                <BoardCard key={inq._id} inquiry={inq}
-                           sample={trial}
-                           userCategories={currentUser?.superUser?.practiceAreas || []}
-                           disabled={trial || !canExpressInterest(currentUser).allowed}
-                           onExpress={() => onExpress(inq)} />
-              ))}
-            </div>
-          )
-        ) : tab === 'claims' ? (
-          claims.length === 0 ? (
-            <div className={styles.emptyState}>Сè уште нема изразени интереси.</div>
-          ) : (
-            <div className={styles.list}>
-              {claims.map(({ signal, inquiry }) => (
-                <div key={signal._id} className={styles.card}>
-                  <div className={styles.cardHead}>
-                    <div className={styles.cardTitle}>{inquiry?.topic || '(избришано барање)'}</div>
-                    <span className={`${styles.signalStatus} ${styles['sig' + signal.status.charAt(0).toUpperCase() + signal.status.slice(1)]}`}>
-                      {SIGNAL_LABEL[signal.status]}
-                    </span>
-                  </div>
-                  <div className={styles.cardSummary}>{inquiry?.summary}</div>
-                  <div className={styles.cardMeta}>
-                    <span>Поднесено: {fmt(signal.createdAt)}</span>
-                    {signal.decidedAt && <span>Одлучено: {fmt(signal.decidedAt)}</span>}
-                    {inquiry && <span>Град: {inquiry.city}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : engagements.length === 0 ? (
-          <div className={styles.emptyState}>Сè уште нема одобрени ангажмани.</div>
+        ) : items.length === 0 ? (
+          <div className={styles.emptyState}>Во моментов нема активни барања во Вашата област.</div>
         ) : (
           <div className={styles.list}>
-            {engagements.map(({ inquiry, approval }) => (
-              <div key={approval._id} className={styles.card}>
-                <div className={styles.cardHead}>
-                  <div className={styles.cardTitle}>{inquiry?.topic}</div>
-                  <span className={`${styles.signalStatus} ${styles.sigApproved}`}>Одобрено</span>
-                </div>
-                <div className={styles.cardSummary}>{inquiry?.summary}</div>
-                <div className={styles.panel} style={{ background: '#f8fafc' }}>
-                  <div className={styles.panelHead}>Контакт на клиентот</div>
-                  <div className={styles.kv}>
-                    <div className={styles.kvK}>Име</div><div className={styles.kvV}>{inquiry?.inquirerName || '—'}</div><div />
-                    <div className={styles.kvK}>Е-пошта</div><div className={styles.kvV}>{inquiry?.inquirerEmail || '—'}</div><div />
-                    <div className={styles.kvK}>Телефон</div><div className={styles.kvV}>{inquiry?.inquirerPhone || '—'}</div><div />
-                  </div>
-                </div>
-                <div className={styles.cardMeta}>
-                  <span>Одобрено: {fmt(approval.approvedAt)}</span>
-                  <span>Категорија: {CATEGORY_LABEL[approval.category] || approval.category}</span>
-                  {approval.introducedAt && <span>Воведено: {fmt(approval.introducedAt)}</span>}
-                </div>
-              </div>
+            {items.map(item => (
+              <Card key={item.inquiry._id}
+                    item={item}
+                    sample={trial}
+                    userCategories={currentUser?.superUser?.practiceAreas || []}
+                    disabled={trial || !canExpressInterest(currentUser).allowed}
+                    onExpress={() => onExpress(item.inquiry)}
+                    onOpenDetail={() => setDetailItem(item)} />
             ))}
           </div>
+        )}
+
+        {detailItem && (
+          <DetailModal
+            item={detailItem}
+            userCategories={currentUser?.superUser?.practiceAreas || []}
+            disabled={trial || !canExpressInterest(currentUser).allowed}
+            onExpress={() => { onExpress(detailItem.inquiry); setDetailItem(null); }}
+            onClose={() => setDetailItem(null)}
+          />
         )}
 
         {modalFor && (
@@ -215,33 +210,103 @@ export default function LeadsPage() {
   );
 }
 
-function BoardCard({ inquiry, sample, userCategories, disabled, onExpress }) {
+function Card({ item, sample, userCategories, onOpenDetail }) {
+  const { inquiry, state } = item;
   const isHit = (c) => userCategories?.includes(c);
+
   return (
     <div className={`${styles.card} ${sample ? styles.sample : ''}`}>
       <div className={styles.cardHead}>
-        <div className={styles.cardTitle}>{inquiry.topic}</div>
+        <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
         {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
-        <span className={`${styles.statusPill} ${styles['s_' + inquiry.status]}`}>
-          {STATUS_LABEL[inquiry.status] || inquiry.status}
-        </span>
+        <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
       </div>
-      <div className={styles.cardSummary}>{inquiry.summary}</div>
-      <div className={styles.chipsRow}>
-        {(inquiry.categories || []).map(c => (
-          <span key={c} className={`${styles.chip} ${isHit(c) ? styles.chipHit : ''}`}>
-            {CATEGORY_LABEL[c] || c}
-          </span>
-        ))}
-      </div>
+
+      {inquiry.summary && (
+        <>
+          <div className={styles.cardSummaryClamp}>{inquiry.summary}</div>
+          <button type="button" className={styles.readMoreLink} onClick={onOpenDetail}>
+            Прочитај повеќе →
+          </button>
+        </>
+      )}
+
+      {(inquiry.categories || []).length > 0 && (
+        <div className={styles.chipsRow}>
+          {inquiry.categories.slice(0, 3).map(c => (
+            <span key={c} className={`${styles.chip} ${isHit(c) ? styles.chipHit : ''}`}>
+              {CATEGORY_LABEL[c] || c}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className={styles.cardMeta}>
-        <span className={styles.cardMetaItem}>📍 {inquiry.city}</span>
-        <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>
-        <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>
-        <span style={{ flex: 1 }} />
-        <button type="button" className={styles.btnPrimary} disabled={disabled} onClick={onExpress}>
-          Изразувам интерес
-        </button>
+        {inquiry.city     && <span className={styles.cardMetaItem}>📍 {inquiry.city}</span>}
+        {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
+        {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
+      </div>
+    </div>
+  );
+}
+
+function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
+  const { inquiry, signal, approval, state } = item;
+  const isHit = (c) => userCategories?.includes(c);
+  const showActionButton = state.key === 'open';
+  const showContact = state.key === 'approved' && (inquiry.inquirerName || inquiry.inquirerEmail || inquiry.inquirerPhone);
+
+  return (
+    <div className={styles.detailBackdrop} role="dialog" aria-modal="true" onClick={onClose}>
+      <div className={styles.detailModal} onClick={(e) => e.stopPropagation()}>
+        <button type="button" className={styles.detailClose} onClick={onClose} aria-label="Затвори">×</button>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+          {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
+          <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
+        </div>
+
+        <h2 className={styles.detailTitle}>{inquiry.topic || '(без наслов)'}</h2>
+
+        {(inquiry.categories || []).length > 0 && (
+          <div className={styles.chipsRow}>
+            {inquiry.categories.map(c => (
+              <span key={c} className={`${styles.chip} ${isHit(c) ? styles.chipHit : ''}`}>
+                {CATEGORY_LABEL[c] || c}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {inquiry.summary && <p className={styles.detailSummary}>{inquiry.summary}</p>}
+
+        <div className={styles.detailMeta}>
+          {inquiry.city     && <span>📍 {inquiry.city}</span>}
+          {inquiry.language && <span>🗣 {inquiry.language?.toUpperCase()}</span>}
+          {inquiry.postedAt && <span>📅 Објавено: {fmt(inquiry.postedAt)}</span>}
+          {signal?.createdAt && state.key === 'requested' && <span>Побарано: {fmt(signal.createdAt)}</span>}
+          {approval?.approvedAt && <span>Одобрено: {fmt(approval.approvedAt)}</span>}
+        </div>
+
+        {showContact && (
+          <div className={styles.panel} style={{ background: '#f8fafc', margin: '0 0 14px' }}>
+            <div className={styles.panelHead}>Контакт на клиентот</div>
+            <div className={styles.kv}>
+              <div className={styles.kvK}>Име</div><div className={styles.kvV}>{inquiry.inquirerName || '—'}</div>
+              <div className={styles.kvK}>Е-пошта</div><div className={styles.kvV}>{inquiry.inquirerEmail || '—'}</div>
+              <div className={styles.kvK}>Телефон</div><div className={styles.kvV}>{inquiry.inquirerPhone || '—'}</div>
+            </div>
+          </div>
+        )}
+
+        <div className={styles.detailActions}>
+          <button type="button" className={styles.btnSecondary} onClick={onClose}>Затвори</button>
+          {showActionButton && (
+            <button type="button" className={styles.btnPrimary} disabled={disabled} onClick={onExpress}>
+              Изразувам интерес
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

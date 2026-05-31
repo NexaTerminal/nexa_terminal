@@ -20,10 +20,10 @@ const daysLabel = (n) => {
   return `${n} денови`;
 };
 const PLAN_LABEL = {
-  standard: 'Nexa Платформа',
-  admin_5:  'Nexa Мрежа · Кантора',
-  admin_10: 'Nexa Мрежа · Студио',
-  admin:    'Nexa Мрежа · Кантора'
+  standard: 'Основен',
+  admin_5:  'Про',
+  admin_10: 'Ултра',
+  admin:    'Про'
 };
 
 export default function AdminUserDashboard() {

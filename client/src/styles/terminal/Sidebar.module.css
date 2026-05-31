@@ -283,32 +283,17 @@
   padding: var(--spacing-md) var(--spacing-lg);
 }
 
-/* Tablet and below: Hide sidebar */
+/* Tablet and below: Hide sidebar AND reset the main margin so content
+   doesn't sit behind an invisible 256px gap. The hamburger drawer
+   (Header.js) takes over navigation from this breakpoint down. */
 @media (max-width: 1024px) {
-  .dashboard-sidebar {
-    display: none;
-  }
-
-  .submenu {
-    display: none;
-  }
-}
-
-/* Mobile: Keep sidebar hidden */
-@media (max-width: 768px) {
-  .dashboard-sidebar {
-    display: none;
-  }
-
+  .dashboard-sidebar { display: none; }
   .dashboard-main {
     margin-left: 0;
     width: 100%;
     max-width: 100%;
   }
-
-  .submenu {
-    display: none;
-  }
+  .submenu { display: none; }
 }
 
 /* ============================================================

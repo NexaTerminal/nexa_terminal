@@ -55,3 +55,7 @@
   transform: none;
   box-shadow: none;
 }
+
+@media (max-width: 640px) {
+  .notice { font-size: 13px; padding: 10px 12px; gap: 8px; }
+}

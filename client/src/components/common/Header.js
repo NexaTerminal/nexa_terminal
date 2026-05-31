@@ -4,7 +4,7 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
-import { showsSubUsers } from '../../lib/tier';
+import { showsSubUsers, showsBlogs, showsLeads, showsTopicsQA } from '../../lib/tier';
 
 // Inline SVG icons matching the sidebar style (stroke-only, currentColor).
 const DropdownIcon = ({ name }) => {
@@ -28,8 +28,8 @@ const Header = ({ isTerminal = false }) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [screeningSubmenuOpen, setScreeningSubmenuOpen] = useState(false);
-  const [aiSubmenuOpen, setAISubmenuOpen] = useState(false);
+  const [mobileOpenGroups, setMobileOpenGroups] = useState({});
+  const toggleMobileGroup = (k) => setMobileOpenGroups((s) => ({ ...s, [k]: !s[k] }));
   const location = useLocation();
   const dropdownRef = useRef(null);
   const creditModalRef = useRef(null);
@@ -200,42 +200,70 @@ const Header = ({ isTerminal = false }) => {
   }, [location]);
 
 
-  // Sidebar navigation items (for mobile menu)
-  const regularMenuItems = [
-    { path: '/terminal', label: 'common.dashboard', icon: '📊' },
-    { path: '/terminal/documents', label: 'dashboard.documentGenerator', icon: '📄' },
-    { path: '/terminal/find-lawyer', label: 'Најди адвокат', icon: '⚖️', noTranslate: true },
-    { path: '/terminal/contact', label: 'Вмрежување', icon: '🤝', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
-    { path: '/terminal/education', label: 'Обуки', icon: '🎓', noTranslate: true }
+  // ── Mobile drawer nav — mirrors the desktop Sidebar (3 sections) ────────
+  // Each section: { key, label, items: [ { path } | { key, label, children } ] }
+  const mobileSections = [
+    {
+      key: 'work', label: 'Работа',
+      items: [
+        { key: 'dashboard',  label: 'Контролна табла', path: '/terminal' },
+        { key: 'documents',  label: 'Документи', children: [
+            { path: '/terminal/documents',    label: 'Автоматизирани документи' },
+            { path: '/terminal/my-templates', label: 'Мои шаблони' }
+          ]},
+        { key: 'screening',  label: 'Проверки', children: [
+            { path: '/terminal/legal-screening',     label: 'Правен' },
+            { path: '/terminal/marketing-screening', label: 'Маркетинг' },
+            { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
+            { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
+          ]},
+        { key: 'nexaai',     label: 'Nexa AI', children: [
+            { path: '/terminal/ai-chat',           label: 'Правен AI' },
+            { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
+            { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
+            { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+          ]}
+      ]
+    },
+    {
+      key: 'network', label: 'Вмрежување и можности',
+      items: [
+        { key: 'blogs', label: 'Објави блог', visible: showsBlogs, children: [
+            { path: '/terminal/blogs/submit',         label: 'Поднеси прилог' },
+            { path: '/terminal/blogs/my-submissions', label: 'Мои поднесувања' },
+            { path: '/terminal/blogs/published',      label: 'Објавени' }
+          ]},
+        { key: 'leads', label: 'Случаи', visible: showsLeads, children: [
+            { path: '/terminal/leads',                 label: 'Интерна табла' },
+            { path: '/terminal/leads?tab=claims',      label: 'Мои изразени интереси' },
+            { path: '/terminal/leads?tab=engagements', label: 'Мои ангажмани' }
+          ]},
+        { key: 'topicsqa', label: 'Topics Q&A', visible: showsTopicsQA, children: [
+            { path: '/terminal/topics-qa',               label: 'Отворени прашања' },
+            { path: '/terminal/topics-qa?tab=mine',      label: 'Мои одговори' },
+            { path: '/terminal/topics-qa?tab=published', label: 'Објавени' }
+          ]}
+      ]
+    },
+    {
+      key: 'resources', label: 'Ресурси',
+      items: [
+        { key: 'education', label: 'Курсеви', path: '/terminal/education' }
+      ]
+    }
   ];
 
-  // Screening submenu items
-  const screeningSubItems = [
-    { path: '/terminal/legal-screening', label: 'Правен', icon: '⚖️' },
-    { path: '/terminal/marketing-screening', label: 'Маркетинг', icon: '📈' },
-    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност', icon: '🔒' },
-    { path: '/terminal/hr-screening', label: 'HR и Оперативен', icon: '👥' }
+  const mobileAdminItems = [
+    { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
+    { path: '/terminal/admin/subscriptions', label: 'Претплати' },
+    { path: '/terminal/admin/blogs',         label: 'Блогови' },
+    { path: '/terminal/admin/blogs/pending', label: 'Прилози за преглед' },
+    { path: '/terminal/admin/inquiries',     label: 'Случаи' },
+    { path: '/terminal/admin/topics/worklist', label: 'Topics — работна листа' },
+    { path: '/terminal/admin/chatbot',       label: 'Управување со Chatbot' }
   ];
 
-  // AI submenu items
-  const aiSubItems = [
-    { path: '/terminal/ai-chat', label: 'Правен AI', icon: '⚖️' },
-    { path: '/terminal/marketing-ai', label: 'Маркетинг AI', icon: '📈' }
-  ];
-
-  // Check if any screening route is active
-  const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
-
-  // Check if any AI route is active
-  const isAIActive = aiSubItems.some(item => location.pathname === item.path);
-
-  const adminMenuItems = [
-    { path: '/terminal/admin/blogs/add', label: 'Додади блог', icon: '✏️', noTranslate: true },
-    { path: '/terminal/admin/users', label: 'dashboard.manageUsers', icon: '👥' },
-    { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги', icon: '🏪', noTranslate: true },
-    { path: '/terminal/admin/offer-requests', label: 'Барања за понуди', icon: '📝', noTranslate: true },
-    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot', icon: '🤖', noTranslate: true },
-  ];
+  const isMobilePathActive = (path) => path && location.pathname === path.split('?')[0];
 
   const renderNavLinks = () => {
     return isTerminal ? (
@@ -520,163 +548,97 @@ const Header = ({ isTerminal = false }) => {
           </div>
 
           <nav className={styles['mobile-menu-nav']}>
-            {/* First two items: Dashboard and Documents */}
-            {regularMenuItems.slice(0, 2).map(({ path, label, icon, noTranslate }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`${styles['mobile-menu-item']} ${
-                  location.pathname === path ? styles['mobile-menu-item-active'] : ''
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className={styles['mobile-menu-icon']}>{icon}</span>
-                <span>{noTranslate ? label : t(label)}</span>
-              </Link>
-            ))}
+            {mobileSections.map((section) => {
+              const visibleItems = section.items.filter(
+                (i) => !i.visible || i.visible(currentUser)
+              );
+              if (visibleItems.length === 0) return null;
+              return (
+                <React.Fragment key={section.key}>
+                  <div className={styles['mobile-menu-divider']}>{section.label}</div>
+                  {visibleItems.map((item) => {
+                    if (item.path) {
+                      return (
+                        <Link
+                          key={item.key}
+                          to={item.path}
+                          className={`${styles['mobile-menu-item']} ${isMobilePathActive(item.path) ? styles['mobile-menu-item-active'] : ''}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    }
+                    const childActive = item.children.some((c) => isMobilePathActive(c.path));
+                    const open = mobileOpenGroups[item.key] !== undefined ? mobileOpenGroups[item.key] : childActive;
+                    return (
+                      <div key={item.key} className={styles['mobile-menu-item-with-submenu']}>
+                        <button
+                          type="button"
+                          className={`${styles['mobile-menu-item']} ${childActive ? styles['mobile-menu-item-active'] : ''}`}
+                          onClick={() => toggleMobileGroup(item.key)}
+                        >
+                          <span>{item.label}</span>
+                          <span className={styles['mobile-submenu-arrow']}>{open ? '▾' : '▸'}</span>
+                        </button>
+                        {open && (
+                          <div className={styles['mobile-submenu-inline']}>
+                            {item.children.map(({ path, label }) => (
+                              <Link
+                                key={path}
+                                to={path}
+                                className={`${styles['mobile-submenu-item']} ${isMobilePathActive(path) ? styles['mobile-menu-item-active'] : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                <span>{label}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
 
-            {/* Screening Menu with Submenu */}
-            <div className={styles['mobile-menu-item-with-submenu']}>
-              <button
-                className={`${styles['mobile-menu-item']} ${isScreeningActive ? styles['mobile-menu-item-active'] : ''}`}
-                onClick={() => setScreeningSubmenuOpen(!screeningSubmenuOpen)}
-              >
-                <span className={styles['mobile-menu-icon']}>🔍</span>
-                <span>Скрининг</span>
-                <span className={styles['mobile-submenu-arrow']}>{screeningSubmenuOpen ? '▼' : '▶'}</span>
-              </button>
-              {screeningSubmenuOpen && (
-                <div className={styles['mobile-submenu-inline']}>
-                  {screeningSubItems.map(({ path, label, icon }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`${styles['mobile-submenu-item']} ${
-                        location.pathname === path ? styles['mobile-menu-item-active'] : ''
-                      }`}
-                      onClick={() => {
-                        setScreeningSubmenuOpen(false);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <span className={styles['mobile-menu-icon']}>{icon}</span>
-                      <span>{label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Nexa AI Menu with Submenu */}
-            <div className={styles['mobile-menu-item-with-submenu']}>
-              <button
-                className={`${styles['mobile-menu-item']} ${isAIActive ? styles['mobile-menu-item-active'] : ''}`}
-                onClick={() => setAISubmenuOpen(!aiSubmenuOpen)}
-              >
-                <span className={styles['mobile-menu-icon']}>🤖</span>
-                <span>Nexa AI</span>
-                <span className={styles['mobile-submenu-arrow']}>{aiSubmenuOpen ? '▼' : '▶'}</span>
-              </button>
-              {aiSubmenuOpen && (
-                <div className={styles['mobile-submenu-inline']}>
-                  {aiSubItems.map(({ path, label, icon }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`${styles['mobile-submenu-item']} ${
-                        location.pathname === path ? styles['mobile-menu-item-active'] : ''
-                      }`}
-                      onClick={() => {
-                        setAISubmenuOpen(false);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <span className={styles['mobile-menu-icon']}>{icon}</span>
-                      <span>{label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Remaining Menu Items */}
-            {regularMenuItems.slice(2).map(({ path, label, icon, noTranslate, disabled, comingSoon }) =>
-              disabled ? (
-                <div
-                  key={path}
-                  className={`${styles['mobile-menu-item']} ${styles['mobile-menu-item-disabled']}`}
-                >
-                  <span className={styles['mobile-menu-icon']}>{icon}</span>
-                  <span>{noTranslate ? label : t(label)}</span>
-                  {comingSoon && <span className={styles['mobile-coming-soon']}>{comingSoon}</span>}
-                </div>
-              ) : (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`${styles['mobile-menu-item']} ${
-                    location.pathname === path ? styles['mobile-menu-item-active'] : ''
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className={styles['mobile-menu-icon']}>{icon}</span>
-                  <span>{noTranslate ? label : t(label)}</span>
-                </Link>
-              )
-            )}
-
-            {/* Admin Menu Items */}
             {currentUser?.role === 'admin' && (
               <>
                 <div className={styles['mobile-menu-divider']}>
                   {t('dashboard.adminSection')}
                 </div>
-                {adminMenuItems.map(({ path, label, icon, noTranslate }) => (
+                {mobileAdminItems.map(({ path, label }) => (
                   <Link
                     key={path}
                     to={path}
-                    className={`${styles['mobile-menu-item']} ${
-                      location.pathname === path ? styles['mobile-menu-item-active'] : ''
-                    }`}
+                    className={`${styles['mobile-menu-item']} ${isMobilePathActive(path) ? styles['mobile-menu-item-active'] : ''}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <span className={styles['mobile-menu-icon']}>{icon}</span>
-                    <span>{noTranslate ? label : t(label)}</span>
+                    <span>{label}</span>
                   </Link>
                 ))}
               </>
             )}
 
-            {/* User Actions Divider */}
-            <div className={styles['mobile-menu-divider']}>
-              Корисник
-            </div>
-
-            {/* User Profile Links */}
-            <Link
-              to="/terminal/verification"
-              className={styles['mobile-menu-item']}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className={styles['mobile-menu-icon']}>🏢</span>
+            <div className={styles['mobile-menu-divider']}>Корисник</div>
+            <Link to="/terminal/verification" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Профил</span>
             </Link>
-            <Link
-              to="/terminal/user"
-              className={styles['mobile-menu-item']}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className={styles['mobile-menu-icon']}>👤</span>
-              <span>Корисник</span>
+            <Link to="/terminal/subscription" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+              <span>Сметка</span>
             </Link>
+            <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+              <span>Сметководство</span>
+            </Link>
+            {showsSubUsers(currentUser) && (
+              <Link to="/terminal/team" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+                <span>Корисници</span>
+              </Link>
+            )}
             <button
               className={styles['mobile-menu-item']}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleLogout();
-              }}
+              onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
             >
-              <span className={styles['mobile-menu-icon']}>🚪</span>
               <span>{t('common.logout')}</span>
             </button>
           </nav>

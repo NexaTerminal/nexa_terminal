@@ -965,13 +965,10 @@
   font-weight: 600;
 }
 
-/* Show mobile menu button and hide desktop items on mobile */
-@media (max-width: 768px) {
-  .mobile-menu-button {
-    display: flex;
-  }
-
-  .desktop-right {
-    display: none;
-  }
+/* Show mobile menu button and hide desktop items on tablet + mobile.
+   Raised from 768→1024 so the tablet range (769–1024px) — where the
+   sidebar is also hidden — still has working navigation. */
+@media (max-width: 1024px) {
+  .mobile-menu-button { display: flex; }
+  .desktop-right { display: none; }
 }

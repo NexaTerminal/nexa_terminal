@@ -346,3 +346,21 @@
   font-size: 14.5px; color: #475569; line-height: 1.6;
   margin: 0 0 22px; padding: 0 6px;
 }
+
+/* ============================================================
+   Mobile (≤640px) — page gutter + form polish
+   ============================================================ */
+@media (max-width: 640px) {
+  .page { padding: 18px 14px 48px; }
+  .title { font-size: 22px; }
+  .input, .textarea, .select { font-size: 16px; } /* prevents iOS zoom */
+  .actionsRow, .actionRow { flex-direction: column; align-items: stretch; }
+  .actionsRow > button, .actionRow > button { width: 100%; }
+}
+
+/* ReactQuill toolbar — wrap buttons on narrow viewports */
+@media (max-width: 640px) {
+  .editor :global(.ql-toolbar) { flex-wrap: wrap; padding: 6px 4px; }
+  .editor :global(.ql-toolbar .ql-formats) { margin-right: 6px; margin-bottom: 4px; }
+  .editor :global(.ql-container) { min-height: 220px; font-size: 14.5px; }
+}

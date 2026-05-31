@@ -188,3 +188,8 @@
   line-height: 1.5;
   font-weight: 500;
 }
+
+@media (max-width: 640px) {
+  .backdrop { padding: 16px; align-items: flex-start; padding-top: 32px; }
+  .modal { padding: 24px 20px 20px; max-height: calc(100vh - 32px); }
+}

@@ -154,3 +154,14 @@
   padding: 12px 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12.5px; color: #1e293b; white-space: pre-wrap; line-height: 1.55;
 }
+
+/* ============================================================
+   Mobile (≤640px) — page gutter + form polish
+   ============================================================ */
+@media (max-width: 640px) {
+  .page { padding: 18px 14px 48px; }
+  .title { font-size: 22px; }
+  .input, .textarea, .select { font-size: 16px; } /* prevents iOS zoom */
+  .actionsRow, .actionRow { flex-direction: column; align-items: stretch; }
+  .actionsRow > button, .actionRow > button { width: 100%; }
+}

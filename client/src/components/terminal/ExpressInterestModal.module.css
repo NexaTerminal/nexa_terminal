@@ -47,3 +47,10 @@
 .btnSecondary { background:#fff; border:1px solid #e5e7eb; color:#0B1220; }
 .btnSecondary:hover:not(:disabled) { background:#f8fafc; border-color:#cbd5e1; transform: none; box-shadow: none; }
 .btnPrimary:disabled, .btnSecondary:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .backdrop { padding: 16px; align-items: flex-start; padding-top: 32px; }
+  .modal { padding: 22px 18px 18px; max-height: calc(100vh - 32px); }
+  .title { font-size: 18px; }
+  .input, .textarea, .select { font-size: 16px; } /* prevents iOS zoom */
+}

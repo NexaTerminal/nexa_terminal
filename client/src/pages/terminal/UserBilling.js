@@ -143,6 +143,7 @@ export default function UserBillingPage() {
               Сè уште нема записи за уплата. По првата верификувана уплата, записот ќе се појави овде.
             </div>
           ) : (
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table className={styles.invoiceTable}>
               <thead>
                 <tr>
@@ -176,6 +177,7 @@ export default function UserBillingPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </section>
 

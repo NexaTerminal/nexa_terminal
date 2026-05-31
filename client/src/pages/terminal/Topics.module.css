@@ -169,3 +169,12 @@
   padding: 10px 12px; font-size: 12.5px; color: #92400E; line-height: 1.5;
   margin-bottom: 8px;
 }
+
+/* ============================================================
+   Mobile (≤640px)
+   ============================================================ */
+@media (max-width: 640px) {
+  .page { padding: 18px 14px 48px; }
+  .answerPage { gap: 18px; }
+  .card { padding: 14px 14px; }
+}

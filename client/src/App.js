@@ -39,6 +39,32 @@ import AddBlog from './pages/terminal/admin/AddBlog';
 import ManageBlogs from './pages/terminal/admin/ManageBlogs';
 import EditBlog from './pages/terminal/admin/EditBlog';
 
+// Nexa 3.0 stubs (prompts 05–06 wire the remaining real UX)
+import BlogsPage from './pages/terminal/Blogs';
+import LeadsPage from './pages/terminal/Leads';
+import TopicsQAPage from './pages/terminal/TopicsQA';
+import StancePreferencesPage from './pages/terminal/StancePreferences';
+// AdminInquiriesPage from prompt 02 stub replaced by the real page in prompt 05.
+// AdminTopicsWorklistPage from prompt 02 stub replaced by the real page in prompt 06.
+
+// Nexa 3.0 · 04 — blog submission workflow
+import SubmitBlogPage from './pages/terminal/SubmitBlog';
+import MyBlogSubmissionsPage from './pages/terminal/MyBlogSubmissions';
+import MyPublishedBlogsPage from './pages/terminal/MyPublishedBlogs';
+import PendingBlogSubmissionsPage from './pages/terminal/admin/PendingBlogSubmissions';
+
+// Nexa 3.0 · 05 — inquiry board (manual model)
+import AdminInquiriesPage   from './pages/terminal/admin/AdminInquiries';
+import AdminInquiryNewPage  from './pages/terminal/admin/AdminInquiryNew';
+import AdminInquiryDetailPage from './pages/terminal/admin/AdminInquiryDetail';
+
+// Nexa 3.0 · 06 — Topics Q&A authoring (Studio-only)
+import AnswerTopicPage                  from './pages/terminal/AnswerTopic';
+import AdminTopicsWorklistPage          from './pages/terminal/admin/AdminTopicsWorklist';
+import AdminTopicsWorklistNewPage       from './pages/terminal/admin/AdminTopicsWorklistNew';
+import AdminTopicsSubmissionsPage       from './pages/terminal/admin/AdminTopicsSubmissions';
+import AdminTopicsSubmissionDetailPage  from './pages/terminal/admin/AdminTopicsSubmissionDetail';
+
 // Terminal Pages
 import Dashboard from './pages/terminal/Dashboard';
 import DocumentGen from './pages/terminal/DocumentGen';
@@ -75,7 +101,10 @@ import FindLawyer from './pages/terminal/FindLawyer';
 import Disclaimer from './pages/terminal/Disclaimer';
 import TerminalPrivacyPolicy from './pages/terminal/PrivacyPolicy';
 import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
-import EditProfile from './pages/terminal/EditProfile';
+// EditProfile (/terminal/profile) removed — account settings live in the
+// Header profile dropdown (Профил / Сметка / Сметководство / Лозинка).
+import UserSubscription from './pages/terminal/UserSubscription';
+import UserBilling      from './pages/terminal/UserBilling';
 import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
 import MarketingAIChat from './pages/terminal/MarketingAIChat';
@@ -269,8 +298,10 @@ function App() {
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
       <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
-      <Route path="/terminal/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
+      {/* /terminal/profile route removed — Header dropdown points to /verification, /subscription, /billing, /user */}
       <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
+      <Route path="/terminal/subscription" element={<PrivateRoute><UserSubscription /></PrivateRoute>} />
+      <Route path="/terminal/billing"      element={<PrivateRoute><UserBilling /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
       <Route path="/terminal/education" element={<PrivateRoute><VerificationRequired><Education /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/education/course/:courseId" element={<PrivateRoute><VerificationRequired><CourseDetail /></VerificationRequired></PrivateRoute>} />
@@ -348,6 +379,30 @@ function App() {
       <Route path="/terminal/admin/service-providers" element={<PrivateRoute><ManageServiceProviders /></PrivateRoute>} />
       <Route path="/terminal/admin/offer-requests" element={<PrivateRoute><ManageOfferRequests /></PrivateRoute>} />
       <Route path="/terminal/admin/chatbot" element={<PrivateRoute><ManageChatbot /></PrivateRoute>} />
+
+      {/* Nexa 3.0 stubs */}
+      <Route path="/terminal/blogs"                  element={<PrivateRoute><BlogsPage /></PrivateRoute>} />
+      <Route path="/terminal/leads"                  element={<PrivateRoute><LeadsPage /></PrivateRoute>} />
+      <Route path="/terminal/topics-qa"              element={<PrivateRoute><TopicsQAPage /></PrivateRoute>} />
+      <Route path="/terminal/ai/stance"              element={<PrivateRoute><StancePreferencesPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/inquiries"        element={<PrivateRoute><AdminInquiriesPage /></PrivateRoute>} />
+
+      {/* Nexa 3.0 · 04 — Blog submission workflow */}
+      <Route path="/terminal/blogs/submit"           element={<PrivateRoute><SubmitBlogPage /></PrivateRoute>} />
+      <Route path="/terminal/blogs/my-submissions"   element={<PrivateRoute><MyBlogSubmissionsPage /></PrivateRoute>} />
+      <Route path="/terminal/blogs/published"        element={<PrivateRoute><MyPublishedBlogsPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/blogs/pending"    element={<PrivateRoute><PendingBlogSubmissionsPage /></PrivateRoute>} />
+
+      {/* Nexa 3.0 · 05 — Inquiry Board (admin) */}
+      <Route path="/terminal/admin/inquiries/new"    element={<PrivateRoute><AdminInquiryNewPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/inquiries/:id"    element={<PrivateRoute><AdminInquiryDetailPage /></PrivateRoute>} />
+
+      {/* Nexa 3.0 · 06 — Topics Q&A authoring */}
+      <Route path="/terminal/topics-qa/answer/:id"            element={<PrivateRoute><AnswerTopicPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/topics/worklist"           element={<PrivateRoute><AdminTopicsWorklistPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/topics/worklist/new"       element={<PrivateRoute><AdminTopicsWorklistNewPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/topics/submissions"        element={<PrivateRoute><AdminTopicsSubmissionsPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
     </Routes>
   );
 }

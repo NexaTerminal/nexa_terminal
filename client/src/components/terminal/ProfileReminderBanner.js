@@ -7,8 +7,15 @@ const ProfileReminderBanner = () => {
   const { currentUser } = useAuth();
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Don't show if user's profile is already complete or banner is dismissed
-  if (!currentUser || currentUser.profileComplete || isDismissed) {
+  // Don't show if user's profile is already complete or banner is dismissed.
+  // Sub-seat users (colleagues invited by an admin_user) never see this banner —
+  // their companyInfo is either synced from the parent (companyMode: 'shared')
+  // or collected via CompanyInfoPrompt on /terminal/documents (companyMode:
+  // 'independent'). The verification flow does not apply to them either way.
+  if (!currentUser
+      || currentUser.profileComplete
+      || isDismissed
+      || currentUser.role === 'sub_seat') {
     return null;
   }
 

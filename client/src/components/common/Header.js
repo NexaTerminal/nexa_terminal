@@ -259,14 +259,6 @@ const Header = ({ isTerminal = false }) => {
           <div
             className={`${styles['profile-dropdown']} ${profileDropdownOpen ? styles['profile-dropdown-open'] : ''}`}
           >
-            {/* <Link
-              to="/terminal/profile"
-              className={styles['dropdown-item']}
-              onClick={() => setProfileDropdownOpen(false)}
-            >
-              <span className={styles['dropdown-icon']}>⚙️</span>
-              {t('dashboard.editProfile')}
-            </Link> */}
             <Link
               to="/terminal/verification"
               className={styles['dropdown-item']}
@@ -276,12 +268,28 @@ const Header = ({ isTerminal = false }) => {
               Профил
             </Link>
             <Link
+              to="/terminal/subscription"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}>💳</span>
+              Сметка
+            </Link>
+            <Link
+              to="/terminal/billing"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}>📑</span>
+              Сметководство
+            </Link>
+            <Link
               to="/terminal/user"
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
-              <span className={styles['dropdown-icon']}>👤</span>
-              Корисник
+              <span className={styles['dropdown-icon']}>🔑</span>
+              Лозинка
             </Link>
             <button
               onClick={(e) => {

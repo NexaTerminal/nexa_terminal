@@ -143,7 +143,7 @@
    ======================================== */
 
 .menu-item-with-submenu {
-  position: static;
+  position: relative;
 }
 
 .menu-item-with-submenu .menu-item {
@@ -276,4 +276,75 @@
   .submenu {
     display: none;
   }
+}
+
+/* ============================================================
+   Hover flyout — collapsed groups reveal children on the right
+   when the parent menu item is hovered.
+   ============================================================ */
+.submenu-flyout {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 6px);
+  z-index: 1100;
+  min-width: 220px;
+  background: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 0;
+  box-shadow: 0 16px 36px -12px rgba(11, 18, 32, 0.20);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+  pointer-events: none;
+}
+.menu-item-with-submenu:hover > .submenu-flyout,
+.menu-item-with-submenu:focus-within > .submenu-flyout {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 0s;
+}
+
+/* A small bridge so the cursor can travel across the gap without dropping hover. */
+.submenu-flyout::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -8px; width: 8px;
+}
+
+.submenu-flyout-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: #94a3b8;
+  padding: 4px 16px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 6px;
+}
+
+.submenu-flyout-item {
+  display: block;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  color: #0B1220;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.submenu-flyout-item:hover {
+  background-color: #f8fafc;
+  color: var(--color-primary, #1e4db7);
+  border-left-color: var(--color-primary, #1e4db7);
+  text-decoration: none;
+}
+.submenu-flyout-item.active {
+  color: var(--color-primary, #1e4db7);
+  background-color: #EEF4FF;
+  border-left-color: var(--color-primary, #1e4db7);
+  font-weight: 600;
 }

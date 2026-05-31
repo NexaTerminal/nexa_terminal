@@ -70,18 +70,18 @@ export const personMartin = {
   email: 'info@nexa.mk'
 };
 
+// Nexa 3.0 — Network membership is application-based; only the SMB tier is
+// surfaced publicly via structured data.
 export const superUserService = (language = 'mk') => ({
   '@context': 'https://schema.org',
   '@type': 'Service',
-  name: language === 'mk' ? 'Nexa Super User членство' : 'Nexa Super User membership',
+  name: language === 'mk' ? 'Nexa Мрежа · членство' : 'Nexa Network membership',
   serviceType: 'Professional distribution membership',
   provider: { '@id': 'https://nexa.mk/#organization' },
   areaServed: { '@type': 'Country', name: 'North Macedonia' },
   audience: { '@type': 'BusinessAudience', audienceType: 'Lawyers, accountants, consultants' },
   offers: [
-    { '@type': 'Offer', name: 'Monthly',   price: '79',  priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
-    { '@type': 'Offer', name: 'Quarterly', price: '199', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
-    { '@type': 'Offer', name: 'Annual',    price: '719', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
+    { '@type': 'Offer', name: 'Standard', price: '19', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
   ]
 });
 
@@ -93,7 +93,10 @@ export const terminalProduct = (language = 'mk') => ({
     ? 'SaaS платформа за автоматизација на документи, AI помош и проверки за усогласеност.'
     : 'SaaS platform for document automation, AI assistance, and compliance health checks.',
   brand: { '@type': 'Brand', name: 'Nexa' },
-  offers: { '@type': 'Offer', price: '39', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
+  offers: [
+    { '@type': 'Offer', name: 'Monthly', price: '19',  priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' },
+    { '@type': 'Offer', name: 'Annual',  price: '179', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
+  ]
 });
 
 export const contactPage = ({ url, language = 'mk' }) => ({

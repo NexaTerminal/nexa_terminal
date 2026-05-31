@@ -4,7 +4,12 @@ import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import styles from './ManageSubscriptions.module.css';
 
-const PLAN_LABEL = { standard: 'Standard', admin: 'Admin · 5', admin_5: 'Admin · 5', admin_10: 'Admin · 10' };
+const PLAN_LABEL = {
+  standard: 'Nexa Platform',
+  admin:    'Nexa Network · Kantora',
+  admin_5:  'Nexa Network · Kantora',
+  admin_10: 'Nexa Network · Studio'
+};
 const PLAN_SEATS = { standard: 0, admin_5: 5, admin_10: 10 };
 const CYCLE_LABEL = { monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
 const STATUS_LABEL = {
@@ -21,10 +26,11 @@ const TABS = [
   { key: 'suspended', label: 'Suspended' }
 ];
 
+// Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
 const PLAN_PRICES = {
-  standard: { monthly: 40,  quarterly: 90,  annual: 360 },
-  admin_5:  { monthly: 80,  quarterly: 240, annual: 720 },
-  admin_10: { monthly: 150, quarterly: 450, annual: 1350 }
+  standard: { monthly: 19, quarterly: 49,  annual: 179 },
+  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
+  admin_10: { monthly: 59, quarterly: 149, annual: 549 }
 };
 
 // Sort: in the Pending Approval tab, grace-active users float to the top
@@ -308,9 +314,9 @@ function ApproveModal({ user, onCancel, onSubmit }) {
         <label className={styles.field}>
           Plan
           <select value={plan} onChange={e => setPlan(e.target.value)}>
-            <option value="standard">Standard</option>
-            <option value="admin_5">Admin · 5 seats</option>
-            <option value="admin_10">Admin · 10 seats</option>
+            <option value="standard">Nexa Platform</option>
+            <option value="admin_5">Nexa Network · Kantora (5 seats)</option>
+            <option value="admin_10">Nexa Network · Studio (10 seats)</option>
           </select>
         </label>
 

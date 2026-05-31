@@ -610,6 +610,26 @@ function registerRoutes() {
     '/auth/change-password',
     '/admin/all-users',
     /^\/admin\/all-users\/.*$/,
+    // Nexa 3.0 — AI stance preferences
+    '/ai/stance',
+    /^\/ai\/stance\/.*$/,
+    // Nexa 3.0 — Blog submissions (member + admin queue)
+    '/blogs/submissions',
+    /^\/blogs\/submissions\/.*$/,
+    '/admin/blogs/submissions',
+    /^\/admin\/blogs\/submissions\/.*$/,
+    // Nexa 3.0 — Inquiry Board (manual model)
+    '/inquiries',
+    /^\/inquiries\/.*$/,
+    '/admin/inquiries',
+    /^\/admin\/inquiries\/.*$/,
+    '/my-claims',
+    '/my-engagements',
+    // Nexa 3.0 — Topics Q&A authoring (Type C)
+    '/topics',
+    /^\/topics\/.*$/,
+    '/admin/topics',
+    /^\/admin\/topics\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -709,6 +729,47 @@ function registerRoutes() {
       console.log('⚠️  AI Contract Analysis routes not found - feature not available');
       console.error('Contract analysis routes error:', error.message);
     }
+  }
+
+  // Nexa 3.0 — AI Stance Preferences (no CSRF, JWT-protected)
+  try {
+    app.use('/api/ai/stance', require('./routes/stance'));
+    console.log('✅ AI Stance Preferences routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Stance preferences routes error:', error.message);
+  }
+
+  // Nexa 3.0 — Blog Submissions (member workflow + admin queue)
+  try {
+    app.use('/api/blogs/submissions',       require('./routes/blogSubmissions'));
+    app.use('/api/admin/blogs/submissions', require('./routes/adminBlogSubmissions'));
+    console.log('✅ Blog Submissions routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Blog submissions routes error:', error.message);
+  }
+
+  // Nexa 3.0 — Inquiry Board (manual model — operator-curated, no auto-routing)
+  try {
+    const mine = require('./routes/inquiriesMine');
+    app.use('/api/inquiries',        require('./routes/inquiries'));
+    app.use('/api/admin/inquiries',  require('./routes/adminInquiries'));
+    app.use('/api/my-claims',        mine.claims);
+    app.use('/api/my-engagements',   mine.engagements);
+    console.log('✅ Inquiry Board routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Inquiry Board routes error:', error.message);
+  }
+
+  // Nexa 3.0 — Topics Q&A Authoring (Studio-only).
+  // Mount the public-page reader FIRST so its sub-path wins over the
+  // JWT-protected /api/topics router for /api/topics/pages/:slug.
+  try {
+    app.use('/api/topics/pages',   require('./routes/topicsPublic'));
+    app.use('/api/topics',         require('./routes/topics'));
+    app.use('/api/admin/topics',   require('./routes/adminTopics'));
+    console.log('✅ Topics Q&A routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Topics Q&A routes error:', error.message);
   }
 
   // Credit System routes (always enabled)

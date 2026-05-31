@@ -34,10 +34,12 @@ const PRE_SCAN_SYSTEM = `Ти си правен асистент кој прав
 
 Врати САМО валиден JSON. Без markdown, без коментари.`;
 
-function buildPreScanMessages(contractExcerpt) {
+function buildPreScanMessages(contractExcerpt, stancePrefix = '') {
+  // Stance preferences (if any) are injected above the system prompt as a
+  // structured snippet. Empty string when the user has no preferences set.
   return [
-    { role: 'system', content: PRE_SCAN_SYSTEM },
-    { role: 'user', content: `Извадок од договорот:\n\n${contractExcerpt}` },
+    { role: 'system', content: (stancePrefix || '') + PRE_SCAN_SYSTEM },
+    { role: 'user',   content: `Извадок од договорот:\n\n${contractExcerpt}` },
   ];
 }
 

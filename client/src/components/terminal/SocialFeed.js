@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import Icon from '../website/Icon';
+import { visibleTier } from '../../lib/tier';
 import styles from '../../styles/terminal/SocialFeed.module.css';
 
 /**
@@ -131,12 +132,15 @@ const SocialFeed = () => {
   const userId = currentUser?._id || currentUser?.id;
 
   const blogItems = feed.filter(it => it.kind === 'blog');
+  const tier = visibleTier(currentUser);
+  const showBcTiles = tier === 'B' || tier === 'C';
 
   return (
     <div className={styles.socialFeed}>
       {error && <div className={styles.feedError}>{error}</div>}
 
       <div className={styles.feedStream}>
+        {showBcTiles && <BcTileRow tier={tier} />}
         <ActionGridCard />
 
         {categories.length > 0 && (
@@ -304,5 +308,28 @@ const BlogCard = ({ blog, userId, onReact }) => {
     </article>
   );
 };
+
+// ─── Tier B / C dashboard tiles (chassis only — prompts 04/05/06 wire counts) ──
+const BcTileRow = ({ tier }) => (
+  <section className={styles.bcTileRow} aria-label="Преглед">
+    <Link to="/terminal/leads" className={styles.bcTile}>
+      <div className={styles.bcTileLabel}>Барања оваа недела</div>
+      <div className={styles.bcTileValue}>0</div>
+      <div className={styles.bcTileSub}>нови во Вашата област</div>
+    </Link>
+    {tier === 'C' && (
+      <Link to="/terminal/topics-qa" className={styles.bcTile}>
+        <div className={styles.bcTileLabel}>Прашања на чекање</div>
+        <div className={styles.bcTileValue}>0</div>
+        <div className={styles.bcTileSub}>отворени за одговор</div>
+      </Link>
+    )}
+    <Link to="/terminal/blogs" className={styles.bcTile}>
+      <div className={styles.bcTileLabel}>Ваши објави</div>
+      <div className={styles.bcTileValue}>—</div>
+      <div className={styles.bcTileSub}>поднесете прв прилог →</div>
+    </Link>
+  </section>
+);
 
 export default SocialFeed;

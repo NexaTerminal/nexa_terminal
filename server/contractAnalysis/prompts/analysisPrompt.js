@@ -185,7 +185,7 @@ const ANALYSIS_SYSTEM = `# NEXA TERMINAL — Анализа на договор 
 
 Врати САМО валиден JSON. Без markdown блокови, без коментари, без вовед.`;
 
-function buildAnalysisMessages({ contractText, userRole, userAnswers, contractType, parties }) {
+function buildAnalysisMessages({ contractText, userRole, userAnswers, contractType, parties, stancePrefix = '' }) {
   const userBlock = [
     `Тип на договор (детектирано): ${contractType || 'непознато'}`,
     `Улога на корисникот (КОГО ГО ЗАСТАПУВАШ): ${userRole || 'непознато'}`,
@@ -207,8 +207,8 @@ function buildAnalysisMessages({ contractText, userRole, userAnswers, contractTy
     .join('\n');
 
   return [
-    { role: 'system', content: ANALYSIS_SYSTEM },
-    { role: 'user', content: userBlock },
+    { role: 'system', content: (stancePrefix || '') + ANALYSIS_SYSTEM },
+    { role: 'user',   content: userBlock },
   ];
 }
 

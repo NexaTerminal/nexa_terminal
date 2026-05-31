@@ -42,18 +42,20 @@ const fmtDate = (d, lang) => {
   return date.toLocaleDateString(lang === 'mk' ? 'mk-MK' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
+// Nexa 3.0 public-facing tier labels.
 const planLabel = (plan, lang) => {
-  if (plan === 'admin_5')  return lang === 'mk' ? 'Admin · 5 седишта'  : 'Admin · 5 seats';
-  if (plan === 'admin_10') return lang === 'mk' ? 'Admin · 10 седишта' : 'Admin · 10 seats';
-  if (plan === 'admin')    return lang === 'mk' ? 'Admin · 5 седишта'  : 'Admin · 5 seats'; // legacy fallback
-  if (plan === 'standard') return lang === 'mk' ? 'Стандарден план'    : 'Standard plan';
+  if (plan === 'admin_5')  return lang === 'mk' ? 'Nexa Мрежа · Кантора' : 'Nexa Network · Kantora';
+  if (plan === 'admin_10') return lang === 'mk' ? 'Nexa Мрежа · Студио'  : 'Nexa Network · Studio';
+  if (plan === 'admin')    return lang === 'mk' ? 'Nexa Мрежа · Кантора' : 'Nexa Network · Kantora'; // legacy fallback
+  if (plan === 'standard') return lang === 'mk' ? 'Nexa Платформа'       : 'Nexa Platform';
   return plan || '';
 };
 
+// Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
 const PLAN_PRICES = {
-  standard: { monthly: 40,  quarterly: 90,  annual: 360 },
-  admin_5:  { monthly: 80,  quarterly: 240, annual: 720 },
-  admin_10: { monthly: 150, quarterly: 450, annual: 1350 }
+  standard: { monthly: 19, quarterly: 49,  annual: 179 },
+  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
+  admin_10: { monthly: 59, quarterly: 149, annual: 549 }
 };
 const priceOf = (plan, cycle) => PLAN_PRICES[plan]?.[cycle] ?? null;
 

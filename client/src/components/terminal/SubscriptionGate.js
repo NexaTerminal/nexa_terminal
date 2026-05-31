@@ -3,27 +3,28 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './SubscriptionGate.module.css';
 
-// EUR prices using 9-endings. Match the public Pricing page.
+// EUR prices (Nexa 3.0). Match server/constants/roles.js PLAN_PRICES.
 const PRICES = {
-  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
-  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
-  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
+  standard: { monthly: 19, quarterly: 49,  annual: 179 },
+  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
+  admin_10: { monthly: 59, quarterly: 149, annual: 549 }
 };
+// Public-facing tier labels (Nexa 3.0).
 const PLAN_LABEL = {
-  standard: 'Стандарден',
-  admin_5:  'Admin · 5',
-  admin_10: 'Admin · 10'
+  standard: 'Nexa Платформа',
+  admin_5:  'Nexa Мрежа · Кантора',
+  admin_10: 'Nexa Мрежа · Студио'
 };
-// Short MK description for the hover tooltip on each plan tile.
+// Short MK description per plan.
 const PLAN_TOOLTIP = {
-  standard: 'Еден корисник. Целосен пристап до Терминалот: документи, проверки за усогласеност, AI помош, анализа на договор.',
-  admin_5:  'Сè во Стандарден + тим до 5 корисници + промотивни можности преку билтенот, сателитските сајтови и Topics.',
-  admin_10: 'Истото како Admin · 5, со тим до 10 корисници и поголеми лимити.'
+  standard: 'Сите алатки на Терминалот за индивидуална употреба.',
+  admin_5:  'Терминалот + членство во Nexa мрежата. До 5 под-сметки за Вашите клиенти или тим.',
+  admin_10: 'Терминалот + членство во Nexa мрежата · поголемо. До 10 под-сметки. Пристап до Topics Q&A авторска работна табла.'
 };
 const PLAN_SHORT = {
-  standard: '1 корисник',
-  admin_5:  'Тим до 5',
-  admin_10: 'Тим до 10'
+  standard: 'Индивидуално',
+  admin_5:  'До 5 под-сметки',
+  admin_10: 'До 10 под-сметки'
 };
 
 const ALL_PLANS = ['standard', 'admin_5', 'admin_10'];

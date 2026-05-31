@@ -1,93 +1,125 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers } from '../../lib/tier';
 import styles from '../../styles/terminal/Sidebar.module.css';
+
+/**
+ * Nexa 3.0 sidebar — declarative config drives every group.
+ * Each group has either `path` (leaf link) or `children` (collapsible submenu).
+ * Visibility per group is controlled by the `visible(user)` predicate.
+ */
 
 const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
-  const screeningRef = useRef(null);
-  const aiRef = useRef(null);
-  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
-  const [isAISubmenuOpen, setIsAISubmenuOpen] = useState(false);
-  const [openAdminGroups, setOpenAdminGroups] = useState({});
-  const toggleAdminGroup = (key) => setOpenAdminGroups((s) => ({ ...s, [key]: !s[key] }));
+  const [openGroups, setOpenGroups] = useState({});
+  const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
-  // Close submenus when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (screeningRef.current && !screeningRef.current.contains(event.target)) {
-        setIsSubmenuOpen(false);
-      }
-      if (aiRef.current && !aiRef.current.contains(event.target)) {
-        setIsAISubmenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleScreeningClick = () => {
-    setIsSubmenuOpen(!isSubmenuOpen);
-  };
-
-  const handleAIClick = () => {
-    setIsAISubmenuOpen(!isAISubmenuOpen);
-  };
-
-  // Screening submenu items
-  const screeningSubItems = [
-    { path: '/terminal/legal-screening', label: 'Правен' },
-    { path: '/terminal/marketing-screening', label: 'Маркетинг' },
-    { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' },
-    { path: '/terminal/hr-screening', label: 'HR и Оперативен' }
-  ];
-
-  // AI submenu items
-  const aiSubItems = [
-    { path: '/terminal/ai-chat', label: 'Правен AI' },
-    { path: '/terminal/marketing-ai', label: 'Маркетинг AI' },
-    { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
-  ];
-
-  const regularMenuItems = [
-    { path: '/terminal', label: 'common.dashboard' },
-    { path: '/terminal/documents', label: 'dashboard.documentGenerator', tourId: 'documents' },
-    { path: '/terminal/my-templates', label: 'Мои шаблони', noTranslate: true, tourId: 'my-templates' },
-    // { path: '/terminal/template-marketplace', label: 'Маркетплејс', noTranslate: true },
-    // Hidden for now — re-enable when ready:
-    // { path: '/terminal/find-lawyer', label: 'Најди адвокат', noTranslate: true, tourId: 'find-lawyer' },
-    // { path: '/terminal/contact', label: 'Вмрежување', noTranslate: true, disabled: true, comingSoon: 'Наскоро' },
-    { path: '/terminal/education', label: 'Обуки', noTranslate: true, tourId: 'education' }
-  ];
-
-  // Admin-user-only items (paying B2B accounts with sub-seats).
-  const adminUserMenuItems = currentUser?.role === 'admin_user' ? [
-    { path: '/terminal/admin-user', label: 'Преглед', noTranslate: true },
-    { path: '/terminal/admin-user/leads', label: 'Клиенти', noTranslate: true },
-    { path: '/terminal/team', label: 'Тим', noTranslate: true }
-  ] : [];
-
-  // Check if any screening route is active
-  const isScreeningActive = screeningSubItems.some(item => location.pathname === item.path);
-
-  // Check if any AI route is active
-  const isAIActive = aiSubItems.some(item => location.pathname === item.path);
-
-  const adminMenuItems = [
+  // ── User-facing groups (Type A/B/C/sub-seat) ────────────────────────────
+  const userGroups = [
     {
-      key: 'blogs',
-      label: 'Блогови',
+      key: 'dashboard',
+      label: 'Dashboard', path: '/terminal',
+      labelMk: 'Контролна табла'
+    },
+    {
+      key: 'documents',
+      label: 'Документи',
+      defaultOpen: true,
       children: [
-        { path: '/terminal/admin/blogs',     label: 'Управувај блогови' },
-        { path: '/terminal/admin/blogs/add', label: 'Додади блог' }
+        { path: '/terminal/documents',     label: 'Автоматизирани документи' },
+        { path: '/terminal/my-templates',  label: 'Мои шаблони' }
       ]
     },
     {
-      key: 'users',
+      key: 'screening',
+      label: 'Проверки',
+      defaultOpen: true,
+      children: [
+        { path: '/terminal/legal-screening',     label: 'Правен' },
+        { path: '/terminal/marketing-screening', label: 'Маркетинг' },
+        { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
+        { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
+      ]
+    },
+    {
+      key: 'education',
+      label: 'Едукација', path: '/terminal/education',
+      defaultOpen: true
+    },
+    {
+      key: 'nexaai',
+      label: 'Nexa AI',
+      defaultOpen: true,
+      children: [
+        { path: '/terminal/ai-chat',           label: 'Правен AI' },
+        { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
+        { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
+        { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+      ]
+    },
+    // ── B/C surfaces ──────────────────────────────────────────────────────
+    {
+      key: 'blogs',
+      label: 'Блогови',
+      visible: showsBlogs,
+      children: [
+        { path: '/terminal/blogs/submit',          label: 'Поднеси прилог' },
+        { path: '/terminal/blogs/my-submissions',  label: 'Мои поднесувања' },
+        { path: '/terminal/blogs/published',       label: 'Објавени' }
+      ]
+    },
+    {
+      key: 'leads',
+      label: 'Барања',
+      visible: showsLeads,
+      children: [
+        { path: '/terminal/leads',                   label: 'Интерна табла' },
+        { path: '/terminal/leads?tab=claims',        label: 'Мои изразени интереси' },
+        { path: '/terminal/leads?tab=engagements',   label: 'Мои ангажмани' }
+      ]
+    },
+    {
+      key: 'topicsqa',
+      label: 'Topics Q&A',
+      visible: showsTopicsQA,
+      children: [
+        { path: '/terminal/topics-qa',                 label: 'Отворени прашања' },
+        { path: '/terminal/topics-qa?tab=mine',        label: 'Мои одговори' },
+        { path: '/terminal/topics-qa?tab=published',   label: 'Објавени' }
+      ]
+    },
+    {
+      key: 'subusers',
+      label: 'Под-сметки',
+      visible: showsSubUsers,
+      children: [
+        { path: '/terminal/team',                  label: 'Активни сметки' },
+        { path: '/terminal/team?tab=invitations',  label: 'Покани' },
+        { path: '/terminal/team?tab=revoked',      label: 'Поништени' }
+      ]
+    },
+    // Account/Profile/Billing live in the Header profile dropdown (top-right),
+    // not in the sidebar. See client/src/components/common/Header.js.
+  ];
+
+  // ── Admin (Martin) groups — kept as-is from the existing sidebar plus
+  // two new placeholders for Inquiries and Topics worklist (per prompt 02).
+  const adminMenuItems = [
+    {
+      key: 'blogs-admin',
+      label: 'Блогови',
+      children: [
+        { path: '/terminal/admin/blogs',         label: 'Управувај блогови' },
+        { path: '/terminal/admin/blogs/add',     label: 'Додади блог' },
+        { path: '/terminal/admin/blogs/pending', label: 'Чекаат уреднички преглед' }
+      ]
+    },
+    {
+      key: 'users-admin',
       label: 'Корисници',
       children: [
         { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
@@ -95,7 +127,7 @@ const Sidebar = () => {
       ]
     },
     {
-      key: 'marketplace',
+      key: 'marketplace-admin',
       label: 'Маркетплејс',
       children: [
         { path: '/terminal/admin/leads',             label: 'Клиенти' },
@@ -103,182 +135,119 @@ const Sidebar = () => {
         { path: '/terminal/admin/offer-requests',    label: 'Барања за понуди' }
       ]
     },
-    { path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' },
+    {
+      key: 'inquiries-admin',
+      label: 'Управување со барања',
+      children: [
+        { path: '/terminal/admin/inquiries',     label: 'Преглед на сите' },
+        { path: '/terminal/admin/inquiries/new', label: 'Внеси ново барање' }
+      ]
+    },
+    {
+      key: 'topics-admin',
+      label: 'Topics — работна листа',
+      children: [
+        { path: '/terminal/admin/topics/worklist',     label: 'Работна листа' },
+        { path: '/terminal/admin/topics/worklist/new', label: 'Нова тема' },
+        { path: '/terminal/admin/topics/submissions',  label: 'Поднесени Q&A' }
+      ]
+    },
+    { path: '/terminal/admin/chatbot',         label: 'Управување со Chatbot' }
   ];
 
-  return (
-    <aside className={styles["dashboard-sidebar"]}>
+  // ── Render helpers ──────────────────────────────────────────────────────
+  const isPathActive = (path) => {
+    if (!path) return false;
+    // Strip query string when comparing against location.pathname.
+    const cleanPath = path.split('?')[0];
+    return location.pathname === cleanPath;
+  };
 
-        {/* <div className={styles["dashboard-welcome"]}>
-          <h2>{t("dashboard.welcome")}, {currentUser?.fullName || t("common.user")}</h2>
-        </div> */}
+  const renderGroup = (item) => {
+    // Visibility predicate (skip if hidden).
+    if (item.visible && !item.visible(currentUser)) return null;
 
-      <nav className={styles["dashboard-menu"]}>
-        {/* Dashboard, Documents, My Templates */}
-        {regularMenuItems.slice(0, 3).map(({ path, label, noTranslate, tourId }) => (
-          <Link
-            key={path}
-            to={path}
-            className={`${styles["menu-item"]} ${
-              location.pathname === path ? styles.active : ""
-            }`}
-            {...(tourId ? { 'data-tour': tourId } : {})}
-          >
-            <h3>{noTranslate ? label : t(label)}</h3>
-          </Link>
-        ))}
+    // Leaf link.
+    if (item.path) {
+      return (
+        <Link
+          key={item.key || item.path}
+          to={item.path}
+          className={`${styles['menu-item']} ${isPathActive(item.path) ? styles.active : ''}`}
+        >
+          <h3>{item.label}</h3>
+        </Link>
+      );
+    }
 
-        {/* Screening Menu with Submenu */}
-        <div ref={screeningRef} className={styles["menu-item-with-submenu"]}>
-          <div
-            className={`${styles["menu-item"]} ${isScreeningActive ? styles.active : ""}`}
-            onClick={handleScreeningClick}
-            style={{ cursor: 'pointer' }}
-            data-tour="screening"
-          >
-            <h3>Скрининг</h3>
-            <span className={styles["submenu-arrow"]}>{isSubmenuOpen ? '▼' : '▶'}</span>
-          </div>
-          {isSubmenuOpen && (
-            <div className={styles["submenu-inline"]}>
-              {screeningSubItems.map(({ path, label }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`${styles["submenu-item-inline"]} ${
-                    location.pathname === path ? styles.active : ""
-                  }`}
-                  onClick={() => setIsSubmenuOpen(false)}
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-          )}
+    // Collapsible group. Default = collapsed (children visible only on hover
+    // as a right-side flyout). Clicking the group toggles inline expansion.
+    // A child being active auto-expands the parent so the active route is
+    // always visible.
+    const childActive = item.children.some((c) => isPathActive(c.path));
+    const open = openGroups[item.key] !== undefined
+      ? openGroups[item.key]
+      : childActive;   // no more `defaultOpen` — fully collapsed on first load
+
+    return (
+      <div key={item.key} className={styles['menu-item-with-submenu']}>
+        <div
+          className={`${styles['menu-item']} ${childActive ? styles.active : ''}`}
+          onClick={() => toggleGroup(item.key)}
+          style={{ cursor: 'pointer' }}
+        >
+          <h3>{item.label}</h3>
+          <span className={styles['submenu-arrow']}>{open ? '▼' : '▶'}</span>
         </div>
-
-        {/* Nexa AI Menu with Submenu */}
-        <div ref={aiRef} className={styles["menu-item-with-submenu"]}>
-          <div
-            className={`${styles["menu-item"]} ${isAIActive ? styles.active : ""}`}
-            onClick={handleAIClick}
-            style={{ cursor: 'pointer' }}
-            data-tour="ai"
-          >
-            <h3>Nexa AI</h3>
-            <span className={styles["submenu-arrow"]}>{isAISubmenuOpen ? '▼' : '▶'}</span>
-          </div>
-          {isAISubmenuOpen && (
-            <div className={styles["submenu-inline"]}>
-              {aiSubItems.map(({ path, label }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`${styles["submenu-item-inline"]} ${
-                    location.pathname === path ? styles.active : ""
-                  }`}
-                  onClick={() => setIsAISubmenuOpen(false)}
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Remaining Menu Items */}
-        {regularMenuItems.slice(3).map(({ path, label, noTranslate, disabled, comingSoon, tourId }) =>
-          disabled ? (
-            <div
-              key={path}
-              className={`${styles["menu-item"]} ${styles["menu-item-disabled"]}`}
-              title={comingSoon || 'Coming Soon'}
-            >
-              <h3>{noTranslate ? label : t(label)}</h3>
-              {comingSoon && <span className={styles["coming-soon-badge"]}>{comingSoon}</span>}
-            </div>
-          ) : (
-            <Link
-              key={path}
-              to={path}
-              className={`${styles["menu-item"]} ${
-                location.pathname === path ? styles.active : ""
-              }`}
-              {...(tourId ? { 'data-tour': tourId } : {})}
-            >
-              <h3>{noTranslate ? label : t(label)}</h3>
-            </Link>
-          )
-        )}
-
-        {/* Admin-user (paying B2B) section: team management */}
-        {adminUserMenuItems.length > 0 && (
-          <div className={styles["admin-section"]}>
-            <div className={styles["section-divider"]}>
-              {currentUser?.language === 'en' ? 'Firm' : 'Фирма'}
-            </div>
-            {adminUserMenuItems.map(({ path, label, noTranslate }) => (
+        {/* Inline children (always rendered when open — click-expanded) */}
+        {open && (
+          <div className={styles['submenu-inline']}>
+            {item.children.map(({ path, label }) => (
               <Link
                 key={path}
                 to={path}
-                className={`${styles["menu-item"]} ${location.pathname === path ? styles.active : ''}`}
+                className={`${styles['submenu-item-inline']} ${
+                  isPathActive(path) ? styles.active : ''
+                }`}
               >
-                <h3>{noTranslate ? label : t(label)}</h3>
+                {label}
               </Link>
             ))}
           </div>
         )}
+        {/* Hover flyout — rendered always but visible only on parent :hover
+            when the group is NOT inline-expanded. Pure CSS, no JS state. */}
+        {!open && (
+          <div className={styles['submenu-flyout']}>
+            <div className={styles['submenu-flyout-header']}>{item.label}</div>
+            {item.children.map(({ path, label }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`${styles['submenu-flyout-item']} ${
+                  isPathActive(path) ? styles.active : ''
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
-        {/* Admin Menu Items */}
+  return (
+    <aside className={styles['dashboard-sidebar']}>
+      <nav className={styles['dashboard-menu']}>
+        {userGroups.map(renderGroup)}
+
         {currentUser?.role === 'admin' && (
-          <div className={styles["admin-section"]}>
-            <div className={styles["section-divider"]}>
+          <div className={styles['admin-section']}>
+            <div className={styles['section-divider']}>
               {t('dashboard.adminSection')}
             </div>
-            {adminMenuItems.map((item) => {
-              if (item.children) {
-                const childActive = item.children.some((c) => location.pathname === c.path);
-                const open = !!openAdminGroups[item.key] || childActive;
-                return (
-                  <div key={item.key} className={styles["menu-item-with-submenu"]}>
-                    <div
-                      className={`${styles["menu-item"]} ${childActive ? styles.active : ""}`}
-                      onClick={() => toggleAdminGroup(item.key)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <h3>{item.label}</h3>
-                      <span className={styles["submenu-arrow"]}>{open ? '▼' : '▶'}</span>
-                    </div>
-                    {open && (
-                      <div className={styles["submenu-inline"]}>
-                        {item.children.map(({ path, label }) => (
-                          <Link
-                            key={path}
-                            to={path}
-                            className={`${styles["submenu-item-inline"]} ${
-                              location.pathname === path ? styles.active : ""
-                            }`}
-                          >
-                            {label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`${styles["menu-item"]} ${
-                    location.pathname === item.path ? styles.active : ""
-                  }`}
-                >
-                  <h3>{t(item.label)}</h3>
-                </Link>
-              );
-            })}
+            {adminMenuItems.map(renderGroup)}
           </div>
         )}
       </nav>

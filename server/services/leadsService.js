@@ -1,4 +1,14 @@
 /**
+ * ⚠️  NEXA 3.0 NOTE — Unused in the v3 Inquiry Board flow (see Nexa_3.0.docx §7).
+ *
+ * The v3 model is operator-curated: Martin manually transcribes emails from
+ * the satellites into entries in the `inquiries` collection via the admin
+ * UI. There is no auto-routing and no HMAC-signed webhook in the v3 flow.
+ *
+ * This service (legacy v2 routing + offered/claim semantics) is preserved
+ * for backward compatibility with any direct API clients that still POST to
+ * the original `/api/leads/inbound` HMAC endpoint. Do not delete.
+ *
  * Leads Service — collection access + thin CRUD helpers for inbound leads
  * from the Nexa satellite sites.
  *

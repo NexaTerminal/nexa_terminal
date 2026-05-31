@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const OpenAI = require('openai');
 const { buildPreScanMessages } = require('./prompts/preScanPrompt');
 const { buildAnalysisMessages } = require('./prompts/analysisPrompt');
+const StancePreferencesService = require('../services/stancePreferencesService');
 
 const PRE_SCAN_MODEL = process.env.CONTRACT_PRESCAN_MODEL || 'gpt-4o-mini';
 const ANALYSIS_MODEL = process.env.CONTRACT_ANALYSIS_MODEL || 'gpt-4o';
@@ -21,6 +22,18 @@ class ContractAnalysisService {
   setDatabase(database) {
     this.db = database;
     console.log('✓ Database reference set for ContractAnalysisService');
+  }
+
+  /** Build the Stance Preferences prefix for this user. Returns '' on any miss. */
+  async _getStancePrefix(userId) {
+    try {
+      if (!this.db || !userId) return '';
+      const svc = new StancePreferencesService(this.db);
+      return await svc.getPrefix(userId);
+    } catch (e) {
+      console.warn('[contract-analysis] stance prefix lookup failed:', e.message);
+      return '';
+    }
   }
 
   /* ------------------------------ Quota ------------------------------ */
@@ -58,7 +71,8 @@ class ContractAnalysisService {
     }
 
     const excerpt = contractText.slice(0, PRE_SCAN_EXCERPT_CHARS);
-    const messages = buildPreScanMessages(excerpt);
+    const stancePrefix = await this._getStancePrefix(userId);
+    const messages = buildPreScanMessages(excerpt, stancePrefix);
 
     const response = await this.openai.chat.completions.create({
       model: PRE_SCAN_MODEL,
@@ -135,12 +149,14 @@ class ContractAnalysisService {
       throw err;
     }
 
+    const stancePrefix = await this._getStancePrefix(userId);
     const messages = buildAnalysisMessages({
       contractText: session.contractText,
       userRole,
       userAnswers,
       contractType: session.preScan?.contractType,
       parties: session.preScan?.parties,
+      stancePrefix,
     });
 
     let report;

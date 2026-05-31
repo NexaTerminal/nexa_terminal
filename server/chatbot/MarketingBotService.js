@@ -3,6 +3,7 @@ const { PromptTemplate } = require('@langchain/core/prompts');
 const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
+const StancePreferencesService = require('../services/stancePreferencesService');
 
 /**
  * MarketingBotService - Core RAG chatbot service for marketing Q&A
@@ -53,8 +54,9 @@ class MarketingBotService {
       console.error('⚠️  Failed to connect to Qdrant (Marketing):', err.message);
     });
 
-    // System prompt template for Marketing Consultant
-    this.systemPromptTemplate = `# NEXA TERMINAL - Маркетинг Стратег AI
+    // System prompt template for Marketing Consultant.
+    // {stancePrefix} renders the user's Stance Preferences (or "" if unset).
+    this.systemPromptTemplate = `{stancePrefix}# NEXA TERMINAL - Маркетинг Стратег AI
 
 Вие сте персонален маркетинг консултант интегриран во Nexa Terminal - македонска SaaS платформа за деловна автоматизација.
 
@@ -279,6 +281,18 @@ class MarketingBotService {
   /**
    * Ask a marketing question and get an AI response
    */
+  /** Build the Stance Preferences prefix for this user. Returns '' on any miss. */
+  async _getStancePrefix(userId) {
+    try {
+      if (!this.db || !userId) return '';
+      const svc = new StancePreferencesService(this.db);
+      return await svc.getPrefix(userId);
+    } catch (e) {
+      console.warn('[marketing-bot] stance prefix lookup failed:', e.message);
+      return '';
+    }
+  }
+
   async askQuestion(question, userId, conversationId = null) {
     try {
       if (!question || question.trim().length === 0) {
@@ -327,9 +341,11 @@ class MarketingBotService {
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Execute the chain
+      // Execute the chain. Stance preferences injected as a structured prefix.
+      const stancePrefix = await this._getStancePrefix(userId);
       console.log('\n💬 [Marketing RAG] Sending to OpenAI LLM...');
       const response = await chain.invoke({
+        stancePrefix,
         context: context,
         question: enhancedQuestion,
       });

@@ -1,41 +1,18 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
+import Icon from '../../components/website/Icon';
 import useScrollReveal from '../../hooks/useScrollReveal';
-import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct, superUserService } from '../../components/seo/schemaGraph';
+import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Three plans. All start with the same trial flow — visitor clicks the card,
-// lands on /login, signs up, runs the 8-day trial, then picks plan from inside.
-const PLANS = [
-  { uiKey: 'plan1', apiPlan: 'standard',
-    features: ['docs', 'news', 'compliance', 'operative', 'marketing', 'contract', 'ai'],
-    includesLabel: 'includes' },
-  { uiKey: 'plan2', apiPlan: 'admin_5',
-    features: ['seats5', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'priority'],
-    includesLabel: 'everythingPlus' },
-  { uiKey: 'plan3', apiPlan: 'admin_10',
-    features: ['seats10', 'docsUnlimited', 'newsletter', 'satellites', 'topics', 'creditPool', 'priority'],
-    includesLabel: 'everythingPlus' }
-];
-
-// EUR prices using psychological 9-endings. Quarterly ≈ −15%, Annual ≈ −24%.
-const PRICES = {
-  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
-  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
-  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
-};
-
-const baseline12mo  = (p) => PRICES[p].monthly * 12;
-const annualSpend   = (p, c) => c === 'monthly' ? PRICES[p].monthly * 12
-                              : c === 'quarterly' ? PRICES[p].quarterly * 4
-                              : PRICES[p].annual;
-const savePercent   = (p, c) => c === 'monthly' ? 0
-  : Math.round(((baseline12mo(p) - annualSpend(p, c)) / baseline12mo(p)) * 100);
-const effectiveMonthly = (p, c) => Math.round(annualSpend(p, c) / 12);
+// Nexa 3.0 — two-card public chooser. The detailed price/cycle/feature
+// breakdowns live inside the Terminal SubscriptionGate (single source of
+// truth for paid signups). The public page presents a binary choice:
+// individual SMB (visible price) vs professional network (application-based).
+const SMB_PRICE_EUR = 19;
 
 export default function Pricing() {
   const { t } = useTranslation('website');
@@ -43,86 +20,6 @@ export default function Pricing() {
   const lang = i18n.language || 'mk';
   const isMk = lang === 'mk';
   const url = 'https://nexa.mk/pricing';
-
-  const [cycle, setCycle] = useState('monthly');
-
-  const CycleBtn = ({ value, label }) => (
-    <button
-      type="button"
-      className={`${styles.cycleBtn} ${cycle === value ? styles.cycleBtnActive : ''}`}
-      onClick={() => setCycle(value)}
-      aria-pressed={cycle === value}
-    >
-      {label}
-      {value === 'quarterly' && <span className={styles.cycleHint}>−15%</span>}
-      {value === 'annual'    && <span className={styles.cycleHint}>−24%</span>}
-    </button>
-  );
-
-  const billedAs = isMk
-    ? { monthly: 'месечно',  quarterly: 'квартално', annual: 'годишно' }
-    : { monthly: 'monthly',  quarterly: 'quarterly', annual: 'yearly' };
-  const suffixFor = (c) => c === 'monthly'   ? (isMk ? '/месец'   : '/month')
-                         : c === 'quarterly' ? (isMk ? '/квартал' : '/quarter')
-                         :                     (isMk ? '/година'  : '/year');
-
-  const Card = ({ uiKey, apiPlan, features, includesLabel, accent }) => {
-    const price = PRICES[apiPlan][cycle];
-    const save  = savePercent(apiPlan, cycle);
-    const eff   = effectiveMonthly(apiPlan, cycle);
-
-    return (
-      <Link
-        to="/login"
-        className={`${styles.card} ${accent ? styles.cardAccent : ''}`}
-        aria-label={t(`pricing.${uiKey}.name`)}
-      >
-        <div className={styles.cardHead}>
-          <div className={styles.planMeta}>
-            <h3>{t(`pricing.${uiKey}.name`)}</h3>
-            <p>{t(`pricing.${uiKey}.tagline`)}</p>
-          </div>
-          {accent && <span className={styles.popular}>{t('pricing.popular')}</span>}
-        </div>
-
-        <div className={styles.priceBlock}>
-          <div className={styles.priceLine}>
-            <span className={styles.currency}>€</span>
-            <span className={styles.priceNum}>{price}</span>
-            <span className={styles.priceSuffix}>{suffixFor(cycle)}</span>
-          </div>
-          <div className={styles.priceMeta}>
-            <span>{billedAs[cycle]}</span>
-            {cycle !== 'monthly' && (
-              <span className={styles.eff}>{isMk ? `≈ €${eff}/месец` : `≈ €${eff}/month`}</span>
-            )}
-            {save > 0 && (
-              <span className={styles.saveTag}>{isMk ? `Заштеда ${save}%` : `Save ${save}%`}</span>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.includes}>
-          <div className={styles.includesLabel}>{t(`pricing.${includesLabel}`)}</div>
-          <ul className={styles.featureList}>
-            {features.map(f => (
-              <li key={f}>
-                <svg className={styles.check} width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span>{t(`pricing.features.${f}`)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <span className={styles.trialBanner}>
-          {isMk ? 'Пробајте бесплатен период, без обврска' : 'Try the free period, no commitment'}
-          <span className={styles.trialArrow} aria-hidden>→</span>
-        </span>
-      </Link>
-    );
-  };
 
   return (
     <PublicLayout>
@@ -132,7 +29,7 @@ export default function Pricing() {
         canonical="/pricing"
         locale={isMk ? 'mk_MK' : 'en_US'}
         altLocale={isMk ? 'en_US' : 'mk_MK'}
-        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: t('pricing.title'), description: t('pricing.seoDesc'), language: lang }), terminalProduct(lang), superUserService(lang)]}
+        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: t('pricing.title'), description: t('pricing.seoDesc'), language: lang }), terminalProduct(lang)]}
       />
 
       <section className={styles.section}>
@@ -143,25 +40,63 @@ export default function Pricing() {
               {isMk ? 'Цени' : 'Pricing'}
             </span>
             <h1 className={styles.pageIntroTitle}>
-              {isMk ? 'Едноставни тарифи. Без изненадувања.' : 'Simple plans. No surprises.'}
+              {isMk ? 'Изберете што Ви треба од Nexa.' : 'Pick what you need from Nexa.'}
             </h1>
             <p className={styles.pageIntroLead}>
               {isMk
-                ? 'Започнете со 8-дневен пробен период. Изберете план кога ќе бидете спремни — можете да го смените во секое време.'
-                : 'Start with an 8-day trial. Pick a plan when you are ready — you can change it any time.'}
+                ? 'Две патеки: алатки за Вашиот бизнис, или членство во професионалната мрежа на Nexa. Започнете кога ќе бидете спремни — можете да го смените изборот во секое време.'
+                : 'Two paths: tools for your business, or membership in the Nexa professional network. Start when you are ready — you can switch later any time.'}
             </p>
           </header>
 
-          <div className={styles.cycleWrap} role="group" aria-label="Billing cycle">
-            <CycleBtn value="monthly"   label={isMk ? 'Месечно'   : 'Monthly'} />
-            <CycleBtn value="quarterly" label={isMk ? 'Квартално' : 'Quarterly'} />
-            <CycleBtn value="annual"    label={isMk ? 'Годишно'   : 'Yearly'} />
-          </div>
+          <div className={styles.chooserCards}>
+            {/* Card 1 — SMB: Nexa Platform */}
+            <Link to="/login" className={`${styles.chooserCard} nx-reveal`}>
+              <span className={styles.chooserTag}>{isMk ? 'За бизнисите' : 'For SMBs'}</span>
+              <h2 className={styles.chooserCardTitle}>
+                {isMk ? 'Nexa Платформа' : 'Nexa Platform'}
+              </h2>
+              <p className={styles.chooserCardBody}>
+                {isMk
+                  ? 'Сите алатки на Терминалот за индивидуална употреба — автоматизирани документи, AI помош, проверки за усогласеност, анализа на договори.'
+                  : 'All Terminal tools for individual use — automated documents, AI assistance, compliance health checks, contract analysis.'}
+              </p>
+              <div className={styles.chooserPriceLine}>
+                <span className={styles.chooserCurrency}>€</span>
+                <span className={styles.chooserPriceNum}>{SMB_PRICE_EUR}</span>
+                <span className={styles.chooserPriceSuffix}>{isMk ? '/ месец' : '/ month'}</span>
+              </div>
+              <div className={styles.chooserSubline}>
+                {isMk ? '8 дена бесплатен пробен период, без картичка' : '8-day free trial, no card required'}
+              </div>
+              <span className={styles.chooserCta}>
+                {isMk ? 'Започнете' : 'Get started'} <span aria-hidden>→</span>
+              </span>
+            </Link>
 
-          <div className={styles.cards}>
-            <Card {...PLANS[0]} />
-            <Card {...PLANS[1]} accent />
-            <Card {...PLANS[2]} />
+            {/* Card 2 — Network: application-based, no price shown */}
+            <Link to="/login?intent=network" className={`${styles.chooserCard} ${styles.chooserCardAccent} nx-reveal`}>
+              <span className={styles.chooserTag}>{isMk ? 'За професионалците' : 'For professionals'}</span>
+              <h2 className={styles.chooserCardTitle}>
+                {isMk ? 'Nexa Мрежа' : 'Nexa Network'}
+              </h2>
+              <p className={styles.chooserCardBody}>
+                {isMk
+                  ? 'Терминалот + членство во Nexa мрежата. Дистрибуција преку билтенот, сателитските сајтови и Topics Q&A. Тим од 5 или 10 под-сметки за Вашите клиенти.'
+                  : 'The Terminal plus membership in the Nexa network. Distribution via the newsletter, satellite sites and Topics Q&A. Team of 5 or 10 sub-seats for your clients.'}
+              </p>
+              <div className={styles.chooserPriceLine}>
+                <span className={styles.chooserApplyBased}>
+                  {isMk ? 'По апликација' : 'Application-based'}
+                </span>
+              </div>
+              <div className={styles.chooserSubline}>
+                {isMk ? 'Оценуваме секоја кандидатура индивидуално' : 'We review each application individually'}
+              </div>
+              <span className={styles.chooserCta}>
+                {isMk ? 'Аплицирајте' : 'Apply'} <span aria-hidden>→</span>
+              </span>
+            </Link>
           </div>
 
           <p className={styles.footnote}>{t('pricing.footnote')}</p>

@@ -67,13 +67,28 @@ const DURATION_DAYS = Object.freeze({
 // shown intent (clicked Subscribe / Email-Invoice) but hasn't paid yet.
 const GRACE_DAYS = 3;
 
-// EUR prices per the public pricing page, using 9-ending psychological pricing.
+// EUR prices per the public pricing page (Nexa 3.0).
+// Quarterly ≈ 14–16% off three months of monthly.
+// Annual    ≈ 22–24% off twelve months of monthly.
 const PLAN_PRICES = Object.freeze({
-  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
-  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
-  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
+  standard: { monthly: 19, quarterly: 49,  annual: 179 },
+  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
+  admin_10: { monthly: 59, quarterly: 149, annual: 549 }
 });
 const PLAN_CURRENCY = 'EUR';
+
+// Public-facing tier labels (Nexa 3.0). Server-side keys above remain stable;
+// only these labels are user-visible.
+const PLAN_LABELS = Object.freeze({
+  standard: { mk: 'Nexa Платформа',       en: 'Nexa Platform' },
+  admin_5:  { mk: 'Nexa Мрежа · Кантора', en: 'Nexa Network · Kantora' },
+  admin_10: { mk: 'Nexa Мрежа · Студио',  en: 'Nexa Network · Studio' }
+});
+const labelForPlan = (plan, lang = 'mk') => {
+  const l = PLAN_LABELS[plan];
+  if (!l) return plan;
+  return (lang === 'en' ? l.en : l.mk) || l.mk;
+};
 
 // Reminder cadence (days before endsAt, negative number = days remaining).
 const REMINDER_SCHEDULE = Object.freeze({
@@ -120,6 +135,9 @@ module.exports = {
   DURATION_DAYS,
   GRACE_DAYS,
   PLAN_PRICES,
+  PLAN_CURRENCY,
+  PLAN_LABELS,
+  labelForPlan,
   REMINDER_SCHEDULE,
   PRACTICE_AREAS,
   isPlatformAdmin,

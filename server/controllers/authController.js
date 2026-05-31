@@ -45,7 +45,23 @@ class AuthController {
       isVerified: user.isVerified,
       mustChangePassword: user.mustChangePassword === true,
       parentSuperUserId: user.parentSuperUserId || null,
-      intendedPlan: user.intendedPlan || null
+      intendedPlan: user.intendedPlan || null,
+      needsTierOnboarding: user.needsTierOnboarding === true,
+      superUser: user.superUser ? {
+        // Surface fields the frontend needs without exposing back-office config.
+        practiceAreas: user.superUser.practiceAreas || [],
+        cities: user.superUser.cities || []
+      } : undefined,
+      // ⚠️ Tier-resolution dependency: lib/tier.js → effectiveTier(user) reads
+      // user.subscription?.plan and user.subscription?.status. Without these
+      // fields, paid Admin · 5 / · 10 users get bucketed into Type A and the
+      // Blogs / Leads / SubUsers / Topics Q&A sidebar entries stay hidden.
+      subscription: user.subscription ? {
+        status: user.subscription.status || null,
+        plan:   user.subscription.plan   || null,
+        cycle:  user.subscription.cycle  || null,
+        endsAt: user.subscription.endsAt || null
+      } : null
     };
   }
 
@@ -238,6 +254,9 @@ class AuthController {
         password: hashedPassword,
         role: intendedRole,
         intendedPlan: planChoice,
+        // First-look modal asks the user which tier they want to evaluate during
+        // the trial. Set on every new signup; cleared once the modal is dismissed.
+        needsTierOnboarding: true,
         referredBy: referredByCode,
         companyInfo: {
           companyName: '',
@@ -459,18 +478,19 @@ class AuthController {
         return res.status(404).json({ valid: false, message: 'User not found' });
       }
 
-      // Return complete user data including companyInfo
+      // Return the complete user object via the shared formatter so this
+      // endpoint stays in lockstep with /auth/login, /users/profile, etc.
+      // ⚠️ DO NOT INLINE FIELDS HERE. The Sidebar tier predicates depend on
+      // `subscription.plan`, `subscription.status`, `intendedPlan`, and
+      // `role` — any missing field collapses the user to Type A and hides
+      // Blogs / Leads / Topics Q&A / Sub Users on every route except the
+      // ones that explicitly call refreshUser().
       res.json({
         valid: true,
         user: {
-          id: fullUser._id,
-          username: fullUser.username,
-          email: fullUser.email,
-          role: fullUser.role,
-          isAdmin: fullUser.isAdmin,
-          isVerified: fullUser.isVerified,
-          profileComplete: fullUser.profileComplete,
-          companyInfo: fullUser.companyInfo,
+          ...this.formatUserResponse(fullUser),
+          // Legacy fields kept for back-compat with callers that may still
+          // read these directly from the validate response.
           companyManager: fullUser.companyManager,
           officialEmail: fullUser.officialEmail,
           verificationStatus: fullUser.verificationStatus

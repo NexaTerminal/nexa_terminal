@@ -4,6 +4,7 @@ const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
 const legalDataHunter = require('./LegalDataHunterService');
+const StancePreferencesService = require('../services/stancePreferencesService');
 
 /**
  * ChatBotService - Core RAG chatbot service for legal document Q&A
@@ -53,8 +54,9 @@ class ChatBotService {
       console.error('⚠️  Failed to connect to Qdrant:', err.message);
     });
 
-    // System prompt template for legal Q&A - Nexa Terminal SaaS Platform
-    this.systemPromptTemplate = `# NEXA TERMINAL - Правен AI Асистент
+    // System prompt template for legal Q&A - Nexa Terminal SaaS Platform.
+    // {stancePrefix} renders the user's Stance Preferences (or "" if unset).
+    this.systemPromptTemplate = `{stancePrefix}# NEXA TERMINAL - Правен AI Асистент
 
 Вие сте AI асистент за правни информации интегриран во **Nexa Terminal** - македонска SaaS платформа за автоматизација на деловни документи.
 
@@ -561,6 +563,22 @@ EU или меѓународна перспектива се додава САМ
    * @param {string} conversationId - Conversation ID (optional, for conversation history)
    * @returns {Promise<Object>} - Response with answer and sources
    */
+  /**
+   * Build the Stance Preferences prefix for this user. Uses this.db, which
+   * is set at server startup via setDatabase(). Returns '' on any miss —
+   * never blocks a chat.
+   */
+  async _getStancePrefix(userId) {
+    try {
+      if (!this.db || !userId) return '';
+      const svc = new StancePreferencesService(this.db);
+      return await svc.getPrefix(userId);
+    } catch (e) {
+      console.warn('[chatbot] stance prefix lookup failed:', e.message);
+      return '';
+    }
+  }
+
   async askQuestion(question, userId, conversationId = null) {
     try {
       // Validate inputs
@@ -614,10 +632,13 @@ EU или меѓународна перспектива се додава САМ
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Step 6: Execute the chain
+      // Step 6: Execute the chain. Stance preferences are injected as a
+      // structured prefix above the system prompt — empty string if unset.
+      const stancePrefix = await this._getStancePrefix(userId);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
+        stancePrefix,
         context: context,
         question: enhancedQuestion,
       });
@@ -1097,9 +1118,11 @@ EU или меѓународна перспектива се додава САМ
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Stream tokens
+      // Stream tokens. Stance prefix injected once at the top.
+      const stancePrefix = await this._getStancePrefix(userId);
       let fullResponse = '';
       const stream = await chain.stream({
+        stancePrefix,
         context: context,
         question: enhancedQuestion,
       });

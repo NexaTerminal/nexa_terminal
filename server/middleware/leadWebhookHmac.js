@@ -1,4 +1,11 @@
 /**
+ * ⚠️  NEXA 3.0 NOTE — Unused in the v3 Inquiry Board flow (see Nexa_3.0.docx §7).
+ *
+ * v3 is operator-curated. Martin posts inquiries manually via the admin UI
+ * (POST /api/admin/inquiries). The HMAC webhook below is preserved for any
+ * external clients still posting to /api/leads/inbound, but no satellite
+ * integration uses it under the v3 contract.
+ *
  * HMAC verification for the inbound lead webhook.
  *
  * Each satellite site has its own shared secret in env:

@@ -430,3 +430,118 @@
 @media (max-width: 420px) {
   .flowSteps { grid-template-columns: 1fr; gap: 20px; }
 }
+
+/* ============================================================
+   Nexa 3.0 — two-card public chooser
+   ============================================================ */
+.chooserCards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 920px;
+  margin: 0 auto 40px;
+}
+@media (max-width: 768px) {
+  .chooserCards { grid-template-columns: 1fr; max-width: 480px; }
+}
+
+.chooserCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--nx-line);
+  border-radius: var(--nx-r-xl);
+  padding: 36px 32px 28px;
+  text-decoration: none !important;
+  color: inherit !important;
+  box-shadow: var(--nx-shadow-1);
+  transition: transform 160ms var(--nx-ease), box-shadow 160ms var(--nx-ease), border-color 160ms var(--nx-ease);
+}
+.chooserCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(30, 77, 183, 0.30);
+  box-shadow: var(--nx-shadow-2);
+}
+.chooserCardAccent {
+  background: linear-gradient(180deg, #FFFFFF 0%, var(--nx-bg-tint) 100%);
+  border-color: rgba(30, 77, 183, 0.25);
+  box-shadow: 0 8px 28px rgba(30, 77, 183, 0.10);
+}
+.chooserTag {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nx-primary-500, #1e4db7);
+  padding: 4px 10px;
+  background: var(--nx-bg-tint, #F4F7FB);
+  border-radius: 999px;
+}
+.chooserCardTitle {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--nx-ink, #0B1220);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.chooserCardBody {
+  font-size: 15px;
+  color: var(--nx-text-soft, #475569);
+  line-height: 1.6;
+  margin: 0;
+}
+.chooserPriceLine {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 8px;
+  color: var(--nx-ink, #0B1220);
+}
+.chooserCurrency {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 8px;
+  align-self: flex-start;
+}
+.chooserPriceNum {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.chooserPriceSuffix {
+  font-size: 14px;
+  color: var(--nx-muted, #64748b);
+  margin-left: 4px;
+  font-weight: 500;
+}
+.chooserApplyBased {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nx-ink, #0B1220);
+  letter-spacing: -0.005em;
+}
+.chooserSubline {
+  font-size: 13px;
+  color: var(--nx-muted, #64748b);
+  margin-top: -4px;
+}
+.chooserCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nx-line, #e5e7eb);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nx-primary-500, #1e4db7);
+  transition: gap 160ms var(--nx-ease), color 160ms var(--nx-ease);
+}
+.chooserCard:hover .chooserCta { gap: 10px; color: var(--nx-primary-700, #173a8a); }

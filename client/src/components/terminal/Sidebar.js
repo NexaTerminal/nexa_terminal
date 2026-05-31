@@ -6,10 +6,26 @@ import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers } fro
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
- * Nexa 3.0 sidebar — declarative config drives every group.
- * Each group has either `path` (leaf link) or `children` (collapsible submenu).
- * Visibility per group is controlled by the `visible(user)` predicate.
+ * Nexa 3.0 sidebar — three semantic sections (РАБОТА / МРЕЖА / РЕСУРСИ),
+ * each group is either a leaf link or a collapsible submenu with a
+ * right-side hover flyout when collapsed.
  */
+
+// Lightweight inline SVG icons (stroke-only, currentColor) — no library.
+const Icon = ({ name }) => {
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'home':       return (<svg {...common}><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>);
+    case 'doc':        return (<svg {...common}><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>);
+    case 'check':      return (<svg {...common}><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>);
+    case 'ai':         return (<svg {...common}><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M5.5 18.5l2-2M16.5 7.5l2-2"/></svg>);
+    case 'book':       return (<svg {...common}><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 7h6M9 11h6"/></svg>);
+    case 'pencil':     return (<svg {...common}><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg>);
+    case 'inbox':      return (<svg {...common}><path d="M3 13h5l1 3h6l1-3h5"/><path d="M3 13V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/></svg>);
+    case 'qa':         return (<svg {...common}><path d="M21 12a9 9 0 1 1-3.5-7.1"/><path d="M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>);
+    default: return null;
+  }
+};
 
 const Sidebar = () => {
   const { t } = useTranslation();
@@ -18,100 +34,85 @@ const Sidebar = () => {
   const [openGroups, setOpenGroups] = useState({});
   const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
-  // ── User-facing groups (Type A/B/C/sub-seat) ────────────────────────────
-  const userGroups = [
+  // ── Sections — each contains its own ordered list of groups ─────────────
+  const userSections = [
     {
-      key: 'dashboard',
-      label: 'Dashboard', path: '/terminal',
-      labelMk: 'Контролна табла'
-    },
-    {
-      key: 'documents',
-      label: 'Документи',
-      defaultOpen: true,
-      children: [
-        { path: '/terminal/documents',     label: 'Автоматизирани документи' },
-        { path: '/terminal/my-templates',  label: 'Мои шаблони' }
+      key: 'work',
+      label: 'Работа',
+      items: [
+        { key: 'dashboard', icon: 'home', label: 'Контролна табла', path: '/terminal' },
+        {
+          key: 'documents', icon: 'doc', label: 'Документи',
+          children: [
+            { path: '/terminal/documents',    label: 'Автоматизирани документи' },
+            { path: '/terminal/my-templates', label: 'Мои шаблони' }
+          ]
+        },
+        {
+          key: 'screening', icon: 'check', label: 'Проверки',
+          children: [
+            { path: '/terminal/legal-screening',     label: 'Правен' },
+            { path: '/terminal/marketing-screening', label: 'Маркетинг' },
+            { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
+            { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
+          ]
+        },
+        {
+          key: 'nexaai', icon: 'ai', label: 'Nexa AI',
+          children: [
+            { path: '/terminal/ai-chat',           label: 'Правен AI' },
+            { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
+            { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
+            { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+          ]
+        }
       ]
     },
     {
-      key: 'screening',
-      label: 'Проверки',
-      defaultOpen: true,
-      children: [
-        { path: '/terminal/legal-screening',     label: 'Правен' },
-        { path: '/terminal/marketing-screening', label: 'Маркетинг' },
-        { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
-        { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
+      key: 'network',
+      label: 'Вмрежување и можности',
+      items: [
+        {
+          key: 'blogs', icon: 'pencil', label: 'Објави блог', visible: showsBlogs,
+          children: [
+            { path: '/terminal/blogs/submit',         label: 'Поднеси прилог' },
+            { path: '/terminal/blogs/my-submissions', label: 'Мои поднесувања' },
+            { path: '/terminal/blogs/published',      label: 'Објавени' }
+          ]
+        },
+        {
+          key: 'leads', icon: 'inbox', label: 'Случаи', visible: showsLeads,
+          children: [
+            { path: '/terminal/leads',                 label: 'Интерна табла' },
+            { path: '/terminal/leads?tab=claims',      label: 'Мои изразени интереси' },
+            { path: '/terminal/leads?tab=engagements', label: 'Мои ангажмани' }
+          ]
+        },
+        {
+          key: 'topicsqa', icon: 'qa', label: 'Topics Q&A', visible: showsTopicsQA,
+          children: [
+            { path: '/terminal/topics-qa',               label: 'Отворени прашања' },
+            { path: '/terminal/topics-qa?tab=mine',      label: 'Мои одговори' },
+            { path: '/terminal/topics-qa?tab=published', label: 'Објавени' }
+          ]
+        }
       ]
     },
     {
-      key: 'education',
-      label: 'Едукација', path: '/terminal/education',
-      defaultOpen: true
-    },
-    {
-      key: 'nexaai',
-      label: 'Nexa AI',
-      defaultOpen: true,
-      children: [
-        { path: '/terminal/ai-chat',           label: 'Правен AI' },
-        { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
-        { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
-        { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+      key: 'resources',
+      label: 'Ресурси',
+      items: [
+        { key: 'education', icon: 'book', label: 'Курсеви', path: '/terminal/education' }
       ]
-    },
-    // ── B/C surfaces ──────────────────────────────────────────────────────
-    {
-      key: 'blogs',
-      label: 'Блогови',
-      visible: showsBlogs,
-      children: [
-        { path: '/terminal/blogs/submit',          label: 'Поднеси прилог' },
-        { path: '/terminal/blogs/my-submissions',  label: 'Мои поднесувања' },
-        { path: '/terminal/blogs/published',       label: 'Објавени' }
-      ]
-    },
-    {
-      key: 'leads',
-      label: 'Барања',
-      visible: showsLeads,
-      children: [
-        { path: '/terminal/leads',                   label: 'Интерна табла' },
-        { path: '/terminal/leads?tab=claims',        label: 'Мои изразени интереси' },
-        { path: '/terminal/leads?tab=engagements',   label: 'Мои ангажмани' }
-      ]
-    },
-    {
-      key: 'topicsqa',
-      label: 'Topics Q&A',
-      visible: showsTopicsQA,
-      children: [
-        { path: '/terminal/topics-qa',                 label: 'Отворени прашања' },
-        { path: '/terminal/topics-qa?tab=mine',        label: 'Мои одговори' },
-        { path: '/terminal/topics-qa?tab=published',   label: 'Објавени' }
-      ]
-    },
-    {
-      key: 'subusers',
-      label: 'Под-сметки',
-      visible: showsSubUsers,
-      children: [
-        { path: '/terminal/team',                  label: 'Активни сметки' },
-        { path: '/terminal/team?tab=invitations',  label: 'Покани' },
-        { path: '/terminal/team?tab=revoked',      label: 'Поништени' }
-      ]
-    },
-    // Account/Profile/Billing live in the Header profile dropdown (top-right),
-    // not in the sidebar. See client/src/components/common/Header.js.
+    }
+    // Account, Billing, Password, and Под-сметки live in the Header profile
+    // dropdown — see client/src/components/common/Header.js
   ];
 
-  // ── Admin (Martin) groups — kept as-is from the existing sidebar plus
-  // two new placeholders for Inquiries and Topics worklist (per prompt 02).
+  // ── Admin section (Martin) — kept flat, simple, no icons (utility role) ─
   const adminMenuItems = [
     {
-      key: 'blogs-admin',
-      label: 'Блогови',
+      key: 'blogs-admin', label: 'Блогови',
       children: [
         { path: '/terminal/admin/blogs',         label: 'Управувај блогови' },
         { path: '/terminal/admin/blogs/add',     label: 'Додади блог' },
@@ -119,16 +120,14 @@ const Sidebar = () => {
       ]
     },
     {
-      key: 'users-admin',
-      label: 'Корисници',
+      key: 'users-admin', label: 'Корисници',
       children: [
         { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
         { path: '/terminal/admin/subscriptions', label: 'Претплати' }
       ]
     },
     {
-      key: 'marketplace-admin',
-      label: 'Маркетплејс',
+      key: 'marketplace-admin', label: 'Маркетплејс',
       children: [
         { path: '/terminal/admin/leads',             label: 'Клиенти' },
         { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
@@ -136,35 +135,31 @@ const Sidebar = () => {
       ]
     },
     {
-      key: 'inquiries-admin',
-      label: 'Управување со барања',
+      key: 'inquiries-admin', label: 'Управување со барања',
       children: [
         { path: '/terminal/admin/inquiries',     label: 'Преглед на сите' },
         { path: '/terminal/admin/inquiries/new', label: 'Внеси ново барање' }
       ]
     },
     {
-      key: 'topics-admin',
-      label: 'Topics — работна листа',
+      key: 'topics-admin', label: 'Topics — работна листа',
       children: [
         { path: '/terminal/admin/topics/worklist',     label: 'Работна листа' },
         { path: '/terminal/admin/topics/worklist/new', label: 'Нова тема' },
         { path: '/terminal/admin/topics/submissions',  label: 'Поднесени Q&A' }
       ]
     },
-    { path: '/terminal/admin/chatbot',         label: 'Управување со Chatbot' }
+    { key: 'chatbot-admin', path: '/terminal/admin/chatbot', label: 'Управување со Chatbot' }
   ];
 
   // ── Render helpers ──────────────────────────────────────────────────────
   const isPathActive = (path) => {
     if (!path) return false;
-    // Strip query string when comparing against location.pathname.
     const cleanPath = path.split('?')[0];
     return location.pathname === cleanPath;
   };
 
   const renderGroup = (item) => {
-    // Visibility predicate (skip if hidden).
     if (item.visible && !item.visible(currentUser)) return null;
 
     // Leaf link.
@@ -175,48 +170,45 @@ const Sidebar = () => {
           to={item.path}
           className={`${styles['menu-item']} ${isPathActive(item.path) ? styles.active : ''}`}
         >
-          <h3>{item.label}</h3>
+          {item.icon && <span className={styles['menu-icon']}><Icon name={item.icon} /></span>}
+          <span className={styles['menu-label']}>{item.label}</span>
         </Link>
       );
     }
 
-    // Collapsible group. Default = collapsed (children visible only on hover
-    // as a right-side flyout). Clicking the group toggles inline expansion.
-    // A child being active auto-expands the parent so the active route is
-    // always visible.
+    // Collapsible group — closed by default, opens inline on click, child
+    // active auto-expands; hover reveals right-side flyout when collapsed.
     const childActive = item.children.some((c) => isPathActive(c.path));
-    const open = openGroups[item.key] !== undefined
-      ? openGroups[item.key]
-      : childActive;   // no more `defaultOpen` — fully collapsed on first load
+    const open = openGroups[item.key] !== undefined ? openGroups[item.key] : childActive;
 
     return (
       <div key={item.key} className={styles['menu-item-with-submenu']}>
-        <div
+        <button
+          type="button"
           className={`${styles['menu-item']} ${childActive ? styles.active : ''}`}
           onClick={() => toggleGroup(item.key)}
-          style={{ cursor: 'pointer' }}
         >
-          <h3>{item.label}</h3>
-          <span className={styles['submenu-arrow']}>{open ? '▼' : '▶'}</span>
-        </div>
-        {/* Inline children (always rendered when open — click-expanded) */}
+          {item.icon && <span className={styles['menu-icon']}><Icon name={item.icon} /></span>}
+          <span className={styles['menu-label']}>{item.label}</span>
+          <span className={`${styles['submenu-chevron']} ${open ? styles['submenu-chevron-open'] : ''}`} aria-hidden>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          </span>
+        </button>
+
         {open && (
           <div className={styles['submenu-inline']}>
             {item.children.map(({ path, label }) => (
               <Link
                 key={path}
                 to={path}
-                className={`${styles['submenu-item-inline']} ${
-                  isPathActive(path) ? styles.active : ''
-                }`}
+                className={`${styles['submenu-item-inline']} ${isPathActive(path) ? styles.active : ''}`}
               >
                 {label}
               </Link>
             ))}
           </div>
         )}
-        {/* Hover flyout — rendered always but visible only on parent :hover
-            when the group is NOT inline-expanded. Pure CSS, no JS state. */}
+
         {!open && (
           <div className={styles['submenu-flyout']}>
             <div className={styles['submenu-flyout-header']}>{item.label}</div>
@@ -224,9 +216,7 @@ const Sidebar = () => {
               <Link
                 key={path}
                 to={path}
-                className={`${styles['submenu-flyout-item']} ${
-                  isPathActive(path) ? styles.active : ''
-                }`}
+                className={`${styles['submenu-flyout-item']} ${isPathActive(path) ? styles.active : ''}`}
               >
                 {label}
               </Link>
@@ -240,13 +230,23 @@ const Sidebar = () => {
   return (
     <aside className={styles['dashboard-sidebar']}>
       <nav className={styles['dashboard-menu']}>
-        {userGroups.map(renderGroup)}
+        {userSections.map((section) => {
+          // Hide entire section if every item is filtered out by visible()
+          const anyVisible = section.items.some(
+            (i) => !i.visible || i.visible(currentUser)
+          );
+          if (!anyVisible) return null;
+          return (
+            <div key={section.key} className={styles['nav-section']}>
+              <div className={styles['nav-section-label']}>{section.label}</div>
+              {section.items.map(renderGroup)}
+            </div>
+          );
+        })}
 
         {currentUser?.role === 'admin' && (
           <div className={styles['admin-section']}>
-            <div className={styles['section-divider']}>
-              {t('dashboard.adminSection')}
-            </div>
+            <div className={styles['nav-section-label']}>{t('dashboard.adminSection')}</div>
             {adminMenuItems.map(renderGroup)}
           </div>
         )}

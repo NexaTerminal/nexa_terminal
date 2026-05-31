@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
-import ProfileReminderBanner from '../../components/terminal/ProfileReminderBanner';
 import { listTemplates, deleteTemplate, duplicateTemplate, publishTemplate, unpublishTemplate } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/MyTemplates.module.css';
 
@@ -107,8 +106,6 @@ const MyTemplates = () => {
         <Sidebar />
 
         <main className={styles.dashboardMain}>
-          <ProfileReminderBanner />
-
           <div className={styles.pageHeader}>
             <div className={styles.headerLeft}>
               <h1 className={styles.pageTitle}>Мои шаблони</h1>

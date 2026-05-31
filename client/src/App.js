@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { trackPageView } from './utils/analytics';
 
 // Public pages
@@ -105,7 +105,6 @@ import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
 // Header profile dropdown (Профил / Сметка / Сметководство / Лозинка).
 import UserSubscription from './pages/terminal/UserSubscription';
 import UserBilling      from './pages/terminal/UserBilling';
-import User from './pages/terminal/User';
 import AIChat from './pages/terminal/AIChat';
 import MarketingAIChat from './pages/terminal/MarketingAIChat';
 import ContractAnalysis from './pages/terminal/ContractAnalysis';
@@ -298,8 +297,8 @@ function App() {
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
       <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
-      {/* /terminal/profile route removed — Header dropdown points to /verification, /subscription, /billing, /user */}
-      <Route path="/terminal/user" element={<PrivateRoute><User /></PrivateRoute>} />
+      {/* /terminal/user merged into /terminal/subscription (Сметка + Лозинка) */}
+      <Route path="/terminal/user" element={<Navigate to="/terminal/subscription" replace />} />
       <Route path="/terminal/subscription" element={<PrivateRoute><UserSubscription /></PrivateRoute>} />
       <Route path="/terminal/billing"      element={<PrivateRoute><UserBilling /></PrivateRoute>} />
       <Route path="/terminal/verification" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />

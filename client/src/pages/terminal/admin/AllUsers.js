@@ -163,6 +163,14 @@ export default function AllUsers() {
                         <button className={styles.btnGhost} onClick={(e) => { e.stopPropagation(); setDetail(u._id); }}>
                           Управувај
                         </button>
+                        <a
+                          className={styles.btnGhost}
+                          href={`/terminal/billing?user=${u._id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ marginLeft: 6, textDecoration: 'none' }}
+                        >
+                          Сметководство
+                        </a>
                       </td>
                     </tr>
                   );

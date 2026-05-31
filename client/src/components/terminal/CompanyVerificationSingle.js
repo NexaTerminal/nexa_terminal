@@ -31,10 +31,6 @@ const CompanyVerificationSingle = () => {
   const [success, setSuccess] = useState('');
 
   // Company code join UI state
-  const [showJoinUI, setShowJoinUI] = useState(false);
-  const [joinCode, setJoinCode] = useState('');
-  const [joinLoading, setJoinLoading] = useState(false);
-  const [joinError, setJoinError] = useState('');
 
   // Regenerate code state
   const [regenLoading, setRegenLoading] = useState(false);
@@ -221,32 +217,9 @@ const CompanyVerificationSingle = () => {
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      if (error.code === 'TAX_NUMBER_CONFLICT') {
-        setShowJoinUI(true);
-      } else {
-        setError(error.message || 'Грешка при ажурирање на профилот.');
-      }
+      setError(error.message || 'Грешка при ажурирање на профилот.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleJoinCompany = async () => {
-    setJoinError('');
-    if (!joinCode || !/^\d{5}$/.test(joinCode.trim())) {
-      setJoinError('Кодот мора да содржи точно 5 цифри.');
-      return;
-    }
-    setJoinLoading(true);
-    try {
-      const response = await ApiService.joinCompany(joinCode.trim());
-      await refreshUser();
-      setShowJoinUI(false);
-      setSuccess(`Успешно се приклучивте на компанијата "${response.companyName}"!`);
-    } catch (error) {
-      setJoinError(error.message || 'Невалиден код. Обидете се повторно.');
-    } finally {
-      setJoinLoading(false);
     }
   };
 
@@ -419,41 +392,6 @@ const CompanyVerificationSingle = () => {
         </div>
       )}
 
-      {/* Join company UI — shown when tax number conflict detected */}
-      {showJoinUI && (
-        <div className={styles.section} style={{marginBottom: '1.5rem', padding: '1rem', background: '#fffbeb', borderRadius: '8px', border: '1px solid #fde68a'}}>
-          <h3 style={{margin: '0 0 0.5rem', color: '#92400e'}}>Компанијата веќе постои</h3>
-          <p style={{margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#92400e'}}>
-            Компанија со овој даночен број е веќе регистрирана. Ако сте вработен, внесете го кодот добиен од администраторот на компанијата.
-          </p>
-          {joinError && <div className={styles.error} style={{marginBottom: '0.5rem'}}>{joinError}</div>}
-          <div style={{display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap'}}>
-            <input
-              type="text"
-              maxLength={5}
-              placeholder="12345"
-              value={joinCode}
-              onChange={e => setJoinCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
-              style={{width: '100px', fontSize: '1.2rem', letterSpacing: '0.2em', textAlign: 'center', padding: '0.4rem', borderRadius: '6px', border: '1px solid #d1d5db'}}
-            />
-            <button
-              type="button"
-              onClick={handleJoinCompany}
-              disabled={joinLoading}
-              className={styles.saveButton}
-            >
-              {joinLoading ? 'Поврзува...' : 'Приклучи се'}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setShowJoinUI(false); setJoinCode(''); setJoinError(''); }}
-              className={styles.backButton}
-            >
-              Откажи
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Comprehensive form for verified users to update company info (not for linked members) */}
       {user?.isVerified && !user?.companyAdminId && (
@@ -617,32 +555,6 @@ const CompanyVerificationSingle = () => {
           </button>
         </div>
 
-        {/* Join existing company via code */}
-        <div style={{marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-          <h4 style={{margin: '0 0 0.4rem', fontSize: '0.95rem'}}>Вработен сте? Приклучете се на постоечка компанија</h4>
-          <p style={{margin: '0 0 0.75rem', fontSize: '0.82rem', color: '#64748b'}}>
-            Ако вашата компанија веќе е регистрирана во Nexa, побарајте го 5-цифрениот код од администраторот и внесете го тука.
-          </p>
-          {joinError && <div className={styles.error} style={{marginBottom: '0.5rem'}}>{joinError}</div>}
-          <div style={{display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap'}}>
-            <input
-              type="text"
-              maxLength={5}
-              placeholder="12345"
-              value={joinCode}
-              onChange={e => setJoinCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
-              style={{width: '90px', fontSize: '1.2rem', letterSpacing: '0.2em', textAlign: 'center', padding: '0.4rem', borderRadius: '6px', border: '1px solid #d1d5db'}}
-            />
-            <button
-              type="button"
-              onClick={handleJoinCompany}
-              disabled={joinLoading}
-              className={styles.saveButton}
-            >
-              {joinLoading ? 'Поврзува...' : 'Приклучи се'}
-            </button>
-          </div>
-        </div>
 
         {/* ============================================ */}
         {/* EMAIL VERIFICATION UI REMOVED (2025-11-29)   */}

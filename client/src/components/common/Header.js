@@ -4,6 +4,20 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
+import { showsSubUsers } from '../../lib/tier';
+
+// Inline SVG icons matching the sidebar style (stroke-only, currentColor).
+const DropdownIcon = ({ name }) => {
+  const c = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'building': return (<svg {...c}><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 21V11h4v10"/><path d="M8 7h2M8 11h2M8 15h2"/></svg>);
+    case 'card':     return (<svg {...c}><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>);
+    case 'receipt':  return (<svg {...c}><path d="M5 3h14v18l-3-2-3 2-3-2-3 2-2-1.5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>);
+    case 'users':    return (<svg {...c}><circle cx="9" cy="9" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 11a3 3 0 0 0 0-6"/><path d="M21 20a6 6 0 0 0-5-5.9"/></svg>);
+    case 'logout':   return (<svg {...c}><path d="M10 17l-5-5 5-5"/><path d="M5 12h12"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg>);
+    default: return null;
+  }
+};
 // import LanguageSwitcher from './LanguageSwitcher'; // DISABLED FOR NOW
 
 const Header = ({ isTerminal = false }) => {
@@ -264,7 +278,7 @@ const Header = ({ isTerminal = false }) => {
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
-              <span className={styles['dropdown-icon']}>🏢</span>
+              <span className={styles['dropdown-icon']}><DropdownIcon name="building" /></span>
               Профил
             </Link>
             <Link
@@ -272,7 +286,7 @@ const Header = ({ isTerminal = false }) => {
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
-              <span className={styles['dropdown-icon']}>💳</span>
+              <span className={styles['dropdown-icon']}><DropdownIcon name="card" /></span>
               Сметка
             </Link>
             <Link
@@ -280,17 +294,19 @@ const Header = ({ isTerminal = false }) => {
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
-              <span className={styles['dropdown-icon']}>📑</span>
+              <span className={styles['dropdown-icon']}><DropdownIcon name="receipt" /></span>
               Сметководство
             </Link>
-            <Link
-              to="/terminal/user"
-              className={styles['dropdown-item']}
-              onClick={() => setProfileDropdownOpen(false)}
-            >
-              <span className={styles['dropdown-icon']}>🔑</span>
-              Лозинка
-            </Link>
+            {showsSubUsers(currentUser) && (
+              <Link
+                to="/terminal/team"
+                className={styles['dropdown-item']}
+                onClick={() => setProfileDropdownOpen(false)}
+              >
+                <span className={styles['dropdown-icon']}><DropdownIcon name="users" /></span>
+                Корисници
+              </Link>
+            )}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -299,7 +315,7 @@ const Header = ({ isTerminal = false }) => {
               }}
               className={styles['dropdown-item']}
             >
-              <span className={styles['dropdown-icon']}>🚪</span>
+              <span className={styles['dropdown-icon']}><DropdownIcon name="logout" /></span>
               {t('common.logout')}
             </button>
           </div>

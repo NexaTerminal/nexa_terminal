@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import ApiService from '../../services/api';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import styles from './UserAccount.module.css';
 
@@ -25,10 +26,40 @@ const daysUntil = (d) => {
 };
 
 export default function UserSubscriptionPage() {
-  const { token, currentUser } = useAuth();
+  const { token, currentUser, setCurrentUser } = useAuth();
   const [sub, setSub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+
+  // ── Password / username change ─────────────────────────────────────────
+  const [creds, setCreds] = useState({ currentPassword: '', newUsername: '', newPassword: '', confirmPassword: '' });
+  const [credsBusy, setCredsBusy] = useState(false);
+  const [credsErr, setCredsErr] = useState('');
+  const [credsOk, setCredsOk] = useState('');
+
+  const onCredsChange = (e) => setCreds((s) => ({ ...s, [e.target.name]: e.target.value }));
+  const onCredsSubmit = async (e) => {
+    e.preventDefault();
+    setCredsErr(''); setCredsOk('');
+    if (creds.newPassword !== creds.confirmPassword) { setCredsErr('Новата лозинка и потврдата не се совпаѓаат.'); return; }
+    if (creds.newPassword && creds.newPassword.length < 6) { setCredsErr('Лозинката мора да има најмалку 6 карактери.'); return; }
+    setCredsBusy(true);
+    try {
+      const body = { currentPassword: creds.currentPassword };
+      if (creds.newUsername) body.username = creds.newUsername;
+      if (creds.newPassword) body.password = creds.newPassword;
+      await ApiService.request('/users/credentials', { method: 'PUT', body: JSON.stringify(body) });
+      setCredsOk('Корисничките податоци се успешно ажурирани.');
+      setCreds({ currentPassword: '', newUsername: '', newPassword: '', confirmPassword: '' });
+      const fresh = await ApiService.request('/users/profile');
+      if (fresh?.user) setCurrentUser(fresh.user);
+      setTimeout(() => setCredsOk(''), 3000);
+    } catch (ex) {
+      setCredsErr(ex.message || 'Настана грешка при ажурирање.');
+    } finally {
+      setCredsBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -138,6 +169,47 @@ export default function UserSubscriptionPage() {
             )}
           </>
         )}
+
+        {/* ── Password / username change ───────────────────────────────── */}
+        <section className={`${styles.panel} ${styles.passwordPanel}`}>
+          <div className={styles.panelHead}>Корисничко име и лозинка</div>
+          <p className={styles.lead} style={{ fontSize: 13.5, margin: '0 0 8px' }}>
+            Внесете ја тековната лозинка за да потврдите промени на корисничкото име или лозинката.
+          </p>
+          {credsErr && <div className={styles.toastError}>{credsErr}</div>}
+          {credsOk && <div className={styles.toastOk}>{credsOk}</div>}
+          <form className={styles.passwordForm} onSubmit={onCredsSubmit}>
+            <div className={styles.field}>
+              <label htmlFor="currentPassword">Тековна лозинка *</label>
+              <input id="currentPassword" name="currentPassword" type="password" required
+                value={creds.currentPassword} onChange={onCredsChange}
+                placeholder="За да потврдите промени, внесете ја тековната лозинка" />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="newUsername">Ново корисничко име</label>
+              <input id="newUsername" name="newUsername" type="text"
+                value={creds.newUsername} onChange={onCredsChange}
+                placeholder="Оставете празно ако не сакате да промените" />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="newPassword">Нова лозинка</label>
+              <input id="newPassword" name="newPassword" type="password" minLength={6}
+                value={creds.newPassword} onChange={onCredsChange}
+                placeholder="Минимум 6 карактери" />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="confirmPassword">Потврди нова лозинка</label>
+              <input id="confirmPassword" name="confirmPassword" type="password"
+                value={creds.confirmPassword} onChange={onCredsChange}
+                placeholder="Повторете ја новата лозинка" />
+            </div>
+            <div className={styles.actionRow}>
+              <button type="submit" className={styles.btnPrimary} disabled={credsBusy}>
+                {credsBusy ? 'Се ажурира…' : 'Зачувај промени'}
+              </button>
+            </div>
+          </form>
+        </section>
       </div>
     </TerminalShell>
   );

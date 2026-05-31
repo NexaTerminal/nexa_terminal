@@ -329,8 +329,13 @@
 }
 
 .dropdown-icon {
-  font-size: 1rem;
-  color: var(--color-text-tertiary); /* Muted icon color */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #64748b; /* Muted icon color */
+  flex-shrink: 0;
 }
 
 .dropdown-item:hover .dropdown-icon {

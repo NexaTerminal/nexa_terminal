@@ -349,6 +349,17 @@ async function initializeServices(database) {
     app.use('/api/admin/subscriptions', subscriptionRoutes.adminRoutes(subscriptionController));
     console.log('✅ /api/subscription + /api/admin/subscriptions mounted');
 
+    // Invoices (Сметководство) — user reads own, admin (Martin) does CRUD.
+    const InvoicesService    = require('./services/invoicesService');
+    const InvoicesController = require('./controllers/invoicesController');
+    const invoicesRoutes     = require('./routes/invoices');
+    const invoicesService    = new InvoicesService(database);
+    await invoicesService.ensureIndexes();
+    const invoicesController = new InvoicesController({ invoicesService });
+    app.use('/api/invoices',       invoicesRoutes.userRoutes(invoicesController));
+    app.use('/api/admin/invoices', invoicesRoutes.adminRoutes(invoicesController));
+    console.log('✅ /api/invoices + /api/admin/invoices mounted');
+
     // Leads pipeline — always mount.
     const LeadsService        = require('./services/leadsService');
     const LeadsController     = require('./controllers/leadsController');
@@ -602,6 +613,10 @@ function registerRoutes() {
     /^\/subscription\/.*$/,
     '/admin/subscriptions',
     /^\/admin\/subscriptions\/.*$/,
+    '/invoices',
+    /^\/invoices\/.*$/,
+    '/admin/invoices',
+    /^\/admin\/invoices\/.*$/,
     '/admin/leads',
     /^\/admin\/leads\/.*$/,
     '/admin-user',

@@ -74,3 +74,72 @@
 }
 .steps li::marker { color: #1e4db7; font-weight: 700; }
 .steps strong { color: #0B1220; }
+
+/* ============================================================
+   Invoices table (Сметководство)
+   ============================================================ */
+.invoiceTable {
+  width: 100%; border-collapse: collapse; font-size: 13.5px;
+}
+.invoiceTable thead th {
+  text-align: left; padding: 8px 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase;
+  color: #64748b; border-bottom: 1px solid #eef0f3;
+}
+.invoiceTable tbody td {
+  padding: 10px; border-bottom: 1px solid #f1f5f9; color: #0B1220;
+  vertical-align: middle;
+}
+.invoiceTable tbody tr:last-child td { border-bottom: none; }
+.invoiceTable .colAmount { font-weight: 600; white-space: nowrap; }
+.invoiceTable .colActions { width: 1%; white-space: nowrap; text-align: right; }
+.iconBtn {
+  appearance: none; background: transparent; border: 1px solid #e5e7eb;
+  border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #475569;
+  cursor: pointer; box-shadow: none; margin-left: 6px;
+}
+.iconBtn:hover { background: #f5f7fa; color: #0B1220; transform: none; box-shadow: none; }
+.iconBtnDanger { color: #B91C1C; border-color: #FECACA; }
+.iconBtnDanger:hover { background: #FEF2F2; color: #B91C1C; }
+
+/* Inline editor row */
+.editorRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 10px;
+  padding: 12px; border: 1px dashed #cbd5e1; border-radius: 8px;
+  background: #f8fafc;
+}
+.editorRow .field { display: flex; flex-direction: column; gap: 4px; }
+.editorRow label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: #64748b;
+}
+.editorRow input {
+  width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px;
+  font: inherit; font-size: 13.5px; color: #0B1220; box-sizing: border-box; background: #fff;
+}
+.editorRow input:focus { outline: none; border-color: #1e4db7; }
+.editorActions { display: flex; gap: 8px; justify-content: flex-end; }
+.btnSecondary {
+  appearance: none; background: #fff; border: 1px solid #e5e7eb; color: #0B1220;
+  border-radius: 8px; padding: 8px 14px; min-height: 0; font-size: 13px;
+  font-weight: 600; cursor: pointer; box-shadow: none;
+}
+.btnSecondary:hover { background: #f8fafc; border-color: #cbd5e1; transform: none; box-shadow: none; }
+.toastOk {
+  padding: 10px 14px; background: #ECFDF5; border: 1px solid #BBF7D0;
+  color: #15803D; border-radius: 8px; font-size: 13px;
+}
+
+/* Password section under subscription panel */
+.passwordPanel { margin-top: 14px; }
+.passwordForm { display: flex; flex-direction: column; gap: 12px; }
+.passwordForm .field { display: flex; flex-direction: column; gap: 5px; }
+.passwordForm label {
+  font-size: 12.5px; font-weight: 700; color: #0B1220; letter-spacing: -0.005em;
+}
+.passwordForm input {
+  width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  font: inherit; font-size: 14px; color: #0B1220; box-sizing: border-box; background: #fff;
+}
+.passwordForm input:focus { outline: none; border-color: #1e4db7; }

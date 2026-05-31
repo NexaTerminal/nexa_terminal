@@ -22,6 +22,11 @@ export function effectiveTier(user) {
   if (user.role === 'sub_seat') return 'A';
   if (user.subscription?.plan === 'admin_10') return 'C';
   if (user.subscription?.plan === 'admin_5')  return 'B';
+  // Fallback: a user with role=admin_user but missing/stale subscription data
+  // is at minimum tier B (admin_user implies an admin plan). Without this,
+  // a stale token or partial response collapses them to A and the
+  // Blogs / Leads / Sub-users sidebar entries disappear.
+  if (user.role === 'admin_user') return 'B';
   return 'A';
 }
 
@@ -32,6 +37,8 @@ export function isTrial(user) {
 export function intendedTier(user) {
   if (user?.intendedPlan === 'admin_10') return 'C';
   if (user?.intendedPlan === 'admin_5')  return 'B';
+  // Trial user with role=admin_user (chose an admin tier at signup) — surface B.
+  if (user?.role === 'admin_user') return 'B';
   return 'A';
 }
 

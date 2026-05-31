@@ -20,6 +20,8 @@ function effectiveTier(user) {
   const plan = user.subscription?.plan;
   if (plan === 'admin_10') return 'C';
   if (plan === 'admin_5')  return 'B';
+  // Fallback: role=admin_user with missing/stale plan info → minimum B.
+  if (user.role === 'admin_user') return 'B';
   return 'A';
 }
 
@@ -30,6 +32,7 @@ function isTrial(user) {
 function intendedTier(user) {
   if (user?.intendedPlan === 'admin_10') return 'C';
   if (user?.intendedPlan === 'admin_5')  return 'B';
+  if (user?.role === 'admin_user') return 'B';
   return 'A';
 }
 

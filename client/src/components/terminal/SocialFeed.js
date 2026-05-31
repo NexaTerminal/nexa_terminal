@@ -309,27 +309,75 @@ const BlogCard = ({ blog, userId, onReact }) => {
   );
 };
 
-// ─── Tier B / C dashboard tiles (chassis only — prompts 04/05/06 wire counts) ──
-const BcTileRow = ({ tier }) => (
-  <section className={styles.bcTileRow} aria-label="Преглед">
-    <Link to="/terminal/leads" className={styles.bcTile}>
-      <div className={styles.bcTileLabel}>Барања оваа недела</div>
-      <div className={styles.bcTileValue}>0</div>
-      <div className={styles.bcTileSub}>нови во Вашата област</div>
-    </Link>
-    {tier === 'C' && (
-      <Link to="/terminal/topics-qa" className={styles.bcTile}>
-        <div className={styles.bcTileLabel}>Прашања на чекање</div>
-        <div className={styles.bcTileValue}>0</div>
-        <div className={styles.bcTileSub}>отворени за одговор</div>
+// ─── Tier B / C dashboard tiles ────────────────────────────────────────
+const BcTileRow = ({ tier }) => {
+  const { token } = useAuth();
+  const [inquiriesWeek, setInquiriesWeek] = useState(null);
+  const [topicsOpen,    setTopicsOpen]    = useState(null);
+  const [blogsMine,     setBlogsMine]     = useState(null);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    const auth = { headers: { Authorization: `Bearer ${token}` } };
+    const weekAgo = Date.now() - 7 * 86400000;
+
+    // Inquiries — count visible items published in the last 7 days.
+    fetch('/api/inquiries', auth)
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(data => {
+        if (cancelled) return;
+        const items = data?.items || [];
+        const recent = items.filter(i => {
+          const ts = new Date(i.publishedAt || i.createdAt || 0).getTime();
+          return ts >= weekAgo;
+        });
+        setInquiriesWeek(recent.length);
+      })
+      .catch(() => !cancelled && setInquiriesWeek(0));
+
+    // Topics worklist (only tier C sees this tile).
+    if (tier === 'C') {
+      fetch('/api/topics/worklist', auth)
+        .then(r => r.ok ? r.json() : { items: [] })
+        .then(data => !cancelled && setTopicsOpen((data?.items || []).length))
+        .catch(() => !cancelled && setTopicsOpen(0));
+    }
+
+    // User's own published blog count.
+    fetch('/api/blogs/submissions/published', auth)
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(data => !cancelled && setBlogsMine((data?.items || []).length))
+      .catch(() => !cancelled && setBlogsMine(0));
+
+    return () => { cancelled = true; };
+  }, [token, tier]);
+
+  const showValue = (n) => (n === null ? '…' : n);
+
+  return (
+    <section className={styles.bcTileRow} aria-label="Преглед">
+      <Link to="/terminal/leads" className={styles.bcTile}>
+        <div className={styles.bcTileLabel}>Барања оваа недела</div>
+        <div className={styles.bcTileValue}>{showValue(inquiriesWeek)}</div>
+        <div className={styles.bcTileSub}>нови во Вашата област</div>
       </Link>
-    )}
-    <Link to="/terminal/blogs" className={styles.bcTile}>
-      <div className={styles.bcTileLabel}>Ваши објави</div>
-      <div className={styles.bcTileValue}>—</div>
-      <div className={styles.bcTileSub}>поднесете прв прилог →</div>
-    </Link>
-  </section>
-);
+      {tier === 'C' && (
+        <Link to="/terminal/topics-qa" className={styles.bcTile}>
+          <div className={styles.bcTileLabel}>Прашања на чекање</div>
+          <div className={styles.bcTileValue}>{showValue(topicsOpen)}</div>
+          <div className={styles.bcTileSub}>отворени за одговор</div>
+        </Link>
+      )}
+      <Link to="/terminal/blogs" className={styles.bcTile}>
+        <div className={styles.bcTileLabel}>Ваши објави</div>
+        <div className={styles.bcTileValue}>{blogsMine === null ? '…' : (blogsMine || '—')}</div>
+        <div className={styles.bcTileSub}>
+          {blogsMine ? 'објавени прилози' : 'поднесете прв прилог →'}
+        </div>
+      </Link>
+    </section>
+  );
+};
 
 export default SocialFeed;

@@ -85,6 +85,9 @@ import HealthAndSafetyQuestionnaire from './pages/terminal/lhc/HealthAndSafetyQu
 import HealthAndSafetyReport from './pages/terminal/lhc/HealthAndSafetyReport';
 import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
 import GDPRReport from './pages/terminal/lhc/GDPRReport';
+import ArchivesQuestionnaire from './pages/terminal/lhc/ArchivesQuestionnaire';
+import ArchivesReport from './pages/terminal/lhc/ArchivesReport';
+import AdminProInvoices from './pages/terminal/admin/AdminProInvoices';
 import GeneralQuestionnaire from './pages/terminal/lhc/GeneralQuestionnaire';
 import GeneralReport from './pages/terminal/lhc/GeneralReport';
 import MarketingQuestionnaire from './pages/terminal/mhc/MarketingQuestionnaire';
@@ -271,6 +274,8 @@ function App() {
       <Route path="/terminal/legal-screening/health-safety/report/:id" element={<PrivateRoute><VerificationRequired><HealthAndSafetyReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/gdpr" element={<PrivateRoute><VerificationRequired><GDPRQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired><GDPRReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/archives" element={<PrivateRoute><VerificationRequired><ArchivesQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/archives/report/:id" element={<PrivateRoute><VerificationRequired><ArchivesReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired><GeneralReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-screening" element={<PrivateRoute><VerificationRequired><MarketingQuestionnaire /></VerificationRequired></PrivateRoute>} />
@@ -370,6 +375,7 @@ function App() {
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
       <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />
+      <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
       <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />
       <Route path="/terminal/admin-user/leads" element={<PrivateRoute><LeadsInbox /></PrivateRoute>} />

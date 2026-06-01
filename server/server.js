@@ -341,13 +341,26 @@ async function initializeServices(database) {
       try { return require('./services/auditLoggingService'); } catch { return null; }
     })();
 
+    // Pro-invoice service (used by both subscription controller and admin UI).
+    const ProInvoicesService     = require('./services/proInvoicesService');
+    const ProInvoicesController  = require('./controllers/proInvoicesController');
+    const proInvoicesRoutes      = require('./routes/proInvoices');
+    const proInvoicesService     = new ProInvoicesService(database);
+    await proInvoicesService.ensureIndexes();
+    const proInvoicesController  = new ProInvoicesController({ proInvoicesService });
+    app.locals.proInvoicesService = proInvoicesService;
+
     const subscriptionController = new SubscriptionController({
-      subscriptionService, emailService, auditLoggingService
+      subscriptionService, emailService, auditLoggingService, proInvoicesService
     });
 
     app.use('/api/subscription',        subscriptionRoutes.userRoutes(subscriptionController));
     app.use('/api/admin/subscriptions', subscriptionRoutes.adminRoutes(subscriptionController));
     console.log('✅ /api/subscription + /api/admin/subscriptions mounted');
+
+    app.use('/api/pro-invoices',       proInvoicesRoutes.userRoutes(proInvoicesController));
+    app.use('/api/admin/pro-invoices', proInvoicesRoutes.adminRoutes(proInvoicesController));
+    console.log('✅ /api/pro-invoices + /api/admin/pro-invoices mounted');
 
     // Invoices (Сметководство) — user reads own, admin (Martin) does CRUD.
     const InvoicesService    = require('./services/invoicesService');
@@ -617,6 +630,10 @@ function registerRoutes() {
     /^\/invoices\/.*$/,
     '/admin/invoices',
     /^\/admin\/invoices\/.*$/,
+    '/pro-invoices',
+    /^\/pro-invoices\/.*$/,
+    '/admin/pro-invoices',
+    /^\/admin\/pro-invoices\/.*$/,
     '/admin/leads',
     /^\/admin\/leads\/.*$/,
     '/admin-user',

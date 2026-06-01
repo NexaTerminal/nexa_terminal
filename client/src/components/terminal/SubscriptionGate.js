@@ -41,7 +41,7 @@ const ALL_PLANS = ['standard', 'admin_5', 'admin_10'];
  * 3-day grace on first use; silently skips it after grace is consumed.
  */
 export default function SubscriptionGate() {
-  const { token, currentUser } = useAuth();
+  const { token, currentUser, setCurrentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [blockedInfo, setBlockedInfo] = useState(null);
   const [cycle, setCycle] = useState('monthly');
@@ -50,6 +50,12 @@ export default function SubscriptionGate() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+
+  // Company-details step (shown when companyInfo is incomplete at order time).
+  const [step, setStep] = useState('order'); // 'order' | 'company'
+  const [companyName,    setCompanyName]    = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [companyTax,     setCompanyTax]     = useState('');
 
   // Listen for global subscription:blocked events.
   useEffect(() => {
@@ -76,6 +82,12 @@ export default function SubscriptionGate() {
     :                                                   'standard';
     setPlan(defaultPlan);
     setEmail(currentUser?.email || '');
+    // Seed company-info fields from whatever is already on the user.
+    const ci = currentUser?.companyInfo || {};
+    setCompanyName(ci.companyName || '');
+    setCompanyAddress(ci.companyAddress || '');
+    setCompanyTax(ci.companyTaxNumber || '');
+    setStep('order');
   }, [open, blockedInfo, currentUser]);
 
   if (!open) return null;
@@ -93,19 +105,69 @@ export default function SubscriptionGate() {
 
   const cycleSuffix = cycle === 'monthly' ? '/ месец' : cycle === 'quarterly' ? '/ квартал' : '/ година';
 
-  const submit = async () => {
+  const companyInfoMissing = () => {
+    const ci = currentUser?.companyInfo || {};
+    return !ci.companyName || !ci.companyAddress || !ci.companyTaxNumber;
+  };
+
+  /**
+   * Step 1: Нарачај on the order screen. If buyer details are missing,
+   * advance to the company-details step. Otherwise submit directly.
+   */
+  const onOrder = () => {
     if (!plan) return;
     if (!userHasEmail && (!email || !email.includes('@'))) {
       setError('Внесете валидна е-пошта за да испратиме инструкции за уплата.');
       return;
     }
+    setError('');
+    if (companyInfoMissing()) {
+      setStep('company');
+      return;
+    }
+    submitOrder();
+  };
+
+  /**
+   * Step 2: persist company details (so future automated docs reuse them)
+   * and then place the order.
+   */
+  const submitCompanyAndOrder = async () => {
+    if (!companyName.trim() || !companyAddress.trim() || !companyTax.trim()) {
+      setError('Внесете назив на компанија, адреса и даночен број.');
+      return;
+    }
+    if (!/^\d{13}$/.test(companyTax.trim())) {
+      setError('Даночниот број мора да содржи точно 13 цифри.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      // Always go through request-invoice. Backend grants the 3-day grace
-      // automatically when the user is eligible (post-trial AND grace not yet
-      // used). If grace is already used, it just records the request without
-      // extending access — same single happy path either way.
+      const ci = currentUser?.companyInfo || {};
+      const payload = {
+        companyInfo: {
+          ...ci,
+          companyName: companyName.trim(),
+          companyAddress: companyAddress.trim(),
+          companyTaxNumber: companyTax.trim()
+        }
+      };
+      const res = await axios.put('/api/users/profile', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.user && setCurrentUser) setCurrentUser(res.data.user);
+      await submitOrder();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      setSubmitting(false);
+    }
+  };
+
+  const submitOrder = async () => {
+    setSubmitting(true);
+    setError('');
+    try {
       const body = { plan, cycle };
       if (!userHasEmail && email) body.billingEmail = email;
       else if (userHasEmail && email && email !== currentUser.email) body.billingEmail = email;
@@ -120,6 +182,9 @@ export default function SubscriptionGate() {
       setSubmitting(false);
     }
   };
+
+  // Back-compat: anything still calling `submit()` keeps working.
+  const submit = onOrder;
 
   const close = () => {
     setOpen(false);
@@ -143,6 +208,67 @@ export default function SubscriptionGate() {
             </p>
             <button className={styles.btnPrimary} onClick={close}>Затвори</button>
           </div>
+        ) : step === 'company' ? (
+          <>
+            <div className={styles.eyebrow}>Податоци за профактура</div>
+            <h2 className={styles.title}>Внесете податоци за компанијата</h2>
+            <p className={styles.lead}>
+              Овие податоци ќе бидат отпечатени на профактурата и ќе се чуваат за идните
+              автоматизирани документи и фактури.
+            </p>
+
+            <div className={styles.field}>
+              <label>Назив на компанија *</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="ДОО ПРИМЕР Скопје"
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>Адреса на компанија *</label>
+              <input
+                type="text"
+                value={companyAddress}
+                onChange={(e) => setCompanyAddress(e.target.value)}
+                placeholder="ул. Македонија бр. 1, Скопје"
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>Даночен број (13 цифри) *</label>
+              <input
+                type="text"
+                value={companyTax}
+                onChange={(e) => setCompanyTax(e.target.value.replace(/\D/g, '').slice(0, 13))}
+                placeholder="1234567890123"
+                maxLength={13}
+                inputMode="numeric"
+              />
+            </div>
+
+            {error && <div className={styles.error}>{error}</div>}
+
+            <button
+              type="button"
+              className={styles.btnOrder}
+              disabled={submitting}
+              onClick={submitCompanyAndOrder}
+            >
+              <span className={styles.btnOrderLabel}>
+                {submitting ? 'Се испраќа…' : 'Потврди и нарачај'}
+              </span>
+            </button>
+
+            <div className={styles.bottomActions}>
+              <button type="button" className={styles.btnText}
+                      onClick={() => { setStep('order'); setError(''); }}>
+                ← Назад
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div className={styles.eyebrow}>{headerTitle}</div>

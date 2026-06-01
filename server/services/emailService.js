@@ -458,15 +458,21 @@ class EmailService {
    * @param {string} subject - Email subject
    * @param {string} html - Email HTML content
    */
-  async sendEmail(to, subject, html) {
+  async sendEmail(to, subject, html, options = {}) {
+    // `options.attachments` is an array of { filename, content (Buffer) }.
+    // Forwarded to Resend's `attachments` field (base64-encoded internally)
+    // and to nodemailer's `attachments` field on Gmail fallback.
+    const attachments = Array.isArray(options.attachments) ? options.attachments : [];
+
     try {
       const resendClient = this.getResendClient();
-      
+
       if (!resendClient) {
         // Development mode without API key - simulate email sending
         console.log('📧 [DEV MODE] Email would be sent:');
         console.log(`To: ${to}`);
         console.log(`Subject: ${subject}`);
+        console.log(`Attachments: ${attachments.length}`);
         console.log(`HTML: ${html.substring(0, 200)}...`);
         return { success: true, mockSent: true };
       }
@@ -477,32 +483,45 @@ class EmailService {
         subject: subject,
         html: html
       };
+      if (attachments.length > 0) {
+        emailData.attachments = attachments.map(a => ({
+          filename: a.filename,
+          content: Buffer.isBuffer(a.content) ? a.content.toString('base64') : a.content
+        }));
+      }
 
       const result = await resendClient.emails.send(emailData);
       console.log('Email sent successfully via Resend:', result);
-      
+
       return { success: true, data: result };
     } catch (error) {
       console.error('Error sending email via Resend:', error);
-      
+
       // Try Gmail fallback
       const gmailTransporter = this.getGmailTransporter();
       if (gmailTransporter) {
         try {
-          const gmailResult = await gmailTransporter.sendMail({
+          const mailOptions = {
             from: 'terminalnexa@gmail.com',
             to: to,
             subject: subject,
             html: html
-          });
-          
+          };
+          if (attachments.length > 0) {
+            mailOptions.attachments = attachments.map(a => ({
+              filename: a.filename,
+              content: a.content
+            }));
+          }
+          const gmailResult = await gmailTransporter.sendMail(mailOptions);
+
           console.log('Email sent successfully via Gmail:', gmailResult);
           return { success: true, data: gmailResult };
         } catch (gmailError) {
           console.error('Gmail fallback also failed:', gmailError);
         }
       }
-      
+
       return { success: false, error: error.message };
     }
   }

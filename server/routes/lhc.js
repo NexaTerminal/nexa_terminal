@@ -8,6 +8,7 @@ const employmentPart4Controller = require('../controllers/lhc/employmentPart4Con
 const healthAndSafetyController = require('../controllers/lhc/healthAndSafetyController');
 const gdprController = require('../controllers/lhc/gdprController');
 const generalController = require('../controllers/lhc/generalController');
+const archivesController = require('../controllers/lhc/archivesController');
 const { authenticateJWT } = require('../middleware/auth');
 const { requireVerification } = require('../middleware/verification');
 const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
@@ -63,6 +64,12 @@ router.get('/general/questions', generalController.getQuestions);
 router.post('/general/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), generalController.evaluateCompliance);
 router.get('/general/history', generalController.getAssessmentHistory);
 router.get('/general/assessment/:id', generalController.getAssessmentById);
+
+// Archives Law Routes (Архивски и канцелариско работење)
+router.get('/archives/questions', archivesController.getQuestions);
+router.post('/archives/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), archivesController.evaluateCompliance);
+router.get('/archives/history', archivesController.getAssessmentHistory);
+router.get('/archives/assessment/:id', archivesController.getAssessmentById);
 
 // Future routes for other categories
 // router.get('/trade/questions', tradeController.getQuestions);

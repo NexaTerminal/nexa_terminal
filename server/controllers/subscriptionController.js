@@ -41,10 +41,11 @@ const rejectSchema = Joi.object({ reason: Joi.string().max(500).allow('', null) 
 const extendSchema = Joi.object({ days: Joi.number().integer().min(1).max(365).required() });
 
 class SubscriptionController {
-  constructor({ subscriptionService, emailService, auditLoggingService }) {
+  constructor({ subscriptionService, emailService, auditLoggingService, proInvoicesService }) {
     this.subscriptionService = subscriptionService;
     this.emailService = emailService;
     this.auditLoggingService = auditLoggingService;
+    this.proInvoicesService = proInvoicesService || null;
   }
 
   // ----------------- user-facing ----------------- //
@@ -119,20 +120,18 @@ class SubscriptionController {
         triggeredBy
       });
 
-      const lang = updated.language || 'mk';
       const recipientEmail = value.billingEmail || updated.email;
-      const tpl = subscriptionEmails.paymentInstructions(
-        {
-          name: updated.fullName || updated.username,
-          plan: value.plan,
-          cycle: value.cycle,
-          billingEmail: value.billingEmail,
-          triggeredBy
-        },
-        lang
-      );
-      this.emailService.sendEmail(recipientEmail, tpl.subject, tpl.html)
-        .catch(e => console.error('payment-instructions email failed:', e.message));
+      // Legacy "Инструкции за плаќање" email removed — the pro-invoice email
+      // (sent below) already contains the bank details, amount and PDF
+      // attachment, so a second message would just duplicate it.
+
+      // Generate & email pro-invoice PDF (skip admin platform users).
+      // Don't await — fire-and-log so a PDF/email failure never blocks the
+      // subscribe response.
+      if (this.proInvoicesService && updated.role !== 'admin' && recipientEmail) {
+        this._issueAndEmailProInvoice(updated, value, recipientEmail)
+          .catch(e => console.error('pro-invoice generation failed:', e.message));
+      }
 
       const adminTpl = subscriptionEmails.adminApprovalNeeded({
         userEmail: updated.email,
@@ -153,6 +152,37 @@ class SubscriptionController {
       console.error(`[subscription/${triggeredBy}] error:`, err);
       res.status(400).json({ success: false, message: err.message });
     }
+  }
+
+  /**
+   * Allocate a pro-invoice number, render the PDF, email it with the
+   * attachment, and record `emailedAt` on the invoice row.
+   * Called fire-and-forget from `_handleRequest`.
+   */
+  async _issueAndEmailProInvoice(user, requestValue, recipientEmail) {
+    const { renderProInvoicePdf } = require('../services/proInvoicePdf');
+    const { proInvoiceEmail }      = require('../emails/proInvoiceEmail');
+
+    const invoice = await this.proInvoicesService.createForUser(
+      user,
+      requestValue.plan,
+      requestValue.cycle,
+      requestValue.billingEmail || user.email
+    );
+
+    const pdfBuffer = await renderProInvoicePdf(invoice);
+    const { subject, html } = proInvoiceEmail(invoice);
+    const filename = `profaktura-${String(invoice.number).replace(/\//g, '-')}.pdf`;
+
+    const result = await this.emailService.sendEmail(recipientEmail, subject, html, {
+      attachments: [{ filename, content: pdfBuffer }]
+    });
+
+    if (result?.success) {
+      const messageId = result.data?.id || result.data?.messageId || null;
+      await this.proInvoicesService.markEmailed(invoice._id, messageId);
+    }
+    return invoice;
   }
 
   // ----------------- admin-facing ----------------- //

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
+import { canSubmitBlog, openSubscriptionGate } from '../../lib/tier';
 import styles from './BlogSubmissions.module.css';
 
 /* Status taxonomy on the server has a few legacy values from the old AI flow;
@@ -27,8 +28,14 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric'
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 export default function BlogsPage() {
-  const { token } = useAuth();
+  const { token, currentUser } = useAuth();
   const navigate = useNavigate();
+  const canSubmit = canSubmitBlog(currentUser);
+  const handleNewBlog = (e) => {
+    if (canSubmit.allowed) return; // let the <Link> navigate
+    e?.preventDefault();
+    openSubscriptionGate({ source: 'blogs/submit' });
+  };
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const [submissions, setSubmissions] = useState([]);
@@ -78,7 +85,7 @@ export default function BlogsPage() {
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <span className={styles.eyebrow}>Објави блог</span>
-            <Link to="/terminal/blogs/submit" className={styles.btnPrimary}>
+            <Link to="/terminal/blogs/submit" className={styles.btnPrimary} onClick={handleNewBlog}>
               + Напиши прилог
             </Link>
           </div>
@@ -114,7 +121,7 @@ export default function BlogsPage() {
           <div className={styles.toastError}>{err}</div>
         ) : items.length === 0 ? (
           <div className={styles.emptyState}>
-            Сè уште нема прилози. <Link to="/terminal/blogs/submit">Започнете прв прилог →</Link>
+            Сè уште нема прилози. <Link to="/terminal/blogs/submit" onClick={handleNewBlog}>Започнете прв прилог →</Link>
           </div>
         ) : (
           <div className={styles.cardGrid}>

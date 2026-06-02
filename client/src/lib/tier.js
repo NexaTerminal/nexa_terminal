@@ -88,8 +88,31 @@ export function subSeatLimit(user) {
   return 0;
 }
 
+/**
+ * Trial preview: a non-admin user inside the 8-day trial.
+ * Trial users see the B/C surfaces (Blogs/Leads/Topics) for evaluation —
+ * but every *action* is gated by the can* predicates and opens the gate.
+ */
+export function trialPreview(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return false;
+  return isTrial(user);
+}
+
+/**
+ * Dispatch the global "open SubscriptionGate" event. Used by trial-only
+ * click handlers to surface the order modal instead of taking the action.
+ */
+export function openSubscriptionGate(detail = {}) {
+  try {
+    window.dispatchEvent(new CustomEvent('subscription:blocked', {
+      detail: { code: 'TRIAL_PREVIEW', ...detail }
+    }));
+  } catch (_) { /* SSR / no window */ }
+}
+
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
-export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }
-export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }
-export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'; }
+export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || trialPreview(user); }
+export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || trialPreview(user); }
+export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'              || trialPreview(user); }
 export function showsSubUsers(user) { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }

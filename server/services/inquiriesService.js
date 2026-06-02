@@ -148,7 +148,11 @@ class InquiriesService {
   async listBoardFor(user) {
     await this._ensureIndexes();
     const tier = tierService.effectiveTier(user);
-    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN') return [];
+    // Trial users get a read-only preview of the board (cards are blurred on
+    // the client). They can't submit interest — that's enforced by
+    // canExpressInterest in the controller.
+    const isTrialPreview = tierService.isTrial(user) && tier !== 'ADMIN';
+    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN' && !isTrialPreview) return [];
 
     // Map the user's declared practiceAreas (kebab-case legal subcategories
     // from roles.js — 'labor-law', 'tax-accounting', etc.) onto the inquiry

@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import RequestTopicModal from '../../components/terminal/RequestTopicModal';
-import { isTrial, canRequestQATopic, visibleTier } from '../../lib/tier';
+import { isTrial, canRequestQATopic, visibleTier, openSubscriptionGate } from '../../lib/tier';
 import styles from './Topics.module.css';
 
 const STATUS_LABEL = {
@@ -59,8 +59,12 @@ export default function TopicsQAPage() {
   }, [tab, visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRequest = (topic) => {
-    if (trial) return;
-    if (!canRequestQATopic(currentUser).allowed) return;
+    const check = canRequestQATopic(currentUser);
+    if (!check.allowed) {
+      // Trial or non-C → open the order modal so the user can subscribe.
+      openSubscriptionGate({ source: 'topics-qa', reason: check.reason });
+      return;
+    }
     setModalFor(topic);
   };
 
@@ -128,7 +132,6 @@ export default function TopicsQAPage() {
                   <div className={styles.cardRow}>
                     <span style={{ flex: 1 }} />
                     <button type="button" className={styles.btnPrimary}
-                            disabled={trial || !canRequestQATopic(currentUser).allowed}
                             onClick={() => onRequest(t)}>
                       Побарајте отворање
                     </button>

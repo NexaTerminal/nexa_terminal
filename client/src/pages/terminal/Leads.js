@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import ExpressInterestModal from '../../components/terminal/ExpressInterestModal';
-import { isTrial, canExpressInterest, visibleTier } from '../../lib/tier';
+import { isTrial, canExpressInterest, visibleTier, trialPreview, openSubscriptionGate } from '../../lib/tier';
 import styles from './Inquiries.module.css';
 
 // Sample cards used for the trial-period masked preview.
@@ -44,6 +44,7 @@ export default function LeadsPage() {
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const trial = isTrial(currentUser);
+  const previewMode = trialPreview(currentUser); // trial: see real cards, blurred
   const vt = visibleTier(currentUser);
   const isMember = vt === 'B' || vt === 'C' || vt === 'ADMIN';
 
@@ -57,23 +58,29 @@ export default function LeadsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    if (trial) {
-      // Trial users see sample cards only — no server calls.
-      setBoard(SAMPLE_CARDS); setClaims([]); setEngagements([]); setLoading(false);
-      return () => { cancelled = true; };
-    }
-    if (!isMember) { setLoading(false); return () => { cancelled = true; }; }
+    if (!isMember && !previewMode) { setLoading(false); return () => { cancelled = true; }; }
     setLoading(true);
-    Promise.all([
-      axios.get('/api/inquiries',     auth).then(r => r.data?.items || []).catch(() => []),
-      axios.get('/api/my-claims',     auth).then(r => r.data?.items || []).catch(() => []),
-      axios.get('/api/my-engagements',auth).then(r => r.data?.items || []).catch(() => [])
-    ]).then(([b, c, e]) => {
+    const tasks = [
+      axios.get('/api/inquiries', auth).then(r => r.data?.items || []).catch(() => [])
+    ];
+    // Trial preview only fetches the board — claims/engagements are
+    // never created during trial since users can't submit interest.
+    if (!previewMode) {
+      tasks.push(
+        axios.get('/api/my-claims',     auth).then(r => r.data?.items || []).catch(() => []),
+        axios.get('/api/my-engagements',auth).then(r => r.data?.items || []).catch(() => [])
+      );
+    }
+    Promise.all(tasks).then((results) => {
       if (cancelled) return;
-      setBoard(b); setClaims(c); setEngagements(e);
+      const [b, c = [], e = []] = results;
+      // If the trial preview turns up nothing (clean DB / no inquiries yet),
+      // fall back to sample cards so the user can see what the board looks like.
+      setBoard(previewMode && b.length === 0 ? SAMPLE_CARDS : b);
+      setClaims(c); setEngagements(e);
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [trial, isMember]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [trial, isMember, previewMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Merge into a single per-inquiry view, annotated with the user's state.
   const items = useMemo(() => {
@@ -179,10 +186,14 @@ export default function LeadsPage() {
               <Card key={item.inquiry._id}
                     item={item}
                     sample={trial}
+                    blurred={previewMode}
                     userCategories={currentUser?.superUser?.practiceAreas || []}
                     disabled={trial || !canExpressInterest(currentUser).allowed}
                     onExpress={() => onExpress(item.inquiry)}
-                    onOpenDetail={() => setDetailItem(item)} />
+                    onOpenDetail={() => {
+                      if (previewMode) { openSubscriptionGate({ source: 'leads' }); return; }
+                      setDetailItem(item);
+                    }} />
             ))}
           </div>
         )}
@@ -210,9 +221,44 @@ export default function LeadsPage() {
   );
 }
 
-function Card({ item, sample, userCategories, onOpenDetail }) {
+function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
   const { inquiry, state } = item;
   const isHit = (c) => userCategories?.includes(c);
+
+  // Trial-preview card: the whole card is a clickable overlay that opens
+  // the order modal. Body content stays visible but heavily blurred.
+  if (blurred) {
+    return (
+      <div className={`${styles.card} ${styles.previewCard}`}
+           role="button" tabIndex={0}
+           onClick={onOpenDetail}
+           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpenDetail(); }}>
+        <div className={styles.cardHead}>
+          <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
+          {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
+          <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
+        </div>
+        <div className={styles.previewBlur}>
+          {inquiry.summary && <div className={styles.cardSummaryClamp}>{inquiry.summary}</div>}
+          {(inquiry.categories || []).length > 0 && (
+            <div className={styles.chipsRow}>
+              {inquiry.categories.slice(0, 3).map(c => (
+                <span key={c} className={styles.chip}>{CATEGORY_LABEL[c] || c}</span>
+              ))}
+            </div>
+          )}
+          <div className={styles.cardMeta}>
+            {inquiry.city     && <span className={styles.cardMetaItem}>📍 {inquiry.city}</span>}
+            {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
+            {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
+          </div>
+        </div>
+        <div className={styles.previewOverlay}>
+          <span className={styles.previewBadge}>🔒 Активирајте план за пристап</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.card} ${sample ? styles.sample : ''}`}>

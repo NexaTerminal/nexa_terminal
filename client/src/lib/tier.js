@@ -89,15 +89,34 @@ export function subSeatLimit(user) {
 }
 
 /**
- * Trial preview: a non-admin user inside the 8-day trial.
- * Trial users see the B/C surfaces (Blogs/Leads/Topics) for evaluation —
- * but every *action* is gated by the can* predicates and opens the gate.
+ * Preview mode: a non-admin user without active feature access.
+ * Covers TRIAL (still evaluating) and SUSPENDED/CANCELLED/PENDING-no-grace
+ * (trial+grace exhausted, no payment yet). Active paid users + sub-seats
+ * (inherited access) + active grace are full-access and never in preview.
+ *
+ * UX: preview users SEE the B/C surfaces (Blogs/Leads/Topics) and the
+ * core feature pages, but action buttons + cards open the SubscriptionGate
+ * via the can* predicates or the server's 402 → axios interceptor path.
  */
-export function trialPreview(user) {
+export function previewMode(user) {
   if (!user) return false;
   if (user.role === 'admin') return false;
-  return isTrial(user);
+  if (user.role === 'sub_seat') return false; // inherited access
+  const s = user.subscription || {};
+  const now = Date.now();
+  const endsAt      = s.endsAt      ? new Date(s.endsAt).getTime()      : 0;
+  const graceEndsAt = s.graceEndsAt ? new Date(s.graceEndsAt).getTime() : 0;
+  // Active paid subscription with future endsAt → full access.
+  if (s.status === 'active' && endsAt > now) return false;
+  // Active grace (after ordering, before payment confirmed) → full access.
+  if (graceEndsAt > now) return false;
+  // Everything else (trial fresh, trial expired, pending without grace,
+  // suspended, cancelled, or no subscription doc at all) → preview.
+  return true;
 }
+
+// Back-compat alias — pre-existing call sites keep working.
+export const trialPreview = previewMode;
 
 /**
  * Dispatch the global "open SubscriptionGate" event. Used by trial-only
@@ -112,7 +131,9 @@ export function openSubscriptionGate(detail = {}) {
 }
 
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
-export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || trialPreview(user); }
-export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || trialPreview(user); }
-export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'              || trialPreview(user); }
+// previewMode (trial / suspended / no-access) keeps the B/C surfaces visible
+// so the user can re-engage; actions still gate behind the order modal.
+export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
+export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
+export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'              || previewMode(user); }
 export function showsSubUsers(user) { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }

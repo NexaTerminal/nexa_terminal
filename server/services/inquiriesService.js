@@ -148,11 +148,23 @@ class InquiriesService {
   async listBoardFor(user) {
     await this._ensureIndexes();
     const tier = tierService.effectiveTier(user);
-    // Trial users get a read-only preview of the board (cards are blurred on
-    // the client). They can't submit interest — that's enforced by
-    // canExpressInterest in the controller.
-    const isTrialPreview = tierService.isTrial(user) && tier !== 'ADMIN';
-    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN' && !isTrialPreview) return [];
+    // Preview-mode users (trial / suspended / no active sub) get a read-only
+    // view of the board so the cards remain visible (blurred) on the client.
+    // Submitting interest is still blocked by canExpressInterest in the
+    // controller. Sub-seats inherit parent access — keep them excluded from
+    // the standalone preview pool (parent's tier already determines visibility
+    // upstream of this call).
+    const status   = user?.subscription?.status;
+    const inActive = status === 'active' &&
+                     user?.subscription?.endsAt &&
+                     new Date(user.subscription.endsAt) > new Date();
+    const inGrace  = user?.subscription?.graceEndsAt &&
+                     new Date(user.subscription.graceEndsAt) > new Date();
+    const isPreview = tier !== 'ADMIN' &&
+                      user?.role !== 'sub_seat' &&
+                      !inActive &&
+                      !inGrace;
+    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN' && !isPreview) return [];
 
     // Map the user's declared practiceAreas (kebab-case legal subcategories
     // from roles.js — 'labor-law', 'tax-accounting', etc.) onto the inquiry

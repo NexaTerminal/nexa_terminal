@@ -289,6 +289,28 @@ async function initializeServices(database) {
   new UserAnalyticsService(database);
   app.locals.userService = userService;
 
+  // Email verification (6-digit code) — used by /api/auth/register +
+  // /api/auth/verify-email + /api/auth/resend-verification.
+  try {
+    const EmailVerificationService = require('./services/emailVerificationService');
+    const emailService = require('./services/emailService');
+    const evs = new EmailVerificationService(database, emailService);
+    await evs.ensureIndexes();
+    app.locals.emailVerificationService = evs;
+    console.log('✅ Email verification service ready');
+  } catch (e) {
+    console.error('Email verification service init failed:', e.message);
+  }
+
+  // Platform-owner self-heal: ensure Martin's account is always role=admin.
+  // See server/services/platformOwnerService.js for the whitelist.
+  try {
+    const { ensurePlatformOwners } = require('./services/platformOwnerService');
+    await ensurePlatformOwners(database);
+  } catch (e) {
+    console.error('ensurePlatformOwners failed:', e.message);
+  }
+
   // --- Credit System (initialized FIRST after userService because it
   //     is a core dependency for almost every premium route) ---
   try {

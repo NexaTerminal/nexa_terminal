@@ -173,15 +173,27 @@ class AuthController {
   // Register new user
   register = async (req, res) => {
     try {
-      const { username, password, referralCode, intendedPlan } = req.body;
+      const { username, password, referralCode, intendedPlan, email } = req.body;
 
       // Basic field validation
       if (!username || !password) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Корисничкото име и лозинката се задолжителни',
           field: !username ? 'username' : 'password'
         });
       }
+
+      // Email required at signup so we can verify ownership before the
+      // trial clock starts. Without it, abusers can register N times.
+      const { normalizeEmail, isValidEmail } = require('../utils/emailNormalize');
+      const emailTrimmed = String(email || '').trim().toLowerCase();
+      if (!emailTrimmed || !isValidEmail(emailTrimmed)) {
+        return res.status(400).json({
+          message: 'Внесете валидна е-пошта.',
+          field: 'email'
+        });
+      }
+      const normalizedEmail = normalizeEmail(emailTrimmed);
 
       // Username validation
       const usernameValidation = this.validateUsername(username);
@@ -208,10 +220,21 @@ class AuthController {
       // Check if user already exists by username
       const existingUser = await userService.findByUsername(username);
       if (existingUser) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           message: 'Ова корисничко име е веќе зафатено. Ве молиме изберете друго.',
           field: 'username'
         });
+      }
+
+      // Email eligibility: block re-registration when the same email already
+      // belongs to a non-sub-seat account (regardless of trial status).
+      try {
+        await userService.assertEmailEligibleForNewAccount(normalizedEmail);
+      } catch (e) {
+        if (e.code === 'EMAIL_ALREADY_REGISTERED') {
+          return res.status(409).json({ message: e.message, field: 'email' });
+        }
+        throw e;
       }
 
       // Hash password
@@ -252,6 +275,8 @@ class AuthController {
       const userData = {
         username: username.trim().toLowerCase(),
         password: hashedPassword,
+        email: emailTrimmed,
+        emailVerified: false,
         role: intendedRole,
         intendedPlan: planChoice,
         // First-look modal asks the user which tier they want to evaluate during
@@ -305,35 +330,114 @@ class AuthController {
         } catch (e) { console.error('superUser init warning:', e.message); }
       }
 
-      // Start the 8-day trial.
+      // Email verification step — block the trial / credits / token until the
+      // user confirms ownership of the email by entering the 6-digit code.
       try {
-        const sub = req.app.locals.subscriptionService;
-        if (sub) await sub.startTrial(newUser._id);
-      } catch (e) { console.error('startTrial warning:', e.message); }
-
-      // Initialize credits for the new user
-      try {
-        const creditService = req.app.locals.creditService;
-        if (creditService) {
-          await creditService.getUserCredits(newUser._id);
-          console.log(`✅ Credits initialized for new user: ${username}`);
-        }
-      } catch (creditError) {
-        console.error('⚠️ Credit initialization warning:', creditError.message);
+        const evs = req.app.locals.emailVerificationService;
+        if (evs) await evs.issueCode(newUser);
+      } catch (e) {
+        console.error('issueCode failed at register:', e.message);
+        // Don't surface a hard failure — the user can still request a resend.
       }
 
-      // Generate JWT token
-      const token = this.generateToken(newUser);
-
-      res.status(201).json({
-        token,
-        user: this.formatUserResponse(newUser)
+      return res.status(202).json({
+        requireEmailVerification: true,
+        userId: String(newUser._id),
+        email: emailTrimmed,
+        message: 'Ви испративме 6-цифрен код за верификација на е-поштата.'
       });
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }
+
+  /**
+   * POST /api/auth/verify-email  { userId, code }
+   * On success: marks emailVerified=true, starts the 8-day trial, initializes
+   * credits, and returns { token, user } so the client logs in immediately.
+   */
+  verifyEmail = async (req, res) => {
+    try {
+      const { userId, code } = req.body || {};
+      if (!userId || !code) {
+        return res.status(400).json({ message: 'Недостасуваат податоци.' });
+      }
+      const evs = req.app.locals.emailVerificationService;
+      if (!evs) return res.status(500).json({ message: 'Сервисот не е достапен.' });
+
+      const result = await evs.verifyCode(userId, code);
+      if (!result.ok) {
+        const m = {
+          NO_CODE:           'Нема активен код. Побарајте нов.',
+          EXPIRED:           'Кодот е истечен. Побарајте нов.',
+          TOO_MANY_ATTEMPTS: 'Премногу обиди. Побарајте нов код.',
+          MISMATCH:          `Погрешен код. Преостанати обиди: ${result.attemptsLeft ?? 0}.`,
+          INVALID_USER:      'Невалиден корисник.'
+        };
+        return res.status(400).json({ message: m[result.reason] || 'Невалиден код.' });
+      }
+
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      await db.collection('users').updateOne(
+        { _id: new (require('mongodb').ObjectId)(userId) },
+        { $set: { emailVerified: true, emailVerifiedAt: new Date(), updatedAt: new Date() } }
+      );
+
+      // Now that the email is real, start the trial + credits.
+      try {
+        const sub = req.app.locals.subscriptionService;
+        if (sub) await sub.startTrial(userId);
+      } catch (e) { console.error('startTrial after verify warning:', e.message); }
+
+      try {
+        const creditService = req.app.locals.creditService;
+        if (creditService) await creditService.getUserCredits(userId);
+      } catch (e) { console.error('credit init after verify warning:', e.message); }
+
+      const fresh = await userService.findById(userId);
+      const token = this.generateToken(fresh);
+      return res.json({
+        token,
+        user: this.formatUserResponse(fresh)
+      });
+    } catch (err) {
+      console.error('verifyEmail error:', err);
+      return res.status(500).json({ message: 'Серверска грешка.' });
+    }
+  };
+
+  /**
+   * POST /api/auth/resend-verification  { userId }
+   * Rate-limited; uses the same 60s cooldown enforced inside the service.
+   */
+  resendVerification = async (req, res) => {
+    try {
+      const { userId } = req.body || {};
+      if (!userId) return res.status(400).json({ message: 'Недостасува userId.' });
+      const db = req.app.locals.db;
+      const userService = new UserService(db);
+      const user = await userService.findById(userId);
+      if (!user) return res.status(404).json({ message: 'Корисникот не е пронајден.' });
+      if (user.emailVerified) return res.status(400).json({ message: 'Е-поштата веќе е потврдена.' });
+
+      const evs = req.app.locals.emailVerificationService;
+      if (!evs) return res.status(500).json({ message: 'Сервисот не е достапен.' });
+      try {
+        await evs.issueCode(user);
+        return res.json({ ok: true });
+      } catch (e) {
+        if (e.code === 'COOLDOWN') {
+          return res.status(429).json({ message: e.message, waitSec: e.waitSec });
+        }
+        throw e;
+      }
+    } catch (err) {
+      console.error('resendVerification error:', err);
+      return res.status(500).json({ message: 'Серверска грешка.' });
+    }
+  };
 
   // Login with username/password
   loginUsername = async (req, res) => {

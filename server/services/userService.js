@@ -89,12 +89,60 @@ class UserService {
     const email = userData.email?.trim();
     if (email && email.length > 0) {
       user.email = email;
+      // Normalized email — used for global uniqueness across accounts.
+      // See utils/emailNormalize.js for the rule set.
+      const { normalizeEmail } = require('../utils/emailNormalize');
+      const normalized = normalizeEmail(email);
+      if (normalized) user.normalizedEmail = normalized;
     }
+    // Email-verification fields (defaulted; Google OAuth sets emailVerified=true
+    // directly via userData).
+    user.emailVerified = userData.emailVerified === true;
 
-    // console.log('UserService creating user:', JSON.stringify(user, null, 2));
+    // Google ID, when present (set by Google OAuth strategy).
+    if (userData.googleId) user.googleId = userData.googleId;
 
     const result = await this.collection.insertOne(user);
     return { ...user, _id: result.insertedId };
+  }
+
+  /**
+   * Find any user whose normalizedEmail matches. Used for both eligibility
+   * checks and Google OAuth find-by-email.
+   */
+  async findByNormalizedEmail(normalizedEmail) {
+    if (!normalizedEmail) return null;
+    return this.collection.findOne({ normalizedEmail });
+  }
+
+  /**
+   * Anti-abuse guard. Throws when this email already belongs to an account
+   * whose trial is exhausted (post-trial / grace used / suspended / cancelled).
+   * Used by register() before creating a new account.
+   *
+   * Allowed: no prior account; OR prior account but still in a productive
+   * state (active paid sub, or trial that has not yet expired AND grace not used).
+   * In those productive cases we still block — one paid/active account per email.
+   *
+   * Returns the existing user record if one exists (so callers can log
+   * context), or null.
+   */
+  async assertEmailEligibleForNewAccount(normalizedEmail) {
+    if (!normalizedEmail) return null;
+    // Platform owners are always allowed to (re)register — they own the system.
+    try {
+      const { isPlatformOwnerEmail } = require('./platformOwnerService');
+      if (isPlatformOwnerEmail(normalizedEmail)) return null;
+    } catch (_) { /* service missing in tests — fall through */ }
+
+    const existing = await this.collection.findOne({ normalizedEmail });
+    if (!existing) return null;
+    // Sub-seats don't take a slot in the standalone-account pool.
+    if (existing.role === 'sub_seat') return null;
+    const err = new Error('Со оваа е-пошта веќе постои налог во Nexa. Најавете се или контактирајте поддршка.');
+    err.code = 'EMAIL_ALREADY_REGISTERED';
+    err.existingUserId = String(existing._id);
+    throw err;
   }
 
   // Find user by username. Stored usernames are always lowercased at write

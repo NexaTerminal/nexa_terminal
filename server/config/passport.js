@@ -101,27 +101,40 @@ module.exports = (db) => {
         },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          // Check if user already exists by Google ID or email
+          const googleEmail = profile.emails?.[0]?.value;
+          if (!googleEmail) return done(new Error('Google profile has no email'), false);
+          const { normalizeEmail } = require('../utils/emailNormalize');
+          const normalized = normalizeEmail(googleEmail);
+
+          // Check if user already exists by Google ID or normalized email.
           let user = await userService.findByGoogleId(profile.id);
-          if (!user) {
-            user = await userService.findByEmail(profile.emails[0].value);
-          }
+          if (!user) user = await userService.findByNormalizedEmail(normalized);
+          if (!user) user = await userService.findByEmail(googleEmail);
 
           if (user) {
-            // Update user if needed
-            if (!user.googleId) {
-              await userService.updateUser(user._id, { googleId: profile.id });
-              user.googleId = profile.id;
+            // Existing account: attach Google ID + ensure emailVerified=true.
+            const patch = {};
+            if (!user.googleId)        patch.googleId        = profile.id;
+            if (!user.normalizedEmail) patch.normalizedEmail = normalized;
+            if (!user.emailVerified)   { patch.emailVerified = true; patch.emailVerifiedAt = new Date(); }
+            if (Object.keys(patch).length > 0) {
+              await userService.updateUser(user._id, patch);
+              Object.assign(user, patch);
             }
             return done(null, user);
           }
 
-          // Create new user from Google profile
-          // Generate username from email (before @)
-          const emailUsername = profile.emails[0].value.split('@')[0];
-          let username = emailUsername.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+          // New account via Google. Eligibility check uses the normalized email
+          // so a user can't bypass the lock with `+aliases` or Gmail dots.
+          try {
+            await userService.assertEmailEligibleForNewAccount(normalized);
+          } catch (e) {
+            return done(null, false, { message: e.message, code: e.code });
+          }
 
-          // Ensure username is unique by checking and appending number if needed
+          // Generate a unique username from the email local-part.
+          const emailUsername = googleEmail.split('@')[0];
+          let username = emailUsername.toLowerCase().replace(/[^a-z0-9_]/g, '_');
           let usernameExists = await userService.findByUsername(username);
           let counter = 1;
           while (usernameExists) {
@@ -133,10 +146,10 @@ module.exports = (db) => {
           const userData = {
             googleId: profile.id,
             username: username,
-            email: profile.emails[0].value,
+            email: googleEmail,
             profileComplete: false,
-            isVerified: false, // Company verification requires business info
-            emailVerified: true, // Google verified their email
+            isVerified: false,
+            emailVerified: true, // Google has verified the email
             role: 'user',
             companyInfo: {
               companyName: '',

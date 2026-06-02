@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Simple registration with just username and password
-  const registerSimple = async (username, password, intendedPlan = 'standard') => {
+  const registerSimple = async (username, password, intendedPlan = 'standard', email = '') => {
     setError(null);
 
     try {
@@ -216,27 +216,78 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ username, password, intendedPlan }),
+        body: JSON.stringify({ username, password, intendedPlan, email }),
         credentials: 'include',
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || `Registration failed: ${response.status} ${response.statusText}`);
       }
 
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
-      setCurrentUser(data.user);
+      // New flow: server returns 202 + { requireEmailVerification, userId, email }.
+      // The client must call verifyEmail(userId, code) to receive the JWT.
+      if (data.requireEmailVerification) {
+        return { success: true, requireEmailVerification: true, userId: data.userId, email: data.email };
+      }
 
-      // Track successful registration
-      trackSignup('username');
-
-      return { success: true, user: data.user };
+      // Legacy path — kept for safety.
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setCurrentUser(data.user);
+        trackSignup('username');
+        return { success: true, user: data.user };
+      }
+      return { success: true };
     } catch (error) {
       setError(error.message);
       return { success: false, error: error.message };
+    }
+  };
+
+  /**
+   * Submit the verification code received by email. On success, server
+   * issues the JWT and starts the trial.
+   */
+  const verifyEmailCode = async (userId, code) => {
+    try {
+      const csrfRes = await fetch(`${API_BASE_URL}/csrf-token`, { credentials: 'include' });
+      const { csrfToken } = await csrfRes.json();
+      const resp = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ userId, code }),
+        credentials: 'include'
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.message || 'Грешка при верификација.');
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setCurrentUser(data.user);
+      trackSignup('username');
+      return { success: true, user: data.user };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  };
+
+  const resendVerificationCode = async (userId) => {
+    try {
+      const csrfRes = await fetch(`${API_BASE_URL}/csrf-token`, { credentials: 'include' });
+      const { csrfToken } = await csrfRes.json();
+      const resp = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ userId }),
+        credentials: 'include'
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.message || 'Грешка при испраќање нов код.');
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
     }
   };
 
@@ -424,6 +475,8 @@ export const AuthProvider = ({ children }) => {
     loginWithToken,
     register,
     registerSimple,
+    verifyEmailCode,
+    resendVerificationCode,
     updateProfile,
     refreshUser,
     logout,

@@ -74,6 +74,17 @@ function subSeatLimit(user) {
   return 0;
 }
 
+// Virtual fair: any active paid plan (A/B/C) may post a booth; trial/preview
+// browse read-only; sub-seats don't own a booth. Authoritative server gate is
+// middleware/requireBoothPoster.js — this mirrors the client predicate.
+function canPostBooth(user) {
+  if (!user) return { allowed: false, reason: 'plan' };
+  if (user.role === 'admin') return { allowed: true };
+  if (user.role === 'sub_seat') return { allowed: false, reason: 'plan' };
+  if (isTrial(user)) return { allowed: false, reason: 'trial' };
+  return { allowed: true };
+}
+
 module.exports = {
   effectiveTier,
   isTrial,
@@ -82,5 +93,6 @@ module.exports = {
   canSubmitBlog,
   canExpressInterest,
   canRequestQATopic,
+  canPostBooth,
   subSeatLimit
 };

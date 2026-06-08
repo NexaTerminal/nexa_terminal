@@ -7,6 +7,7 @@ import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import RightSidebar from '../../components/terminal/RightSidebar';
 import styles from '../../styles/terminal/BlogDetail.module.css';
+import { sanitizeHTML } from '../../utils/sanitizer';
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -291,7 +292,7 @@ const BlogDetail = () => {
                 {/* Main Content */}
                 <div className={styles.blogContent}>
                   <div
-                    dangerouslySetInnerHTML={{ __html: formatBlogContent(blog.content) }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(formatBlogContent(blog.content)) }}
                     className={styles.content}
                   />
                 </div>

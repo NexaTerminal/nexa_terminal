@@ -81,6 +81,19 @@ export function canRequestQATopic(user) {
   return { allowed: false, reason: 'plan' };
 }
 
+// Virtual fair: any active paid plan (A/B/C) may post a booth; trial/preview
+// users browse read-only; sub-seats don't own a booth. Server gate is
+// middleware/requireBoothPoster.js.
+export function canPostBooth(user) {
+  const eff = effectiveTier(user);
+  if (eff === 'ADMIN') return { allowed: true };
+  if (user?.role === 'sub_seat') return { allowed: false, reason: 'plan' };
+  if (isTrial(user)) return { allowed: false, reason: 'trial' };
+  if (previewMode(user)) return { allowed: false, reason: 'trial' };
+  if (eff === 'A' || eff === 'B' || eff === 'C') return { allowed: true };
+  return { allowed: false, reason: 'plan' };
+}
+
 export function subSeatLimit(user) {
   const eff = effectiveTier(user);
   if (eff === 'C') return 10;
@@ -137,3 +150,5 @@ export function showsBlogs(user)    { const v = visibleTier(user); return v === 
 export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
 export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'              || previewMode(user); }
 export function showsSubUsers(user) { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }
+// Virtual fair is a browse-for-everyone surface — visible to any logged-in user.
+export function showsFair(user)     { return !!user; }

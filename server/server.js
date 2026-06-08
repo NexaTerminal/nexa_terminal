@@ -37,8 +37,18 @@ const cookieParser = require('cookie-parser');
 // Initialize Express app
 const app = express();
 
+// Fail-fast on missing secrets. Refuse to start without them so misconfigured
+// deploys can't silently accept dangerous defaults.
 if (!process.env.JWT_SECRET) {
-  console.error('WARNING: JWT_SECRET is not set in environment variables');
+  console.error('FATAL: JWT_SECRET is not set');
+  process.exit(1);
+}
+if (!process.env.MONGODB_URI) {
+  console.error('FATAL: MONGODB_URI is not set');
+  process.exit(1);
+}
+if (settings.isMiddlewareEnabled('csrf') && !process.env.CSRF_SECRET) {
+  console.error('FATAL: CSRF_SECRET is not set (CSRF middleware enabled)');
   process.exit(1);
 }
 
@@ -112,6 +122,11 @@ app.use('/api/chc', subscriptionGuard, require('./routes/chc'));
 // Mount HHC (HR & Operational Health Check) routes (JWT-protected API)
 app.use('/api/hhc', subscriptionGuard, require('./routes/hhc'));
 
+// Mount Virtual Fair routes (JWT-protected API). No subscriptionGuard here:
+// browsing is open to ALL authenticated users (incl. trial/suspended preview);
+// posting is gated per-route by requireBoothPoster (active paid plans only).
+app.use('/api/fair', require('./routes/fair'));
+
 // Mount provider response routes BEFORE CSRF middleware (public API with token security)
 app.use('/api/provider-response', require('./routes/providerResponse'));
 
@@ -140,7 +155,8 @@ async function createUploadDirs() {
   const dirs = [
     'public/uploads',
     'public/uploads/investments',
-    'public/uploads/verification'
+    'public/uploads/verification',
+    'public/uploads/fair'
   ];
   
   for (const dir of dirs) {
@@ -476,6 +492,14 @@ async function initializeServices(database) {
     }
   }
 
+  // --- Virtual Fair (always on — standalone feature, not gated by marketplace) ---
+  try {
+    const { initializeFairDatabase } = require('./config/fairIndexes');
+    await initializeFairDatabase(database);
+  } catch (error) {
+    console.error('⚠️  Virtual fair init failed (continuing):', error.message);
+  }
+
   // --- AI Chatbot (optional feature, can fail if Qdrant/OpenAI down) ---
   if (settings.isFeatureEnabled('aiChatbot')) {
     try {
@@ -550,7 +574,8 @@ async function initializeServices(database) {
 
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/nexa';
+    // Fail-fast: connection string must be set in env (validated at boot).
+    const mongoUri = process.env.MONGODB_URI;
     // Debug log (hide password for security)
     const safeUri = mongoUri.replace(/:([^:@]+)@/, ':****@');
     

@@ -6,7 +6,8 @@ const crypto = require('crypto');
  */
 
 const CSRF_TOKEN_LENGTH = 32;
-const CSRF_SECRET = process.env.CSRF_SECRET || 'your-csrf-secret-key-change-in-production';
+// CSRF_SECRET is validated at server boot — no insecure fallback here.
+const CSRF_SECRET = process.env.CSRF_SECRET;
 
 /**
  * Generate a CSRF token

@@ -153,6 +153,8 @@ router.get('/all-users',                        (req, res) => getAdminUsersContr
 router.get('/all-users/:id',                    (req, res) => getAdminUsersController(req).getOne(req, res));
 router.post('/all-users/:id/reset-password',    (req, res) => getAdminUsersController(req).resetPassword(req, res));
 router.post('/all-users/:id/change-role',       (req, res) => getAdminUsersController(req).changeRole(req, res));
+router.post('/all-users/:id/hard-delete',       (req, res) => getAdminUsersController(req).hardDelete(req, res));
+router.get('/all-users/:id/activity',           (req, res) => getAdminUsersController(req).getActivity(req, res));
 
 // Platform Analytics
 router.get('/analytics', adminController.getPlatformAnalytics);

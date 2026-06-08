@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers } from '../../lib/tier';
+import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers, showsFair } from '../../lib/tier';
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
@@ -23,6 +23,7 @@ const Icon = ({ name }) => {
     case 'pencil':     return (<svg {...common}><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg>);
     case 'inbox':      return (<svg {...common}><path d="M3 13h5l1 3h6l1-3h5"/><path d="M3 13V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/></svg>);
     case 'qa':         return (<svg {...common}><path d="M21 12a9 9 0 1 1-3.5-7.1"/><path d="M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>);
+    case 'store':      return (<svg {...common}><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M9 20v-5h6v5"/></svg>);
     default: return null;
   }
 };
@@ -72,6 +73,7 @@ const Sidebar = () => {
       key: 'network',
       label: 'Вмрежување и можности',
       items: [
+        { key: 'fair',  icon: 'store', label: 'Виртуелен саем', path: '/terminal/fair', visible: showsFair },
         { key: 'blogs', icon: 'pencil', label: 'Објави блог', path: '/terminal/blogs', visible: showsBlogs },
         { key: 'leads', icon: 'inbox', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
         {
@@ -118,7 +120,8 @@ const Sidebar = () => {
       children: [
         { path: '/terminal/admin/leads',             label: 'Клиенти' },
         { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
-        { path: '/terminal/admin/offer-requests',    label: 'Барања за понуди' }
+        { path: '/terminal/admin/offer-requests',    label: 'Барања за понуди' },
+        { path: '/terminal/admin/fair',              label: 'Виртуелен саем' }
       ]
     },
     {

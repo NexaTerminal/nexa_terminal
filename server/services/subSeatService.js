@@ -86,7 +86,7 @@ class SubSeatService {
     if (collision) throw new Error('Корисник со оваа е-пошта веќе постои / User with this email already exists');
 
     const tempPassword = generateTempPassword();
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashed = await bcrypt.hash(tempPassword, salt);
 
     const now = new Date();
@@ -175,7 +175,7 @@ class SubSeatService {
     if (!seat) throw new Error('Sub-seat not found or not owned by this admin');
 
     const tempPassword = generateTempPassword();
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashed = await bcrypt.hash(tempPassword, salt);
 
     await this.users.updateOne(

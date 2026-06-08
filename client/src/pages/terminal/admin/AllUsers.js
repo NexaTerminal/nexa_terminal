@@ -58,6 +58,7 @@ export default function AllUsers() {
   const [flash, setFlash] = useState('');
   const [detail, setDetail] = useState(null);
   const [credsReveal, setCredsReveal] = useState(null); // { email, tempPassword }
+  const [deleteTarget, setDeleteTarget] = useState(null); // user doc to confirm deletion
 
   const fetchList = useCallback(async () => {
     setLoading(true); setError('');
@@ -171,6 +172,15 @@ export default function AllUsers() {
                         >
                           Сметководство
                         </a>
+                        {u.role !== 'admin' && (
+                          <button
+                            className={styles.btnGhost}
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(u); }}
+                            style={{ marginLeft: 6, color: '#B91C1C', borderColor: '#FECACA' }}
+                          >
+                            🗑 Избриши
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -198,8 +208,108 @@ export default function AllUsers() {
             showFlash={showFlash}
           />
         )}
+
+        {deleteTarget && (
+          <DeleteUserModal
+            user={deleteTarget}
+            token={token}
+            onClose={() => setDeleteTarget(null)}
+            onDeleted={(summary) => {
+              setDeleteTarget(null);
+              showFlash(
+                `Корисникот „${summary.username || summary.email}" е избришан · ` +
+                `${Object.values(summary.counts || {}).reduce((a,b)=>a+b,0)} поврзани записи отстранети` +
+                (summary.subSeatsDetached ? ` · ${summary.subSeatsDetached} под-сметки одвоени` : '')
+              );
+              fetchList();
+            }}
+          />
+        )}
       </div>
     </TerminalShell>
+  );
+}
+
+// ---------- delete-user confirmation modal ----------
+function DeleteUserModal({ user, token, onClose, onDeleted }) {
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const expected = (user.username || user.email || '').toLowerCase();
+  const submit = async () => {
+    setErr('');
+    if (confirm.trim().toLowerCase() !== expected) {
+      setErr(`Внесете точно: "${user.username || user.email}"`);
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await axios.post(
+        `/api/admin/all-users/${user._id}/hard-delete`,
+        { confirm },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data?.success) onDeleted(res.data);
+      else setErr(res.data?.message || 'Грешка.');
+    } catch (e) {
+      setErr(e.response?.data?.message || e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className={styles.modalOverlay || styles.credCard} onClick={onClose}
+         style={{
+           position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)',
+           backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+           justifyContent: 'center', padding: 24, zIndex: 10004
+         }}>
+      <div onClick={(e) => e.stopPropagation()}
+           style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 480,
+                    padding: '24px 26px', boxShadow: '0 32px 80px rgba(15,23,42,0.30)' }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 18, color: '#B91C1C' }}>🗑 Избриши го корисникот</h3>
+        <p style={{ margin: '0 0 12px', fontSize: 13.5, color: '#475569', lineHeight: 1.55 }}>
+          Ова е <strong>трајно</strong>. Сите поврзани записи на овој корисник
+          (профактури, шаблони, блог-објави, AI разговори, проверки, итн.)
+          ќе бидат исто така избришани. Аудит логот се чува.
+        </p>
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+                      padding: '10px 12px', marginBottom: 12, fontSize: 13, color: '#7F1D1D' }}>
+          <div><strong>Корисник:</strong> {user.username || '—'}</div>
+          {user.email && <div><strong>Е-пошта:</strong> {user.email}</div>}
+          {user.role && <div><strong>Улога:</strong> {user.role}</div>}
+        </div>
+        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#0B1220', marginBottom: 4 }}>
+          За потврда, внесете го корисничкото име: <code>{user.username || user.email}</code>
+        </label>
+        <input
+          type="text"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoFocus
+          placeholder={user.username || user.email}
+          style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #e5e7eb',
+                   borderRadius: 8, fontSize: 14, color: '#0B1220', boxSizing: 'border-box' }}
+        />
+        {err && <div style={{ marginTop: 8, padding: '8px 12px', background: '#FEF2F2',
+                              border: '1px solid #FECACA', color: '#B91C1C', borderRadius: 8, fontSize: 13 }}>{err}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+          <button type="button" onClick={onClose} disabled={busy}
+            style={{ padding: '8px 14px', border: '1px solid #e5e7eb', background: '#fff',
+                     borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            Откажи
+          </button>
+          <button type="button" onClick={submit}
+            disabled={busy || confirm.trim().toLowerCase() !== expected}
+            style={{ padding: '8px 14px', border: '1px solid #B91C1C',
+                     background: '#B91C1C', color: '#fff', borderRadius: 8,
+                     fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                     opacity: (busy || confirm.trim().toLowerCase() !== expected) ? 0.55 : 1 }}>
+            {busy ? 'Се брише…' : 'Избриши трајно'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -229,6 +339,50 @@ function CredsReveal({ email, tempPassword, onClose }) {
   );
 }
 
+// ---------- activity timeline ----------
+const ACTIVITY_BADGE = {
+  account:    { color: '#0B1220', bg: '#F1F5F9' },
+  sub:        { color: '#15803D', bg: '#ECFDF5' },
+  invoice:    { color: '#1d4ed8', bg: '#EFF6FF' },
+  doc:        { color: '#0B1220', bg: '#F1F5F9' },
+  compliance: { color: '#92400E', bg: '#FFFBEB' },
+  blog:       { color: '#1e4db7', bg: '#EEF4FF' },
+  lead:       { color: '#7c3aed', bg: '#F5F3FF' },
+  topic:      { color: '#0E7490', bg: '#ECFEFF' },
+  admin:      { color: '#B91C1C', bg: '#FEF2F2' }
+};
+function ActivityTimeline({ events, loading }) {
+  if (loading) {
+    return <div style={{ padding: '12px 0', color: '#64748b', fontSize: 13 }}>Се вчитува…</div>;
+  }
+  if (!events || events.length === 0) {
+    return <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px dashed #e5e7eb', borderRadius: 8, color: '#64748b', fontSize: 13 }}>Нема забележани активности.</div>;
+  }
+  return (
+    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 4px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto' }}>
+      {events.map((e, i) => {
+        const family = (e.type || '').split('.')[0];
+        const tag = ACTIVITY_BADGE[family] || ACTIVITY_BADGE.account;
+        const d = new Date(e.at);
+        const when = d.toLocaleString('mk-MK', {
+          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+        return (
+          <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 12px', background: '#fff', border: '1px solid #f1f5f9', borderRadius: 8 }}>
+            <span style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999, background: tag.bg, color: tag.color, whiteSpace: 'nowrap' }}>
+              {family}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, color: '#0B1220' }}>{e.label}</div>
+              <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 2 }}>{when}</div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 // ---------- detail drawer ----------
 function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, showFlash }) {
   const [data, setData] = useState(null);
@@ -236,6 +390,10 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [showRoleForm, setShowRoleForm] = useState(false);
+
+  // Activity timeline
+  const [activity, setActivity] = useState(null); // null = unloaded, [] = empty
+  const [activityLoading, setActivityLoading] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true); setErr('');
@@ -249,6 +407,17 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
   }, [userId, token]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setActivityLoading(true);
+    axios.get(`/api/admin/all-users/${userId}/activity`,
+      { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => { if (!cancelled) setActivity(res.data?.events || []); })
+      .catch(() => { if (!cancelled) setActivity([]); })
+      .finally(() => { if (!cancelled) setActivityLoading(false); });
+    return () => { cancelled = true; };
+  }, [userId, token]);
 
   const doAction = async (label, fn) => {
     setBusy(true); setErr('');
@@ -360,6 +529,9 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
                 </ul>
               </>
             )}
+
+            <h4 className={styles.subhead}>Активност (хронолошки)</h4>
+            <ActivityTimeline events={activity} loading={activityLoading} />
 
             <h4 className={styles.subhead}>Акции</h4>
             <div className={styles.actionGrid}>

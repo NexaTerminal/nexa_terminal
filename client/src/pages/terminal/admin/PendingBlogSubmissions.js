@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import styles from '../BlogSubmissions.module.css';
+import { sanitizeHTML } from '../../../utils/sanitizer';
 
 const STATUS_LABEL = {
   submitted:   'Чека преглед',
@@ -110,7 +111,7 @@ export default function PendingBlogSubmissionsPage() {
             {selected.coverImageUrl && (
               <img src={selected.coverImageUrl} alt="cover" style={{ width: '100%', borderRadius: 8, marginBottom: 16 }} />
             )}
-            <div className={styles.detailBody} dangerouslySetInnerHTML={{ __html: selected.bodyHtml }} />
+            <div className={styles.detailBody} dangerouslySetInnerHTML={{ __html: sanitizeHTML(selected.bodyHtml) }} />
 
             {selected.aiVerdict && (
               <div style={{ marginTop: 22 }}>

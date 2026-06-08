@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import styles from '../../styles/public/DocumentPreview.module.css';
+import { sanitizeHTML } from '../../utils/sanitizer';
 
 /**
  * Document type translations to Macedonian
@@ -206,7 +207,7 @@ const DocumentPreviewPage = () => {
         {/* Document Content - Rendered from HTML */}
         <div className={styles.documentContent}>
           <div
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(htmlContent) }}
             className={styles.documentBody}
           />
         </div>

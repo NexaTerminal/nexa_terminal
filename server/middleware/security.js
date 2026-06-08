@@ -5,21 +5,27 @@ const rateLimit = require('express-rate-limit');
  * Configure security headers using Helmet
  */
 const configureSecurityHeaders = () => {
+  // CSP: drop 'unsafe-inline' from scriptSrc — the React production bundle
+  // never emits inline <script> tags. Inline styles are still permitted
+  // because React inlines small style blocks for keyframes / animations.
   return helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:", "http://localhost:*"],
-        connectSrc: ["'self'", "http://localhost:*"],
+        styleSrc:  ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        scriptSrc: ["'self'"],
+        fontSrc:   ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc:    ["'self'", "data:", "https:", "http://localhost:*"],
+        connectSrc:["'self'", "http://localhost:*", "https:"],
         objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'none'"]
+        mediaSrc:  ["'self'"],
+        frameSrc:  ["'none'"],
+        baseUri:   ["'self'"],
+        formAction:["'self'"],
+        frameAncestors: ["'none'"]
       }
     },
-    crossOriginEmbedderPolicy: false, // Disable for development
+    crossOriginEmbedderPolicy: false,
     hsts: {
       maxAge: 31536000,
       includeSubDomains: true,
@@ -27,7 +33,6 @@ const configureSecurityHeaders = () => {
     },
     noSniff: true,
     frameguard: { action: 'deny' },
-    xssFilter: true,
     referrerPolicy: { policy: "strict-origin-when-cross-origin" }
   });
 };

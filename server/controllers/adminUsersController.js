@@ -153,7 +153,7 @@ class AdminUsersController {
       }
 
       const tempPassword = generateTempPassword();
-      const salt = await bcrypt.genSalt(10);
+      const salt = await bcrypt.genSalt(12);
       const hashed = await bcrypt.hash(tempPassword, salt);
 
       await users.updateOne(
@@ -268,6 +268,84 @@ class AdminUsersController {
     } catch (err) {
       console.error('[admin/all-users change-role] error:', err);
       res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /**
+   * GET /api/admin/all-users/:id/activity
+   *
+   * Aggregates a chronological event timeline for a single user from the
+   * collections we already write to (no schema changes / no new writes).
+   */
+  async getActivity(req, res) {
+    try {
+      const db = req.app.locals.db || req.app.locals.database;
+      const UserActivityService = require('../services/userActivityService');
+      const svc = new UserActivityService(db);
+      const events = await svc.getActivity(req.params.id, { limit: 200 });
+      res.json({ success: true, events });
+    } catch (err) {
+      console.error('[admin/all-users activity] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /**
+   * POST /api/admin/all-users/:id/hard-delete
+   *
+   * Cascading delete. Requires the admin to confirm by typing the target
+   * user's username (or email) in `confirm` — defense against fat-finger
+   * mistakes. Platform owners and other admins are not deletable here.
+   */
+  async hardDelete(req, res) {
+    try {
+      const db = req.app.locals.db || req.app.locals.database;
+      const targetId = req.params.id;
+      const { confirm } = req.body || {};
+
+      const target = await db.collection('users').findOne({ _id: toObjectId(targetId) });
+      if (!target) {
+        return res.status(404).json({ success: false, message: 'Корисникот не е пронајден.' });
+      }
+
+      // Confirmation phrase must match username (case-insensitive) OR email.
+      const expected = (target.username || target.email || '').toLowerCase();
+      const provided = String(confirm || '').trim().toLowerCase();
+      if (!expected || provided !== expected) {
+        return res.status(400).json({
+          success: false,
+          code: 'CONFIRM_REQUIRED',
+          message: `За потврда, внесете го корисничкото име: "${target.username || target.email}"`
+        });
+      }
+
+      // Platform owner whitelist check (defensive — service rechecks too).
+      try {
+        const { isPlatformOwnerEmail } = require('../services/platformOwnerService');
+        if (target.email && isPlatformOwnerEmail(target.email)) {
+          return res.status(403).json({
+            success: false,
+            code: 'PLATFORM_OWNER',
+            message: 'Не можете да избришете платформа сопственик.'
+          });
+        }
+      } catch (_) { /* service optional */ }
+
+      const UserDeletionService = require('../services/userDeletionService');
+      const svc = new UserDeletionService(db);
+      const result = await svc.deleteUserCascading(targetId, {
+        actingAdminId: req.user?._id
+      });
+      return res.json({ success: true, ...result });
+    } catch (err) {
+      const map = {
+        NOT_FOUND:            404,
+        CANNOT_DELETE_ADMIN:  403,
+        CANNOT_DELETE_SELF:   400
+      };
+      const status = map[err.code] || 500;
+      console.error('[admin/all-users hard-delete] error:', err);
+      return res.status(status).json({ success: false, code: err.code, message: err.message });
     }
   }
 }

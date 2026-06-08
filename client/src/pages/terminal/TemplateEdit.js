@@ -4,6 +4,7 @@ import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import { getTemplate, updateTemplate, getVersions, rollbackVersion } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/TemplateEdit.module.css';
+import { sanitizeHTML } from '../../utils/sanitizer';
 
 const COMPANY_FIELD_LABELS = {
   companyName: 'Име на компанија',
@@ -432,7 +433,7 @@ const TemplateEdit = () => {
                 ref={previewRef}
                 className={styles.previewContent}
                 onMouseUp={handleTextSelection}
-                dangerouslySetInnerHTML={{ __html: template.htmlPreview || '<p style="color:#94a3b8;text-align:center;padding:2rem">Прегледот не е достапен за овој шаблон</p>' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(template.htmlPreview || '<p style="color:#94a3b8;text-align:center;padding:2rem">Прегледот не е достапен за овој шаблон</p>') }}
               />
 
               {/* Add field popup */}

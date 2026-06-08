@@ -5,6 +5,7 @@ import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import { uploadTemplateFile, createTemplate, suggestFields } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/MyTemplateBuilder.module.css';
+import { sanitizeHTML } from '../../utils/sanitizer';
 
 const MyTemplateBuilder = () => {
   const navigate = useNavigate();
@@ -606,7 +607,7 @@ const MyTemplateBuilder = () => {
                   ref={previewContentRef}
                   className={styles.previewContent}
                   onMouseUp={handleTextSelection}
-                  dangerouslySetInnerHTML={{ __html: htmlPreview }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(htmlPreview) }}
                 />
 
                 {/* Field definition popup */}

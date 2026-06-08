@@ -5,6 +5,7 @@ import Sidebar from '../../components/terminal/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { getTemplate, generateDocument } from '../../services/customTemplateApi';
 import styles from '../../styles/terminal/TemplateFormFill.module.css';
+import { sanitizeHTML } from '../../utils/sanitizer';
 
 const TemplateFormFill = () => {
   const { templateId } = useParams();
@@ -322,7 +323,7 @@ const TemplateFormFill = () => {
                 </div>
                 <div
                   className={styles.previewContent}
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(previewHtml) }}
                 />
               </div>
             )}

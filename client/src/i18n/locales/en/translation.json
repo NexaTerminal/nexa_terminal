@@ -68,7 +68,7 @@
   },
   "login": {
     "title": "Login to Nexa",
-    "createAccount": "Create Nexa Account",
+    "createAccount": "Create user",
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "email": "Email",

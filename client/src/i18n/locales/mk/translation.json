@@ -57,7 +57,7 @@
     "teamRole3": "Оперативен директор"
   },
   "login": {
-    "createAccount": "Креирајте Nexa сметка",
+    "createAccount": "Креирајте корисник",
     "signUp": "Регистрирај се",
     "email": "Е-пошта",
     "password": "Лозинка",

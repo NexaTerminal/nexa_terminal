@@ -620,6 +620,8 @@ function registerRoutes() {
   const csrfExemptRoutes = [
     '/csrf-token',              // CSRF token endpoint
     '/auth/register',           // User registration
+    '/auth/verify-email',       // Email verification code (pre-auth, no cookie session)
+    '/auth/resend-verification',// Resend verification code (pre-auth, no cookie session)
     '/auth/login',              // Email/password login
     '/auth/login-username',     // Username/password login
     '/auth/direct-login',       // Direct login for testing

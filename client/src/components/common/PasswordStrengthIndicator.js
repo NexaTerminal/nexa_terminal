@@ -8,6 +8,10 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
   const validation = validatePassword(password);
   const { checks, strength, errors } = validation;
 
+  // Once every requirement is met, the checklist has served its purpose —
+  // collapse it and keep only the compact strength bar.
+  const allMet = Object.values(checks).every(Boolean);
+
   const getStrengthColor = (strength) => {
     switch (strength) {
       case 'weak': return 'var(--color-error)';
@@ -46,8 +50,8 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
         </div>
       </div>
 
-      {/* Requirements Checklist */}
-      {showRequirements && (
+      {/* Requirements Checklist — hidden once all requirements are satisfied */}
+      {showRequirements && !allMet && (
         <div className={styles.requirements}>
           <div className={`${styles.requirement} ${checks.length ? styles.met : styles.unmet}`}>
             <span className={styles.checkIcon}>

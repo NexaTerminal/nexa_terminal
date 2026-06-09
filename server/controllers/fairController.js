@@ -12,7 +12,6 @@ const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const emailService = require('../services/emailService');
 const { COLLECTION, OFFER_TYPES, validateBooth } = require('../config/fairSchemas');
 const { getFairStatus } = require('../services/fairScheduleService');
 
@@ -60,9 +59,6 @@ class FairController {
     this.upsertMyBooth = this.upsertMyBooth.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
     this.getById = this.getById.bind(this);
-    this.sendInquiry = this.sendInquiry.bind(this);
-    this.adminList = this.adminList.bind(this);
-    this.adminSetStatus = this.adminSetStatus.bind(this);
     this.adminGetSettings = this.adminGetSettings.bind(this);
     this.adminSaveSettings = this.adminSaveSettings.bind(this);
   }
@@ -168,8 +164,6 @@ class FairController {
       };
 
       if (existing) {
-        // Preserve admin-imposed 'hidden' status — don't let a re-save un-hide.
-        if (existing.status === 'hidden') doc.status = 'hidden';
         await col.updateOne({ _id: existing._id }, { $set: doc });
       } else {
         doc.createdAt = now;
@@ -205,12 +199,9 @@ class FairController {
       );
       if (!booth) return res.status(404).json({ success: false, message: 'Штандот не е пронајден' });
 
+      // Outside the open window only the owner/admin may view a booth.
       const isOwner = String(booth.userId) === String(req.user._id);
       const isAdminUser = req.user.role === 'admin' || req.user.isAdmin === true;
-      if (booth.status !== 'published' && !isOwner && !isAdminUser) {
-        return res.status(404).json({ success: false, message: 'Штандот не е достапен' });
-      }
-      // Outside the open window only the owner/admin may view a booth.
       const fair = getFairStatus(await loadSettings(db));
       if (!fair.open && !isOwner && !isAdminUser) {
         return res.status(403).json({ success: false, code: 'FAIR_CLOSED', message: 'Саемот е затворен.', opensAt: fair.opensAt });
@@ -219,97 +210,6 @@ class FairController {
     } catch (err) {
       console.error('[fair] getById error:', err);
       res.status(500).json({ success: false, message: 'Грешка при вчитување на штандот' });
-    }
-  }
-
-  // POST /api/fair/:id/inquiry — email the booth owner. Open to all logged-in users.
-  async sendInquiry(req, res) {
-    try {
-      const db = req.app.locals.db;
-      if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).json({ success: false, message: 'Невалиден ID' });
-      }
-      const message = (req.body?.message || '').trim();
-      if (message.length < 10) {
-        return res.status(400).json({ success: false, message: 'Пораката е премногу кратка (мин. 10 знаци).' });
-      }
-      if (message.length > 2000) {
-        return res.status(400).json({ success: false, message: 'Пораката е предолга.' });
-      }
-
-      const booth = await db.collection(COLLECTION).findOne({ _id: new ObjectId(req.params.id) });
-      if (!booth || booth.status !== 'published') {
-        return res.status(404).json({ success: false, message: 'Штандот не е достапен' });
-      }
-
-      // Inquiries only flow while the fair is open (admin exempt for testing).
-      const isAdminUser = req.user.role === 'admin' || req.user.isAdmin === true;
-      const fair = getFairStatus(await loadSettings(db));
-      if (!fair.open && !isAdminUser) {
-        return res.status(403).json({ success: false, code: 'FAIR_CLOSED', message: 'Саемот е затворен.', opensAt: fair.opensAt });
-      }
-
-      const owner = await db.collection('users').findOne({ _id: booth.userId });
-      // Prefer the booth's own contact email, then company email, then account email.
-      const ownerEmail = booth.contactEmail || owner?.companyInfo?.email || owner?.email;
-      if (!ownerEmail) {
-        return res.status(400).json({ success: false, message: 'Овој штанд нема контакт е-пошта.' });
-      }
-
-      const fromUser = req.user;
-      const offerTitle = (req.body?.offerTitle || '').trim().slice(0, 80);
-
-      await emailService.sendFairInquiry(ownerEmail, {
-        boothCompany: booth.companyName,
-        offerTitle,
-        message,
-        senderCompany: fromUser.companyInfo?.companyName || 'Корисник на Nexa',
-        senderEmail: fromUser.companyInfo?.email || fromUser.email
-      });
-
-      res.json({ success: true, message: 'Барањето е испратено.' });
-    } catch (err) {
-      console.error('[fair] sendInquiry error:', err);
-      res.status(500).json({ success: false, message: 'Грешка при испраќање на барањето' });
-    }
-  }
-
-  // ── Admin moderation ──────────────────────────────────────────────────────
-
-  // GET /api/fair/admin/all — all booths.
-  async adminList(req, res) {
-    try {
-      const db = req.app.locals.db;
-      const status = req.query.status;
-      const query = {};
-      if (status === 'published' || status === 'hidden') query.status = status;
-      const items = await db.collection(COLLECTION).find(query).sort({ updatedAt: -1 }).toArray();
-      res.json({ success: true, items });
-    } catch (err) {
-      console.error('[fair] adminList error:', err);
-      res.status(500).json({ success: false, message: 'Грешка при вчитување' });
-    }
-  }
-
-  // POST /api/fair/admin/:id/status  body: { status: 'published' | 'hidden' }
-  async adminSetStatus(req, res) {
-    try {
-      const db = req.app.locals.db;
-      const { status } = req.body || {};
-      if (!ObjectId.isValid(req.params.id) || !['published', 'hidden'].includes(status)) {
-        return res.status(400).json({ success: false, message: 'Невалиден параметар' });
-      }
-      const set = { status, updatedAt: new Date() };
-      if (status === 'published') set.publishedAt = new Date();
-      const result = await db.collection(COLLECTION).updateOne(
-        { _id: new ObjectId(req.params.id) },
-        { $set: set }
-      );
-      if (!result.matchedCount) return res.status(404).json({ success: false, message: 'Не е пронајден' });
-      res.json({ success: true });
-    } catch (err) {
-      console.error('[fair] adminSetStatus error:', err);
-      res.status(500).json({ success: false, message: 'Грешка при ажурирање' });
     }
   }
 

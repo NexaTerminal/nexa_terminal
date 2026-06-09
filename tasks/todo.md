@@ -138,7 +138,16 @@ with **post-hoc admin moderation** (admin can hide/flag). Avoids a blocking appr
 - Modal: "Информации за штандот" section — cover image upload + thumbnail, website, contact email.
 - Detail page: cover banner + website link + mailto. Cards show cover image when present.
 
-### Live E2E — PASSED (31/31) against running server :5002
+### Decoupled from email + admin approval (round 5)
+- Removed the platform-mediated inquiry flow entirely: no `POST /:id/inquiry`, no
+  `sendInquiry` controller, no `emailService.sendFairInquiry`. Buyers now contact companies
+  DIRECTLY via the booth's website / contact email (shown as buttons on the detail page).
+- Removed admin moderation/approval: no `adminList`/`adminSetStatus`, no hide/unhide, no booth
+  `hidden` status. Booths post freely and stay published. Admin page now = schedule only.
+- Kept: paid-only posting, the quarterly schedule + admin schedule controls.
+- Detail page: "Посети веб-страница" + mailto buttons instead of an inquiry modal.
+
+### Live E2E — PASSED (24/24) against running server :5002
 Script: `server/scripts/fair_e2e_test.js` (seeds throwaway users, hits every endpoint, self-cleans).
 Covered: auth 401; categories; trial PUT→402; invalid payload→400; owner create→published +
 denormalized name/city; offer cap; GET /me; buyer browse + category filter in/out; detail;

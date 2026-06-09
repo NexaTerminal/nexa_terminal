@@ -14,10 +14,6 @@ export default function FairBoothDetailPage() {
 
   const [booth, setBooth] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null);
-  const [inquiryFor, setInquiryFor] = useState(null); // offer snippet or '' for general
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,21 +25,7 @@ export default function FairBoothDetailPage() {
     return () => { cancelled = true; };
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const openInquiry = (offerText = '') => { setInquiryFor(offerText); setMessage(''); };
-
-  const submitInquiry = async () => {
-    if (message.trim().length < 10) { setToast({ type: 'err', text: 'Пораката е премногу кратка.' }); return; }
-    setSending(true);
-    try {
-      await axios.post(`/api/fair/${id}/inquiry`, { message: message.trim(), offerTitle: inquiryFor || '' }, auth);
-      setInquiryFor(null);
-      setToast({ type: 'ok', text: 'Барањето е испратено.' });
-    } catch (e) {
-      setToast({ type: 'err', text: e.response?.data?.message || 'Грешка при испраќање.' });
-    } finally {
-      setSending(false);
-    }
-  };
+  const hasContact = booth && (booth.website || booth.contactEmail);
 
   return (
     <TerminalShell>
@@ -67,18 +49,22 @@ export default function FairBoothDetailPage() {
               <div>
                 <h1 className={styles.title}>{booth.companyName}</h1>
                 {booth.city && <div className={styles.city}>{booth.city}</div>}
-                <div className={styles.contactRow}>
-                  {booth.website && (
-                    <a className={styles.contactLink} href={booth.website} target="_blank" rel="noopener noreferrer">
-                      🔗 {booth.website.replace(/^https?:\/\//i, '')}
-                    </a>
-                  )}
-                  {booth.contactEmail && (
-                    <a className={styles.contactLink} href={`mailto:${booth.contactEmail}`}>✉ {booth.contactEmail}</a>
-                  )}
-                </div>
               </div>
             </div>
+
+            {/* Direct contact — no platform-mediated inquiry */}
+            {hasContact && (
+              <div className={styles.contactBar}>
+                {booth.website && (
+                  <a className={styles.btnPrimary} href={booth.website} target="_blank" rel="noopener noreferrer">
+                    Посети веб-страница
+                  </a>
+                )}
+                {booth.contactEmail && (
+                  <a className={styles.btnGhost} href={`mailto:${booth.contactEmail}`}>✉ {booth.contactEmail}</a>
+                )}
+              </div>
+            )}
 
             <div className={styles.offers}>
               {(booth.offers || []).map((o, i) => (
@@ -94,47 +80,13 @@ export default function FairBoothDetailPage() {
                         {o.whyUs}
                       </div>
                     )}
-                    <button className={styles.btnGhost} onClick={() => openInquiry(o.text)}>Испрати барање</button>
                   </div>
                 </div>
               ))}
             </div>
-
-            <div style={{ marginTop: 24 }}>
-              <button className={styles.btnPrimary} onClick={() => openInquiry('')}>Контактирај ја компанијата</button>
-            </div>
           </>
         )}
       </div>
-
-      {inquiryFor !== null && (
-        <div className={styles.overlay} onClick={() => !sending && setInquiryFor(null)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Испрати барање</h3>
-            <p className={styles.hint}>Вашата компанија и е-пошта ќе бидат споделени со штандот за да ви одговорат.</p>
-            <textarea
-              className={styles.textarea}
-              placeholder="Опишете што ве интересира…"
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              maxLength={2000}
-              rows={5}
-            />
-            <div className={styles.actions} style={{ marginTop: 12 }}>
-              <button className={styles.btnPrimary} onClick={submitInquiry} disabled={sending}>
-                {sending ? 'Се испраќа…' : 'Испрати'}
-              </button>
-              <button className={styles.btnGhost} onClick={() => setInquiryFor(null)} disabled={sending}>Откажи</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {toast && (
-        <div className={`${styles.toast} ${toast.type === 'ok' ? styles.toastOk : styles.toastErr}`} onClick={() => setToast(null)}>
-          {toast.text}
-        </div>
-      )}
     </TerminalShell>
   );
 }

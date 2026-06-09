@@ -123,26 +123,27 @@ async function api(path, { method = 'GET', tok, body, form } = {}) {
     const mine = await api('/api/fair/me', { tok: ownerT });
     check('GET /me → returns own booth', mine.status === 200 && mine.data?.booth?._id === boothId);
 
-    // 6b. CLOSED state (force via admin) — booths hidden from public, prepare still works
+    // 6b. CLOSED state (force via admin) — browse closed, prepare still works
     await api('/api/fair/admin/settings', { method: 'POST', tok: adminT, body: { mode: 'closed' } });
     const closedList = await api('/api/fair', { tok: buyerT });
     check('CLOSED: buyer browse → open:false + empty + opensAt', closedList.data?.open === false && (closedList.data?.items || []).length === 0 && !!closedList.data?.opensAt,
       `open=${closedList.data?.open} count=${closedList.data?.items?.length}`);
     const closedDetail = await api(`/api/fair/${boothId}`, { tok: buyerT });
     check('CLOSED: buyer detail → 403 FAIR_CLOSED', closedDetail.status === 403 && closedDetail.data?.code === 'FAIR_CLOSED', `status=${closedDetail.status}`);
-    const closedInq = await api(`/api/fair/${boothId}/inquiry`, { method: 'POST', tok: buyerT, body: { message: 'Заинтересиран сум за вашата понуда navistina' } });
-    check('CLOSED: buyer inquiry → 403 FAIR_CLOSED', closedInq.status === 403 && closedInq.data?.code === 'FAIR_CLOSED', `status=${closedInq.status}`);
     const adminClosedList = await api('/api/fair', { tok: adminT });
     check('CLOSED: admin browse → still sees booth (preview)', (adminClosedList.data?.items || []).some(b => b._id === boothId));
     const ownerClosedPut = await api('/api/fair/me', { method: 'PUT', tok: ownerT, body: { offers: [{ type: 'service', text: 'Подготовка додека е затворено' }] } });
     check('CLOSED: owner can still edit booth', ownerClosedPut.status === 200, `status=${ownerClosedPut.status}`);
-    // restore the 2-offer booth used by later assertions
-    await api('/api/fair/me', { method: 'PUT', tok: ownerT, body: { offers: [
-      { type: 'service', text: 'Регистрација на фирма — брза регистрација на ДОО', whyUs: 'Искуство 10 години' },
-      { type: 'product', text: 'Фирмен печат по нарачка' }
-    ] } });
+    // restore the full booth (offers + contact fields) used by later assertions
+    await api('/api/fair/me', { method: 'PUT', tok: ownerT, body: {
+      offers: [
+        { type: 'service', text: 'Регистрација на фирма — брза регистрација на ДОО', whyUs: 'Искуство 10 години' },
+        { type: 'product', text: 'Фирмен печат по нарачка' }
+      ],
+      website: 'www.example.mk', contactEmail: OWNER_EMAIL, imageUrl: '/uploads/fair/test-cover.png'
+    } });
 
-    // 6c. force OPEN for the remaining browse/detail/inquiry assertions
+    // 6c. force OPEN for the remaining browse/detail assertions
     await api('/api/fair/admin/settings', { method: 'POST', tok: adminT, body: { mode: 'open' } });
 
     // 7. buyer browses → booth visible
@@ -160,39 +161,22 @@ async function api(path, { method = 'GET', tok, body, form } = {}) {
     const searchMiss = await api('/api/fair?search=zzznomatchzzz', { tok: buyerT });
     check('GET /api/fair?search=zzznomatchzzz → excludes booth', !(searchMiss.data?.items || []).some(b => b._id === boothId));
 
-    // 9. detail
+    // 9. detail exposes contact fields (direct contact, no inquiry endpoint)
     const detail = await api(`/api/fair/${boothId}`, { tok: buyerT });
-    check('GET /api/fair/:id → 200', detail.status === 200 && detail.data?.booth?._id === boothId);
+    check('GET /api/fair/:id → 200 with website + contactEmail', detail.status === 200 && detail.data?.booth?.website === 'https://www.example.mk' && detail.data?.booth?.contactEmail === OWNER_EMAIL,
+      `web=${detail.data?.booth?.website}`);
 
-    // 10. inquiry (sends 1 email to OWNER_EMAIL)
-    const tooShort = await api(`/api/fair/${boothId}/inquiry`, { method: 'POST', tok: buyerT, body: { message: 'hi' }});
-    check('POST inquiry too-short → 400', tooShort.status === 400);
-    const inq = await api(`/api/fair/${boothId}/inquiry`, { method: 'POST', tok: buyerT, body: {
-      message: 'Заинтересирани сме за регистрација на фирма, ве молам контактирајте нè.', offerTitle: 'Регистрација на фирма'
-    }});
-    check('POST inquiry valid → 200 (email sent to owner)', inq.status === 200, `status=${inq.status} msg=${inq.data?.message}`);
+    // 10. no inquiry endpoint, no admin moderation endpoints (decoupled from email/approval)
+    const inqGone = await api(`/api/fair/${boothId}/inquiry`, { method: 'POST', tok: buyerT, body: { message: 'should not exist at all' } });
+    check('POST /:id/inquiry → gone (404/403, no longer processed)', inqGone.status === 404 || inqGone.status === 403, `status=${inqGone.status}`);
+    const modGone = await api('/api/fair/admin/all', { tok: adminT });
+    check('GET /admin/all → 404 (moderation removed)', modGone.status === 404, `status=${modGone.status}`);
 
-    // 11. admin moderation
-    const adminAll = await api('/api/fair/admin/all', { tok: adminT });
-    check('GET /admin/all (admin) → 200 includes booth', adminAll.status === 200 && (adminAll.data?.items || []).some(b => b._id === boothId));
-    const buyerAdmin = await api('/api/fair/admin/all', { tok: buyerT });
-    check('GET /admin/all (non-admin) → 403', buyerAdmin.status === 403, `status=${buyerAdmin.status}`);
-
-    // 12. hide → drops from public list
-    const hide = await api(`/api/fair/admin/${boothId}/status`, { method: 'POST', tok: adminT, body: { status: 'hidden' }});
-    check('POST /admin/:id/status hidden → 200', hide.status === 200);
-    const listAfterHide = await api('/api/fair', { tok: buyerT });
-    check('  hidden booth NOT in public list', !(listAfterHide.data?.items || []).some(b => b._id === boothId));
-    const detailHidden = await api(`/api/fair/${boothId}`, { tok: buyerT });
-    check('  hidden booth detail → 404 for buyer', detailHidden.status === 404, `status=${detailHidden.status}`);
-    const ownerSeesHidden = await api(`/api/fair/${boothId}`, { tok: ownerT });
-    check('  owner can still see own hidden booth', ownerSeesHidden.status === 200);
-
-    // 13. re-save by owner must NOT un-hide (admin override preserved)
+    // 11. re-save stays published (no hidden/approval concept)
     const reSave = await api('/api/fair/me', { method: 'PUT', tok: ownerT, body: {
       offers: [{ type: 'service', text: 'Updated offer text here' }]
     }});
-    check('owner re-save keeps admin hidden status', reSave.status === 200 && reSave.data?.booth?.status === 'hidden',
+    check('owner re-save → still published', reSave.status === 200 && reSave.data?.booth?.status === 'published',
       `status=${reSave.data?.booth?.status}`);
 
     // 14. auto schedule — today (not last week of quarter) → closed

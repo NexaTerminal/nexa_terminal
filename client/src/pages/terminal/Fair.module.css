@@ -171,6 +171,7 @@
   margin-top: var(--spacing-4, 16px);
   background: var(--color-primary-50, #f0f6fb);
 }
+.contactBar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: var(--spacing-5, 20px) 0; }
 .contactRow { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
 .contactLink { color: var(--color-primary, #0a3d62); font-size: var(--font-size-sm, 0.88rem); text-decoration: none; font-weight: 600; }
 .contactLink:hover { text-decoration: underline; }

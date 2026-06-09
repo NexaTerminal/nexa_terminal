@@ -1394,28 +1394,6 @@ class EmailService {
     `;
   }
 
-  /**
-   * Virtual fair — forward a buyer inquiry to the booth owner.
-   * @param {string} ownerEmail - booth owner's contact email
-   * @param {object} p - { boothCompany, offerTitle, message, senderCompany, senderEmail }
-   */
-  async sendFairInquiry(ownerEmail, p = {}) {
-    const esc = (v) => String(v || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
-    const subject = `Ново барање од саемот${p.offerTitle ? ` — ${esc(p.offerTitle)}` : ''}`;
-    const html = `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-        <h2 style="color:#0a3d62">Ново барање преку Виртуелниот саем</h2>
-        <p>Добивте барање за вашиот штанд <strong>${esc(p.boothCompany)}</strong>${p.offerTitle ? ` (понуда: <strong>${esc(p.offerTitle)}</strong>)` : ''}.</p>
-        <table style="width:100%;border-collapse:collapse;margin:16px 0">
-          <tr><td style="padding:6px 0;color:#666">Од компанија:</td><td style="padding:6px 0"><strong>${esc(p.senderCompany)}</strong></td></tr>
-          <tr><td style="padding:6px 0;color:#666">Е-пошта за одговор:</td><td style="padding:6px 0"><a href="mailto:${esc(p.senderEmail)}">${esc(p.senderEmail)}</a></td></tr>
-        </table>
-        <div style="background:#f5f7fa;border-radius:8px;padding:16px;white-space:pre-wrap">${esc(p.message)}</div>
-        <p style="color:#888;font-size:12px;margin-top:24px">Одговорете директно на е-поштата на испраќачот. Оваа порака е пратена преку Nexa Terminal.</p>
-      </div>
-    `;
-    return this.sendEmail(ownerEmail, subject, html, { replyTo: p.senderEmail });
-  }
 }
 
 module.exports = new EmailService();

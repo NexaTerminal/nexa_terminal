@@ -310,7 +310,7 @@ const CourseLesson = () => {
                 disabled={completedLessons.includes(currentLesson.id) || isSaving}
               >
                 {isSaving ? 'Зачувување...' :
-                 completedLessons.includes(currentLesson.id) ? 'Завршено' :
+                 completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
                  'Означи како завршено'}
               </button>
               {showSuccessMessage && (
@@ -343,7 +343,7 @@ const CourseLesson = () => {
               disabled={completedLessons.includes(currentLesson.id) || isSaving}
             >
               {isSaving ? 'Зачувување...' :
-               completedLessons.includes(currentLesson.id) ? 'Завршено' :
+               completedLessons.includes(currentLesson.id) ? '✓ Завршено' :
                'Означи како завршено'}
             </button>
             {showSuccessMessage && (
@@ -541,6 +541,9 @@ const CourseLesson = () => {
                         } ${completedLessons.includes(lesson.id) ? courseStyles.completed : ''}`}
                         onClick={() => handleLessonClick(lesson)}
                       >
+                        <span className={courseStyles.lessonStatus}>
+                          {completedLessons.includes(lesson.id) ? '✓' : ''}
+                        </span>
                         <div className={courseStyles.lessonInfo}>
                           <span className={courseStyles.lessonTitle}>{lesson.title}</span>
                           <span className={courseStyles.lessonDuration}>{lesson.duration}</span>

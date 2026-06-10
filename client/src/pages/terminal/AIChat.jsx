@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
@@ -427,8 +429,14 @@ const AIChat = () => {
                       </span>
                     </div>
 
-                    <div className={styles.messageContent}>
-                      {message.content}
+                    <div className={`${styles.messageContent} ${message.type === 'ai' ? styles.markdownContent : ''}`}>
+                      {message.type === 'ai' ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      ) : (
+                        message.content
+                      )}
                       {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
                     </div>
 

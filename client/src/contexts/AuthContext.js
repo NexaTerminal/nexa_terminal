@@ -21,7 +21,10 @@ const install402Interceptor = () => {
     (error) => {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
-      if (status === 402 && typeof code === 'string' && code.startsWith('SUBSCRIPTION_')) {
+      const isSubscriptionBlock = status === 402 && typeof code === 'string' && code.startsWith('SUBSCRIPTION_');
+      // Account-level suspension (admin-set) returns 403 ACCOUNT_SUSPENDED.
+      const isAccountSuspended = status === 403 && code === 'ACCOUNT_SUSPENDED';
+      if (isSubscriptionBlock || isAccountSuspended) {
         try {
           window.dispatchEvent(new CustomEvent('subscription:blocked', {
             detail: error.response.data

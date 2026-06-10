@@ -7,6 +7,29 @@ import { uploadTemplateFile, createTemplate, suggestFields } from '../../service
 import styles from '../../styles/terminal/MyTemplateBuilder.module.css';
 import { sanitizeHTML } from '../../utils/sanitizer';
 
+// Confusable Cyrillic→Latin letters + dash/space variants. Folding the search
+// text and the document the same (1:1, length-preserving) way lets a value
+// written with look-alike letters (e.g. Latin "MK" vs Cyrillic "МК") highlight
+// every copy. Mirrors the server-side matching used at generation time.
+const HOMOGLYPHS = {
+  'А': 'A', 'а': 'a', 'В': 'B', 'Е': 'E', 'е': 'e', 'К': 'K', 'к': 'k',
+  'М': 'M', 'Н': 'H', 'О': 'O', 'о': 'o', 'Р': 'P', 'р': 'p', 'С': 'C',
+  'с': 'c', 'Т': 'T', 'У': 'Y', 'у': 'y', 'Х': 'X', 'х': 'x', 'Ѕ': 'S',
+  'ѕ': 's', 'Ј': 'J', 'ј': 'j', 'І': 'I', 'і': 'i', 'Ё': 'E'
+};
+const DASH_CHARS = new Set(['‐', '‑', '‒', '–', '—', '―', '−']);
+const SPACE_CHARS = new Set([' ', ' ', ' ', ' ']);
+const normalizeForMatch = (s) => {
+  let out = '';
+  for (const ch of String(s || '')) {
+    if (HOMOGLYPHS[ch]) out += HOMOGLYPHS[ch];
+    else if (DASH_CHARS.has(ch)) out += '-';
+    else if (SPACE_CHARS.has(ch)) out += ' ';
+    else out += ch;
+  }
+  return out;
+};
+
 const MyTemplateBuilder = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -28,6 +51,9 @@ const MyTemplateBuilder = () => {
   const [originalFileName, setOriginalFileName] = useState('');
   const [fields, setFields] = useState([]);
 
+  // Bilingual auto-split notice (server keeps only the Macedonian version)
+  const [languageNotice, setLanguageNotice] = useState(null);
+
   // AI suggestions state
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -39,6 +65,10 @@ const MyTemplateBuilder = () => {
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
   const [newField, setNewField] = useState({ label: '', type: 'text', required: false, options: '', companyField: '', formula: '' });
+
+  // Inline edit of an existing field (label / type / required / extras)
+  const [editingFieldId, setEditingFieldId] = useState(null);
+  const [editDraft, setEditDraft] = useState({ label: '', type: 'text', required: false, options: '', companyField: '', formula: '' });
 
   // Save state
   const [templateName, setTemplateName] = useState('');
@@ -77,31 +107,41 @@ const MyTemplateBuilder = () => {
     }
 
     setError('');
+    setLanguageNotice(null);
     setLoading(true);
     setFileName(file.name);
 
     try {
-      // Client-side preview with mammoth
-      const arrayBuffer = await file.arrayBuffer();
-      const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
-      setHtmlPreview(htmlResult.value);
-
-      // Also extract plain text for AI analysis
-      const textResult = await mammoth.extractRawText({ arrayBuffer });
-      setPlainText(textResult.value);
-
-      // Upload to server for GridFS storage
+      // Upload to server: it stores the file in GridFS and — if the document
+      // is bilingual (MK/EN) — keeps only the Macedonian version, returning
+      // the preview, plain text and a language notice for that version.
       const uploadResult = await uploadTemplateFile(file);
       setOriginalFileId(uploadResult.originalFileId);
       setOriginalFileName(uploadResult.originalFileName);
 
+      // Prefer the server (Macedonian-only) preview + text. Fall back to a
+      // client-side mammoth render only if the server didn't return them.
+      let previewHtml = uploadResult.htmlPreview;
+      let analysisText = uploadResult.plainText;
+      if (!previewHtml || analysisText == null) {
+        const arrayBuffer = await file.arrayBuffer();
+        if (!previewHtml) previewHtml = (await mammoth.convertToHtml({ arrayBuffer })).value;
+        if (analysisText == null) analysisText = (await mammoth.extractRawText({ arrayBuffer })).value;
+      }
+      setHtmlPreview(previewHtml || '');
+      setPlainText(analysisText || '');
+
+      if (uploadResult.language?.bilingual) {
+        setLanguageNotice(uploadResult.language);
+      }
+
       // Move to AI suggestions step
       setStep('suggestions');
 
-      // Start AI analysis in background
+      // Start AI analysis on the Macedonian-only text in background
       setAiLoading(true);
       try {
-        const suggestions = await suggestFields(textResult.value);
+        const suggestions = await suggestFields(analysisText || '');
         setAiSuggestions(suggestions);
       } catch (aiErr) {
         // AI failure is non-blocking — user can still proceed manually
@@ -293,32 +333,50 @@ const MyTemplateBuilder = () => {
     window.getSelection()?.removeAllRanges();
   };
 
+  // Highlight EVERY occurrence of the text — a value that repeats in the
+  // document (e.g. a company name in the header and again in the definitions)
+  // is a single field, so the user sees all copies are covered by one input.
   const highlightText = (text, fieldName) => {
-    if (!previewRef.current) return;
+    if (!previewRef.current || !text) return 0;
 
-    const walker = document.createTreeWalker(
-      previewRef.current,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
+    const needle = normalizeForMatch(text);
+    let count = 0;
+    let mutated = true;
+    while (mutated) {
+      mutated = false;
+      const walker = document.createTreeWalker(previewRef.current, NodeFilter.SHOW_TEXT, null, false);
+      let node;
+      while ((node = walker.nextNode())) {
+        const parent = node.parentNode;
+        // Skip text already inside a marked field span
+        if (parent && parent.getAttribute && parent.getAttribute('data-field')) continue;
 
-    let node;
-    while ((node = walker.nextNode())) {
-      const idx = node.textContent.indexOf(text);
-      if (idx === -1) continue;
+        // Homoglyph-/dash-insensitive match; normalization is 1:1 so the index
+        // is valid against the original text node (and text.length === needle.length).
+        const idx = normalizeForMatch(node.textContent).indexOf(needle);
+        if (idx === -1) continue;
 
-      const range = document.createRange();
-      range.setStart(node, idx);
-      range.setEnd(node, idx + text.length);
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + text.length);
 
-      const span = document.createElement('span');
-      span.className = styles.markedField;
-      span.setAttribute('data-field', fieldName);
-      span.setAttribute('title', `{${fieldName}}`);
-      range.surroundContents(span);
-      break;
+        const span = document.createElement('span');
+        span.className = styles.markedField;
+        span.setAttribute('data-field', fieldName);
+        span.setAttribute('title', `{${fieldName}}`);
+        try {
+          range.surroundContents(span);
+          count++;
+          mutated = true;
+          break; // DOM changed — restart the scan
+        } catch (e) {
+          // Occurrence crosses element boundaries; skip it and keep scanning
+          // (it is still tagged server-side at generation time).
+          continue;
+        }
+      }
     }
+    return count;
   };
 
   // After switching to preview step, highlight all pre-accepted fields
@@ -336,15 +394,65 @@ const MyTemplateBuilder = () => {
     const field = fields.find(f => f.id === fieldId);
     setFields(prev => prev.filter(f => f.id !== fieldId));
 
-    // Remove highlight from preview
+    // Remove every highlight for this field from the preview
     if (field && previewRef.current) {
-      const highlighted = previewRef.current.querySelector(`[data-field="${field.name}"]`);
-      if (highlighted) {
-        const parent = highlighted.parentNode;
-        parent.replaceChild(document.createTextNode(highlighted.textContent), highlighted);
+      const highlighted = previewRef.current.querySelectorAll(`[data-field="${field.name}"]`);
+      highlighted.forEach((el) => {
+        const parent = el.parentNode;
+        parent.replaceChild(document.createTextNode(el.textContent), el);
         parent.normalize();
-      }
+      });
     }
+    if (editingFieldId === fieldId) setEditingFieldId(null);
+  };
+
+  // Reorder fields — the order here is the order users fill them in later.
+  const moveField = (index, dir) => {
+    setFields(prev => {
+      const j = index + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+  };
+
+  // --- EDIT EXISTING FIELD ---
+
+  const startEditField = (field) => {
+    setEditingFieldId(field.id);
+    setEditDraft({
+      label: field.label || '',
+      type: field.type || 'text',
+      required: !!field.required,
+      options: Array.isArray(field.options) ? field.options.join(', ') : '',
+      companyField: field.companyField || '',
+      formula: field.formula || ''
+    });
+  };
+
+  const saveEditField = () => {
+    if (!editDraft.label.trim()) return;
+    setFields(prev => prev.map(f => {
+      if (f.id !== editingFieldId) return f;
+      // Keep id / name / originalText stable (the tag mapping must not change);
+      // only the human-facing definition is editable.
+      const updated = { ...f, label: editDraft.label.trim(), type: editDraft.type, required: editDraft.required };
+      delete updated.options;
+      delete updated.companyField;
+      delete updated.formula;
+      if (editDraft.type === 'select' && editDraft.options) {
+        updated.options = editDraft.options.split(',').map(o => o.trim()).filter(Boolean);
+      }
+      if (editDraft.type === 'companyData' && editDraft.companyField) {
+        updated.companyField = editDraft.companyField;
+      }
+      if (editDraft.type === 'calculated' && editDraft.formula) {
+        updated.formula = editDraft.formula;
+      }
+      return updated;
+    }));
+    setEditingFieldId(null);
   };
 
   // --- SAVE HANDLER ---
@@ -431,6 +539,21 @@ const MyTemplateBuilder = () => {
             <div className={styles.errorBanner}>
               {error}
               <button onClick={() => setError('')} className={styles.errorDismiss}>×</button>
+            </div>
+          )}
+
+          {languageNotice && (
+            <div className={styles.languageNotice}>
+              <span className={styles.languageNoticeIcon}>⚠</span>
+              <div className={styles.languageNoticeBody}>
+                <strong>Двојазичен документ</strong>
+                <p>
+                  {languageNotice.splitApplied
+                    ? 'Засега не поддржуваме повеќејазични шаблони. Задржана е само македонската верзија — англискиот текст е отстранет од прегледот и од генерираниот документ.'
+                    : 'Документот изгледа двојазичен. Засега препорачуваме шаблони само на македонски јазик за точно генерирање.'}
+                </p>
+              </div>
+              <button onClick={() => setLanguageNotice(null)} className={styles.errorDismiss}>×</button>
             </div>
           )}
 
@@ -728,7 +851,7 @@ const MyTemplateBuilder = () => {
 
                 {fields.length === 0 ? (
                   <div className={styles.fieldsEmpty}>
-                    <p>Означете текст од документот за да додадете динамични полиња</p>
+                    <p>Означете текст од документот за да додадете динамични полиња. Полињата што AI не ги препозна, додадете ги рачно со селектирање.</p>
                   </div>
                 ) : (
                   <div className={styles.fieldsList}>
@@ -736,14 +859,31 @@ const MyTemplateBuilder = () => {
                       <div key={field.id} className={styles.fieldItem}>
                         <div className={styles.fieldItemHeader}>
                           <span className={styles.fieldIndex}>{index + 1}</span>
-                          <span className={styles.fieldLabel}>{field.label}</span>
-                          <button
-                            className={styles.fieldRemove}
-                            onClick={() => removeField(field.id)}
-                            title="Отстрани"
-                          >
-                            ×
-                          </button>
+                          <span className={styles.fieldLabel} title={field.label}>{field.label}</span>
+                          <div className={styles.fieldActions}>
+                            <button
+                              className={styles.fieldMoveBtn}
+                              onClick={() => moveField(index, -1)}
+                              disabled={index === 0}
+                              title="Помести нагоре"
+                            >↑</button>
+                            <button
+                              className={styles.fieldMoveBtn}
+                              onClick={() => moveField(index, 1)}
+                              disabled={index === fields.length - 1}
+                              title="Помести надолу"
+                            >↓</button>
+                            <button
+                              className={styles.fieldEditBtn}
+                              onClick={() => (editingFieldId === field.id ? setEditingFieldId(null) : startEditField(field))}
+                              title="Уреди"
+                            >✎</button>
+                            <button
+                              className={styles.fieldRemove}
+                              onClick={() => removeField(field.id)}
+                              title="Отстрани"
+                            >×</button>
+                          </div>
                         </div>
                         <div className={styles.fieldItemMeta}>
                           <span className={styles.fieldTag}>{`{${field.name}}`}</span>
@@ -751,6 +891,103 @@ const MyTemplateBuilder = () => {
                             {field.type === 'companyData' ? `компанија: ${field.companyField}` : field.type}
                           </span>
                         </div>
+
+                        {editingFieldId === field.id && (
+                          <div className={styles.fieldEditForm}>
+                            <div className={styles.popupField}>
+                              <label className={styles.popupLabel}>Име на полето</label>
+                              <input
+                                type="text"
+                                className={styles.popupInput}
+                                value={editDraft.label}
+                                onChange={e => setEditDraft(prev => ({ ...prev, label: e.target.value }))}
+                                placeholder="пр. Име на вработен"
+                              />
+                            </div>
+
+                            <div className={styles.popupField}>
+                              <label className={styles.popupLabel}>Тип</label>
+                              <select
+                                className={styles.popupSelect}
+                                value={editDraft.type}
+                                onChange={e => setEditDraft(prev => ({ ...prev, type: e.target.value, options: '', companyField: '', formula: '' }))}
+                              >
+                                <option value="text">Текст</option>
+                                <option value="number">Број</option>
+                                <option value="date">Датум</option>
+                                <option value="textarea">Долг текст</option>
+                                <option value="select">Паѓачко мени</option>
+                                <option value="companyData">Податоци од компанија</option>
+                                <option value="checkbox">Чекбокс (условен параграф)</option>
+                                <option value="calculated">Пресметано поле</option>
+                              </select>
+                            </div>
+
+                            {editDraft.type === 'select' && (
+                              <div className={styles.popupField}>
+                                <label className={styles.popupLabel}>Опции (одделени со запирка)</label>
+                                <input
+                                  type="text"
+                                  className={styles.popupInput}
+                                  value={editDraft.options}
+                                  onChange={e => setEditDraft(prev => ({ ...prev, options: e.target.value }))}
+                                  placeholder="пр. маж, жена"
+                                />
+                              </div>
+                            )}
+
+                            {editDraft.type === 'companyData' && (
+                              <div className={styles.popupField}>
+                                <label className={styles.popupLabel}>Поле од компанија</label>
+                                <select
+                                  className={styles.popupSelect}
+                                  value={editDraft.companyField}
+                                  onChange={e => setEditDraft(prev => ({ ...prev, companyField: e.target.value }))}
+                                >
+                                  <option value="">-- Избери --</option>
+                                  <option value="companyName">Име на компанија</option>
+                                  <option value="companyAddress">Адреса</option>
+                                  <option value="companyTaxNumber">Даночен број</option>
+                                  <option value="companyManager">Управител</option>
+                                  <option value="crnNumber">Матичен број</option>
+                                  <option value="companyPIN">ЕМБС</option>
+                                  <option value="phone">Телефон</option>
+                                  <option value="email">Е-пошта</option>
+                                  <option value="industry">Дејност</option>
+                                  <option value="website">Веб страна</option>
+                                </select>
+                              </div>
+                            )}
+
+                            {editDraft.type === 'calculated' && (
+                              <div className={styles.popupField}>
+                                <label className={styles.popupLabel}>Формула</label>
+                                <input
+                                  type="text"
+                                  className={styles.popupInput}
+                                  value={editDraft.formula}
+                                  onChange={e => setEditDraft(prev => ({ ...prev, formula: e.target.value }))}
+                                  placeholder="пр. {firstName} {lastName}"
+                                />
+                              </div>
+                            )}
+
+                            <div className={styles.popupCheckbox}>
+                              <input
+                                type="checkbox"
+                                id={`edit-required-${field.id}`}
+                                checked={editDraft.required}
+                                onChange={e => setEditDraft(prev => ({ ...prev, required: e.target.checked }))}
+                              />
+                              <label htmlFor={`edit-required-${field.id}`}>Задолжително поле</label>
+                            </div>
+
+                            <div className={styles.popupActions}>
+                              <button className={styles.popupCancel} onClick={() => setEditingFieldId(null)}>Откажи</button>
+                              <button className={styles.popupConfirm} onClick={saveEditField}>Зачувај</button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

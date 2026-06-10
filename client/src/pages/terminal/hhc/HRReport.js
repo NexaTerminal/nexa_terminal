@@ -4,6 +4,7 @@ import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
+import usePrintReport from '../../../hooks/usePrintReport';
 
 const HRReport = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const HRReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [printing, handlePrint] = usePrintReport();
 
   useEffect(() => {
     fetchAssessment();
@@ -187,7 +189,7 @@ const HRReport = () => {
                     </span>
                   </button>
 
-                  {expandedCategories[catKey] && (
+                  {(printing || expandedCategories[catKey]) && (
                     <div className={styles["category-findings-content"]}>
                       <div className={styles["finding-card"]} style={{
                         borderLeft: `4px solid ${getLevelColor(catData.level)}`
@@ -280,7 +282,7 @@ const HRReport = () => {
                 Нова проценка
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className={styles["btn-outline"]}
               >
                 Печати извештај

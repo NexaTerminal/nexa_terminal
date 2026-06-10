@@ -147,11 +147,6 @@ const courseData = {
       }
     ]
   },
-  'rabotni-odnosi': {
-    title: 'Работни односи',
-    description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',
-    modules: [] // Add other courses as needed
-  },
   'lokalno-seo': {
     title: 'Локално SEO',
     description: 'Научете како да го оптимизирате вашиот бизнис за локално пребарување со Google Business Profile, NAP конзистентност, рецензии и AI SEO стратегии.',

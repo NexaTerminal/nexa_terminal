@@ -43,6 +43,10 @@ class AuthController {
       profileComplete: user.profileComplete,
       companyInfo: user.companyInfo,
       isVerified: user.isVerified,
+      // Account-level suspension (set by admin). Missing field = active.
+      isActive: user.isActive !== false,
+      suspendedUntil: user.suspendedUntil || null,
+      suspensionReason: user.suspensionReason || null,
       mustChangePassword: user.mustChangePassword === true,
       parentSuperUserId: user.parentSuperUserId || null,
       intendedPlan: user.intendedPlan || null,
@@ -60,7 +64,11 @@ class AuthController {
         status: user.subscription.status || null,
         plan:   user.subscription.plan   || null,
         cycle:  user.subscription.cycle  || null,
-        endsAt: user.subscription.endsAt || null
+        endsAt: user.subscription.endsAt || null,
+        // Grace window — lib/tier.js previewMode() needs this to keep a
+        // grace-period user out of preview mode.
+        graceEndsAt: user.subscription.gracePeriod?.endsAt || null,
+        graceUsed:   user.subscription.gracePeriod?.used === true
       } : null
     };
   }

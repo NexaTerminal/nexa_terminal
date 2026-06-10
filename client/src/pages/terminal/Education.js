@@ -22,14 +22,6 @@ const courses = [
   //   available: false
   // },
   {
-    id: 'rabotni-odnosi',
-    title: 'Работни односи',
-    description: 'Разберете ги клучните аспекти на трудовото право, вработување, отпуштање и права на работниците.',
-    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
-    category: 'legal',
-    available: true
-  },
-  {
     id: 'udel-vo-drushtvo',
     title: 'Удел во трговско друштво',
     description: 'Комплетен курс за разбирање на уделот во друштвото, права на сопствениците, процедури за стекнување и пренесување на удел.',

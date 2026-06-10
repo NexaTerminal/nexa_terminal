@@ -94,6 +94,7 @@ export default function SubscriptionGate() {
   if (!currentUser) return null;
 
   const sub = blockedInfo?.subscription || {};
+  const accountSuspended = blockedInfo?.code === 'ACCOUNT_SUSPENDED';
   const graceUsed = sub.graceUsed === true;
   const userHasEmail = !!(currentUser.email && currentUser.email.includes('@'));
   const price = PRICES[plan]?.[cycle];
@@ -197,7 +198,17 @@ export default function SubscriptionGate() {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeBtn} onClick={close} aria-label="Затвори">×</button>
 
-        {done ? (
+        {accountSuspended ? (
+          <div className={styles.successBlock}>
+            <div className={styles.checkIcon} aria-hidden>⛔</div>
+            <h2 className={styles.title}>Сметката е суспендирана</h2>
+            <p className={styles.lead}>
+              {blockedInfo?.message
+                || 'Вашата сметка е привремено суспендирана. Контактирајте нè за повеќе информации.'}
+            </p>
+            <button className={styles.btnPrimary} onClick={close}>Затвори</button>
+          </div>
+        ) : done ? (
           <div className={styles.successBlock}>
             <div className={styles.checkIcon} aria-hidden>✓</div>
             <h2 className={styles.title}>Нарачката е примена</h2>

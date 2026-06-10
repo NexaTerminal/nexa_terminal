@@ -47,6 +47,26 @@ async function check(req, res, next, subscriptionService) {
 
     if (user.role === ROLES.ADMIN || user.isAdmin === true) return next();
 
+    // Manual admin suspension — an account-level block independent of billing
+    // state. Set by adminController.suspendUser (isActive:false + optional
+    // suspendedUntil). A permanent suspension has suspendedUntil=null; a
+    // temporary one auto-expires once suspendedUntil passes. Enforced here so a
+    // suspended user truly loses access to every feature surface.
+    const nowMs = Date.now();
+    const manuallySuspended =
+      user.isActive === false &&
+      (!user.suspendedUntil || new Date(user.suspendedUntil).getTime() > nowMs);
+    if (manuallySuspended) {
+      return res.status(403).json({
+        success: false,
+        code: 'ACCOUNT_SUSPENDED',
+        message: user.suspensionReason
+          ? `Вашата сметка е привремено суспендирана: ${user.suspensionReason}`
+          : 'Вашата сметка е привремено суспендирана. Контактирајте нè за повеќе информации.',
+        suspendedUntil: user.suspendedUntil || null
+      });
+    }
+
     if (!subscriptionService) {
       // Service not yet initialized — fail open to avoid global outage.
       console.warn('[subscriptionGuard] subscriptionService not available; passing through');
@@ -67,14 +87,32 @@ async function check(req, res, next, subscriptionService) {
 
     const eff = await subscriptionService.effectiveStatus(effUser);
 
-    if (eff.status === SUBSCRIPTION_STATUSES.TRIAL || eff.status === SUBSCRIPTION_STATUSES.ACTIVE) {
+    // Access is granted only while trial/active is UNEXPIRED, or grace is live.
+    // Checking endsAt at request time (rather than trusting the stored status)
+    // means an expired trial loses access immediately — we never depend on the
+    // nightly cron having run to flip status → suspended.
+    const endsAtMs = eff.endsAt      ? new Date(eff.endsAt).getTime()      : 0;
+    const graceMs  = eff.graceEndsAt ? new Date(eff.graceEndsAt).getTime() : 0;
+    const isTrialOrActive =
+      eff.status === SUBSCRIPTION_STATUSES.TRIAL ||
+      eff.status === SUBSCRIPTION_STATUSES.ACTIVE;
+
+    if ((isTrialOrActive && endsAtMs > nowMs) || graceMs > nowMs) {
       req.subscription = eff;
       return next();
     }
-    if (eff.graceEndsAt && new Date(eff.graceEndsAt) > new Date()) {
-      // grace active — feature access allowed
-      req.subscription = eff;
-      return next();
+
+    // Lapsed trial/active with no live grace → self-heal the stored status to
+    // 'suspended' so the admin dashboard reflects reality without waiting for
+    // the cron. Only for the user's own subscription (sub-seats inherit the
+    // parent's state; the parent's own request / cron handles that side).
+    if (isTrialOrActive && endsAtMs <= nowMs && eff.source === 'self') {
+      try {
+        await subscriptionService.suspend(effUser._id || effUser.id, { reason: 'auto: expired (request-time)' });
+        eff.status = SUBSCRIPTION_STATUSES.SUSPENDED;
+      } catch (e) {
+        console.warn('[subscriptionGuard] request-time suspend failed:', e.message);
+      }
     }
 
     let code = 'SUBSCRIPTION_REQUIRED';

@@ -21,6 +21,10 @@ export default function AdminProInvoices() {
   const [page, setPage] = useState(1);
   const limit = 50;
 
+  const year = new Date().getFullYear();
+  const [counter, setCounter] = useState(null);
+  const [nextInput, setNextInput] = useState('');
+
   const load = useCallback(() => {
     if (!token) return;
     setLoading(true);
@@ -35,6 +39,38 @@ export default function AdminProInvoices() {
   }, [token, page, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
+
+  const loadCounter = useCallback(() => {
+    if (!token) return;
+    axios.get(`/api/admin/pro-invoices/counter?year=${year}`, { headers })
+      .then(res => {
+        setCounter(res.data?.counter || null);
+        setNextInput(String(res.data?.counter?.next ?? ''));
+      })
+      .catch(() => {});
+  }, [token, year]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { loadCounter(); }, [loadCounter]);
+
+  const saveNext = async () => {
+    try {
+      const res = await axios.put('/api/admin/pro-invoices/counter', { year, next: Number(nextInput) }, { headers });
+      setCounter(res.data?.counter || null);
+      setOk(`Следниот број е поставен на ${res.data?.counter?.next}.`);
+      setTimeout(() => setOk(null), 2500);
+    } catch (e) { setErr(e.response?.data?.message || e.message); }
+  };
+
+  const resequence = async () => {
+    if (!window.confirm(`Ова ќе ги пренумерира сите профактури за ${year} по редослед на издавање (1…N), за да се совпаѓаат со листата. Продолжи?`)) return;
+    try {
+      const res = await axios.post('/api/admin/pro-invoices/resequence', { year }, { headers });
+      setOk(`Пренумерирани ${res.data?.result?.renumbered ?? 0} профактури.`);
+      load();
+      loadCounter();
+      setTimeout(() => setOk(null), 2500);
+    } catch (e) { setErr(e.response?.data?.message || e.message); }
+  };
 
   const setStatus = async (row, status) => {
     try {
@@ -72,6 +108,33 @@ export default function AdminProInvoices() {
 
         {ok && <div className={styles.toastOk}>{ok}</div>}
         {err && <div className={styles.toastError}>{err}</div>}
+
+        <section className={styles.panel} style={{ marginBottom: 16 }}>
+          <div className={styles.panelHead}>Нумерација ({year})</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '12px 0 4px' }}>
+            <label style={{ fontSize: 13, color: '#475569', display: 'flex', alignItems: 'center' }}>
+              Следен број:
+              <input
+                type="number"
+                min="1"
+                value={nextInput}
+                onChange={(e) => setNextInput(e.target.value)}
+                style={{ width: 84, marginLeft: 8, padding: '6px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13 }}
+              />
+            </label>
+            <button type="button" className={styles.btnSecondary} onClick={saveNext}>Зачувај</button>
+            <span style={{ fontSize: 12.5, color: '#94a3b8' }}>
+              Издадени: {counter?.count ?? 0} · последен искористен број: {counter?.maxUsed ?? 0}
+            </span>
+            <button type="button" className={styles.iconBtn} onClick={resequence} style={{ marginLeft: 'auto' }}>
+              Усогласи нумерација со листата
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: '#94a3b8', margin: '6px 0 0' }}>
+            „Следен број" го одредува бројот на следната нова профактура. „Усогласи нумерација"
+            ги пренумерира постоечките по редослед на издавање (1…N).
+          </p>
+        </section>
 
         <section className={styles.panel}>
           <div className={styles.panelHead} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

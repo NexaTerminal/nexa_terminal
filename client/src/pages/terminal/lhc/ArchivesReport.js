@@ -4,6 +4,7 @@ import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
+import usePrintReport from '../../../hooks/usePrintReport';
 
 const ArchivesReport = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const ArchivesReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [printing, handlePrint] = usePrintReport();
 
   useEffect(() => { fetchAssessment(); }, [id]);
 
@@ -173,7 +175,7 @@ const ArchivesReport = () => {
                       </span>
                     </button>
 
-                    {expandedCategories[categoryName] && (
+                    {(printing || expandedCategories[categoryName]) && (
                       <div className={styles["category-findings-content"]}>
                         {findings.map((f, i) => (
                           <div key={i}
@@ -211,7 +213,7 @@ const ArchivesReport = () => {
               <button onClick={() => navigate('/terminal/legal-screening/archives')} className={styles["btn-primary"]}>
                 Направи нова проценка
               </button>
-              <button onClick={() => window.print()} className={styles["btn-outline"]}>
+              <button onClick={handlePrint} className={styles["btn-outline"]}>
                 🖨️ Печати извештај
               </button>
             </div>

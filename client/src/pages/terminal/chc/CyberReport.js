@@ -4,6 +4,7 @@ import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
+import usePrintReport from '../../../hooks/usePrintReport';
 
 // Brand colors
 const colors = {
@@ -50,6 +51,8 @@ const CyberReport = () => {
       setLoading(false);
     }
   };
+
+  const [printing, handlePrint] = usePrintReport();
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -203,7 +206,7 @@ const CyberReport = () => {
                   </h2>
                 </button>
 
-                {expandedSections.strengths && (
+                {(printing || expandedSections.strengths) && (
                   <div style={{ marginTop: '16px' }}>
                     {assessment.strengths.map((strength, index) => (
                       <div
@@ -258,7 +261,7 @@ const CyberReport = () => {
                   </h2>
                 </button>
 
-                {expandedSections.weaknesses && (
+                {(printing || expandedSections.weaknesses) && (
                   <div style={{ marginTop: '16px' }}>
                     {assessment.weaknesses.map((weakness, index) => (
                       <div
@@ -311,7 +314,7 @@ const CyberReport = () => {
                   </h2>
                 </button>
 
-                {expandedSections.improvements && (
+                {(printing || expandedSections.improvements) && (
                   <div style={{ marginTop: '16px' }}>
                     <p style={{ color: colors.gray, marginBottom: '16px', fontSize: '0.95rem' }}>
                       Врз основа на вашите одговори, препорачуваме да се фокусирате на следните области:
@@ -377,7 +380,7 @@ const CyberReport = () => {
                   </h2>
                 </button>
 
-                {expandedSections.categories && (
+                {(printing || expandedSections.categories) && (
                   <div style={{ marginTop: '16px' }}>
                     <div style={{
                       display: 'grid',
@@ -463,7 +466,7 @@ const CyberReport = () => {
                 Направи нова проценка
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className={styles["btn-outline"]}
               >
                 Печати извештај

@@ -923,11 +923,27 @@
 
 /* Print Styles */
 @media print {
-  .dashboard-layout,
+  /* Hide app chrome (header tag + sidebar aside tag are global in CSS Modules)
+     and on-screen-only controls. Do NOT hide .dashboard-layout — the report
+     lives inside it, so hiding the layout produces a blank printout. */
+  header,
+  aside,
   .report-actions,
   .navigation-buttons,
   .question-dots {
     display: none !important;
+  }
+
+  /* Flatten the layout so the report fills the printed page */
+  .dashboard-layout {
+    display: block;
+    min-height: 0;
+  }
+
+  .dashboard-main {
+    margin-left: 0;
+    min-height: 0;
+    overflow: visible;
   }
 
   .report-container {

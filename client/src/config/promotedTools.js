@@ -243,16 +243,6 @@ export const PROMOTED_TOOLS = [
 
   // ============ FREE COURSES ============
   {
-    id: 'course_rabotni_odnosi',
-    name: 'Курс: Работни односи',
-    description: 'Бесплатен курс за клучните аспекти на трудовото право, вработување, отпуштање и права на работниците. Идеален за претприемачи и HR менаџери.',
-    icon: '🎓',
-    link: '/terminal/education/course/rabotni-odnosi',
-    category: 'courses',
-    ctaText: 'Започни бесплатен курс',
-    videoUrl: null
-  },
-  {
     id: 'course_udel_vo_drushtvo',
     name: 'Курс: Удел во трговско друштво',
     description: 'Бесплатен курс за разбирање на уделот во друштвото, права на сопствениците, процедури за стекнување и пренесување на удел.',

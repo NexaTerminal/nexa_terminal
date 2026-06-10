@@ -7,6 +7,7 @@ const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const { ChatOpenAI } = require('@langchain/openai');
 const TemplateStorageService = require('../services/templateStorageService');
+const { analyzeAndSplit } = require('../services/bilingualSplitter');
 
 // Configure multer for .docx uploads
 const storage = multer.diskStorage({
@@ -47,11 +48,20 @@ async function uploadTemplate(req, res) {
     }
 
     const filePath = req.file.path;
-    const buffer = fs.readFileSync(filePath);
+    const rawBuffer = fs.readFileSync(filePath);
 
-    // Convert to HTML preview using mammoth
-    const result = await mammoth.convertToHtml({ buffer });
+    // Detect bilingual (MK/EN) documents and keep only the Macedonian content.
+    // Multilingual templates are not supported yet: the working .docx (used
+    // for tag injection + generation), the preview and the AI analysis must
+    // all share the same single-language source. Fails safe to the raw buffer.
+    const split = analyzeAndSplit(rawBuffer);
+    const workingBuffer = split.buffer;
+
+    // Convert the working (Macedonian-only) buffer to HTML preview + raw text.
+    const result = await mammoth.convertToHtml({ buffer: workingBuffer });
     const htmlPreview = result.value;
+    const textResult = await mammoth.extractRawText({ buffer: workingBuffer });
+    const plainText = textResult.value;
 
     // Decode filename properly (multer encodes non-ASCII as Latin-1)
     const decodedFileName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
@@ -59,11 +69,24 @@ async function uploadTemplate(req, res) {
     // Store original in GridFS
     const db = req.app.locals.db;
     const templateStorage = new TemplateStorageService(db);
-    const originalFileId = await templateStorage.storeTemplate(buffer, {
+    const originalFileId = await templateStorage.storeTemplate(workingBuffer, {
       fileName: decodedFileName,
       userId: req.user._id || req.user.id,
       templateType: 'original'
     });
+
+    // Keep the untouched raw upload for traceability when a split happened.
+    let rawFileId = null;
+    if (split.splitApplied) {
+      try {
+        const id = await templateStorage.storeTemplate(rawBuffer, {
+          fileName: `raw_${decodedFileName}`,
+          userId: req.user._id || req.user.id,
+          templateType: 'raw-original'
+        });
+        rawFileId = id.toString();
+      } catch (_) { /* non-critical */ }
+    }
 
     // Clean up temp file
     fs.unlinkSync(filePath);
@@ -71,7 +94,15 @@ async function uploadTemplate(req, res) {
     res.json({
       originalFileId: originalFileId.toString(),
       originalFileName: decodedFileName,
-      htmlPreview
+      htmlPreview,
+      plainText,
+      rawFileId,
+      language: {
+        bilingual: split.bilingual,
+        splitApplied: split.splitApplied,
+        method: split.method,
+        stats: split.stats
+      }
     });
   } catch (error) {
     // Clean up temp file on error
@@ -406,6 +437,68 @@ async function generateDocument(req, res) {
  * Inject {tags} into a .docx buffer by replacing originalText with tag placeholders.
  * Handles text that may be split across multiple XML runs.
  */
+// Confusable Cyrillic→Latin letters. Folding both the search text and the
+// document the SAME way lets "MK4032…" match Cyrillic "МК4032…", while
+// genuinely-Cyrillic text still matches genuinely-Cyrillic text. The map is
+// strictly 1 char → 1 char so character indices stay aligned after folding.
+const HOMOGLYPHS = {
+  'А': 'A', 'а': 'a', 'В': 'B', 'Е': 'E', 'е': 'e', 'К': 'K', 'к': 'k',
+  'М': 'M', 'Н': 'H', 'О': 'O', 'о': 'o', 'Р': 'P', 'р': 'p', 'С': 'C',
+  'с': 'c', 'Т': 'T', 'У': 'Y', 'у': 'y', 'Х': 'X', 'х': 'x', 'Ѕ': 'S',
+  'ѕ': 's', 'Ј': 'J', 'ј': 'j', 'І': 'I', 'і': 'i', 'Ё': 'E'
+};
+const DASH_CHARS = new Set(['‐', '‑', '‒', '–', '—', '―', '−']);
+const SPACE_CHARS = new Set([' ', ' ', ' ', ' ']);
+
+/**
+ * Length-preserving normalization for fuzzy matching: folds Cyrillic/Latin
+ * homoglyphs, dash variants and non-breaking spaces to a canonical form.
+ * Because every character maps to exactly one character, an index found in a
+ * normalized string is valid in the original string too.
+ */
+function normalizeForMatch(s) {
+  let out = '';
+  for (const ch of s) {
+    if (HOMOGLYPHS[ch]) out += HOMOGLYPHS[ch];
+    else if (DASH_CHARS.has(ch)) out += '-';
+    else if (SPACE_CHARS.has(ch)) out += ' ';
+    else out += ch;
+  }
+  return out;
+}
+
+/**
+ * Replace EVERY single-run occurrence of `search` (matched homoglyph- and
+ * dash-insensitively) with `tag`. Occurrences spanning XML markup are skipped
+ * here — those are handled by replaceTextAcrossRuns.
+ */
+function injectAllOccurrences(xml, search, tag) {
+  const needle = normalizeForMatch(search);
+  if (!needle) return xml;
+  const hay = normalizeForMatch(xml); // same length as xml (1:1 fold)
+
+  const starts = [];
+  let from = 0;
+  while (true) {
+    const i = hay.indexOf(needle, from);
+    if (i === -1) break;
+    // Skip matches that cross XML tags (markup contains < or >); a real
+    // single-run text match never does.
+    if (xml.slice(i, i + needle.length).indexOf('<') === -1 &&
+        xml.slice(i, i + needle.length).indexOf('>') === -1) {
+      starts.push(i);
+    }
+    from = i + needle.length;
+  }
+
+  // Replace back-to-front so earlier indices stay valid.
+  for (let k = starts.length - 1; k >= 0; k--) {
+    const i = starts[k];
+    xml = xml.slice(0, i) + tag + xml.slice(i + needle.length);
+  }
+  return xml;
+}
+
 function injectTagsIntoDocx(buffer, fields) {
   const zip = new PizZip(buffer);
   const xmlFile = zip.file('word/document.xml');
@@ -416,25 +509,39 @@ function injectTagsIntoDocx(buffer, fields) {
 
   let xmlContent = xmlFile.asText();
 
-  // For each field, replace the original text with a docxtemplater tag
-  for (const field of fields) {
-    if (!field.originalText || !field.name) continue;
+  // Process longer originalText first so a short field (e.g. "Битола") does
+  // not consume text that belongs to a longer field (e.g. "извоз Битола").
+  const orderedFields = [...fields]
+    .filter(f => f.originalText && f.name)
+    .sort((a, b) => b.originalText.length - a.originalText.length);
 
-    const tag = field.type === 'checkbox'
-      ? `{#${field.name}}${field.originalText}{/${field.name}}`
-      : `{${field.name}}`;
+  // For each field, replace the original text with a docxtemplater tag.
+  for (const field of orderedFields) {
     const originalText = field.originalText;
 
-    // First try: direct replacement in the raw XML text nodes
-    // This handles cases where the text is in a single run
-    if (xmlContent.includes(originalText)) {
-      xmlContent = xmlContent.replace(originalText, tag);
+    // Checkbox = conditional paragraph: wrap a single (first) occurrence only.
+    if (field.type === 'checkbox') {
+      const tag = `{#${field.name}}${originalText}{/${field.name}}`;
+      if (xmlContent.includes(originalText)) {
+        xmlContent = xmlContent.replace(originalText, tag);
+      } else {
+        xmlContent = replaceTextAcrossRuns(xmlContent, originalText, tag, false);
+      }
       continue;
     }
 
-    // Second try: text might be split across multiple <w:r> runs
-    // We need to find it across run boundaries
-    xmlContent = replaceTextAcrossRuns(xmlContent, originalText, tag);
+    // Value field: replace EVERY occurrence so a value that repeats in the
+    // document (e.g. a company name in the header AND in the definitions, or
+    // written with Latin vs Cyrillic look-alike letters) is filled from a
+    // single input. Matching is homoglyph- and dash-insensitive, and works
+    // on substrings so a short core name is also tagged inside a longer phrase.
+    const tag = `{${field.name}}`;
+
+    // 1) direct occurrences within a single run (normalized, all occurrences)
+    xmlContent = injectAllOccurrences(xmlContent, originalText, tag);
+
+    // 2) remaining occurrences whose text is split across multiple runs
+    xmlContent = replaceTextAcrossRuns(xmlContent, originalText, tag, true);
   }
 
   // Sanitize stray curly braces that are not part of our injected tags.
@@ -458,13 +565,13 @@ function injectTagsIntoDocx(buffer, fields) {
  *
  * This function finds such split text and merges the runs to insert the tag.
  */
-function replaceTextAcrossRuns(xml, searchText, replacement) {
-  // Find all <w:p> paragraphs
+function replaceTextAcrossRuns(xml, searchText, replacement, replaceAll = false) {
+  // Snapshot all <w:p> paragraphs up front, then rewrite. Collecting first
+  // avoids mutating the string mid-iteration (which drifts regex indices).
   const paragraphRegex = /<w:p[\s>][\s\S]*?<\/w:p>/g;
-  let match;
+  const paragraphs = (xml.match(paragraphRegex) || []);
 
-  while ((match = paragraphRegex.exec(xml)) !== null) {
-    const paragraph = match[0];
+  for (const paragraph of paragraphs) {
 
     // Extract all text content from this paragraph's runs
     const textParts = [];
@@ -486,8 +593,10 @@ function replaceTextAcrossRuns(xml, searchText, replacement) {
 
     const fullText = textParts.join('');
 
-    // Check if our search text exists in the concatenated paragraph text
-    const searchIndex = fullText.indexOf(searchText);
+    // Check if our search text exists in the concatenated paragraph text.
+    // Matching is homoglyph-/dash-insensitive; normalization is 1:1 so the
+    // index is valid against the original run positions too.
+    const searchIndex = normalizeForMatch(fullText).indexOf(normalizeForMatch(searchText));
     if (searchIndex === -1) continue;
 
     // Find which runs contain the search text
@@ -557,7 +666,7 @@ function replaceTextAcrossRuns(xml, searchText, replacement) {
     }
 
     xml = xml.replace(paragraph, newParagraph);
-    break; // Replace only the first occurrence per field
+    if (!replaceAll) break; // single-occurrence mode (e.g. conditional paragraphs)
   }
 
   return xml;
@@ -1089,5 +1198,8 @@ module.exports = {
   listPublicTemplates,
   clonePublicTemplate,
   bulkGenerate,
-  suggestFields
+  suggestFields,
+  // Exported for unit testing of the tag-injection logic
+  injectTagsIntoDocx,
+  replaceTextAcrossRuns
 };

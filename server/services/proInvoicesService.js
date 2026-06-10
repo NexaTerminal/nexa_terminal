@@ -58,6 +58,96 @@ class ProInvoicesService {
     return doc.seq;
   }
 
+  /** Highest sequence currently used for a year (0 if none). */
+  async _yearMaxSequence(year) {
+    const top = await this.col
+      .find({ year: Number(year) })
+      .sort({ sequence: -1 })
+      .limit(1)
+      .next();
+    return top?.sequence || 0;
+  }
+
+  /**
+   * Read the numbering counter for a year. `next` is the number the next
+   * issued invoice will receive.
+   */
+  async getCounter(year) {
+    const y = Number(year);
+    const doc = await this.counters.findOne({ _id: `proInvoice:${y}` });
+    const seq = doc?.seq || 0;
+    const [maxUsed, count] = await Promise.all([
+      this._yearMaxSequence(y),
+      this.col.countDocuments({ year: y })
+    ]);
+    return { year: y, seq, next: seq + 1, maxUsed, count };
+  }
+
+  /**
+   * Force the next invoice number for a year. The next created invoice will
+   * carry `nextNumber` (counter seq is stored as nextNumber - 1).
+   */
+  async setNext(year, nextNumber) {
+    const y = Number(year);
+    const n = Number(nextNumber);
+    if (!Number.isInteger(n) || n < 1) {
+      throw new Error('Следниот број мора да биде цел број ≥ 1.');
+    }
+    await this.counters.updateOne(
+      { _id: `proInvoice:${y}` },
+      { $set: { seq: n - 1 } },
+      { upsert: true }
+    );
+    return this.getCounter(y);
+  }
+
+  /**
+   * Renumber every invoice for a year by issue order (1…N) so the numbers
+   * match the actual list, then resync the counter to N. Two-phase to
+   * respect the unique index on `number`.
+   *
+   * Admin-only, deliberate action — pro-forma invoices are not yet booked,
+   * so renumbering test data is safe.
+   */
+  async resequenceYear(year) {
+    const y = Number(year);
+    const docs = await this.col
+      .find({ year: y })
+      .sort({ issuedAt: 1, _id: 1 })
+      .toArray();
+
+    if (docs.length === 0) {
+      await this.setNext(y, 1);
+      return { year: y, renumbered: 0, next: 1 };
+    }
+
+    // Phase 1: park every doc under a collision-free temp number.
+    await this.col.bulkWrite(
+      docs.map(d => ({
+        updateOne: { filter: { _id: d._id }, update: { $set: { number: `tmp:${d._id}` } } }
+      })),
+      { ordered: true }
+    );
+
+    // Phase 2: assign final sequential numbers in issue order.
+    const now = new Date();
+    await this.col.bulkWrite(
+      docs.map((d, i) => {
+        const seq = i + 1;
+        return {
+          updateOne: {
+            filter: { _id: d._id },
+            update: { $set: { sequence: seq, number: `${seq}/${d.planCode}/${y}`, updatedAt: now } }
+          }
+        };
+      }),
+      { ordered: true }
+    );
+
+    await this.setNext(y, docs.length + 1);
+    return { year: y, renumbered: docs.length, next: docs.length + 1 };
+  }
+
   static get ISSUER() { return ISSUER; }
   static get EUR_TO_MKD() { return EUR_TO_MKD; }
 

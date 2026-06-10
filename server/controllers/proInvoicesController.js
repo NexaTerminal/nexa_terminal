@@ -69,6 +69,37 @@ class ProInvoicesController {
       res.status(400).json({ success: false, message: e.message });
     }
   }
+
+  // ── Numbering control (admin) ──────────────────────────────────────────
+  async getCounter(req, res) {
+    try {
+      const year = req.query.year || new Date().getUTCFullYear();
+      const counter = await this.svc.getCounter(year);
+      res.json({ success: true, counter });
+    } catch (e) {
+      res.status(500).json({ success: false, message: e.message });
+    }
+  }
+
+  async setCounter(req, res) {
+    try {
+      const { year, next } = req.body || {};
+      const counter = await this.svc.setNext(year || new Date().getUTCFullYear(), next);
+      res.json({ success: true, counter });
+    } catch (e) {
+      res.status(400).json({ success: false, message: e.message });
+    }
+  }
+
+  async resequence(req, res) {
+    try {
+      const { year } = req.body || {};
+      const result = await this.svc.resequenceYear(year || new Date().getUTCFullYear());
+      res.json({ success: true, result });
+    } catch (e) {
+      res.status(400).json({ success: false, message: e.message });
+    }
+  }
 }
 
 module.exports = ProInvoicesController;

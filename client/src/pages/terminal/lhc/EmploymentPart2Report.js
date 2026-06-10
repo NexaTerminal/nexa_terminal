@@ -4,6 +4,7 @@ import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
+import usePrintReport from '../../../hooks/usePrintReport';
 
 const EmploymentPart2Report = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const EmploymentPart2Report = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [printing, handlePrint] = usePrintReport();
 
   useEffect(() => {
     fetchAssessment();
@@ -204,7 +206,7 @@ const EmploymentPart2Report = () => {
                     </span>
                   </button>
 
-                  {expandedCategories[categoryName] && (
+                  {(printing || expandedCategories[categoryName]) && (
                     <div className={styles["category-findings-content"]}>
                       {findings.map((finding, index) => (
                         <div
@@ -253,7 +255,7 @@ const EmploymentPart2Report = () => {
                 Направи нова проценка
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className={styles["btn-outline"]}
               >
                 Печати извештај

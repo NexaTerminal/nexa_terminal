@@ -103,6 +103,44 @@
   cursor: pointer;
 }
 
+.languageNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.languageNoticeIcon {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.languageNoticeBody {
+  flex: 1;
+}
+
+.languageNoticeBody strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #78350f;
+}
+
+.languageNoticeBody p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.languageNotice .errorDismiss {
+  color: #92400e;
+}
+
 /* ========================================
    SPINNER
    ======================================== */
@@ -434,9 +472,47 @@
   text-overflow: ellipsis;
 }
 
+.fieldActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.fieldMoveBtn,
+.fieldEditBtn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.fieldMoveBtn:hover,
+.fieldEditBtn:hover {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.fieldMoveBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.fieldMoveBtn:disabled:hover {
+  background: none;
+  color: #94a3b8;
+}
+
 .fieldRemove {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -452,6 +528,12 @@
 .fieldRemove:hover {
   background: #fef2f2;
   color: #dc2626;
+}
+
+.fieldEditForm {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .fieldItemMeta {

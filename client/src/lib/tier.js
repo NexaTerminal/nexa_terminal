@@ -34,6 +34,18 @@ export function isTrial(user) {
   return TIER_TRIAL_STATUSES.has(user?.subscription?.status);
 }
 
+/**
+ * Account-level suspension set by a platform admin (separate from billing
+ * status). Mirrors the server check in middleware/subscriptionGuard.js:
+ * blocked while isActive===false and the suspension window hasn't elapsed
+ * (permanent suspensions carry no suspendedUntil).
+ */
+export function isAccountSuspended(user) {
+  if (!user || user.isActive !== false) return false;
+  if (!user.suspendedUntil) return true; // permanent
+  return new Date(user.suspendedUntil).getTime() > Date.now();
+}
+
 export function intendedTier(user) {
   if (user?.intendedPlan === 'admin_10') return 'C';
   if (user?.intendedPlan === 'admin_5')  return 'B';
@@ -114,6 +126,8 @@ export function subSeatLimit(user) {
 export function previewMode(user) {
   if (!user) return false;
   if (user.role === 'admin') return false;
+  // Account-level suspension (admin-set) → no access, regardless of billing.
+  if (isAccountSuspended(user)) return true;
   if (user.role === 'sub_seat') return false; // inherited access
   const s = user.subscription || {};
   const now = Date.now();

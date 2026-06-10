@@ -343,7 +343,7 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
       <p className={styles['preview-description']}>
         Споделете го линкот за преглед на внесените податоци.
       </p>
-      <div className={styles['preview-content']}>
+      <div className={styles['preview-link-row']}>
 
         <input
           type="text"

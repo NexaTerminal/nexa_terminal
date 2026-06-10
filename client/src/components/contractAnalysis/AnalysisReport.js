@@ -12,6 +12,10 @@ function Section({ title, children }) {
   );
 }
 
+function ZoneHeader({ title }) {
+  return <div className={styles.zoneHeader}>{title}</div>;
+}
+
 function BulletList({ items }) {
   if (!items || items.length === 0) return <p className={styles.muted}>—</p>;
   return (
@@ -31,6 +35,126 @@ function RiskList({ items, emptyMsg }) {
       {r.description && <p>{r.description}</p>}
       {r.recommendation && (
         <p className={styles.suggestedFix}><strong>Препорака:</strong> {r.recommendation}</p>
+      )}
+    </div>
+  ));
+}
+
+/* ---- Commercial rating badge (inverted: high = good deal = green) ---- */
+const COMMERCIAL_LABELS = { high: 'добра зделка', medium: 'просечна', low: 'слаба' };
+const COMMERCIAL_CLS = { high: 'risk_low', medium: 'risk_medium', low: 'risk_high' };
+function CommercialBadge({ level }) {
+  const cls = styles[COMMERCIAL_CLS[level]] || styles.risk_medium;
+  return <span className={`${styles.riskBadge} ${cls}`}>{COMMERCIAL_LABELS[level] || level}</span>;
+}
+
+const COST_PRED = {
+  fixed: { label: 'фиксни', cls: 'risk_low' },
+  variable: { label: 'варијабилни', cls: 'risk_medium' },
+  exposed: { label: 'изложени на раст', cls: 'risk_high' },
+};
+
+function CommercialScorecard({ cs }) {
+  if (!cs) return null;
+  const cp = COST_PRED[cs.costPredictability];
+  return (
+    <section className={styles.scorecard}>
+      <div className={styles.scorecardHead}>
+        <h3 className={styles.sectionTitle}>Деловен преглед</h3>
+        {cs.commercialRating && (
+          <span className={styles.scorecardRating}>
+            Комерцијална оцена: <CommercialBadge level={cs.commercialRating} />
+          </span>
+        )}
+      </div>
+      {cs.dealVerdict && <p className={styles.verdict}>{cs.dealVerdict}</p>}
+      <div className={styles.scoreGrid}>
+        <div className={styles.scoreCell}>
+          <span className={styles.scoreLabel}>Вкупна финансиска изложеност</span>
+          <span className={styles.scoreValue}>{cs.totalFinancialExposure || '—'}</span>
+        </div>
+        <div className={styles.scoreCell}>
+          <span className={styles.scoreLabel}>Најлош можен сценарио</span>
+          <span className={styles.scoreValue}>{cs.worstCaseDownside || '—'}</span>
+        </div>
+        <div className={styles.scoreCell}>
+          <span className={styles.scoreLabel}>Предвидливост на трошоци</span>
+          <span className={styles.scoreValue}>
+            {cp
+              ? <span className={`${styles.riskBadge} ${styles[cp.cls]}`}>{cp.label}</span>
+              : (cs.costPredictability || '—')}
+          </span>
+          {cs.costPredictabilityNote && <small className={styles.scoreNote}>{cs.costPredictabilityNote}</small>}
+        </div>
+        <div className={styles.scoreCell}>
+          <span className={styles.scoreLabel}>Ефект врз готовински тек</span>
+          <span className={styles.scoreValue}>{cs.cashFlowImpact || '—'}</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const BENCH = {
+  favorable: { label: 'поповолно за вас', cls: 'risk_low' },
+  standard: { label: 'стандардно', cls: 'badge_neutral' },
+  unfavorable: { label: 'понеповолно за вас', cls: 'risk_high' },
+};
+function MarketBenchmarkBlock({ items }) {
+  if (!items || items.length === 0) return <p className={styles.muted}>Нема податоци за пазарна споредба.</p>;
+  return items.map((b, i) => {
+    const a = BENCH[b.assessment];
+    return (
+      <div key={i} className={styles.benchItem}>
+        <div className={styles.benchHead}>
+          <strong>{b.term}</strong>
+          {a && <span className={`${styles.riskBadge} ${styles[a.cls]}`}>{a.label}</span>}
+        </div>
+        <div className={styles.benchCols}>
+          <div>
+            <span className={styles.benchLabel}>Во овој договор</span>
+            <p>{b.inThisContract || '—'}</p>
+          </div>
+          <div>
+            <span className={styles.benchLabel}>Пазарна норма</span>
+            <p>{b.marketNorm || '—'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  });
+}
+
+function HiddenCostsBlock({ items }) {
+  if (!items || items.length === 0) {
+    return <p className={styles.muted}>Не се идентификувани значајни скриени трошоци.</p>;
+  }
+  return items.map((c, i) => (
+    <div key={i} className={styles.riskItem}>
+      <strong>{c.item}</strong>
+      {c.estimatedImpact && <p><em>Импликација:</em> {c.estimatedImpact}</p>}
+      {c.whoBears && <p><em>Го сноси:</em> {c.whoBears}</p>}
+      {c.howToMitigate && (
+        <p className={styles.suggestedFix}><strong>Како да се ублажи:</strong> {c.howToMitigate}</p>
+      )}
+    </div>
+  ));
+}
+
+function NegotiationPlaybookBlock({ items }) {
+  if (!items || items.length === 0) return null;
+  return items.map((p, i) => (
+    <div key={i} className={styles.riskItem}>
+      <div className={styles.riskItemHead}>
+        <strong>{p.item}</strong>
+        {p.isDealbreaker && (
+          <span className={`${styles.riskBadge} ${styles.risk_high}`}>клучен услов</span>
+        )}
+      </div>
+      {p.whatToAsk && <p><em>Побарајте:</em> {p.whatToAsk}</p>}
+      {p.whyItMatters && <p><em>Зошто:</em> {p.whyItMatters}</p>}
+      {p.fallbackPosition && (
+        <p className={styles.suggestedFix}><strong>Резервна позиција:</strong> {p.fallbackPosition}</p>
       )}
     </div>
   ));
@@ -139,6 +263,10 @@ export default function AnalysisReport({ report }) {
   // Fall back to legacy topRisks if the new split fields are missing
   const legalRisks = report.legalRisks || report.topRisks || [];
   const commercialRisks = report.commercialRisks || [];
+  const cs = report.commercialSummary;
+  const benchmark = report.marketBenchmark || [];
+  const hiddenCosts = report.hiddenCosts || [];
+  const playbook = report.negotiationPlaybook || [];
 
   return (
     <div className={styles.report}>
@@ -158,6 +286,18 @@ export default function AnalysisReport({ report }) {
           </p>
         )}
       </Section>
+
+      {/* Commercial highlights — business bottom line up top */}
+      <CommercialScorecard cs={cs} />
+
+      {benchmark.length > 0 && (
+        <Section title="Пазарна споредба">
+          <MarketBenchmarkBlock items={benchmark} />
+        </Section>
+      )}
+
+      {/* ---------------- LEGAL ZONE ---------------- */}
+      <ZoneHeader title="Правен дел" />
 
       <Section title="Страни">
         <ul className={styles.bulletList}>
@@ -215,10 +355,6 @@ export default function AnalysisReport({ report }) {
         <RiskList items={legalRisks} emptyMsg="Не се идентификувани значајни правни ризици." />
       </Section>
 
-      <Section title="Комерцијални ризици">
-        <RiskList items={commercialRisks} emptyMsg="Не се идентификувани значајни комерцијални ризици." />
-      </Section>
-
       <Section title="Што недостасува">
         {(report.missingClauses || []).length === 0
           ? <p className={styles.muted}>Сите стандардни клаузули се присутни.</p>
@@ -238,6 +374,25 @@ export default function AnalysisReport({ report }) {
       {report.mkLawCompliance && (
         <Section title="Усогласеност со македонското право">
           <p>{report.mkLawCompliance}</p>
+        </Section>
+      )}
+
+      {/* ---------------- COMMERCIAL ZONE ---------------- */}
+      <ZoneHeader title="Комерцијален / деловен дел" />
+
+      <Section title="Комерцијални ризици">
+        <RiskList items={commercialRisks} emptyMsg="Не се идентификувани значајни комерцијални ризици." />
+      </Section>
+
+      {hiddenCosts.length > 0 && (
+        <Section title="Скриени и вкупни трошоци">
+          <HiddenCostsBlock items={hiddenCosts} />
+        </Section>
+      )}
+
+      {playbook.length > 0 && (
+        <Section title="План за преговори">
+          <NegotiationPlaybookBlock items={playbook} />
         </Section>
       )}
 

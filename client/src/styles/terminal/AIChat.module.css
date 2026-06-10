@@ -257,6 +257,83 @@
   word-wrap: break-word;
 }
 
+/* AI messages render Markdown: disable pre-wrap (block elements handle layout) */
+.markdownContent {
+  white-space: normal;
+}
+
+.markdownContent > :first-child {
+  margin-top: 0;
+}
+
+.markdownContent > :last-child {
+  margin-bottom: 0;
+}
+
+.markdownContent p {
+  margin: 0 0 var(--spacing-3, 0.75rem);
+}
+
+.markdownContent h1,
+.markdownContent h2,
+.markdownContent h3,
+.markdownContent h4 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: var(--spacing-4, 1rem) 0 var(--spacing-2, 0.5rem);
+  color: var(--color-text-primary, #1a1a1a);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.markdownContent ul,
+.markdownContent ol {
+  margin: 0 0 var(--spacing-3, 0.75rem);
+  padding-left: 1.5rem;
+}
+
+.markdownContent li {
+  margin-bottom: 0.25rem;
+}
+
+.markdownContent strong {
+  font-weight: 700;
+}
+
+.markdownContent a {
+  color: var(--color-primary, #2563eb);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.markdownContent blockquote {
+  margin: 0 0 var(--spacing-3, 0.75rem);
+  padding-left: var(--spacing-3, 0.75rem);
+  border-left: 3px solid var(--color-border, #e5e5e5);
+  color: var(--color-text-secondary, #555);
+}
+
+.markdownContent code {
+  background: var(--color-surface-alt, #f3f4f6);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.markdownContent table {
+  border-collapse: collapse;
+  margin: 0 0 var(--spacing-3, 0.75rem);
+  width: 100%;
+}
+
+.markdownContent th,
+.markdownContent td {
+  border: 1px solid var(--color-border, #e5e5e5);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
 /* Sources */
 .sources {
   margin-top: var(--spacing-3, 0.75rem);

@@ -30,11 +30,11 @@ const LABELS = {
 };
 
 const PLACEHOLDERS = {
-  companyName:      'на пр. „НЕКСА АМД ДООЕЛ Скопје"',
-  companyAddress:   'на пр. „Партизански Одреди 102/2-14, Скопје"',
-  companyTaxNumber: 'на пр. „MK4030005550168"',
-  companyManager:   'на пр. „Мартин Бошкоски"',
-  officialEmail:    'na пр. „info@vasata-firma.mk"'
+  companyName:      'на пр. „Пример Компанија ДООЕЛ Скопје"',
+  companyAddress:   'на пр. „ул. Пример бр. 1, Скопје"',
+  companyTaxNumber: 'на пр. „MK1234567890123"',
+  companyManager:   'на пр. „Име Презиме"',
+  officialEmail:    'на пр. „info@primer.mk"'
 };
 
 const isComplete = (user) => {

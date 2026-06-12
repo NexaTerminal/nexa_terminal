@@ -165,3 +165,119 @@ ENTIRE /terminal/admin API open platform-wide; the E2E non-admin→403 case now 
 - Cold-start seed script from `service_providers` (not required for launch).
 - `server/scripts/fair_e2e_test.js` is a dev tool that talks to the configured DB — safe to keep
   (self-cleans, TAG-namespaced) or delete.
+
+---
+
+# Промени во фирма — Централен регистар (7th document group)
+
+> Status: **STEP A COMPLETE** (scaffold + M2 end-to-end) — awaiting user verification before Step B.
+> Output = ONE combined .docx (page breaks). Phase 1 modules: M1,M2,M3,M4,M6,M7. M5 deferred.
+
+## Step A — done
+- [x] Backend template engine `server/document_templates/centralRegister/companyChanges.js`
+      (helpers: pIdent/pPerson/preambles/signatures/page-breaks; M2 seat decision built;
+      M1/M3/M4/M6/M7/Д-13/Д-18-19 stubbed; чл.32 + per-signatory потписи/полномошно built).
+- [x] Controller `server/controllers/autoDocuments/companyChangesController.js` (warning-based validation).
+- [x] Route `POST /api/auto-documents/company-changes` in `server/routes/autoDocuments.js`.
+- [x] 7th group in `client/src/data/documentCategories.json` (id `centralRegister`).
+- [x] Config `client/src/config/documents/companyChanges.js` (5 steps, fields, arrayFields, CHANGE_OPTIONS).
+- [x] Page `client/src/pages/terminal/documents/centralRegister/CompanyChangesPage.js`
+      (ChangeSelector, CompanyAndPeople w/ profile prefill, generic PersonList, ModuleFields, ReviewSummary).
+- [x] App route in `client/src/App.js`.
+- [x] Live preview entry `companyChanges` in `DocumentPreview.js`.
+- [x] Third-party preview: `documentTypeTranslations` (DocumentPreviewPage.js) + template registered
+      in `documentPreviewController.js`.
+- [x] Verified: backend generates valid .docx for ДООЕЛ/M2 and ДОО/M1+M2 (buffers ~10KB); all FE files parse.
+
+## Step A — manual verification still needed (user)
+- [ ] Run app, open `/terminal/documents` → 7th group „Централен регистар" visible.
+- [ ] Open „Промени во фирма": select Седиште, confirm prefill, tooltips, live preview, generate .docx,
+      shareable link + third-party preview link.
+
+## Step B — remaining (after checkpoint)
+- [ ] M1 Назив (Д-01), M3 Лични податоци (Д-03), M4 Управител (Д-04 a/b/c/d), M6 Влог (Д-05),
+      M7 Подружница (Д-20/Д-21; M7-only skips act docs).
+- [ ] Д-13 (252/253 composite) + Д-18 ДООЕЛ / Д-19 ДОО (пречистен текст, full act from batch1-3).
+- [ ] Д-15 (чл.29/183/231) per new shareholder/manager; expand чл.32 auto-list (MASTER §4.4).
+- [ ] Step-3 conditional fields + preview sentences + review per module; non-blocking warnings (MASTER §6).
+
+## Out of scope
+- M5 Пренос на удел (Phase 2; checkbox disabled). v2.0 items (MASTER §8).
+
+## Step B — DONE (2026-06-11)
+- [x] M1 Назив (Д-01), M2 Седиште (Д-02), M3 Лични податоци (Д-03),
+      M4 Управител (Д-04 варијанти a/b/c/d), M6 Влог (Д-05), M7 Подружница (Д-20/Д-21).
+- [x] Д-13 Одлука за измена на Актот (252/253) — composite, cites all decisions; only when an act change exists (skips M7-only).
+- [x] Д-18 Изјава за основање (ДООЕЛ) + Д-19 Договор за основање (ДОО) — full пречистен текст
+      (~20 articles) using NEW-state data; wording from extracted_templates_batch1/2.
+- [x] Д-14 чл.32 with auto action-list (§4.4, conditional on act change / new manager).
+- [x] Д-15 Изјава по чл. 29/183/231 for a new manager (M4 a/b).
+- [x] Signatory matrix: new manager added as "иден Управител"; per-signatory Д-16/Д-17.
+- [x] Step-3 conditional fields for every module; act/general fields in Step 2; sharePercent in shareholders.
+- [x] ReviewSummary + live preview updated for full document set.
+- [x] Verified: ДООЕЛ & ДОО, single/multi-module, M7-only (skips act), full 5-module package — all generate valid .docx (10–15KB).
+
+## Remaining (optional polish / Phase 2)
+- M5 Пренос на удел (Phase 2, disabled).
+- Non-paper (непаричен) capital tables in the consolidated act (currently a single-sentence summary).
+- Branch decision preamble for legal-entity sole shareholder (currently uses standard preamble).
+
+## M5 Пренос на удел — DONE (full scope, 2026-06-12)
+- [x] M5 enabled (checkbox no longer disabled). Config: ~22 M5 fields in Step 3 (transferor, scope,
+      amount, partial %, со/без надомест + price/currency/terms, withdraws, transferee new/existing
+      + structured fields, transferee-is-manager, total capital).
+- [x] Backend builders: Д-06 Понуда (to Company + each other shareholder + third-party acquirer),
+      Д-07 Прифаќање, Д-08 Неприфаќање (Company + each non-taking shareholder), Д-09 Договор за
+      пренос (нотар, со/без надомест, целосен/делумен, becomes-sole logic), Д-10 Одлука за пренос/
+      истапување/пристапување, Д-11 Пријава чл.200, Д-12 Книга на удели (docx Table, new structure).
+- [x] M5 triggers act amendment (Д-13) + consolidated act (Д-18/Д-19) using POST-transfer shareholder
+      structure (deriveM5.newShareholders → ctx.actShareholders); transferee-as-manager flows to act.
+- [x] чл.32 action list extended (§4.4: contract/offers/responses/чл.200/book; УЈП-Царина if foreign).
+- [x] Д-15 generalized (buildNewPersonStatement: чл.29 for new shareholder, +183/231 if also manager).
+- [x] Полномошно extended for M5 (notaries/banks/executors; FDI register + УЈП-Царина if foreign).
+- [x] Signatories add transferor + transferee (capacities); per-signatory Д-16/Д-17.
+- [x] Controller cascade warnings (transferor=manager leaving→M4; ДООЕЛ→ДОО; ДОО→ДООЕЛ rename/M1).
+- [x] ReviewSummary + live preview updated for full M5 doc set.
+- [x] Verified: DOOEL full/no-comp/new-sole-mgr; DOOEL со надомест foreign; DOO partial existing-acquirer
+      transferor-stays; M5+M2 combined; M2-only & M7-only regressions — all generate valid .docx (10–17KB).
+
+## Verify-after-build / lawyer review (MASTER §9)
+- Договор за пренос (со надомест чл.3) and Книга на удели wording are derived — verify against real docs.
+- Act-amendment (Д-13) signers still use pre-transfer shareholder list (consolidated act uses new state).
+- Non-paper (непаричен) capital still single-sentence (no asset table).
+
+## Upload mode — Phase 1 DONE (2026-06-12)
+- [x] Backend: server/controllers/autoDocuments/companyActExtractionController.js — multer (.docx, 5MB,
+      memoryStorage) → bilingualSplitter → mammoth.extractRawText → ChatOpenAI (gpt-4o-mini, temp 0,
+      OPENAI_MODEL/OPENAI_API_KEY) → structured JSON {companyForm, company, shareholders[], managers[],
+      articleMap[]}. Guards: no key→503, unreadable→422, bad JSON→502. AI only LOCATES/EXTRACTS (never rewrites).
+- [x] Route POST /api/auto-documents/company-changes/extract-act (JWT + requireVerifiedCompany).
+- [x] Frontend service: client/src/services/companyChangesApi.js → extractAct(file) (FormData + Bearer).
+- [x] CompanyChangesPage Step 1: mode chooser (📄 Прикачи постоен акт / 📝 Стандарден образец) + ActUpload.
+      Upload → auto-fill all extracted scalars + shareholders/managers arrays (editable values) +
+      reconciliation table for conflicts vs profile (Назив/Адреса/ЕДБ; ЕДБ flagged sensitive; default=act).
+- [x] Verified: file pipeline (bilingual split + mammoth) extracts text from a real act .docx;
+      backend+frontend load/parse. (OpenAI call follows proven customTemplateController pattern — user to test live.)
+
+## Upload mode — Phase 2 (NOT built)
+- In-place amendment of the user's uploaded act (preserve their exact wording) via customTemplate's
+  run-level injection engine; carry the act server-side (upload id/session, not in formData);
+  AI-located article citations in Д-13. Per-field provenance badges. PDF/text support.
+
+## Upload mode — Phase 2 DONE (in-place amendment, 2026-06-12)
+- [x] server/services/docxInPlaceEditor.js — replaceInDocx(buffer, replacements): run-aware,
+      homoglyph/dash/space-insensitive exact-text replacement preserving formatting (engine adapted
+      from customTemplateController). Returns {buffer, applied[{label,matched}]}.
+- [x] extract-act now persists the original act buffer to GridFS (DocumentStorageService) → returns actId.
+- [x] POST /api/auto-documents/company-changes/amend-act — loads act by actId, builds M1(назив)/M2(седиште)
+      value replacements, returns edited .docx; X-Unmatched header lists labels whose old text wasn't found.
+- [x] Frontend: extractAct stores _actId/_uploadMode; amendActDownload() in companyChangesApi (blob download);
+      ActAmendDownload button in ReviewSummary (shown in upload mode when M1/M2 selected) with unmatched warning.
+- [x] Verified: in-place editor swaps old→new seat across runs, output valid .docx, old text gone; all load/parse.
+
+### Phase 2 scope notes / follow-ups
+- v1 in-place covers M1 (name/short/foreign) + M2 (seat) — the clean old→new value swaps. M3/M4/M5/M6
+  act changes still reflected only in the generated supporting act (not in the amended real act).
+- Amended act is a SEPARATE download; the main combined package still includes our generated consolidated
+  act in upload mode (redundant). Follow-up: suppress generated act when changes ⊆ {M1,M2} in upload mode.
+- GridFS act uploads have no TTL cleanup yet — add a periodic purge for documentType 'companyActUpload'.

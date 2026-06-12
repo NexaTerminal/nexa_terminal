@@ -109,6 +109,74 @@ const highlightText = (text, inputValue, isHighlighted = true) => {
 
 // Define template sentences for each document type with placeholders
 const documentSentences = {
+  companyChanges: {
+    title: "ПРОМЕНИ ВО ФИРМА — ПАКЕТ ДОКУМЕНТИ",
+    sentences: [
+      {
+        text: "Друштво: {companyFullName}, со седиште на {companyAddress}, со ЕМБС {companyEMBS} и ЕДБ {companyEDB}.",
+        fields: ['companyFullName', 'companyAddress', 'companyEMBS', 'companyEDB']
+      },
+      {
+        text: "Одлуките се донесуваат на ден {decisionDate} година, во {city}.",
+        fields: ['decisionDate', 'city']
+      },
+      {
+        text: "О Д Л У К А за промена на назив: новиот назив ќе гласи {newCompanyFullName} (скратено: {newCompanyShortName}).",
+        fields: ['newCompanyFullName', 'newCompanyShortName'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M1')
+      },
+      {
+        text: "О Д Л У К А за промена на адреса на седиште на Друштвото.",
+        fields: [],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M2')
+      },
+      {
+        text: "Наместо досегашната адреса на седиште на {companyAddress}, новата адреса на седиште ќе биде: {newSeatAddress}.",
+        fields: ['companyAddress', 'newSeatAddress'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M2')
+      },
+      {
+        text: "О Д Л У К А за промена на лични податоци на {m3Capacity}: новите податоци гласат {m3NewData}.",
+        fields: ['m3Capacity', 'm3NewData'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M3')
+      },
+      {
+        text: "О Д Л У К А за промена на управител. Нов управител: {m4NewManagerName}.",
+        fields: ['m4NewManagerName'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M4')
+      },
+      {
+        text: "О Д Л У К А за уплата на основачкиот влог во висина од ЕУР {m6AmountEUR}, односно {m6AmountMKD} денари.",
+        fields: ['m6AmountEUR', 'm6AmountMKD'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M6')
+      },
+      {
+        text: "О Д Л У К А кај подружница {branchFullName} (подброј {branchSubNumber}).",
+        fields: ['branchFullName', 'branchSubNumber'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M7')
+      },
+      {
+        text: "ДОГОВОР ЗА ПРЕНОС НА УДЕЛ: {m5TransferorName} му пренесува на {m5TransfereeName} удел во износ од {m5TransferAmountEUR} Евра.",
+        fields: ['m5TransferorName', 'm5TransfereeName', 'm5TransferAmountEUR'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M5')
+      },
+      {
+        text: "Преносот се врши за надомест (купопродажна цена) во износ од {m5Price} {m5Currency}.",
+        fields: ['m5Price', 'm5Currency'],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.includes('M5') && formData.m5WithCompensation === 'со'
+      },
+      {
+        text: "Се подготвува Одлука за измена на Актот за основање (чл. 252 и 253) и нов пречистен текст на Актот.",
+        fields: [],
+        condition: (formData) => Array.isArray(formData.changes) && formData.changes.some((c) => ['M1', 'M2', 'M3', 'M4', 'M6'].includes(c))
+      },
+      {
+        text: "Документите ги поднесува регистрациониот агент {agentName}, со адреса на {agentAddress}.",
+        fields: ['agentName', 'agentAddress'],
+        condition: (formData) => formData.agentName && formData.agentName.trim() !== ''
+      }
+    ]
+  },
   employmentAgreement: {
     title: "ДОГОВОР ЗА ВРАБОТУВАЊЕ",
     sentences: [

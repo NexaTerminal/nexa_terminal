@@ -49,6 +49,9 @@ const documentTypeTranslations = {
   politicsForDataProtection: 'Политика за заштита на лични податоци',
   procedureForEstimation: 'Процедура за проценка на влијанието врз заштитата на личните податоци',
   gdprCompanyPolitics: 'Политика за администрирање со правата на субјектите на персонални податоци',
+
+  // Central Register documents
+  companyChanges: 'Промени во фирма',
 };
 
 /**

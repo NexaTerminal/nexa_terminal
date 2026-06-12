@@ -75,6 +75,9 @@ class DocumentPreviewController {
 
     // Marketing
     this.registerTemplate('marketingPerformanceReport', require('../marketing_templates/reports/marketingPerformanceReport'));
+
+    // Central Register documents
+    this.registerTemplate('companyChanges', require('../document_templates/centralRegister/companyChanges'));
   }
 
   /**

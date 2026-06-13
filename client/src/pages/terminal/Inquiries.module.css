@@ -200,19 +200,41 @@
   border: 1px solid #E5EAF4;
   border-radius: 14px;
 }
-.leadsIntroLead { margin: 0 0 12px; font-size: 0.92rem; line-height: 1.55; color: #475569; max-width: 90ch; }
-.leadsSteps { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 6px; margin-bottom: 10px; }
-.leadsStep { display: inline-flex; align-items: center; gap: 8px; }
-.leadsStepIcon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 8px;
-  background: #eef3ff; color: #1e4db7; flex: 0 0 auto;
+.leadsIntroLead { margin: 0 0 16px; font-size: 0.92rem; line-height: 1.55; color: #475569; max-width: 90ch; }
+
+/* Visual process flow: numbered icon circles connected by a line. */
+.leadsFlow { display: flex; align-items: flex-start; margin-bottom: 12px; }
+.leadsFlowStep {
+  flex: 1 1 0; min-width: 150px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  position: relative; padding: 0 6px;
 }
-.leadsStepTitle { font-size: 0.85rem; font-weight: 600; color: #0B1220; }
-.leadsStepArrow { color: #94a3b8; font-weight: 700; }
-@media (max-width: 640px) {
-  .leadsStepArrow { display: none; }
-  .leadsSteps { gap: 8px 14px; }
+.leadsFlowStep:not(:last-child)::after {
+  content: ''; position: absolute; top: 21px;
+  left: calc(50% + 26px); width: calc(100% - 52px); height: 2px;
+  background: linear-gradient(90deg, #c7d6f5, #e5eaf4);
+}
+.leadsFlowIcon {
+  position: relative; z-index: 1;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2456c6 0%, #1e4db7 100%); color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(30, 77, 183, 0.6);
+}
+.leadsFlowNum {
+  position: absolute; top: -4px; right: -4px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #f59e0b; color: #fff; font-size: 11px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid #fff;
+}
+.leadsFlowTitle { margin-top: 10px; font-size: 0.86rem; font-weight: 700; color: #0B1220; }
+.leadsFlowDesc { margin-top: 4px; font-size: 0.78rem; line-height: 1.45; color: #64748b; max-width: 24ch; }
+@media (max-width: 600px) {
+  .leadsFlow { flex-direction: column; gap: 14px; align-items: flex-start; }
+  .leadsFlowStep { flex-direction: row; align-items: center; text-align: left; gap: 12px; min-width: 0; width: 100%; }
+  .leadsFlowStep:not(:last-child)::after { display: none; }
+  .leadsFlowDesc { max-width: none; }
 }
 
 .commercialNoteIcon {

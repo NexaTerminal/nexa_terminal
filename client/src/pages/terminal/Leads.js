@@ -47,10 +47,14 @@ const IconFlag = () => (<svg {...lSvg}><path d="M4 21V4" /><path d="M4 4h13l-2 4
 const IconFunnel = () => (<svg {...lSvg}><path d="M3 4h18l-7 8v6l-4 2v-8z" /></svg>);
 const IconMail = () => (<svg {...lSvg}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>);
 
-const Step = ({ icon, title }) => (
-  <div className={styles.leadsStep}>
-    <span className={styles.leadsStepIcon} aria-hidden>{icon}</span>
-    <span className={styles.leadsStepTitle}>{title}</span>
+const FlowStep = ({ n, icon, title, desc }) => (
+  <div className={styles.leadsFlowStep}>
+    <span className={styles.leadsFlowIcon} aria-hidden>
+      {icon}
+      <span className={styles.leadsFlowNum}>{n}</span>
+    </span>
+    <span className={styles.leadsFlowTitle}>{title}</span>
+    <span className={styles.leadsFlowDesc}>{desc}</span>
   </div>
 );
 
@@ -163,12 +167,13 @@ export default function LeadsPage() {
               Анонимизирани барања од клиенти преку Nexa сателитските сајтови — само
               серозни, филтрирани случаи кои одговараат на Вашата практика.
             </p>
-            <div className={styles.leadsSteps}>
-              <Step icon={<IconFlag />} title="Изразете интерес" />
-              <span className={styles.leadsStepArrow} aria-hidden>→</span>
-              <Step icon={<IconFunnel />} title="Уредничка квалификација" />
-              <span className={styles.leadsStepArrow} aria-hidden>→</span>
-              <Step icon={<IconMail />} title="Добивте го контактот" />
+            <div className={styles.leadsFlow}>
+              <FlowStep n={1} icon={<IconFlag />} title="Изразете интерес"
+                desc="Означувате дека сакате да го преземете случајот." />
+              <FlowStep n={2} icon={<IconFunnel />} title="Уредничка квалификација"
+                desc="Nexa го проверува и филтрира барањето." />
+              <FlowStep n={3} icon={<IconMail />} title="Добивте го контактот"
+                desc="По одобрување, го добивате контактот на клиентот." />
             </div>
             <div className={styles.commercialSources}>
               <span className={styles.commercialSourcesLabel}>Извори:</span>

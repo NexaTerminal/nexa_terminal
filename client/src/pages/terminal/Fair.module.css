@@ -261,6 +261,59 @@
 .closedTitle { font-size: var(--font-size-xl, 1.25rem); font-weight: 700; color: var(--color-text-primary, #1a1a1a); margin: var(--spacing-4, 16px) 0 6px; }
 .countdown { font-size: var(--font-size-2xl, 1.6rem); font-weight: 800; color: var(--color-primary, #0a3d62); margin-bottom: var(--spacing-4, 16px); }
 .closedText { color: var(--color-text-secondary, #555); font-size: var(--font-size-sm, 0.9rem); margin-bottom: var(--spacing-5, 20px); line-height: 1.5; }
+
+/* Closed-state hero + feature explainer */
+.fairHero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--spacing-6, 24px);
+  align-items: center;
+  border: 1px solid var(--color-border-soft, #eee);
+  border-radius: var(--border-radius-xl, 16px);
+  background: var(--color-white, #fff);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,.05));
+  padding: var(--spacing-8, 32px);
+  margin: var(--spacing-6, 24px) 0;
+}
+.fairHeroTitle { font-size: 2rem; font-weight: 800; color: var(--color-text-primary, #1a1a1a); margin: 12px 0 8px; }
+.fairHeroLead { font-size: var(--font-size-md, 1rem); color: var(--color-text-secondary, #555); line-height: 1.6; margin: 0 0 20px; max-width: 48ch; }
+.fairOpening {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--color-neutral-50, #f7f8fa);
+  border: 1px solid var(--color-border-soft, #eee);
+  border-radius: var(--border-radius-md, 8px);
+  padding: 12px 16px; margin-bottom: 18px;
+}
+.fairOpeningLabel { font-size: var(--font-size-xs, 0.72rem); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-muted, #888); font-weight: 700; }
+.fairOpeningDate { font-size: var(--font-size-lg, 1.1rem); font-weight: 800; color: var(--color-primary, #0a3d62); }
+.fairCountdownPill {
+  margin-left: auto; background: var(--color-primary, #0a3d62); color: #fff;
+  font-weight: 800; font-size: var(--font-size-sm, 0.9rem);
+  padding: 6px 14px; border-radius: var(--border-radius-full, 999px); white-space: nowrap;
+}
+.fairHeroNote { font-size: var(--font-size-sm, 0.85rem); color: var(--color-text-muted, #888); margin: 12px 0 0; line-height: 1.5; }
+.fairHeroArt { display: flex; justify-content: center; }
+.fairHeroArt svg { width: 100%; max-width: 340px; height: auto; }
+
+.fairFeatures { margin: var(--spacing-6, 24px) 0; }
+.fairFeaturesTitle { font-size: var(--font-size-lg, 1.15rem); font-weight: 700; color: var(--color-text-primary, #1a1a1a); margin: 0 0 16px; }
+.fairFeatureGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--spacing-4, 16px); }
+.fairFeature {
+  border: 1px solid var(--color-border-soft, #eee);
+  border-radius: var(--border-radius-lg, 12px);
+  background: var(--color-white, #fff);
+  padding: var(--spacing-5, 20px);
+}
+.fairFeatureIcon { font-size: 1.8rem; line-height: 1; margin-bottom: 10px; }
+.fairFeatureTitle { font-size: var(--font-size-md, 1rem); font-weight: 700; color: var(--color-text-primary, #1a1a1a); margin: 0 0 6px; }
+.fairFeatureText { font-size: var(--font-size-sm, 0.88rem); color: var(--color-text-secondary, #555); line-height: 1.55; margin: 0; }
+
+@media (max-width: 720px) {
+  .fairHero { grid-template-columns: 1fr; }
+  .fairHeroArt { order: -1; }
+  .fairHeroTitle { font-size: 1.6rem; }
+}
+
 .openBanner {
   background: var(--color-success-bg, #eaf6ec);
   color: var(--color-green-700, #2e7d32);

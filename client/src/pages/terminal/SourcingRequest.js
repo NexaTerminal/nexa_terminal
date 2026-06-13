@@ -14,6 +14,11 @@ const CATEGORIES = [
   'Обука и едукација', 'Преведување', 'Друго'
 ];
 const TYPE_MK = { product: 'Производ', service: 'Услуга' };
+const DISCLOSURE_HINT = {
+  full: 'Името на Вашата фирма е видливо за добавувачите.',
+  context: 'Без име — само дејност и регион (препорачано за повеќе понуди).',
+  anonymous: 'Ништо за Вас додека не одлучите да продолжите.'
+};
 const EMPTY = { type: 'product', category: '', description: '', region: '', budget: '', waitDays: '10', disclosure: 'context' };
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
@@ -204,19 +209,13 @@ export default function SourcingRequestPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Колку да прикажеме за Вас кон добавувачите?</label>
-                <div className={styles.radioCol}>
-                  {[
-                    ['full', 'Целосно', 'Името на мојата фирма е видливо.'],
-                    ['context', 'Само дејност и регион', 'Без име — само контекст (препорачано за повеќе понуди).'],
-                    ['anonymous', 'Анонимно', 'Ништо за мене додека не одлучам да продолжам.']
-                  ].map(([v, t, d]) => (
-                    <label key={v} className={`${styles.radioOption} ${form.disclosure === v ? styles.radioOn : ''}`}>
-                      <input type="radio" name="disclosure" checked={form.disclosure === v} onChange={() => set('disclosure', v)} />
-                      <span><strong>{t}</strong><span className={styles.radioDesc}>{d}</span></span>
-                    </label>
+                <label className={styles.label}>Колку да прикажеме за Вас?</label>
+                <div className={styles.segmented}>
+                  {[['full', 'Целосно'], ['context', 'Само дејност и регион'], ['anonymous', 'Анонимно']].map(([v, l]) => (
+                    <button key={v} type="button" className={form.disclosure === v ? styles.segOn : styles.seg} onClick={() => set('disclosure', v)}>{l}</button>
                   ))}
                 </div>
+                <p className={styles.fieldHint}>{DISCLOSURE_HINT[form.disclosure]}</p>
               </div>
 
               <p className={styles.notice}>⚠️ Ова е барање за понуди, не нарачка. Nexa не гарантира дека ќе пристигнат понуди.</p>

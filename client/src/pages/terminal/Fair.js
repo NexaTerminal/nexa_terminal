@@ -54,6 +54,13 @@ const FairArt = () => (
   </svg>
 );
 
+// Line-style feature icons (no emojis).
+const fSvg = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const IconBooth = () => (<svg {...fSvg}><path d="M3 9l2-5h14l2 5" /><path d="M5 9v10h14V9" /><path d="M9 19v-5h6v5" /></svg>);
+const IconSearch = () => (<svg {...fSvg}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>);
+const IconContact = () => (<svg {...fSvg}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>);
+const IconCalendar = () => (<svg {...fSvg}><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18" /><path d="M8 2v4" /><path d="M16 2v4" /></svg>);
+
 export default function FairPage() {
   const { token, currentUser } = useAuth();
   const auth = { headers: { Authorization: `Bearer ${token}` } };
@@ -139,13 +146,13 @@ export default function FairPage() {
             <h2 className={styles.fairFeaturesTitle}>Како функционира</h2>
             <div className={styles.fairFeatureGrid}>
               {[
-                ['🏬', 'Вашиот штанд', 'Поставете штанд со логото, градот и до 3 производи или услуги што сакате да ги истакнете.'],
-                ['🔎', 'Бидете откриени', 'Сите членови на Nexa го разгледуваат саемот и ги наоѓаат вашите понуди по категорија.'],
-                ['🤝', 'Директен контакт', 'Заинтересираните Ве контактираат директно преку вашата веб-страница или е-пошта — без посредници.'],
-                ['🗓️', 'Повремени изданија', 'Саемот се отвора во определени периоди. Подгответе се однапред за следното отворање.'],
+                [<IconBooth />, 'Вашиот штанд', 'Поставете штанд со логото, градот и до 3 производи или услуги што сакате да ги истакнете.'],
+                [<IconSearch />, 'Бидете откриени', 'Сите членови на Nexa го разгледуваат саемот и ги наоѓаат вашите понуди по категорија.'],
+                [<IconContact />, 'Директен контакт', 'Заинтересираните Ве контактираат директно преку вашата веб-страница или е-пошта — без посредници.'],
+                [<IconCalendar />, 'Повремени изданија', 'Саемот се отвора во определени периоди. Подгответе се однапред за следното отворање.'],
               ].map(([icon, title, text]) => (
                 <div key={title} className={styles.fairFeature}>
-                  <div className={styles.fairFeatureIcon}>{icon}</div>
+                  <div className={styles.fairFeatureIcon} aria-hidden>{icon}</div>
                   <h3 className={styles.fairFeatureTitle}>{title}</h3>
                   <p className={styles.fairFeatureText}>{text}</p>
                 </div>

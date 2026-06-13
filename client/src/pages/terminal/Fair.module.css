@@ -304,7 +304,12 @@
   background: var(--color-white, #fff);
   padding: var(--spacing-5, 20px);
 }
-.fairFeatureIcon { font-size: 1.8rem; line-height: 1; margin-bottom: 10px; }
+.fairFeatureIcon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(10, 61, 98, 0.08); color: var(--color-primary, #0a3d62);
+  margin-bottom: 12px;
+}
 .fairFeatureTitle { font-size: var(--font-size-md, 1rem); font-weight: 700; color: var(--color-text-primary, #1a1a1a); margin: 0 0 6px; }
 .fairFeatureText { font-size: var(--font-size-sm, 0.88rem); color: var(--color-text-secondary, #555); line-height: 1.55; margin: 0; }
 

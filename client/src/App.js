@@ -44,6 +44,7 @@ import BlogsPage from './pages/terminal/Blogs';
 import LeadsPage from './pages/terminal/Leads';
 import TopicsQAPage from './pages/terminal/TopicsQA';
 import FairPage from './pages/terminal/Fair';
+import SourcingRequestPage from './pages/terminal/SourcingRequest';
 import FairBoothDetailPage from './pages/terminal/FairBoothDetail';
 import FairModerationPage from './pages/terminal/admin/FairModeration';
 import StancePreferencesPage from './pages/terminal/StancePreferences';
@@ -396,6 +397,7 @@ function App() {
       <Route path="/terminal/topics-qa"              element={<PrivateRoute><TopicsQAPage /></PrivateRoute>} />
       {/* Виртуелен саем — /admin before /:id */}
       <Route path="/terminal/fair"                   element={<PrivateRoute><FairPage /></PrivateRoute>} />
+      <Route path="/terminal/sourcing"               element={<PrivateRoute><VerificationRequired><SourcingRequestPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/admin/fair"             element={<PrivateRoute><FairModerationPage /></PrivateRoute>} />
       <Route path="/terminal/fair/:id"               element={<PrivateRoute><FairBoothDetailPage /></PrivateRoute>} />
       <Route path="/terminal/ai/stance"              element={<PrivateRoute><StancePreferencesPage /></PrivateRoute>} />

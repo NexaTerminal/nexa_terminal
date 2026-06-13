@@ -107,6 +107,9 @@ app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocument
 // Feature terms acceptance (JWT-protected; before CSRF, cross-domain SPA)
 app.use('/api/terms', require('./routes/terms'));
 
+// Sourcing / RFQ — „Барање за понуди" (JWT + verified; before CSRF)
+app.use('/api/sourcing', subscriptionGuard, require('./routes/sourcing'));
+
 // Mount custom templates routes (JWT-protected API)
 app.use('/api/custom-templates', subscriptionGuard, require('./routes/customTemplates'));
 

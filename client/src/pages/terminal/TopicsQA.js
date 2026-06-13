@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import RequestTopicModal from '../../components/terminal/RequestTopicModal';
+import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
+import useTermsGate from '../../hooks/useTermsGate';
 import { isTrial, canRequestQATopic, visibleTier, openSubscriptionGate } from '../../lib/tier';
 import styles from './Topics.module.css';
 
@@ -23,6 +25,7 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric'
 
 export default function TopicsQAPage() {
   const { token, currentUser } = useAuth();
+  const { requireTerms, termsModal } = useTermsGate();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const tab = params.get('tab') || 'open';
@@ -65,7 +68,7 @@ export default function TopicsQAPage() {
       openSubscriptionGate({ source: 'topics-qa', reason: check.reason });
       return;
     }
-    setModalFor(topic);
+    requireTerms('topic', () => setModalFor(topic));
   };
 
   const submitRequest = async ({ requestReason }) => {
@@ -188,6 +191,8 @@ export default function TopicsQAPage() {
             onSubmit={submitRequest}
           />
         )}
+
+        {termsModal && <FeatureTermsModal {...termsModal} />}
       </div>
     </TerminalShell>
   );

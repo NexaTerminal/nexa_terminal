@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import FeatureTermsModal from './FeatureTermsModal';
+import useTermsGate from '../../hooks/useTermsGate';
 import styles from '../../pages/terminal/Fair.module.css';
 
 const MAX_OFFERS = 3;
@@ -14,6 +16,7 @@ const placeholderFor = (type) => type === 'product' ? 'Опишете го пр�
  */
 export default function BoothFormModal({ open, onClose, onSaved }) {
   const { token } = useAuth();
+  const { requireTerms, termsModal } = useTermsGate();
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const [loading, setLoading] = useState(true);
@@ -108,6 +111,7 @@ export default function BoothFormModal({ open, onClose, onSaved }) {
   const canAddMore = offers.length < MAX_OFFERS || editIndex !== null;
 
   return (
+    <>
     <div className={styles.overlay} onClick={() => !saving && onClose()}>
       <div className={`${styles.modal} ${styles.modalWide}`} onClick={e => e.stopPropagation()}>
         <h3 className={styles.modalTitle}>Мој штанд</h3>
@@ -200,7 +204,7 @@ export default function BoothFormModal({ open, onClose, onSaved }) {
             {error && <p className={styles.error} style={{ marginTop: 10 }}>{error}</p>}
 
             <div className={styles.actions} style={{ marginTop: 16 }}>
-              <button type="button" className={styles.btnPrimary} onClick={save} disabled={saving}>
+              <button type="button" className={styles.btnPrimary} onClick={() => requireTerms('fair', save)} disabled={saving}>
                 {saving ? 'Се зачувува…' : 'Зачувај и објави'}
               </button>
               <button type="button" className={styles.btnGhost} onClick={onClose} disabled={saving}>Откажи</button>
@@ -209,5 +213,7 @@ export default function BoothFormModal({ open, onClose, onSaved }) {
         )}
       </div>
     </div>
+    {termsModal && <FeatureTermsModal {...termsModal} />}
+    </>
   );
 }

@@ -6,6 +6,8 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
+import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
+import useTermsGate from '../../hooks/useTermsGate';
 import { canSubmitBlog, isTrial } from '../../lib/tier';
 import styles from './BlogSubmissions.module.css';
 
@@ -32,6 +34,7 @@ const STATUS_LABEL_MK = {
 
 export default function SubmitBlogPage() {
   const { token, currentUser } = useAuth();
+  const { requireTerms, termsModal } = useTermsGate();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const editId = params.get('id') || null;
@@ -308,7 +311,7 @@ export default function SubmitBlogPage() {
                 </button>
                 <button type="button" className={styles.btnPrimary}
                         disabled={busy || !canSubmit}
-                        onClick={submit}>
+                        onClick={() => requireTerms('blog', submit)}>
                   Поднеси на уреднички преглед
                 </button>
               </div>
@@ -325,6 +328,8 @@ export default function SubmitBlogPage() {
             }}
           />
         )}
+
+        {termsModal && <FeatureTermsModal {...termsModal} />}
       </div>
     </TerminalShell>
   );

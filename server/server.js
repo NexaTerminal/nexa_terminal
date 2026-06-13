@@ -104,6 +104,9 @@ const subscriptionGuard = require('./middleware/subscriptionGuard');
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocuments'));
 
+// Feature terms acceptance (JWT-protected; before CSRF, cross-domain SPA)
+app.use('/api/terms', require('./routes/terms'));
+
 // Mount custom templates routes (JWT-protected API)
 app.use('/api/custom-templates', subscriptionGuard, require('./routes/customTemplates'));
 
@@ -926,9 +929,10 @@ function registerRoutes() {
     }
   }
   
-  // Courses routes (education feature)
+  // Courses routes (education feature) — gated like the other premium surfaces
+  // so suspended / expired-trial users can't pull lessons or progress via API.
   try {
-    app.use('/api/courses', require('./routes/courses'));
+    app.use('/api/courses', subscriptionGuard, require('./routes/courses'));
     console.log('✅ Courses routes loaded successfully');
   } catch (error) {
     console.log('⚠️  Courses routes not found - education feature not available');

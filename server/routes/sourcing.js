@@ -9,6 +9,8 @@ const { authenticateJWT } = require('../middleware/auth');
 const { requireVerifiedCompany } = require('../middleware/verificationMiddleware');
 const sourcing = require('../controllers/sourcingController');
 
+router.get('/me', authenticateJWT, sourcing.myRequests);
 router.post('/', authenticateJWT, requireVerifiedCompany, sourcing.createRequest);
+router.put('/:id', authenticateJWT, requireVerifiedCompany, sourcing.editRequest);
 
 module.exports = router;

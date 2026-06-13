@@ -101,11 +101,15 @@ export default function Pricing() {
         'До 5 под-корисници',
         'Месечна Nexa блог позиција',
         'Случаи (leads) добиени преку нашите сателит страни',
+        'Виртуелен саем — штанд со Вашите производи или услуги',
+        'Барање за понуди (тендер) — 1 барање и 1 измена месечно',
         'Позиција во Nexa Newsletter'
       ] : [
         'Up to 5 sub-users',
         'Monthly Nexa blog placement',
         'Cases (leads) sourced via our satellite sites',
+        'Virtual Fair — a booth with your products or services',
+        'Request for offers (tender) — 1 request and 1 edit per month',
         'Placement in the Nexa Newsletter'
       ]
     },
@@ -118,9 +122,11 @@ export default function Pricing() {
       featuresHead: isMk ? 'Сè во Про, плус:' : 'Everything in Pro, plus:',
       features: isMk ? [
         'До 10 под-корисници',
+        'Барање за понуди (тендер) — 3 барања и 3 измени месечно',
         'Topics Q&A — експертски одговори на јавни прашања'
       ] : [
         'Up to 10 sub-users',
+        'Request for offers (tender) — 3 requests and 3 edits per month',
         'Topics Q&A — expert answers to public questions'
       ]
     }

@@ -1,16 +1,16 @@
 const { ObjectId } = require('mongodb');
+const { effectiveTier } = require('../services/tierService');
 
 /**
  * Sourcing / RFQ ("Барање за понуди") — manual brokering intake.
  *
  * A verified company posts a need (product/service). We store it and email
- * info@nexa.mk with the full details (incl. who they are, so the admin can work
- * it). The brokering itself is manual: the admin requests offers from suppliers
- * showing only as much about the buyer as the buyer chose (full / context /
- * anonymous), and informs the buyer within the wait window they selected.
+ * info@nexa.mk with the full details. Brokering is manual.
  *
- * No offers are guaranteed — that's stated in the terms gate ('tender' feature)
- * and reiterated on the form.
+ * Monthly quotas by paid tier (calendar month):
+ *   Pro (B)   → 1 нов барање + 1 измена
+ *   Ultra (C) → 3 нови барања + 3 измени
+ *   Basic (A) / trial → 0 (мора Про/Ултра); ADMIN → неограничено.
  */
 
 const COLLECTION = 'sourcing_requests';
@@ -18,95 +18,188 @@ const INFO_EMAIL = process.env.SOURCING_EMAIL || 'info@nexa.mk';
 
 const TYPES = ['product', 'service'];
 const DISCLOSURE = ['full', 'context', 'anonymous'];
-const DISCLOSURE_MK = {
-  full: 'Целосно (име на фирмата)',
-  context: 'Само дејност и регион',
-  anonymous: 'Анонимно (ништо)'
-};
+const DISCLOSURE_MK = { full: 'Целосно (име на фирмата)', context: 'Само дејност и регион', anonymous: 'Анонимно (ништо)' };
 const TYPE_MK = { product: 'Производ', service: 'Услуга' };
 
-const esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const QUOTAS = {
+  A: { requests: 0, edits: 0 },
+  B: { requests: 1, edits: 1 },
+  C: { requests: 3, edits: 3 }
+};
+function quotaFor(user) {
+  const t = effectiveTier(user);
+  if (t === 'ADMIN') return { requests: Infinity, edits: Infinity };
+  return QUOTAS[t] || { requests: 0, edits: 0 };
+}
+function monthStart() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function uid(user) {
+  const id = user._id || user.id;
+  return id instanceof ObjectId ? id : new ObjectId(String(id));
+}
 
+const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** Count this month's created requests + edits for a user. */
+async function usageThisMonth(db, userId) {
+  const ms = monthStart();
+  const docs = await db.collection(COLLECTION)
+    .find({ userId }, { projection: { createdAt: 1, edits: 1 } }).toArray();
+  let requestsUsed = 0;
+  let editsUsed = 0;
+  for (const d of docs) {
+    if (d.createdAt && new Date(d.createdAt) >= ms) requestsUsed += 1;
+    (d.edits || []).forEach((e) => { if (e.at && new Date(e.at) >= ms) editsUsed += 1; });
+  }
+  return { requestsUsed, editsUsed };
+}
+
+function validate(b) {
+  const type = TYPES.includes(b.type) ? b.type : null;
+  const category = (b.category || '').toString().trim();
+  const description = (b.description || '').toString().trim();
+  const region = (b.region || '').toString().trim();
+  const budget = (b.budget || '').toString().trim();
+  const waitDays = parseInt(b.waitDays, 10);
+  const disclosure = DISCLOSURE.includes(b.disclosure) ? b.disclosure : null;
+  if (!type) return { error: 'Изберете тип (производ/услуга).' };
+  if (!category) return { error: 'Изберете категорија.' };
+  if (description.length < 10) return { error: 'Внесете подетален опис (најмалку 10 знаци).' };
+  if (!(waitDays >= 1 && waitDays <= 60)) return { error: 'Изберете рок (денови).' };
+  if (!disclosure) return { error: 'Изберете колку да прикажеме за Вас.' };
+  return { value: { type, category, description, region, budget, waitDays, disclosure } };
+}
+
+function companyOf(user) {
+  const ci = user.companyInfo || {};
+  return {
+    companyName: ci.companyName || '',
+    email: user.email || '',
+    taxNumber: ci.companyTaxNumber || ci.taxNumber || '',
+    address: ci.companyAddress || ci.address || '',
+    manager: ci.companyManager || ci.manager || ''
+  };
+}
+
+async function emailAdmin(emailService, v, company, id, isEdit) {
+  if (!emailService) return;
+  const html = `
+    <h2>${isEdit ? 'Изменето барање за понуди' : 'Ново барање за понуди'}</h2>
+    <p><strong>Тип:</strong> ${esc(TYPE_MK[v.type])}<br/>
+    <strong>Категорија:</strong> ${esc(v.category)}<br/>
+    <strong>Рок:</strong> ${v.waitDays} дена<br/>
+    <strong>Откривање:</strong> ${esc(DISCLOSURE_MK[v.disclosure])}</p>
+    <p><strong>Опис:</strong><br/>${esc(v.description).replace(/\n/g, '<br/>')}</p>
+    ${v.region ? `<p><strong>Регион:</strong> ${esc(v.region)}</p>` : ''}
+    ${v.budget ? `<p><strong>Буџет/количина:</strong> ${esc(v.budget)}</p>` : ''}
+    <hr/><h3>Барател (внатрешно)</h3>
+    <p><strong>Фирма:</strong> ${esc(company.companyName) || '—'} · <strong>Е-пошта:</strong> ${esc(company.email) || '—'} · <strong>ЕДБ:</strong> ${esc(company.taxNumber) || '—'}</p>
+    <p style="color:#888">ID: ${id}</p>`;
+  await emailService.sendEmail(INFO_EMAIL, `${isEdit ? 'Изменето' : 'Ново'} барање за понуди — ${v.category}`, html);
+}
+
+// POST /api/sourcing — create
 exports.createRequest = async (req, res) => {
   try {
-    const b = req.body || {};
-    const type = TYPES.includes(b.type) ? b.type : null;
-    const category = (b.category || '').toString().trim();
-    const description = (b.description || '').toString().trim();
-    const region = (b.region || '').toString().trim();
-    const budget = (b.budget || '').toString().trim();
-    const waitDays = parseInt(b.waitDays, 10);
-    const disclosure = DISCLOSURE.includes(b.disclosure) ? b.disclosure : null;
-
-    if (!type) return res.status(400).json({ success: false, message: 'Изберете тип (производ/услуга).' });
-    if (!category) return res.status(400).json({ success: false, message: 'Изберете категорија.' });
-    if (description.length < 10) return res.status(400).json({ success: false, message: 'Внесете подетален опис (најмалку 10 знаци).' });
-    if (!(waitDays >= 1 && waitDays <= 60)) return res.status(400).json({ success: false, message: 'Изберете рок (денови).' });
-    if (!disclosure) return res.status(400).json({ success: false, message: 'Изберете колку да прикажеме за Вас.' });
+    const { value, error } = validate(req.body || {});
+    if (error) return res.status(400).json({ success: false, message: error });
 
     const db = req.app.locals.db;
     const user = req.user;
-    const ci = user.companyInfo || {};
-    const company = {
-      companyName: ci.companyName || '',
-      email: user.email || '',
-      taxNumber: ci.companyTaxNumber || ci.taxNumber || '',
-      address: ci.companyAddress || ci.address || '',
-      manager: ci.companyManager || ci.manager || ''
-    };
-
-    const doc = {
-      userId: user._id instanceof ObjectId ? user._id : new ObjectId(String(user._id || user.id)),
-      company,
-      type, category, description, region, budget, waitDays, disclosure,
-      status: 'new',
-      createdAt: new Date()
-    };
-    const { insertedId } = await db.collection(COLLECTION).insertOne(doc);
-
-    // Email the admin with EVERYTHING (admin needs the real identity to work it).
-    try {
-      const emailService = req.app.locals.emailService;
-      if (emailService) {
-        const adminHtml = `
-          <h2>Ново барање за понуди</h2>
-          <p><strong>Тип:</strong> ${esc(TYPE_MK[type])}<br/>
-          <strong>Категорија:</strong> ${esc(category)}<br/>
-          <strong>Рок (бара одговор за):</strong> ${waitDays} дена<br/>
-          <strong>Откривање кон добавувачи:</strong> ${esc(DISCLOSURE_MK[disclosure])}</p>
-          <p><strong>Опис:</strong><br/>${esc(description).replace(/\n/g, '<br/>')}</p>
-          ${region ? `<p><strong>Регион/град:</strong> ${esc(region)}</p>` : ''}
-          ${budget ? `<p><strong>Буџет/количина:</strong> ${esc(budget)}</p>` : ''}
-          <hr/>
-          <h3>Барател (само за внатрешна употреба)</h3>
-          <p><strong>Фирма:</strong> ${esc(company.companyName) || '—'}<br/>
-          <strong>Е-пошта:</strong> ${esc(company.email) || '—'}<br/>
-          <strong>ЕДБ:</strong> ${esc(company.taxNumber) || '—'}<br/>
-          <strong>Адреса:</strong> ${esc(company.address) || '—'}</p>
-          <p style="color:#888">ID: ${insertedId}</p>`;
-        await emailService.sendEmail(INFO_EMAIL, `Ново барање за понуди — ${category}`, adminHtml);
-
-        // Confirmation to the buyer.
-        if (company.email) {
-          const userHtml = `
-            <h2>Вашето барање е примено</h2>
-            <p>Го примивме Вашето барање за понуди (${esc(TYPE_MK[type])} — ${esc(category)}).
-            Нашиот тим ќе се обиде да обезбеди понуди од релевантни добавувачи и ќе Ве
-            извести во рок од <strong>${waitDays} дена</strong>.</p>
-            <p>Ве потсетуваме: ова е барање за понуди, не нарачка. Не гарантираме дека ќе
-            пристигнат понуди.</p>
-            <p>Со почит,<br/>Nexa</p>`;
-          await emailService.sendEmail(company.email, 'Nexa — Вашето барање за понуди е примено', userHtml);
-        }
-      }
-    } catch (e) {
-      console.warn('[sourcing] email failed (request still saved):', e.message);
+    const quota = quotaFor(user);
+    const { requestsUsed } = await usageThisMonth(db, uid(user));
+    if (requestsUsed >= quota.requests) {
+      return res.status(403).json({
+        success: false, code: 'QUOTA_REQUESTS',
+        message: quota.requests === 0
+          ? 'Барање за понуди е достапно за Про и Ултра членови.'
+          : `Ја искористивте месечната квота за барања (${quota.requests}). Обновата е на почетокот на наредниот месец.`
+      });
     }
 
-    return res.json({ success: true, id: insertedId.toString(), waitDays });
+    const company = companyOf(user);
+    const doc = { userId: uid(user), company, ...value, status: 'new', edits: [], createdAt: new Date() };
+    const { insertedId } = await db.collection(COLLECTION).insertOne(doc);
+
+    try {
+      const emailService = req.app.locals.emailService;
+      await emailAdmin(emailService, value, company, insertedId, false);
+      if (emailService && company.email) {
+        await emailService.sendEmail(company.email, 'Nexa — Вашето барање за понуди е примено',
+          `<h2>Вашето барање е примено</h2><p>Ќе се обидеме да обезбедиме понуди и ќе Ве известиме во рок од <strong>${value.waitDays} дена</strong>. Ова е барање, не нарачка — не гарантираме понуди.</p>`);
+      }
+    } catch (e) { console.warn('[sourcing] email failed:', e.message); }
+
+    return res.json({ success: true, id: insertedId.toString(), waitDays: value.waitDays });
   } catch (err) {
-    console.error('[sourcing] createRequest error:', err.message);
-    return res.status(500).json({ success: false, message: 'Грешка при поднесување на барањето.' });
+    console.error('[sourcing] create error:', err.message);
+    return res.status(500).json({ success: false, message: 'Грешка при поднесување.' });
+  }
+};
+
+// PUT /api/sourcing/:id — edit (owner only, edit-quota gated)
+exports.editRequest = async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ success: false, message: 'Невалиден ID.' });
+    const { value, error } = validate(req.body || {});
+    if (error) return res.status(400).json({ success: false, message: error });
+
+    const db = req.app.locals.db;
+    const user = req.user;
+    const _id = new ObjectId(req.params.id);
+    const existing = await db.collection(COLLECTION).findOne({ _id });
+    if (!existing) return res.status(404).json({ success: false, message: 'Барањето не е пронајдено.' });
+    if (String(existing.userId) !== String(uid(user))) return res.status(403).json({ success: false, message: 'Немате пристап.' });
+
+    const quota = quotaFor(user);
+    const { editsUsed } = await usageThisMonth(db, uid(user));
+    if (editsUsed >= quota.edits) {
+      return res.status(403).json({
+        success: false, code: 'QUOTA_EDITS',
+        message: quota.edits === 0
+          ? 'Измена на барања е достапна за Про и Ултра членови.'
+          : `Ја искористивте месечната квота за измени (${quota.edits}).`
+      });
+    }
+
+    await db.collection(COLLECTION).updateOne(
+      { _id },
+      { $set: { ...value, updatedAt: new Date() }, $push: { edits: { at: new Date() } } }
+    );
+
+    try { await emailAdmin(req.app.locals.emailService, value, existing.company, _id, true); }
+    catch (e) { console.warn('[sourcing] edit email failed:', e.message); }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[sourcing] edit error:', err.message);
+    return res.status(500).json({ success: false, message: 'Грешка при измена.' });
+  }
+};
+
+// GET /api/sourcing/me — my requests + monthly usage/quota
+exports.myRequests = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const user = req.user;
+    const items = await db.collection(COLLECTION)
+      .find({ userId: uid(user) }).sort({ createdAt: -1 }).limit(50).toArray();
+    const quota = quotaFor(user);
+    const usage = await usageThisMonth(db, uid(user));
+    return res.json({
+      success: true,
+      items: items.map((i) => ({
+        _id: i._id, type: i.type, category: i.category, description: i.description,
+        region: i.region, budget: i.budget, waitDays: i.waitDays, disclosure: i.disclosure,
+        status: i.status, createdAt: i.createdAt, updatedAt: i.updatedAt
+      })),
+      quota: { requests: quota.requests === Infinity ? null : quota.requests, edits: quota.edits === Infinity ? null : quota.edits },
+      usage
+    });
+  } catch (err) {
+    console.error('[sourcing] myRequests error:', err.message);
+    return res.status(500).json({ success: false, message: 'Грешка при вчитување.' });
   }
 };

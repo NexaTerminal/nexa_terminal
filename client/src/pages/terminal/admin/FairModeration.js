@@ -6,6 +6,11 @@ import styles from '../Fair.module.css';
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const toDateInput = (d) => d ? new Date(d).toISOString().slice(0, 10) : '';
+const addDays = (dateStr, n) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr); d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+};
 
 /**
  * Admin control for the virtual fair — schedule only. There is no booth
@@ -69,7 +74,7 @@ export default function FairSchedulePage() {
             <div className={styles.schedRow}>
               <label className={styles.label}>Режим</label>
               <div className={styles.typeToggle}>
-                {[['auto', 'Авто'], ['open', 'Отворено'], ['closed', 'Затворено']].map(([v, l]) => (
+                {[['manual', 'Рачно'], ['auto', 'Авто'], ['open', 'Отворено'], ['closed', 'Затворено']].map(([v, l]) => (
                   <button key={v} type="button" className={settings.mode === v ? styles.on : ''}
                     disabled={savingSettings} onClick={() => saveSettings({ mode: v })}>{l}</button>
                 ))}
@@ -77,18 +82,15 @@ export default function FairSchedulePage() {
             </div>
 
             <div className={styles.schedRow}>
-              <label className={styles.label}>Авто прозорец (последни денови од кварталот)</label>
-              <input type="number" min={1} max={90} className={styles.selectInline}
-                value={settings.windowDays}
-                onChange={e => setSettings(s => ({ ...s, windowDays: e.target.value }))}
-                onBlur={e => saveSettings({ windowDays: e.target.value })} />
-            </div>
-
-            <div className={styles.schedRow}>
-              <label className={styles.label}>Посебно издание (опционално)</label>
+              <label className={styles.label}>Закажи отворање</label>
               <div className={styles.schedDates}>
                 <input type="date" className={styles.selectInline} value={toDateInput(settings.customOpensAt)}
-                  onChange={e => saveSettings({ customOpensAt: e.target.value })} />
+                  onChange={e => {
+                    const open = e.target.value;
+                    // Default a 7-day window so a single date pick is a valid edition.
+                    const close = toDateInput(settings.customClosesAt) || addDays(open, 6);
+                    saveSettings({ customOpensAt: open, customClosesAt: close });
+                  }} />
                 <span>→</span>
                 <input type="date" className={styles.selectInline} value={toDateInput(settings.customClosesAt)}
                   onChange={e => saveSettings({ customClosesAt: e.target.value })} />
@@ -98,6 +100,19 @@ export default function FairSchedulePage() {
                 )}
               </div>
             </div>
+            <p className={styles.schedHint}>
+              Закажаното отворање има предност пред режимот. Во режим „Рачно" саемот е затворен се додека не закажете отворање.
+            </p>
+
+            {settings.mode === 'auto' && (
+              <div className={styles.schedRow}>
+                <label className={styles.label}>Авто прозорец (последни денови од кварталот)</label>
+                <input type="number" min={1} max={90} className={styles.selectInline}
+                  value={settings.windowDays}
+                  onChange={e => setSettings(s => ({ ...s, windowDays: e.target.value }))}
+                  onBlur={e => saveSettings({ windowDays: e.target.value })} />
+              </div>
+            )}
           </div>
         )}
       </div>

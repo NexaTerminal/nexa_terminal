@@ -13,7 +13,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
 const { COLLECTION, OFFER_TYPES, validateBooth } = require('../config/fairSchemas');
-const { getFairStatus } = require('../services/fairScheduleService');
+const { getFairStatus, VALID_MODES } = require('../services/fairScheduleService');
 
 const SETTINGS_COLLECTION = 'fair_settings';
 const SETTINGS_ID = 'fair';
@@ -222,7 +222,7 @@ class FairController {
       res.json({
         success: true,
         settings: {
-          mode: settings.mode || 'auto',
+          mode: settings.mode || 'manual',
           windowDays: settings.windowDays || 7,
           customOpensAt: settings.customOpensAt || null,
           customClosesAt: settings.customClosesAt || null
@@ -241,7 +241,7 @@ class FairController {
     try {
       const db = req.app.locals.db;
       const { mode, windowDays, customOpensAt, customClosesAt } = req.body || {};
-      if (mode && !['auto', 'open', 'closed'].includes(mode)) {
+      if (mode && !VALID_MODES.includes(mode)) {
         return res.status(400).json({ success: false, message: 'Невалиден режим' });
       }
       const set = { updatedAt: new Date() };

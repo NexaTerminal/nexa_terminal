@@ -1,19 +1,25 @@
 /**
  * Virtual fair open/close schedule.
  *
- * Default rule: the fair is open during the last N days (default 7) of each
- * calendar quarter (windows ending Mar 31, Jun 30, Sep 30, Dec 31). An admin
- * settings doc can override this:
- *   mode: 'auto'   → use the quarter rule (default)
- *   mode: 'open'   → force open
- *   mode: 'closed' → force closed (still reports the next auto window)
- *   customOpensAt + customClosesAt → a one-off special edition; while now is
- *     before/within it, that window wins; once past, falls back to auto.
+ * Modes (admin settings doc):
+ *   mode: 'manual' (DEFAULT) → fair is CLOSED unless an admin-scheduled edition
+ *     (customOpensAt + customClosesAt) is active/upcoming. No automatic openings.
+ *   mode: 'auto'   → open during the last N days (default 7) of each calendar
+ *     quarter (windows ending Mar 31, Jun 30, Sep 30, Dec 31).
+ *   mode: 'open'   → force open.
+ *   mode: 'closed' → force closed, but still reports the next auto window.
+ *
+ * A scheduled edition (customOpensAt + customClosesAt) ALWAYS takes precedence
+ * over 'manual'/'auto'/'closed' until its close date passes — so the admin can
+ * keep the fair manual-only and simply schedule the next opening on demand.
+ * ('open' force-open is the only thing that overrides a scheduled edition.)
  *
  * All pure functions here (no DB). The controller loads/saves the settings doc.
  */
 
 const DEFAULT_WINDOW_DAYS = 7;
+const DEFAULT_MODE = 'manual';
+const VALID_MODES = ['manual', 'auto', 'open', 'closed'];
 
 // Window of the last `windowDays` days for a quarter whose last day is `end`.
 function windowForEnd(end, windowDays) {
@@ -46,29 +52,42 @@ function autoWindow(now, windowDays = DEFAULT_WINDOW_DAYS) {
 
 /**
  * Resolve the effective fair status from settings + current time.
- * @returns {{ open:boolean, opensAt:Date, closesAt:Date, mode:string }}
+ * @returns {{ open:boolean, opensAt:Date|null, closesAt:Date|null, mode:string }}
  */
 function getFairStatus(settings = {}, now = new Date()) {
   const windowDays = Number(settings.windowDays) || DEFAULT_WINDOW_DAYS;
+  const mode = VALID_MODES.includes(settings.mode) ? settings.mode : DEFAULT_MODE;
 
-  if (settings.mode === 'open') {
+  // Force open always wins.
+  if (mode === 'open') {
     const auto = autoWindow(now, windowDays);
     return { open: true, opensAt: auto.opensAt, closesAt: auto.closesAt, mode: 'open' };
   }
-  if (settings.mode === 'closed') {
+
+  // A scheduled edition that hasn't ended yet takes precedence over the base mode.
+  if (settings.customOpensAt && settings.customClosesAt) {
+    const o = new Date(settings.customOpensAt);
+    const c = new Date(settings.customClosesAt);
+    if (now <= c) {
+      return { open: now >= o && now <= c, opensAt: o, closesAt: c, mode: 'custom' };
+    }
+    // past the scheduled window → fall through to the base mode
+  }
+
+  // Manual: closed, nothing auto-scheduled (admin opens on demand).
+  if (mode === 'manual') {
+    return { open: false, opensAt: null, closesAt: null, mode: 'manual' };
+  }
+
+  // Closed: closed, but report the next auto window for reference.
+  if (mode === 'closed') {
     const auto = autoWindow(now, windowDays);
     return { open: false, opensAt: auto.opensAt, closesAt: auto.closesAt, mode: 'closed' };
   }
 
-  if (settings.customOpensAt && settings.customClosesAt) {
-    const o = new Date(settings.customOpensAt);
-    const c = new Date(settings.customClosesAt);
-    if (now <= c) return { open: now >= o && now <= c, opensAt: o, closesAt: c, mode: 'custom' };
-    // past the custom window → fall through to auto
-  }
-
+  // Auto.
   const auto = autoWindow(now, windowDays);
   return { open: auto.open, opensAt: auto.opensAt, closesAt: auto.closesAt, mode: 'auto' };
 }
 
-module.exports = { DEFAULT_WINDOW_DAYS, autoWindow, getFairStatus };
+module.exports = { DEFAULT_WINDOW_DAYS, DEFAULT_MODE, VALID_MODES, autoWindow, getFairStatus };

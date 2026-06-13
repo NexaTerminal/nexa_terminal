@@ -61,12 +61,14 @@ export default function FairPage() {
           <div className={styles.header}>
             <div>
               <h1 className={styles.title}>Виртуелен саем</h1>
-              <p className={styles.subtitle}>Саемот се одржува последната недела од секој квартал.</p>
+              <p className={styles.subtitle}>Саемот се отвора повремено — следете го следното отворање.</p>
             </div>
           </div>
           <div className={styles.closed}>
             <div className={styles.closedBadge}>Затворено</div>
-            <h2 className={styles.closedTitle}>Следно отворање: {fmtDate(fair.opensAt)}</h2>
+            <h2 className={styles.closedTitle}>
+              {fair.opensAt ? `Следно отворање: ${fmtDate(fair.opensAt)}` : 'Следно отворање: допрва ќе биде објавено'}
+            </h2>
             {days != null && <div className={styles.countdown}>{days} {days === 1 ? 'ден' : 'дена'} до отворање</div>}
             <p className={styles.closedText}>
               Подгответе го вашиот штанд однапред — ќе биде објавен автоматски кога саемот ќе се отвори.

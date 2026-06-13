@@ -353,6 +353,7 @@
 .schedRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .schedRow .label { min-width: 260px; margin: 0; }
 .schedDates { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.schedHint { margin: 4px 0 0; font-size: var(--font-size-sm, 0.875rem); color: var(--color-text-secondary, #6b7280); }
 @media (max-width: 560px) { .schedRow .label { min-width: 0; } }
 
 /* Admin table */

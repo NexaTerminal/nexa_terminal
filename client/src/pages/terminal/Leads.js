@@ -41,6 +41,22 @@ const ITEM_STATE = {
   NOT_CHOSEN:  { key: 'not_chosen',  label: 'Не сте избрани',     cls: 's_not_chosen' }
 };
 
+// Compact "how it works" — line icons (no emojis).
+const lSvg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const IconFlag = () => (<svg {...lSvg}><path d="M4 21V4" /><path d="M4 4h13l-2 4 2 4H4" /></svg>);
+const IconFunnel = () => (<svg {...lSvg}><path d="M3 4h18l-7 8v6l-4 2v-8z" /></svg>);
+const IconMail = () => (<svg {...lSvg}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>);
+
+const Step = ({ icon, title }) => (
+  <div className={styles.leadsStep}>
+    <span className={styles.leadsStepIcon} aria-hidden>{icon}</span>
+    <span className={styles.leadsStepTitle}>{title}</span>
+  </div>
+);
+
+// A lead older than this (ms) is visually muted as an "older case".
+const OLD_LEAD_MS = 7 * 24 * 60 * 60 * 1000;
+
 export default function LeadsPage() {
   const { token, currentUser } = useAuth();
   const { requireTerms, termsModal } = useTermsGate();
@@ -142,28 +158,25 @@ export default function LeadsPage() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Случаи</span>
 
-          <div className={styles.commercialNote}>
-            <div className={styles.commercialNoteIcon} aria-hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12h3l3-7 6 14 3-7h3"/>
-              </svg>
+          <div className={styles.leadsIntro}>
+            <p className={styles.leadsIntroLead}>
+              Анонимизирани барања од клиенти преку Nexa сателитските сајтови — само
+              серозни, филтрирани случаи кои одговараат на Вашата практика.
+            </p>
+            <div className={styles.leadsSteps}>
+              <Step icon={<IconFlag />} title="Изразете интерес" />
+              <span className={styles.leadsStepArrow} aria-hidden>→</span>
+              <Step icon={<IconFunnel />} title="Уредничка квалификација" />
+              <span className={styles.leadsStepArrow} aria-hidden>→</span>
+              <Step icon={<IconMail />} title="Добивте го контактот" />
             </div>
-            <div className={styles.commercialNoteBody}>
-              <p className={styles.commercialNoteText}>
-                Анонимизирани барања што стигнуваат преку Nexa сателитските сајтови.
-                Изразувате интерес → Nexa уредникот прави квалификација →
-                ако ангажманот биде одобрен, го добивате контактот на клиентот.
-                Така ги добивате само серозните, филтрирани барања кои
-                одговараат на Вашата практика.
-              </p>
-              <div className={styles.commercialSources}>
-                <span className={styles.commercialSourcesLabel}>Извори:</span>
-                <a href="https://samodaprasham.mk"        target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>samodaprasham.mk</a>
-                <a href="https://immigration.mk"          target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>immigration.mk</a>
-                <a href="https://macedoniancitizenship.mk" target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>macedoniancitizenship.mk</a>
-                <a href="https://company.nexa.mk"         target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>company.nexa.mk</a>
-                <a href="https://iplaw.nexa.mk"           target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>iplaw.nexa.mk</a>
-              </div>
+            <div className={styles.commercialSources}>
+              <span className={styles.commercialSourcesLabel}>Извори:</span>
+              <a href="https://samodaprasham.mk"        target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>samodaprasham.mk</a>
+              <a href="https://immigration.mk"          target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>immigration.mk</a>
+              <a href="https://macedoniancitizenship.mk" target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>macedoniancitizenship.mk</a>
+              <a href="https://company.nexa.mk"         target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>company.nexa.mk</a>
+              <a href="https://iplaw.nexa.mk"           target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>iplaw.nexa.mk</a>
             </div>
           </div>
         </header>
@@ -228,6 +241,7 @@ export default function LeadsPage() {
 
 function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
   const { inquiry, state } = item;
+  const isOld = inquiry.postedAt && (Date.now() - new Date(inquiry.postedAt).getTime() > OLD_LEAD_MS);
   const isHit = (c) => userCategories?.includes(c);
 
   // Trial-preview card: the whole card is a clickable overlay that opens
@@ -253,7 +267,6 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
             </div>
           )}
           <div className={styles.cardMeta}>
-            {inquiry.city     && <span className={styles.cardMetaItem}>📍 {inquiry.city}</span>}
             {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
             {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
           </div>
@@ -266,7 +279,7 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
   }
 
   return (
-    <div className={`${styles.card} ${sample ? styles.sample : ''}`}>
+    <div className={`${styles.card} ${sample ? styles.sample : ''} ${isOld ? styles.cardOld : ''}`}>
       <div className={styles.cardHead}>
         <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
         {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
@@ -293,7 +306,6 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
       )}
 
       <div className={styles.cardMeta}>
-        {inquiry.city     && <span className={styles.cardMetaItem}>📍 {inquiry.city}</span>}
         {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
         {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
       </div>
@@ -332,7 +344,6 @@ function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
         {inquiry.summary && <p className={styles.detailSummary}>{inquiry.summary}</p>}
 
         <div className={styles.detailMeta}>
-          {inquiry.city     && <span>📍 {inquiry.city}</span>}
           {inquiry.language && <span>🗣 {inquiry.language?.toUpperCase()}</span>}
           {inquiry.postedAt && <span>📅 Објавено: {fmt(inquiry.postedAt)}</span>}
           {signal?.createdAt && state.key === 'requested' && <span>Побарано: {fmt(signal.createdAt)}</span>}

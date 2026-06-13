@@ -31,6 +31,11 @@
   display: flex; flex-direction: column; gap: 8px;
 }
 .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px -6px rgba(15,23,42,0.10); }
+/* Older than ~1 week — subtly muted so it reads as an older case (still clickable). */
+.cardOld { background: #f7f8fa; border-color: #e9ebef; }
+.cardOld .cardTitle { color: #475569; }
+.cardOld .cardSummaryClamp { color: #8a94a6; }
+.cardOld:hover { border-color: #d8dde4; }
 .cardHead { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .cardTitle { font-size: 15px; font-weight: 700; color: #0B1220; flex: 1 1 auto; min-width: 0; letter-spacing: -0.005em; }
 .cardSummary { font-size: 13.5px; color: #475569; line-height: 1.5; }
@@ -186,6 +191,30 @@
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 8px 24px -16px rgba(30, 77, 183, 0.12);
   max-width: 860px;
 }
+
+/* Compact explainer — keeps the page focused on the case cards below. */
+.leadsIntro {
+  margin-top: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #F8FAFF 0%, #FFFFFF 70%);
+  border: 1px solid #E5EAF4;
+  border-radius: 14px;
+}
+.leadsIntroLead { margin: 0 0 12px; font-size: 0.92rem; line-height: 1.55; color: #475569; max-width: 90ch; }
+.leadsSteps { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 6px; margin-bottom: 10px; }
+.leadsStep { display: inline-flex; align-items: center; gap: 8px; }
+.leadsStepIcon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: #eef3ff; color: #1e4db7; flex: 0 0 auto;
+}
+.leadsStepTitle { font-size: 0.85rem; font-weight: 600; color: #0B1220; }
+.leadsStepArrow { color: #94a3b8; font-weight: 700; }
+@media (max-width: 640px) {
+  .leadsStepArrow { display: none; }
+  .leadsSteps { gap: 8px 14px; }
+}
+
 .commercialNoteIcon {
   flex: 0 0 auto;
   width: 36px;

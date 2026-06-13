@@ -23,6 +23,27 @@ const STATUS_LABEL = {
 };
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
+// Flow + meta line icons (no emojis).
+const tSvg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const IconTarget = () => (<svg {...tSvg}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" /></svg>);
+const IconWrite = () => (<svg {...tSvg}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>);
+const IconReview = () => (<svg {...tSvg}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V3h6v1" /><path d="M8.5 13l2 2 4.5-4.5" /></svg>);
+const IconPublish = () => (<svg {...tSvg}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z" /></svg>);
+
+const mSvg = { width: 13, height: 13, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const MetaTag = () => (<svg {...mSvg}><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18" /></svg>);
+const MetaLen = () => (<svg {...mSvg}><path d="M4 7h16M4 12h11M4 17h16" /></svg>);
+const MetaClock = () => (<svg {...mSvg}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>);
+const MetaList = () => (<svg {...mSvg}><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>);
+
+const FlowStep = ({ n, icon, title, desc }) => (
+  <div className={styles.flowStep}>
+    <span className={styles.flowIcon} aria-hidden>{icon}<span className={styles.flowNum}>{n}</span></span>
+    <span className={styles.flowTitle}>{title}</span>
+    <span className={styles.flowDesc}>{desc}</span>
+  </div>
+);
+
 export default function TopicsQAPage() {
   const { token, currentUser } = useAuth();
   const { requireTerms, termsModal } = useTermsGate();
@@ -97,9 +118,24 @@ export default function TopicsQAPage() {
           <span className={styles.eyebrow}>Topics Q&A</span>
           <h1 className={styles.title}>Авторска работна табла</h1>
           <p className={styles.lead}>
-            Експертски Q&A прилози објавени на topics.nexa.mk под Ваше име.
-            Темите се однапред структурирани и SEO-таргетирани од уредничкиот тим.
+            Пишувате експертски одговори на структурирани, SEO-таргетирани прашања и
+            ги објавувате на topics.nexa.mk под Ваше име. Вие го носите стручното знаење,
+            а уредничкиот тим се грижи за структурата и видливоста — така градите
+            авторитет и Ве пронаоѓаат клиенти кои бараат специјалист.
           </p>
+
+          <div className={styles.howBand}>
+            <div className={styles.flow}>
+              <FlowStep n={1} icon={<IconTarget />} title="Изберете тема"
+                desc="Структурирани, SEO-таргетирани теми од Вашата област." />
+              <FlowStep n={2} icon={<IconWrite />} title="Напишете одговор"
+                desc="Одговарате на зададените прашања со Вашето знаење." />
+              <FlowStep n={3} icon={<IconReview />} title="Уреднички преглед"
+                desc="Уредникот прегледува; ако треба, бара доработка." />
+              <FlowStep n={4} icon={<IconPublish />} title="Објавено под Ваше име"
+                desc="Прилогот излегува на topics.nexa.mk со Вашиот потпис." />
+            </div>
+          </div>
         </header>
 
         <nav className={styles.tabs}>
@@ -127,10 +163,10 @@ export default function TopicsQAPage() {
                   </div>
                   <div className={styles.cardScope}>{t.scope}</div>
                   <div className={styles.cardMeta}>
-                    <span>🎯 {t.targetKeyword || '—'}</span>
-                    <span>📏 ~{t.targetLengthWords} зборови</span>
-                    <span>⏳ Мек рок: {t.softDeadlineDays} дена</span>
-                    <span>📝 {(t.questions || []).length} прашања</span>
+                    <span className={styles.metaItem}><MetaTag /> {t.targetKeyword || '—'}</span>
+                    <span className={styles.metaItem}><MetaLen /> ~{t.targetLengthWords} зборови</span>
+                    <span className={styles.metaItem}><MetaClock /> Мек рок: {t.softDeadlineDays} дена</span>
+                    <span className={styles.metaItem}><MetaList /> {(t.questions || []).length} прашања</span>
                   </div>
                   <div className={styles.cardRow}>
                     <span style={{ flex: 1 }} />

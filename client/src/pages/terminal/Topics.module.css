@@ -7,6 +7,51 @@
 .title { font-size: 26px; font-weight: 700; color: #0B1220; letter-spacing: -0.02em; margin: 0 0 8px; line-height: 1.2; }
 .lead  { font-size: 14px; color: #475569; line-height: 1.55; margin: 0; max-width: 720px; }
 
+/* "How it works" visual flow band */
+.howBand {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #F8FAFF 0%, #FFFFFF 70%);
+  border: 1px solid #E5EAF4;
+  border-radius: 14px;
+}
+.flow { display: flex; align-items: flex-start; }
+.flowStep {
+  flex: 1 1 0; min-width: 150px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  position: relative; padding: 0 6px;
+}
+.flowStep:not(:last-child)::after {
+  content: ''; position: absolute; top: 21px;
+  left: calc(50% + 26px); width: calc(100% - 52px); height: 2px;
+  background: linear-gradient(90deg, #c7d6f5, #e5eaf4);
+}
+.flowIcon {
+  position: relative; z-index: 1;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2456c6 0%, #1e4db7 100%); color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(30, 77, 183, 0.6);
+}
+.flowNum {
+  position: absolute; top: -4px; right: -4px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #f59e0b; color: #fff; font-size: 11px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff;
+}
+.flowTitle { margin-top: 10px; font-size: 0.86rem; font-weight: 700; color: #0B1220; }
+.flowDesc { margin-top: 4px; font-size: 0.78rem; line-height: 1.45; color: #64748b; max-width: 24ch; }
+
+.metaItem { display: inline-flex; align-items: center; gap: 5px; }
+.metaItem svg { flex: 0 0 auto; color: #94a3b8; }
+
+@media (max-width: 620px) {
+  .flow { flex-direction: column; gap: 14px; align-items: flex-start; }
+  .flowStep { flex-direction: row; align-items: center; text-align: left; gap: 12px; min-width: 0; width: 100%; }
+  .flowStep:not(:last-child)::after { display: none; }
+  .flowDesc { max-width: none; }
+}
+
 .tabs {
   display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 22px; padding-bottom: 4px;
   border-bottom: 1px solid #e5e7eb;

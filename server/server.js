@@ -310,6 +310,9 @@ async function initializeServices(database) {
   new InvestmentService(database);
   new UserAnalyticsService(database);
   app.locals.userService = userService;
+  // Email singleton on app.locals so controllers reading req.app.locals.emailService
+  // (blog submissions, inquiries, topics, sourcing) actually have a sender.
+  app.locals.emailService = require('./services/emailService');
 
   // Email verification (6-digit code) — used by /api/auth/register +
   // /api/auth/verify-email + /api/auth/resend-verification.

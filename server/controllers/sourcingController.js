@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { effectiveTier } = require('../services/tierService');
+const emailService = require('../services/emailService'); // singleton instance
 
 /**
  * Sourcing / RFQ ("Барање за понуди") — manual brokering intake.
@@ -83,8 +84,7 @@ function companyOf(user) {
   };
 }
 
-async function emailAdmin(emailService, v, company, id, isEdit) {
-  if (!emailService) return;
+async function emailAdmin(v, company, id, isEdit) {
   const html = `
     <h2>${isEdit ? 'Изменето барање за понуди' : 'Ново барање за понуди'}</h2>
     <p><strong>Тип:</strong> ${esc(TYPE_MK[v.type])}<br/>
@@ -124,13 +124,12 @@ exports.createRequest = async (req, res) => {
     const { insertedId } = await db.collection(COLLECTION).insertOne(doc);
 
     try {
-      const emailService = req.app.locals.emailService;
-      await emailAdmin(emailService, value, company, insertedId, false);
-      if (emailService && company.email) {
+      await emailAdmin(value, company, insertedId, false);
+      if (company.email) {
         await emailService.sendEmail(company.email, 'Nexa — Вашето барање за понуди е примено',
           `<h2>Вашето барање е примено</h2><p>Ќе се обидеме да обезбедиме понуди и ќе Ве известиме во рок од <strong>${value.waitDays} дена</strong>. Ова е барање, не нарачка — не гарантираме понуди.</p>`);
       }
-    } catch (e) { console.warn('[sourcing] email failed:', e.message); }
+    } catch (e) { console.error('[sourcing] email failed:', e.message); }
 
     return res.json({ success: true, id: insertedId.toString(), waitDays: value.waitDays });
   } catch (err) {
@@ -169,8 +168,8 @@ exports.editRequest = async (req, res) => {
       { $set: { ...value, updatedAt: new Date() }, $push: { edits: { at: new Date() } } }
     );
 
-    try { await emailAdmin(req.app.locals.emailService, value, existing.company, _id, true); }
-    catch (e) { console.warn('[sourcing] edit email failed:', e.message); }
+    try { await emailAdmin(value, existing.company, _id, true); }
+    catch (e) { console.error('[sourcing] edit email failed:', e.message); }
 
     return res.json({ success: true });
   } catch (err) {

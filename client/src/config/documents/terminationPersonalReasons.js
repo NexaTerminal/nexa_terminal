@@ -85,7 +85,7 @@ export const terminationPersonalReasonsConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Името како што е во договорот за работа или лична карта'
     },
@@ -104,7 +104,7 @@ export const terminationPersonalReasonsConfig = {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на работникот',
-      placeholder: 'пр. ул. Партизанска бр. 15, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 15, Скопје',
       required: true,
       helpText: 'Адреса од лична карта или пријавена адреса на живеалиште'
     },

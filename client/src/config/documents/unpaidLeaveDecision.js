@@ -25,7 +25,7 @@ export const unpaidLeaveDecisionConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на вработениот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Внесете го целосното име и презиме на вработениот кој бара неплатено отсуство како што е наведено во личните документи и договорот за вработување.'
     },

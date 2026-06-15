@@ -21,7 +21,8 @@ export const CHANGE_OPTIONS = [
   { value: 'M3', label: 'Промена на лични податоци', helpText: 'Промена на лични податоци (адреса на живеење, број на пасош/лична карта) на содружник и/или управител.' },
   { value: 'M4', label: 'Промена на управител', helpText: 'Отповикување и/или избор на управител, или промена на овластувања/мандат.' },
   { value: 'M6', label: 'Уплата на основачки влог', helpText: 'Уплата на основачкиот влог кога истиот не бил уплатен при основањето.' },
-  { value: 'M7', label: 'Промена кај подружница', helpText: 'Промена на седиште или раководител на подружница.' },
+  { value: 'M7', label: 'Промена кај подружница', helpText: 'Промена на седиште или раководител на постоечка подружница.' },
+  { value: 'M8', label: 'Организирање на подружница', helpText: 'Организирање (основање) на нова подружница на друштвото и назначување раководител, согласно член 26 од ЗТД. Се генерираат одлука, полномошна и изјави за потписи.' },
   { value: 'M5', label: 'Пренос на удел', helpText: 'Истапување/пристапување на содружник, со или без надомест, целосен или делумен пренос на удел. Преносот задолжително се заверува кај нотар.' }
 ];
 
@@ -58,10 +59,10 @@ export const companyChangesConfig = {
     helpText: 'Внесете ги сите содружници. Кај ДООЕЛ има точно еден содружник, кај ДОО два или повеќе. Податоците мора да одговараат со официјалните документи и со состојбата во Централниот регистар.',
     arrayFields: [
       { name: 'entityType', type: 'select', label: 'Тип', options: [ { value: 'physical', label: 'Физичко лице' }, { value: 'legal', label: 'Правно лице' } ], helpText: 'Изберете дали содружникот е физичко или правно лице.' },
-      { name: 'name', type: 'text', label: 'Име и презиме / Назив', placeholder: 'пр. Петар Петров', helpText: 'Внесете го целосното име и презиме (за физичко лице) или целосниот назив (за правно лице).' },
+      { name: 'name', type: 'text', label: 'Име и презиме / Назив', placeholder: 'пр. Лице Лицески', helpText: 'Внесете го целосното име и презиме (за физичко лице) или целосниот назив (за правно лице).' },
       { name: 'isForeign', type: 'select', label: 'Странец', options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ], helpText: 'Дали лицето е странски државјанин/правно лице.' },
       { name: 'citizenship', type: 'text', label: 'Државјанство / Држава', placeholder: 'пр. Република Бугарија', helpText: 'Се пополнува само за странски лица — државјанство (физичко) или држава на регистрација (правно лице).' },
-      { name: 'address', type: 'text', label: 'Адреса (живеалиште/седиште)', placeholder: 'пр. ул. Прва бр. 1, Скопје', helpText: 'Адреса на живеење (физичко лице) или седиште (правно лице).' },
+      { name: 'address', type: 'text', label: 'Адреса (живеалиште/седиште)', placeholder: 'пр. ул. Примерна бр. 1, Скопје', helpText: 'Адреса на живеење (физичко лице) или седиште (правно лице).' },
       { name: 'idType', type: 'select', label: 'Документ', options: [ { value: 'ЕМБГ', label: 'ЕМБГ (13 цифри)' }, { value: 'пасош', label: 'Број на пасош' }, { value: 'ЕМБС', label: 'ЕМБС / рег. број' } ], helpText: 'ЕМБГ за домашни физички лица (13 цифри), број на пасош за странци, ЕМБС/рег. број за правни лица.' },
       { name: 'idNumber', type: 'text', label: 'Број', placeholder: 'пр. 1234567890123', helpText: 'Вредноста на избраниот документ. ЕМБГ е точно 13 цифри според личната карта.' },
       { name: 'sharePercent', type: 'text', label: 'Удел (%)', placeholder: 'пр. 100', helpText: 'Процентот на учество на содружникот во основната главнина. Кај ДОО се прикажува во содружничката структура во пречистениот текст.' },
@@ -75,10 +76,10 @@ export const companyChangesConfig = {
     addLabel: '+ Додади управител',
     helpText: 'Внесете ги управителите на друштвото. Управителот го застапува друштвото и ја дава изјавата по член 32.',
     arrayFields: [
-      { name: 'name', type: 'text', label: 'Име и презиме', placeholder: 'пр. Петар Петров', helpText: 'Целосно име и презиме на управителот според личната карта.' },
+      { name: 'name', type: 'text', label: 'Име и презиме', placeholder: 'пр. Лице Лицески', helpText: 'Целосно име и презиме на управителот според личната карта.' },
       { name: 'isForeign', type: 'select', label: 'Странец', options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ], helpText: 'Дали управителот е странски државјанин.' },
       { name: 'citizenship', type: 'text', label: 'Државјанство', placeholder: 'пр. Република Бугарија', helpText: 'Се пополнува само за странски управители.' },
-      { name: 'address', type: 'text', label: 'Адреса на живеење', placeholder: 'пр. ул. Прва бр. 1, Скопје', helpText: 'Адреса на живеење на управителот.' },
+      { name: 'address', type: 'text', label: 'Адреса на живеење', placeholder: 'пр. ул. Примерна бр. 1, Скопје', helpText: 'Адреса на живеење на управителот.' },
       { name: 'idType', type: 'select', label: 'Документ', options: [ { value: 'ЕМБГ', label: 'ЕМБГ (13 цифри)' }, { value: 'пасош', label: 'Број на пасош' } ], helpText: 'ЕМБГ за домашни лица, број на пасош за странци.' },
       { name: 'idNumber', type: 'text', label: 'Број', placeholder: 'пр. 1234567890123', helpText: 'Вредноста на избраниот документ.' }
     ]
@@ -94,32 +95,32 @@ export const companyChangesConfig = {
     },
     companyFullName: {
       name: 'companyFullName', type: 'text', label: 'Полн назив на друштвото', step: 2, required: true,
-      placeholder: 'пр. Друштво за трговија АМАКО НЕТ ДООЕЛ Скопје',
+      placeholder: 'пр. Друштво за трговија Пример ДООЕЛ Скопје',
       helpText: 'Целосниот регистриран назив на друштвото како што е запишан во Централниот регистар. Предложено од вашиот профил — изменете доколку е потребно.'
     },
     companyShortName: {
       name: 'companyShortName', type: 'text', label: 'Скратен назив', step: 2,
-      placeholder: 'пр. АМАКО НЕТ ДООЕЛ Скопје',
+      placeholder: 'пр. Пример ДООЕЛ Скопје',
       helpText: 'Скратениот назив на друштвото. Го содржи клучниот бренд + формата (ДООЕЛ/ДОО) + градот.'
     },
     companyAddress: {
       name: 'companyAddress', type: 'text', label: 'Адреса на седиште (тековна)', step: 2, required: true,
-      placeholder: 'пр. ул. Перо Наков бр. 126Б, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 126Б, Скопје',
       helpText: 'Тековната (досегашна) адреса на седиштето. Предложена од вашиот профил. При промена на седиште, новата адреса се внесува во чекор 3.'
     },
     companyEMBS: {
       name: 'companyEMBS', type: 'text', label: 'ЕМБС (матичен број)', step: 2, required: true,
-      maxLength: 7, inputMode: 'numeric', placeholder: 'пр. 4918835',
+      maxLength: 7, inputMode: 'numeric', placeholder: 'пр. 1234567',
       helpText: 'Единствен матичен број на субјектот — точно 7 цифри. Се користи само за идентификација и НИКОГАШ не се менува.'
     },
     companyEDB: {
       name: 'companyEDB', type: 'text', label: 'ЕДБ (даночен број)', step: 2, required: true,
-      maxLength: 13, inputMode: 'numeric', placeholder: 'пр. 4030994340019',
+      maxLength: 13, inputMode: 'numeric', placeholder: 'пр. 4030000000000',
       helpText: 'Единствен даночен број — 13 цифри. Предложен од вашиот профил. Се користи само за идентификација и НИКОГАШ не се менува.'
     },
     companyForeignName: {
       name: 'companyForeignName', type: 'text', label: 'Назив во правниот промет со странство (латиница)', step: 2,
-      placeholder: 'пр. Company AMAKO NET DOOEL Skopje',
+      placeholder: 'пр. Company Primer DOOEL Skopje',
       helpText: 'Називот на друштвото на латиница, како што се користи во меѓународниот промет. Единствениот дозволен исклучок од кирилица.'
     },
     companyCapitalEUR: {
@@ -168,7 +169,7 @@ export const companyChangesConfig = {
     // M2 — Седиште
     newSeatAddress: {
       name: 'newSeatAddress', type: 'text', label: 'Нова адреса на седиште', step: 3, required: true,
-      placeholder: 'пр. ул. Маршал Тито бр. 10, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 10, Скопје',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M2'),
       helpText: 'Внесете ја новата адреса на седиштето на друштвото. Промената на седиште се впишува во Трговскiот регистар преку регистрациониот агент.'
     },
@@ -187,19 +188,19 @@ export const companyChangesConfig = {
     },
     m3SubjectName: {
       name: 'm3SubjectName', type: 'text', label: 'Име и презиме на лицето', step: 3,
-      placeholder: 'пр. Петар Петров',
+      placeholder: 'пр. Лице Лицески',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M3'),
       helpText: 'Името и презимето на лицето чии лични податоци се менуваат (како што е во внесените содружници/управители).'
     },
     m3OldData: {
       name: 'm3OldData', type: 'textarea', label: 'Тековни лични податоци (целосно)', step: 3, rows: 3, maxLength: 600,
-      placeholder: 'пр. Марко Марковски, со живеалиште на ул. Стара бр. 1, Скопје, со ЕМБГ 0000000000000',
+      placeholder: 'пр. Лице Лицески, со живеалиште на ул. Примерна бр. 1, Скопје, со ЕМБГ 0000000000000',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M3'),
       helpText: 'Тековните (досегашни) лични податоци на лицето како што се регистрирани. Се наведуваат во одлуката за да се види што се менува.'
     },
     m3NewData: {
       name: 'm3NewData', type: 'textarea', label: 'Нови лични податоци (целосно)', step: 3, rows: 3, maxLength: 600,
-      placeholder: 'пр. Петар Петров, со живеалиште на ул. Нова бр. 5, Скопје, со ЕМБГ 1234567890123',
+      placeholder: 'пр. Лице Лицески, со живеалиште на ул. Примерна бр. 5, Скопје, со ЕМБГ 1234567890123',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M3'),
       helpText: 'Внесете ја целосната нова идентификација на лицето (име, адреса/живеалиште, и ЕМБГ или нов број на пасош). Овој текст се внесува во одлуката како нова состојба.'
     },
@@ -218,13 +219,13 @@ export const companyChangesConfig = {
     },
     m4DismissedName: {
       name: 'm4DismissedName', type: 'text', label: 'Управител што се отповикува', step: 3,
-      placeholder: 'пр. Стефан Стефановски, со ЕМБГ 0000000000000',
+      placeholder: 'пр. Лице Лицески, со ЕМБГ 0000000000000',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M4') && ['a', 'c'].includes(fd.m4ChangeType),
       helpText: 'Целосна идентификација на управителот што се отповикува (име, адреса, ЕМБГ/пасош).'
     },
     m4NewManagerName: {
       name: 'm4NewManagerName', type: 'text', label: 'Нов управител — име и презиме', step: 3,
-      placeholder: 'пр. Никола Николовски',
+      placeholder: 'пр. Лице Лицески',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M4') && ['a', 'b'].includes(fd.m4ChangeType),
       helpText: 'Името и презимето на новиот управител. Новиот управител дава Изјава по член 183 и 231 став 4 и потпишува ЗП образец.'
     },
@@ -242,7 +243,7 @@ export const companyChangesConfig = {
     },
     m4NewManagerAddress: {
       name: 'm4NewManagerAddress', type: 'text', label: 'Нов управител — адреса', step: 3,
-      placeholder: 'пр. ул. Прва бр. 1, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M4') && ['a', 'b'].includes(fd.m4ChangeType),
       helpText: 'Адреса на живеење на новиот управител.'
     },
@@ -306,39 +307,107 @@ export const companyChangesConfig = {
     },
     branchSubNumber: {
       name: 'branchSubNumber', type: 'text', label: 'Подброј на подружницата', step: 3,
-      placeholder: 'пр. 5182140/2',
+      placeholder: 'пр. 1234567/2',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7'),
       helpText: 'Подбројот на подружницата (ЕМБС/n).'
     },
     m7OldBranchAddress: {
       name: 'm7OldBranchAddress', type: 'text', label: 'Стара адреса на подружницата', step: 3,
-      placeholder: 'пр. ул. Климент Охридски бр. 13, Струмица',
+      placeholder: 'пр. ул. Примерна бр. 13, Струмица',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'седиште',
       helpText: 'Досегашната адреса/седиште на подружницата.'
     },
     m7NewBranchAddress: {
       name: 'm7NewBranchAddress', type: 'text', label: 'Нова адреса на подружницата', step: 3,
-      placeholder: 'пр. ул. Климент Охридски бр. 180, Струмица',
+      placeholder: 'пр. ул. Примерна бр. 180, Струмица',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'седиште',
       helpText: 'Новата адреса/седиште на подружницата.'
     },
     m7DismissedHeadName: {
       name: 'm7DismissedHeadName', type: 'text', label: 'Раководител што се отповикува', step: 3,
-      placeholder: 'пр. Стефан Стефановски, со ЕМБГ 0000000000000',
+      placeholder: 'пр. Лице Лицески, со ЕМБГ 0000000000000',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'раководител',
       helpText: 'Целосна идентификација на раководителот што се отповикува.'
     },
     m7NewHeadName: {
       name: 'm7NewHeadName', type: 'text', label: 'Нов раководител (целосна идентификација)', step: 3,
-      placeholder: 'пр. Никола Николовски, државјанин на Р. Србија, пасош 000000000, адреса ...',
+      placeholder: 'пр. Лице Лицески, државјанин на Р. Србија, пасош 000000000, адреса ...',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'раководител',
       helpText: 'Целосна идентификација на новиот раководител на подружницата (име, државјанство/адреса, документ).'
+    },
+
+    // M8 — Организирање на подружница (нова подружница)
+    m8BranchName: {
+      name: 'm8BranchName', type: 'text', label: 'Назив на подружницата', step: 3, required: true,
+      placeholder: 'пр. {друштво} – Подружница {име} {град}',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Целосниот назив на новата подружница. Вообичаено е „{полн назив на друштвото} – Подружница {име} {град}".'
+    },
+    m8BranchAddress: {
+      name: 'm8BranchAddress', type: 'text', label: 'Седиште на подружницата', step: 3, required: true,
+      placeholder: 'пр. ул. Примерна бр. 2/3-15, Скопје – Центар',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Адресата/седиштето на новата подружница.'
+    },
+    m8BranchActivityCode: {
+      name: 'm8BranchActivityCode', type: 'text', label: 'Дејност на подружницата (шифра)', step: 3,
+      placeholder: 'пр. 55.100',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Шифрата на дејноста за која се организира подружницата.'
+    },
+    m8BranchActivityText: {
+      name: 'm8BranchActivityText', type: 'text', label: 'Дејност на подружницата (опис)', step: 3,
+      placeholder: 'пр. Хотелско и слично сместување',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Описот на дејноста што одговара на шифрата.'
+    },
+    m8HeadName: {
+      name: 'm8HeadName', type: 'text', label: 'Раководител — име и презиме', step: 3, required: true,
+      placeholder: 'пр. Лице Лицески',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Името и презимето на раководителот на подружницата (се назначува со неограничени овластувања).'
+    },
+    m8HeadForeign: {
+      name: 'm8HeadForeign', type: 'select', label: 'Раководител — странец', step: 3,
+      options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ],
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Дали раководителот е странски државјанин.'
+    },
+    m8HeadCitizenship: {
+      name: 'm8HeadCitizenship', type: 'text', label: 'Раководител — државјанство', step: 3,
+      placeholder: 'пр. Република Србија',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8') && fd.m8HeadForeign === 'да',
+      helpText: 'Државјанство на раководителот (само за странци).'
+    },
+    m8HeadAddress: {
+      name: 'm8HeadAddress', type: 'text', label: 'Раководител — адреса (живеалиште)', step: 3, required: true,
+      placeholder: 'пр. ул. Примерна бр. 26/1-6, Скопје – Центар',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Адреса на живеење на раководителот.'
+    },
+    m8HeadIdType: {
+      name: 'm8HeadIdType', type: 'select', label: 'Раководител — документ', step: 3,
+      options: [ { value: 'ЕМБГ', label: 'ЕМБГ (13 цифри)' }, { value: 'пасош', label: 'Број на пасош' } ],
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'ЕМБГ за домашен, број на пасош за странски раководител.'
+    },
+    m8HeadIdNumber: {
+      name: 'm8HeadIdNumber', type: 'text', label: 'Раководител — ЕМБГ/пасош', step: 3, required: true,
+      placeholder: 'пр. 0000000000000',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Вредноста на избраниот документ на раководителот.'
+    },
+    m8DecisionNumber: {
+      name: 'm8DecisionNumber', type: 'text', label: 'Број на одлука (опционо)', step: 3,
+      placeholder: 'пр. 0101/1',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M8'),
+      helpText: 'Доколку водите внатрешна нумерација на одлуки, внесете го бројот.'
     },
 
     // M5 — Пренос на удел (most complex module)
     m5TransferorName: {
       name: 'm5TransferorName', type: 'text', label: 'Отстапувач (од постоечките содружници)', step: 3, required: true,
-      placeholder: 'пр. Марко Марковски',
+      placeholder: 'пр. Лице Лицески',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M5'),
       helpText: 'Изберете го содружникот кој го отстапува уделот од листата на содружници (чекор 2). Системот ги презема неговите целосни податоци од таму. Кај ДООЕЛ единствениот содружник е автоматски избран.'
     },
@@ -357,7 +426,7 @@ export const companyChangesConfig = {
     },
     m5TransferorAddress: {
       name: 'm5TransferorAddress', type: 'text', label: 'Отстапувач — адреса (живеалиште)', step: 3,
-      placeholder: 'пр. ул. Прва бр. 1, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје',
       helpText: 'Адреса на живеење на отстапувачот. Се внесува само ако не може да се преземе од листата на содружници.'
     },
     m5TransferorIdType: {
@@ -426,7 +495,7 @@ export const companyChangesConfig = {
     },
     m5TransfereeName: {
       name: 'm5TransfereeName', type: 'text', label: 'Стекнувач — име и презиме / назив', step: 3, required: true,
-      placeholder: 'пр. Марко Марковски',
+      placeholder: 'пр. Лице Лицески',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M5'),
       helpText: 'Името на стекнувачот на уделот. За постоен содружник внесете го точно како во листата на содружници.'
     },
@@ -444,7 +513,7 @@ export const companyChangesConfig = {
     },
     m5TransfereeAddress: {
       name: 'm5TransfereeAddress', type: 'text', label: 'Стекнувач — адреса', step: 3,
-      placeholder: 'пр. ул. Прва бр. 1, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M5') && fd.m5TransfereeIsNew === 'да',
       helpText: 'Адреса на живеење (физичко лице) или седиште (правно лице) на стекнувачот.'
     },
@@ -476,7 +545,7 @@ export const companyChangesConfig = {
     // --- Step 4: registration agent + general ---
     newSeatAddress: {
       name: 'newSeatAddress', type: 'text', label: 'Нова адреса на седиште', step: 3, required: true,
-      placeholder: 'пр. ул. Маршал Тито бр. 10, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 10, Скопје',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M2'),
       helpText: 'Внесете ја новата адреса на седиштето на друштвото. Промената на седиште се впишува во Трговскiот регистар преку регистрациониот агент.'
     },
@@ -503,12 +572,12 @@ export const companyChangesConfig = {
     },
     agentAddress: {
       name: 'agentAddress', type: 'text', label: 'Адреса на агентот', step: 4,
-      placeholder: 'пр. ул. Македонија бр. 26/1-5, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 26/1-5, Скопје',
       helpText: 'Седиштето/адресата на регистрациониот агент.'
     },
     agentPersons: {
       name: 'agentPersons', type: 'textarea', label: 'Овластени лица кај агентот', step: 4, rows: 3, maxLength: 1000,
-      placeholder: 'пр. адвокат Марко Марковски и адвокатски приправник Ана Анева',
+      placeholder: 'пр. адвокат Лице Лицески и адвокатски приправник Лице Лицеска',
       helpText: 'Наброј ги адвокатите/приправниците кои се овластуваат во полномошното (по желба).'
     }
   }

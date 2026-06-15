@@ -46,6 +46,32 @@ export function isAccountSuspended(user) {
   return new Date(user.suspendedUntil).getTime() > Date.now();
 }
 
+/**
+ * Does this user currently have ACTIVE feature access (may use document
+ * generators, screenings, AI tools, courses)? Mirrors the server gate in
+ * services/subscriptionService.js → hasFeatureAccess + middleware/subscriptionGuard.
+ *
+ * True for: platform admin, sub-seats (inherit parent), unexpired trial/active,
+ * or a live grace window. False for: admin-suspended accounts, expired
+ * trial/active without grace, cancelled, or no subscription.
+ *
+ * NOTE: distinct from previewMode() — a *valid* trial user is in preview mode
+ * (B/C action buttons gate) yet DOES have feature access. This predicate gates
+ * the feature pages themselves; previewMode only gates upsell actions.
+ */
+export function hasFeatureAccess(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  if (isAccountSuspended(user)) return false;
+  if (user.role === 'sub_seat') return true; // inherits parent access
+  const s = user.subscription || {};
+  const now = Date.now();
+  const endsAt      = s.endsAt      ? new Date(s.endsAt).getTime()      : 0;
+  const graceEndsAt = s.graceEndsAt ? new Date(s.graceEndsAt).getTime() : 0;
+  const inTrialOrActive = (s.status === 'trial' || s.status === 'active') && endsAt > now;
+  return inTrialOrActive || graceEndsAt > now;
+}
+
 export function intendedTier(user) {
   if (user?.intendedPlan === 'admin_10') return 'C';
   if (user?.intendedPlan === 'admin_5')  return 'B';

@@ -271,7 +271,8 @@ function changeNames(changes, formData) {
     M4: managerChangeName(formData),
     M5: 'пренос на удел' + (formData.m5TransferorWithdraws !== 'не' ? ', истапување' : '') + (formData.m5TransfereeIsNew === 'да' ? ' и пристапување на содружник' : ''),
     M6: 'уплата на основачки влог',
-    M7: branchChangeName(formData)
+    M7: branchChangeName(formData),
+    M8: 'организирање на подружница и назначување раководител'
   };
   return changes.map((c) => names[c]).filter(Boolean);
 }
@@ -1185,6 +1186,143 @@ function buildBookOfShares(ctx) {
 }
 
 // ===========================================================================
+// M8 — Организирање на подружница (branch organization) — чл. 26 ЗТД
+// Lawyer's self-contained set: Одлука + Полномошно (организирање) + Изјави за
+// потписи (по потписник) + Полномошно за работно време. Does NOT change the Act.
+// ===========================================================================
+
+/** Branch head (раководител) person object from M8 form fields (manual entry). */
+function branchHeadFromForm(fd) {
+  const foreign = fd.m8HeadForeign === 'да';
+  return {
+    name: fd.m8HeadName || '[Раководител]',
+    entityType: 'physical',
+    isForeign: foreign,
+    citizenship: fd.m8HeadCitizenship,
+    address: fd.m8HeadAddress,
+    idType: fd.m8HeadIdType || (foreign ? 'пасош' : 'ЕМБГ'),
+    idNumber: fd.m8HeadIdNumber
+  };
+}
+
+/** "{шифра} – {опис}" activity string for the branch. */
+function branchActivity(fd) {
+  return `${fd.m8BranchActivityCode || '[шифра]'} – ${fd.m8BranchActivityText || '[дејност]'}`;
+}
+
+/** M8 — Одлука за организирање на Подружница и назначување раководител. */
+function buildBranchOrganizationDecision(ctx) {
+  const { co, shareholders, changes, formData } = ctx;
+  const branchName = formData.m8BranchName || '[Назив на подружницата]';
+  const branchAddress = formData.m8BranchAddress || '[Седиште на подружницата]';
+  const head = branchHeadFromForm(formData);
+  return [
+    decisionPreamble(co, shareholders, changes, formData, 'Врз основа на член 26 од Законот за трговските друштва, како и во согласност со одредбите од Актот за основање на'),
+    title('О Д Л У К А'),
+    title('за организирање на Подружница и назначување раководител на Подружницата', { after: 300 }),
+    article(1),
+    p(`Со оваа Одлука, се организира подружница на друштвото: ${co.fullName}, со ЕМБС ${co.embs}.`),
+    p('Називот на подружницата е:'),
+    p(branchName, { after: 120, bold: true }),
+    p('Седиштето на подружницата е на:'),
+    p(branchAddress, { after: 240, bold: true }),
+    article(2),
+    p('Подружницата се организира за вршење на дејноста:'),
+    p(branchActivity(formData), { after: 240, bold: true }),
+    article(3),
+    p('За раководител на подружницата со неограничени овластувања се назначува лицето:'),
+    p(pPerson(head), { after: 240, bold: true }),
+    article(4),
+    p('Подружницата нема својство на правно лице. Подружницата во правниот промет истапува во име и за сметка на друштвото.'),
+    article(5),
+    p('Подружницата престанува со одлука на основачот за престанување на подружницата или ако друштвото престане да постои.'),
+    article(6),
+    p('Оваа Одлука стапува во сила со нејзиното донесување и истата ќе биде запишана во Трговскиот регистар при Централниот регистар на Република Северна Македонија.'),
+    ...decisionNumberLine(formData, formData.m8DecisionNumber),
+    ...decisionSignatures(ctx)
+  ];
+}
+
+/** Company-level POA opening shared by the two M8 POAs (organizing + working-hours). */
+function branchPOAOpening(ctx) {
+  const { co, formData } = ctx;
+  const manager = ctx.managers[0] || { name: co.manager };
+  const agentName = formData.agentName || '[регистрационен агент]';
+  const agentAddress = formData.agentAddress || '[адреса на агентот]';
+  const via = formData.agentPersons ? `, претставувано преку ${formData.agentPersons}` : '';
+  return `Ние, долупотпишаните ${co.fullName}, со седиште на ${co.address}, со ЕМБС ${co.embs} и ЕДБ ${co.edb}, претставувани преку Управителот ${manager.name || '[Управител]'}, го овластуваме регистрациониот агент ${agentName}, со седиште на ${agentAddress}${via}, секој од нив заедно или секој од нив посебно, во наше име и за наша сметка да не застапуваат пред Трговскиот регистар на Република Северна Македонија`;
+}
+
+/** Company-level POA closing (authorization + signature) shared by the two M8 POAs. */
+function branchPOAClosing(ctx) {
+  const { co, formData } = ctx;
+  const manager = ctx.managers[0] || { name: co.manager };
+  return [
+    p('Заради спроведување на горенаведената цел, ополномоштените се овластени во наше име и за наша сметка да ги подготват, потпишат и поднесат преку системот за е-регистрација сите потребни документи и да ги преземат сите потребни дејствија пред Трговскиот регистар при Централниот регистар на РСМ, како и да ја поднесат пријавата за упис на промените и да го подигнат Решението од извршените промени.', { after: 160 }),
+    p(`Во ${formData.city || 'Скопје'}, на ден ${fmtDate(formData.decisionDate)} година.`, { after: 300 }),
+    ...signature({ roleLabel: 'ВЛАСТОДАТЕЛ', lines: [`За ${co.shortName}`, `Управител ${manager.name || '[Управител]'}`] })
+  ];
+}
+
+/** M8 — Полномошно за организирање на подружница (company-level). */
+function buildBranchOrgPOA(ctx) {
+  const { formData } = ctx;
+  const branchName = formData.m8BranchName || '[Назив на подружницата]';
+  const branchAddress = formData.m8BranchAddress || '[Седиште на подружницата]';
+  const head = branchHeadFromForm(formData);
+  return [
+    title('П О Л Н О М О Ш Н О', { after: 300 }),
+    p(`${branchPOAOpening(ctx)}, во постапка за организирање на Подружница и назначување раководител на Подружницата: ${branchName}, со седиште на ${branchAddress}, за вршење на дејноста: ${branchActivity(formData)}, со раководител на подружницата со неограничени овластувања лицето: ${pPerson(head)}.`, { after: 160 }),
+    ...branchPOAClosing(ctx)
+  ];
+}
+
+/** M8 — Полномошно за евиденција на работно време на подружницата (company-level). */
+function buildBranchWorkingHoursPOA(ctx) {
+  const { formData } = ctx;
+  const branchName = formData.m8BranchName || '[Назив на подружницата]';
+  const branchAddress = formData.m8BranchAddress || '[Седиште на подружницата]';
+  return [
+    title('П О Л Н О М О Ш Н О', { after: 300 }),
+    p(`${branchPOAOpening(ctx)}, во постапка за евиденција на работно време на Подружницата: ${branchName}, со седиште на ${branchAddress}, регистрирана за вршење на дејноста: ${branchActivity(formData)}.`, { after: 160 }),
+    ...branchPOAClosing(ctx)
+  ];
+}
+
+/** Signatories of the M8 потписи statements: each shareholder (manager flag) + a separate manager. */
+function branchSignatories(ctx) {
+  const { shareholders, managers } = ctx;
+  const mgrNames = new Set(managers.map((m) => (m.name || '').trim().toLowerCase()));
+  const out = shareholders.map((s) => ({ person: s, isManager: mgrNames.has((s.name || '').trim().toLowerCase()) }));
+  managers.forEach((m) => {
+    const key = (m.name || '').trim().toLowerCase();
+    if (key && !shareholders.some((s) => (s.name || '').trim().toLowerCase() === key)) {
+      out.push({ person: m, isManager: true, onlyManager: true });
+    }
+  });
+  return out;
+}
+
+/** M8 — Изјава за потписи (branch organization wording; one per signatory). */
+function buildBranchSignatureStatement(ctx, entry) {
+  const { co, formData } = ctx;
+  const branchName = formData.m8BranchName || '[Назив на подружницата]';
+  const branchAddress = formData.m8BranchAddress || '[Седиште на подружницата]';
+  const agentName = formData.agentName || '[регистрационен агент]';
+  const agentAddress = formData.agentAddress || '[адреса на агентот]';
+  let capacity;
+  if (entry.onlyManager) capacity = 'управител';
+  else if (co.form === 'doo') capacity = entry.isManager ? 'основач / содружник и управител' : 'основач / содружник';
+  else capacity = entry.isManager ? 'основач – единствен содружник и управител' : 'основач – единствен содружник';
+  return [
+    p(`Врз основа на член 7 став 1 алинеа 4 од Правилникот за издавање на овластување на регистрационен агент, јас, долупотпишаниот/ата ${pPerson(entry.person)}, како ${capacity} на ${pIdent(co, ctx.changes, formData)}, на ден ${fmtDate(formData.decisionDate)} година, ја давам следната:`, { after: 240 }),
+    title('И З Ј А В А', { after: 300 }),
+    p(`Под полна морална, материјална и кривична одговорност изјавувам дека потписите на прилозите доставени до овластениот регистрационен агент ${agentName}, со седиште на ${agentAddress}, во хартиена форма ги имам лично и своерачно потпишано за електронска комуникација со Централниот Регистар и други административни работи во врска со постапката за организирање на Подружница на Друштвото и тоа: ${branchName}, со седиште на ${branchAddress}, за вршење на дејноста: ${branchActivity(formData)}, како и регистрација на работно време на Подружницата, преку системот за е-регистрација.`, { after: 300 }),
+    ...signature({ roleLabel: 'ИЗЈАВИЛ', lines: signatoryNameLines(entry.person) })
+  ];
+}
+
+// ===========================================================================
 // ASSEMBLY
 // ===========================================================================
 
@@ -1194,7 +1332,8 @@ const MODULE_BUILDERS = {
   M3: buildPersonalDataDecision,
   M4: buildManagerDecision,
   M6: buildCapitalDecision,
-  M7: buildBranchDecision
+  M7: buildBranchDecision,
+  M8: buildBranchOrganizationDecision
 };
 
 /**
@@ -1236,6 +1375,11 @@ function assembleChildren(ctx) {
   const hasNewManager = !!newMgr || (hasM5 && m5.transferee._isManager);
   const flags = { hasActChange, hasNewManager, hasM5, m5Foreign };
 
+  // M8 (branch organization) ships its own self-contained document set. An M8-only
+  // package = exactly the lawyer's 5 docs (no generic чл.32 / per-signatory statements).
+  const hasM8 = changes.includes('M8');
+  const m8Only = hasM8 && changes.length === 1;
+
   // 1) M5 transfer documents come first (contract → offers → responses → decision → application → book)
   if (hasM5) {
     docs.push(buildTransferContract(ctx));
@@ -1250,7 +1394,7 @@ function assembleChildren(ctx) {
   }
 
   // 2) One decision per selected change (module order). M5 has its own decision (Д-10).
-  ['M1', 'M2', 'M3', 'M4', 'M6', 'M7'].forEach((m) => {
+  ['M1', 'M2', 'M3', 'M4', 'M6', 'M7', 'M8'].forEach((m) => {
     if (changes.includes(m)) {
       const block = MODULE_BUILDERS[m](ctx);
       if (block.length) docs.push(block);
@@ -1270,23 +1414,33 @@ function assembleChildren(ctx) {
   // 4) Book of shares (Д-12) — new ownership state, signed by the manager after the change
   if (hasM5) docs.push(buildBookOfShares(ctx));
 
-  // 5) Statutory statements
-  docs.push(buildArticle32Statement(ctx, flags));
-  if (newMgr) {
-    docs.push(buildNewPersonStatement(ctx, flags, newMgr, { capacity: 'иден Управител', newManager: true }));
-  }
-  if (hasM5 && m5.transferee._isNew) {
-    docs.push(buildNewPersonStatement(ctx, flags, m5.transferee, {
-      capacity: `Стекнувач на удел / Содружник кој пристапува${m5.transferee._isManager ? ' и иден Управител' : ''}`,
-      newShareholder: true,
-      newManager: m5.transferee._isManager
-    }));
+  // 4.5) M8 — branch organization: company-level Полномошно (+ per-signatory потписи for an
+  // M8-only package, where the branch set replaces the generic statements) + working-hours POA.
+  if (hasM8) {
+    docs.push(buildBranchOrgPOA(ctx));
+    if (m8Only) branchSignatories(ctx).forEach((e) => docs.push(buildBranchSignatureStatement(ctx, e)));
+    docs.push(buildBranchWorkingHoursPOA(ctx));
   }
 
-  // 6) Per-signatory potpisi + polnomosno
-  const signatories = deriveSignatories(ctx);
-  signatories.forEach((s) => docs.push(buildSignatureStatement(ctx, s)));
-  signatories.forEach((s) => docs.push(buildPowerOfAttorney(ctx, s, flags)));
+  // 5) Statutory statements — skipped for an M8-only package (self-contained branch set).
+  if (!m8Only) {
+    docs.push(buildArticle32Statement(ctx, flags));
+    if (newMgr) {
+      docs.push(buildNewPersonStatement(ctx, flags, newMgr, { capacity: 'иден Управител', newManager: true }));
+    }
+    if (hasM5 && m5.transferee._isNew) {
+      docs.push(buildNewPersonStatement(ctx, flags, m5.transferee, {
+        capacity: `Стекнувач на удел / Содружник кој пристапува${m5.transferee._isManager ? ' и иден Управител' : ''}`,
+        newShareholder: true,
+        newManager: m5.transferee._isManager
+      }));
+    }
+
+    // 6) Per-signatory potpisi + polnomosno
+    const signatories = deriveSignatories(ctx);
+    signatories.forEach((s) => docs.push(buildSignatureStatement(ctx, s)));
+    signatories.forEach((s) => docs.push(buildPowerOfAttorney(ctx, s, flags)));
+  }
 
   // Flatten with page breaks between documents
   const children = [];

@@ -33,7 +33,7 @@ export const warningBeforeLawsuitConfig = {
       name: 'debtorName',
       type: 'text',
       label: 'Име на должникот',
-      placeholder: 'пр. Компанија ДООЕЛ Скопје или Марко Петровски',
+      placeholder: 'пр. Компанија ДООЕЛ Скопје или Лице Лицески',
       required: true,
       helpText: 'Внесете го целото име на должникот (физичко или правно лице). Овој податок мора да одговара со официјалните документи за да биде правно валиден.'
     },
@@ -41,7 +41,7 @@ export const warningBeforeLawsuitConfig = {
       name: 'debtorAddress',
       type: 'text',
       label: 'Адреса на должникот',
-      placeholder: 'пр. ул. Илинденска бр. 5, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 5, Скопје',
       required: true,
       helpText: 'Внесете ја целата адреса на должникот. Оваа адреса е важна за правната валидност на опомената и евентуално дорачување на документот.'
     },
@@ -93,7 +93,7 @@ export const warningBeforeLawsuitConfig = {
       name: 'contactInfo',
       type: 'textarea',
       label: 'Контакт информации (опционо)',
-      placeholder: 'пр. Телефон: 02/3123-456, Email: info@kompanija.mk',
+      placeholder: 'пр. Телефон: 02/3123-456, Email: info@primer.mk',
       rows: 3,
       required: false,
       helpText: 'Внесете ги контакт податоците на кои должникот може да ве контактира за договарање околу плаќањето. Ова е опционо, но се препорачува за олеснување на комуникацијата.'

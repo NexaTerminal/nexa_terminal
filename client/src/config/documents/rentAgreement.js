@@ -100,7 +100,7 @@ export const rentAgreementConfig = {
       name: 'otherPartyName',
       type: 'text',
       label: 'Име на физичкото лице',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -113,7 +113,7 @@ export const rentAgreementConfig = {
       name: 'otherPartyAddress',
       type: 'text',
       label: 'Адреса на физичкото лице',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -156,7 +156,7 @@ export const rentAgreementConfig = {
       name: 'otherPartyCompanyAddress',
       type: 'text',
       label: 'Адреса на компанијата',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -169,7 +169,7 @@ export const rentAgreementConfig = {
       name: 'otherPartyCompanyManager',
       type: 'text',
       label: 'Управител на компанијата',
-      placeholder: 'пр. Петар Николовски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -197,7 +197,7 @@ export const rentAgreementConfig = {
       name: 'propertyAddress',
       type: 'text',
       label: 'Адреса на недвижноста',
-      placeholder: 'пр. ул. Македонска бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: true,
       helpText: 'Внесете ја целосната адреса на недвижноста која се издава под закуп (улица, број, град).'
     },

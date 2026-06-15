@@ -31,7 +31,7 @@ export const deathCompensationDecisionConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на вработениот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Внесете го целосното име и презиме на вработениот кој има право на надомест според член 35 од Општиот колективен договор за приватниот сектор.'
     },

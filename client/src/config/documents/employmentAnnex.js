@@ -55,7 +55,7 @@ export const employmentAnnexConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true
     },
     employeePIN: {
@@ -73,7 +73,7 @@ export const employmentAnnexConfig = {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на работникот',
-      placeholder: 'пр. ул. Македонија 1, Скопје',
+      placeholder: 'пр. ул. Примерна 1, Скопје',
       required: true,
       helpText: 'Целосна адреса на живеење на работникот'
     },

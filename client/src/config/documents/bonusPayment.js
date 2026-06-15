@@ -33,7 +33,7 @@ export const bonusPaymentConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false, // Optional for user flexibility
       tooltip: 'Внесете го целото име и презиме на работникот кому се доделува бонусот'
     },

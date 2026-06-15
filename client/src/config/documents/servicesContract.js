@@ -249,7 +249,7 @@ export const servicesContractConfig = {
       name: 'clientAddress',
       type: 'text',
       label: 'Адреса на седиште на корисникот',
-      placeholder: 'пр. Даме Груев 12, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете ја целата адреса на седиштето на корисникот (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -269,7 +269,7 @@ export const servicesContractConfig = {
       name: 'clientManager',
       type: 'text',
       label: 'Управител/директор на корисникот',
-      placeholder: 'пр. Петар Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува и застапува компанијата-корисник (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'
@@ -289,7 +289,7 @@ export const servicesContractConfig = {
       name: 'providerAddress',
       type: 'text',
       label: 'Адреса на седиште на давателот',
-      placeholder: 'пр. Партизанска 25, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 2, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'корисник',
       helpText: 'Внесете ја целата адреса на седиштето на давателот на услуга (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -309,7 +309,7 @@ export const servicesContractConfig = {
       name: 'providerManager',
       type: 'text',
       label: 'Управител/директор на давателот',
-      placeholder: 'пр. Ана Ивановска',
+      placeholder: 'пр. Лице Лицеска',
       required: false,
       condition: (formData) => formData.userRole === 'корисник',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува и застапува компанијата-давател на услуга (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'

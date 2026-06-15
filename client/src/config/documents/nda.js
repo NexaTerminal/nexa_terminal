@@ -53,7 +53,7 @@ export const ndaConfig = {
       name: 'naturalPersonName',
       type: 'text',
       label: 'Име и презиме',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false, // Will be conditionally required
       conditional: { field: 'partyType', value: 'natural' },
       helpText: 'Внесете го целосното име и презиме на физичкото лице со кое се склучува договорот за доверливост.'
@@ -62,7 +62,7 @@ export const ndaConfig = {
       name: 'naturalPersonAddress',
       type: 'text',
       label: 'Адреса на живеење',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false, // Will be conditionally required
       conditional: { field: 'partyType', value: 'natural' },
       helpText: 'Внесете ја адресата на живеење на физичкото лице (улица, број, град) според личната карта.'
@@ -92,7 +92,7 @@ export const ndaConfig = {
       name: 'legalEntityAddress',
       type: 'text',
       label: 'Адреса на седиште',
-      placeholder: 'пр. ул. Македонија бр. 456, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 456, Скопје',
       required: false, // Will be conditionally required
       conditional: { field: 'partyType', value: 'legal' },
       helpText: 'Внесете ја адресата на седиштето на компанијата (улица, број, град) како што е регистрирана во трговскиот регистар.'
@@ -110,7 +110,7 @@ export const ndaConfig = {
       name: 'legalEntityManager',
       type: 'text',
       label: 'Управител/Директор',
-      placeholder: 'пр. Ана Стојановска',
+      placeholder: 'пр. Лице Лицеска',
       required: false, // Will be conditionally required
       conditional: { field: 'partyType', value: 'legal' },
       helpText: 'Внесете го името на управителот или директорот кој ја застапува компанијата при склучување на договорот.'

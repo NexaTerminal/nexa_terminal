@@ -25,7 +25,7 @@ export const confirmationOfEmploymentConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на вработениот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Внесете го целосното име и презиме на вработениот за кого се издава потврдата за вработеност како што е наведено во личните документи.'
     },
@@ -44,7 +44,7 @@ export const confirmationOfEmploymentConfig = {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на вработениот',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: true,
       helpText: 'Внесете ја адресата на постојано живеење на вработениот (улица, број, град) како што е регистрирана во работните документи.'
     },

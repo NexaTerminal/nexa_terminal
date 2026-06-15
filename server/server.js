@@ -641,6 +641,7 @@ function registerRoutes() {
     /^\/uploads\//,             // Static file uploads
     '/users/company',           // Exempt company profile update
     '/users/profile',           // Exempt user profile update (mark complete)
+    '/users/credentials',       // Exempt credentials update (JWT protected; header-based auth is not CSRF-exploitable)
     '/social/posts',            // Social media posts
     '/social/newsfeed',         // Social media newsfeed
     /^\/social\/posts\/[^\/]+\/like$/,      // Like/unlike posts

@@ -165,7 +165,7 @@ export const vehicleSalePurchaseAgreementConfig = {
       name: 'otherPartyName',
       type: 'text',
       label: 'Име и презиме на другата страна',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: { 
         field: 'otherPartyType', 
@@ -220,7 +220,7 @@ export const vehicleSalePurchaseAgreementConfig = {
       name: 'otherPartyManager',
       type: 'text',
       label: 'Управител/претставник на компанијата',
-      placeholder: 'пр. Петар Николовски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: { 
         field: 'otherPartyType', 
@@ -233,7 +233,7 @@ export const vehicleSalePurchaseAgreementConfig = {
       name: 'otherPartyAddress',
       type: 'text',
       label: 'Адреса на другата страна',
-      placeholder: 'пр. ул. Македонија бр. 10, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 10, Скопје',
       required: true,
       helpText: 'Внесете ја целосната адреса (улица, број, град) на другата договорна страна. За физичко лице - адреса според личната карта, за правно лице - седиште според Централниот регистар.'
     },

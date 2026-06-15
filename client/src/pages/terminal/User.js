@@ -13,75 +13,106 @@ const User = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const [credentialsData, setCredentialsData] = useState({
+  // Username form
+  const [usernameData, setUsernameData] = useState({
     currentPassword: '',
-    newUsername: '',
+    newUsername: ''
+  });
+  const [updatingUsername, setUpdatingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameSuccess, setUsernameSuccess] = useState('');
+
+  // Password form
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-  const [updatingCredentials, setUpdatingCredentials] = useState(false);
-  const [credentialsError, setCredentialsError] = useState('');
-  const [credentialsSuccess, setCredentialsSuccess] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
-  const handleCredentialsChange = (e) => {
+  const handleUsernameChange = (e) => {
     const { name, value } = e.target;
-    setCredentialsData(prev => ({ ...prev, [name]: value }));
+    setUsernameData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCredentialsSubmit = async (e) => {
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const refreshCurrentUser = async () => {
+    const updatedUserResponse = await ApiService.request('/users/profile');
+    if (updatedUserResponse.user) {
+      setCurrentUser(updatedUserResponse.user);
+    }
+  };
+
+  const handleUsernameSubmit = async (e) => {
     e.preventDefault();
-    setCredentialsError('');
-    setCredentialsSuccess('');
-    
-    // Validation
-    if (credentialsData.newPassword !== credentialsData.confirmPassword) {
-      setCredentialsError('Новата лозинка и потврдата не се совпаѓаат.');
+    setUsernameError('');
+    setUsernameSuccess('');
+
+    if (!usernameData.newUsername.trim()) {
+      setUsernameError('Внесете ново корисничко име.');
       return;
     }
-    
-    if (credentialsData.newPassword && credentialsData.newPassword.length < 6) {
-      setCredentialsError('Лозинката мора да има најмалку 6 карактери.');
-      return;
-    }
-    
-    setUpdatingCredentials(true);
+
+    setUpdatingUsername(true);
     try {
-      const updateData = {
-        currentPassword: credentialsData.currentPassword
-      };
-      
-      if (credentialsData.newUsername) {
-        updateData.username = credentialsData.newUsername;
-      }
-      
-      if (credentialsData.newPassword) {
-        updateData.password = credentialsData.newPassword;
-      }
-      
       await ApiService.request('/users/credentials', {
         method: 'PUT',
-        body: JSON.stringify(updateData),
+        body: JSON.stringify({
+          currentPassword: usernameData.currentPassword,
+          username: usernameData.newUsername.trim()
+        }),
       });
-      
-      setCredentialsSuccess('Корисничките податоци се успешно ажурирани!');
-      setCredentialsData({
-        currentPassword: '',
-        newUsername: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      // Update the user context with new data
-      const updatedUserResponse = await ApiService.request('/users/profile');
-      if (updatedUserResponse.user) {
-        setCurrentUser(updatedUserResponse.user);
-      }
-      
-      setTimeout(() => setCredentialsSuccess(''), 3000);
+
+      setUsernameSuccess('Корисничкото име е успешно ажурирано!');
+      setUsernameData({ currentPassword: '', newUsername: '' });
+      await refreshCurrentUser();
+      setTimeout(() => setUsernameSuccess(''), 3000);
     } catch (error) {
-      setCredentialsError(error.message || 'Настана грешка при ажурирање на корисничките податоци.');
+      setUsernameError(error.message || 'Настана грешка при ажурирање на корисничкото име.');
     } finally {
-      setUpdatingCredentials(false);
+      setUpdatingUsername(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('Новата лозинка и потврдата не се совпаѓаат.');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Лозинката мора да има најмалку 6 карактери.');
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      await ApiService.request('/users/credentials', {
+        method: 'PUT',
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          password: passwordData.newPassword
+        }),
+      });
+
+      setPasswordSuccess('Лозинката е успешно ажурирана!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      await refreshCurrentUser();
+      setTimeout(() => setPasswordSuccess(''), 3000);
+    } catch (error) {
+      setPasswordError(error.message || 'Настана грешка при ажурирање на лозинката.');
+    } finally {
+      setUpdatingPassword(false);
     }
   };
 
@@ -113,68 +144,107 @@ const User = () => {
             </div>
           </div>
 
-          {credentialsError && <div className={styles.error}>{credentialsError}</div>}
-          {credentialsSuccess && <div className={styles.success}>{credentialsSuccess}</div>}
-
           <div className={styles.centeredForm}>
+            {/* Change username */}
             <div className={styles.credentialsSection}>
-              <h3>Ажурирај кориснички податоци</h3>
-              <p>Променете го вашето корисничко име или лозинка. Внесете ја тековната лозинка за да ги потврдите промените.</p>
+              <h3>Промени корисничко име</h3>
+              <p>Внесете ја тековната лозинка за да го потврдите новото корисничко име.</p>
 
-              <form onSubmit={handleCredentialsSubmit} className={styles.credentialsForm}>
+              {usernameError && <div className={styles.error}>{usernameError}</div>}
+              {usernameSuccess && <div className={styles.success}>{usernameSuccess}</div>}
+
+              <form onSubmit={handleUsernameSubmit} className={styles.credentialsForm}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="currentPassword">Тековна лозинка *</label>
+                  <label htmlFor="usernameCurrentPassword">Тековна лозинка *</label>
                   <input
                     type="password"
-                    id="currentPassword"
+                    id="usernameCurrentPassword"
                     name="currentPassword"
-                    value={credentialsData.currentPassword}
-                    onChange={handleCredentialsChange}
+                    value={usernameData.currentPassword}
+                    onChange={handleUsernameChange}
                     placeholder="За да потврдите промени, внесете ја тековната лозинка"
+                    autoComplete="current-password"
                     required
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="newUsername">Ново корисничко име</label>
+                  <label htmlFor="newUsername">Ново корисничко име *</label>
                   <input
                     type="text"
                     id="newUsername"
                     name="newUsername"
-                    value={credentialsData.newUsername}
-                    onChange={handleCredentialsChange}
-                    placeholder="Оставете празно ако не сакате да промените"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="newPassword">Нова лозинка</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    value={credentialsData.newPassword}
-                    onChange={handleCredentialsChange}
-                    placeholder="Минимум 6 карактери"
-                    minLength={6}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="confirmPassword">Потврди нова лозинка</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={credentialsData.confirmPassword}
-                    onChange={handleCredentialsChange}
-                    placeholder="Повторете ја новата лозинка"
+                    value={usernameData.newUsername}
+                    onChange={handleUsernameChange}
+                    placeholder="Внесете го новото корисничко име"
+                    autoComplete="username"
+                    required
                   />
                 </div>
 
                 <div className={styles.submitSection}>
-                  <button type="submit" className={styles.submitBtn} disabled={updatingCredentials}>
-                    {updatingCredentials ? 'Се ажурира...' : 'Зачувај промени'}
+                  <button type="submit" className={styles.submitBtn} disabled={updatingUsername}>
+                    {updatingUsername ? 'Се ажурира...' : 'Зачувај корисничко име'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Change password */}
+            <div className={styles.credentialsSection}>
+              <h3>Промени лозинка</h3>
+              <p>Внесете ја тековната лозинка, па внесете и потврдете ја новата лозинка.</p>
+
+              {passwordError && <div className={styles.error}>{passwordError}</div>}
+              {passwordSuccess && <div className={styles.success}>{passwordSuccess}</div>}
+
+              <form onSubmit={handlePasswordSubmit} className={styles.credentialsForm}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="passwordCurrentPassword">Тековна лозинка *</label>
+                  <input
+                    type="password"
+                    id="passwordCurrentPassword"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="За да потврдите промени, внесете ја тековната лозинка"
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="newPassword">Нова лозинка *</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Минимум 6 карактери"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="confirmPassword">Потврди нова лозинка *</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Повторете ја новата лозинка"
+                    autoComplete="new-password"
+                    required
+                  />
+                </div>
+
+                <div className={styles.submitSection}>
+                  <button type="submit" className={styles.submitBtn} disabled={updatingPassword}>
+                    {updatingPassword ? 'Се ажурира...' : 'Зачувај лозинка'}
                   </button>
                 </div>
               </form>
@@ -187,4 +257,4 @@ const User = () => {
   );
 };
 
-export default User; 
+export default User;

@@ -25,7 +25,7 @@ export const annualLeaveDecisionConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на вработениот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Внесете го целосното име и презиме на вработениот на кој му се одобрува годишниот одмор како што е наведено во личните документи.'
     },

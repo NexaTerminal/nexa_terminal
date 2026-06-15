@@ -99,7 +99,7 @@ export const terminationWarningConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true
     },
     jobPosition: {

@@ -16,7 +16,7 @@ export const terminationAgreementConfig = {
           label: 'Име и презиме на вработениот',
           type: 'text',
           required: true,
-          placeholder: 'пр. Марко Петровски',
+          placeholder: 'пр. Лице Лицески',
           validation: {
             minLength: 2,
             maxLength: 100
@@ -38,7 +38,7 @@ export const terminationAgreementConfig = {
           label: 'Адреса на вработениот',
           type: 'text',
           required: true,
-          placeholder: 'пр. ул. Македонија бр. 123, Скопје'
+          placeholder: 'пр. ул. Примерна бр. 123, Скопје'
         },
         {
           name: 'endDate',

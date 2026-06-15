@@ -179,7 +179,7 @@ export const terminationDueToFaultConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       helpText: 'Опционо: Можете да го внесете името или да го оставите празно за рачно внесување'
     },

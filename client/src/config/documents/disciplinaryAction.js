@@ -38,7 +38,7 @@ export const disciplinaryActionConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: true,
       helpText: 'Внесете го целосното име и презиме на работникот на кој му се изрекува дисциплинската мерка како што е наведено во личните документи и договорот за вработување.'
     },

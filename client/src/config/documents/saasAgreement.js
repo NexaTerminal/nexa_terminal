@@ -104,7 +104,7 @@ export const saasAgreementConfig = {
       name: 'clientAddress',
       type: 'text',
       label: 'Адреса на седиште на клиентот',
-      placeholder: 'пр. Даме Груев 12, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете ја целата адреса на седиштето на клиентот (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -122,7 +122,7 @@ export const saasAgreementConfig = {
       name: 'clientManager',
       type: 'text',
       label: 'Управител/директор на клиентот',
-      placeholder: 'пр. Петар Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува и застапува компанијата-клиент (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'
@@ -140,7 +140,7 @@ export const saasAgreementConfig = {
       name: 'providerAddress',
       type: 'text',
       label: 'Адреса на седиште на давателот',
-      placeholder: 'пр. Партизанска 25, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 2, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'клиент',
       helpText: 'Внесете ја целата адреса на седиштето на давателот на услуга (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -158,7 +158,7 @@ export const saasAgreementConfig = {
       name: 'providerManager',
       type: 'text',
       label: 'Управител/директор на давателот',
-      placeholder: 'пр. Ана Ивановска',
+      placeholder: 'пр. Лице Лицеска',
       required: false,
       condition: (formData) => formData.userRole === 'клиент',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува и застапува компанијата-давател на услуга (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'

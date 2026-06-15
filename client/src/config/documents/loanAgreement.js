@@ -148,7 +148,7 @@ export const loanAgreementConfig = {
       name: 'borrowerAddress',
       type: 'text',
       label: 'Адреса на седиште на примателот',
-      placeholder: 'пр. Даме Груев 12, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 1, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете ја целата адреса на седиштето на примателот (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -168,7 +168,7 @@ export const loanAgreementConfig = {
       name: 'borrowerManager',
       type: 'text',
       label: 'Управител/директор на примателот',
-      placeholder: 'пр. Петар Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: (formData) => formData.userRole === 'давател',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува компанијата-примател (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'
@@ -188,7 +188,7 @@ export const loanAgreementConfig = {
       name: 'lenderAddress',
       type: 'text',
       label: 'Адреса на седиште на давателот',
-      placeholder: 'пр. Партизанска 25, Скопје 1000',
+      placeholder: 'пр. ул. Примерна бр. 2, Скопје 1000',
       required: false,
       condition: (formData) => formData.userRole === 'примател',
       helpText: 'Внесете ја целата адреса на седиштето на давателот на заем (улица, број, град, поштенски број) според податоците од Централниот регистар.'
@@ -208,7 +208,7 @@ export const loanAgreementConfig = {
       name: 'lenderManager',
       type: 'text',
       label: 'Управител/директор на давателот',
-      placeholder: 'пр. Ана Ивановска',
+      placeholder: 'пр. Лице Лицеска',
       required: false,
       condition: (formData) => formData.userRole === 'примател',
       helpText: 'Внесете го целото име и презиме на лицето овластено да ја претставува компанијата-давател на заем (обично управител или извршен директор) според Решението за запишување во Централниот регистар.'

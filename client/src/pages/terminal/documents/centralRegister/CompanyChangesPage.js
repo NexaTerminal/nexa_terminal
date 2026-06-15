@@ -51,10 +51,11 @@ const CompanyChangesPage = () => {
  * Ordered selected changes (canonical module order), used by both the left
  * step (current data) and the right panel (new-data inputs).
  */
-const MODULE_ORDER = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'];
+const MODULE_ORDER = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8'];
 const MODULE_LABEL = {
   M1: 'Назив', M2: 'Седиште', M3: 'Лични податоци',
-  M4: 'Управител', M5: 'Пренос на удел', M6: 'Уплата на влог', M7: 'Подружница'
+  M4: 'Управител', M5: 'Пренос на удел', M6: 'Уплата на влог',
+  M7: 'Подружница', M8: 'Организирање подружница'
 };
 
 const selectedModules = (formData) => {
@@ -75,7 +76,12 @@ const MODULE_PANELS = {
   M3: { top: ['m3Capacity', 'm3SubjectName'], current: ['m3OldData'], next: ['m3NewData'] },
   M4: { top: ['m4ChangeType'], current: ['m4DismissedName'], next: ['m4NewManagerName', 'm4NewManagerForeign', 'm4NewManagerCitizenship', 'm4NewManagerAddress', 'm4NewManagerIdNumber', 'm4Mandate', 'm4MandateUntil', 'm4Powers', 'm4PowersText'] },
   M6: { current: ['companyCapitalEUR', 'companyContributionType'], next: ['m6AmountEUR', 'm6AmountMKD'] },
-  M7: { top: ['m7Action', 'branchFullName', 'branchSubNumber'], current: ['m7OldBranchAddress', 'm7DismissedHeadName'], next: ['m7NewBranchAddress', 'm7NewHeadName'] }
+  M7: { top: ['m7Action', 'branchFullName', 'branchSubNumber'], current: ['m7OldBranchAddress', 'm7DismissedHeadName'], next: ['m7NewBranchAddress', 'm7NewHeadName'] },
+  M8: {
+    current: [],
+    currentNote: 'Нова подружница — нема тековни податоци. Внесете ги податоците за новата подружница и нејзиниот раководител десно.',
+    next: ['m8BranchName', 'm8BranchAddress', 'm8BranchActivityCode', 'm8BranchActivityText', 'm8HeadName', 'm8HeadForeign', 'm8HeadCitizenship', 'm8HeadAddress', 'm8HeadIdType', 'm8HeadIdNumber', 'm8DecisionNumber']
+  }
 };
 
 /** Renders a list of config fields via FormField (conditions self-hide). */
@@ -434,7 +440,9 @@ const ChangeWizardCurrent = ({ formData, onChange, disabled }) => {
         <h4>{MODULE_LABEL[module]}</h4>
         {module === 'M5'
           ? <M5Current formData={formData} onChange={onChange} />
-          : renderFields(panel.current, formData, onChange)}
+          : (panel.current && panel.current.length > 0
+              ? renderFields(panel.current, formData, onChange)
+              : <p className={styles['preview-hint']}>{panel.currentNote || 'Нема тековни податоци за оваа промена.'}</p>)}
       </div>
 
       {/* In-wizard navigation between changes. */}
@@ -623,12 +631,15 @@ const ReviewSummary = ({ formData }) => {
     M3: 'Одлука за промена на лични податоци',
     M4: 'Одлука за промена на управител',
     M6: 'Одлука за уплата на основачки влог',
-    M7: 'Одлука кај подружница'
+    M7: 'Одлука кај подружница',
+    M8: 'Одлука за организирање на подружница'
   };
 
   const isDoo = formData.companyForm === 'doo';
   const hasM5 = changes.includes('M5');
-  const decisionChanges = changes.filter((c) => ['M1', 'M2', 'M3', 'M4', 'M6', 'M7'].includes(c));
+  const hasM8 = changes.includes('M8');
+  const m8Only = hasM8 && changes.length === 1;
+  const decisionChanges = changes.filter((c) => ['M1', 'M2', 'M3', 'M4', 'M6', 'M7', 'M8'].includes(c));
   const hasActChange = hasM5 || decisionChanges.some((c) => ['M1', 'M2', 'M3', 'M4', 'M6'].includes(c));
   const hasNewManager = changes.includes('M4') && ['a', 'b'].includes(formData.m4ChangeType) && formData.m4NewManagerName;
   const transfereeIsNew = formData.m5TransfereeIsNew === 'да';
@@ -659,7 +670,7 @@ const ReviewSummary = ({ formData }) => {
     docs.push('Изјава за неприфаќање — Друштвото');
     others.forEach((n) => docs.push(`Изјава за неприфаќање — ${n}`));
   }
-  ['M1', 'M2', 'M3', 'M4', 'M6', 'M7'].forEach((m) => {
+  ['M1', 'M2', 'M3', 'M4', 'M6', 'M7', 'M8'].forEach((m) => {
     if (decisionChanges.includes(m) && DECISION_LABELS[m]) docs.push(DECISION_LABELS[m]);
   });
   if (hasM5) {
@@ -671,11 +682,20 @@ const ReviewSummary = ({ formData }) => {
     docs.push(isDoo ? 'Договор за основање — пречистен текст' : 'Изјава за основање — пречистен текст');
   }
   if (hasM5) docs.push('Книга на удели');
-  docs.push('Изјава по член 32 (од управителот)');
-  if (hasNewManager) docs.push('Изјава по член 29/183/231 (нов управител)');
-  if (hasM5 && transfereeIsNew) docs.push('Изјава по член 29/183/231 (нов содружник)');
-  signatories.forEach((n) => docs.push(`Изјава за потписи — ${n}`));
-  signatories.forEach((n) => docs.push(`Полномошно — ${n}`));
+  // M8 — branch organization: company-level POA (+ per-signatory потписи for an M8-only package) + working-hours POA
+  if (hasM8) {
+    docs.push('Полномошно за организирање на подружница');
+    if (m8Only) signatories.forEach((n) => docs.push(`Изјава за потписи — ${n}`));
+    docs.push('Полномошно — работно време (подружница)');
+  }
+  // Generic statements — skipped for an M8-only package (self-contained branch set)
+  if (!m8Only) {
+    docs.push('Изјава по член 32 (од управителот)');
+    if (hasNewManager) docs.push('Изјава по член 29/183/231 (нов управител)');
+    if (hasM5 && transfereeIsNew) docs.push('Изјава по член 29/183/231 (нов содружник)');
+    signatories.forEach((n) => docs.push(`Изјава за потписи — ${n}`));
+    signatories.forEach((n) => docs.push(`Полномошно — ${n}`));
+  }
 
   return (
     <div className={styles['form-section']}>

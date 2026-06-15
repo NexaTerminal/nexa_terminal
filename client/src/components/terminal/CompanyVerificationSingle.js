@@ -33,7 +33,6 @@ const CompanyVerificationSingle = () => {
   // Company code join UI state
 
   // Regenerate code state
-  const [regenLoading, setRegenLoading] = useState(false);
 
   // Terms & Conditions Modal
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -223,19 +222,6 @@ const CompanyVerificationSingle = () => {
     }
   };
 
-  const handleRegenerateCode = async () => {
-    setRegenLoading(true);
-    try {
-      const response = await ApiService.regenerateCompanyCode();
-      await refreshUser();
-      setSuccess(`Новиот код е: ${response.companyCode}`);
-    } catch (error) {
-      setError(error.message || 'Грешка при генерирање на нов код.');
-    } finally {
-      setRegenLoading(false);
-    }
-  };
-
   const handleTermsAccept = async () => {
     setShowTermsModal(false);
     setTermsAccepted(true);
@@ -355,30 +341,6 @@ const CompanyVerificationSingle = () => {
       {success && (
         <div className={styles.success}>
           {success}
-        </div>
-      )}
-
-      {/* Company admin: show company code panel */}
-      {user?.isCompanyAdmin && (
-        <div className={styles.section} style={{marginBottom: '1.5rem', padding: '1rem', background: '#f0f4ff', borderRadius: '8px', border: '1px solid #c7d2fe'}}>
-          <h3 style={{margin: '0 0 0.5rem'}}>Код за приклучување на компанијата</h3>
-          <p style={{margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#555'}}>
-            Споделете го овој код со вашите вработени за да им дозволите пристап до компанискиот профил.
-          </p>
-          <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-            <span style={{fontSize: '2rem', fontWeight: 'bold', letterSpacing: '0.3em', fontFamily: 'monospace', color: '#1E4DB7'}}>
-              {user.companyCode || '—'}
-            </span>
-            <button
-              type="button"
-              onClick={handleRegenerateCode}
-              disabled={regenLoading}
-              className={styles.saveButton}
-              style={{padding: '0.4rem 0.9rem', fontSize: '0.85rem'}}
-            >
-              {regenLoading ? 'Генерира...' : 'Регенерирај код'}
-            </button>
-          </div>
         </div>
       )}
 

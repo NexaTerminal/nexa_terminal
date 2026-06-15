@@ -159,6 +159,7 @@ import SaasAgreementPage from './pages/terminal/documents/contracts/SaasAgreemen
 import ServicesContractPage from './pages/terminal/documents/contracts/ServicesContractPage';
 import LoanAgreementPage from './pages/terminal/documents/contracts/LoanAgreementPage';
 import CompanyChangesPage from './pages/terminal/documents/centralRegister/CompanyChangesPage';
+import CompanyFormationPage from './pages/terminal/documents/centralRegister/CompanyFormationPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import CashRegisterMaximumDecisionPage from './pages/terminal/documents/accounting/CashRegisterMaximumDecisionPage';
@@ -373,6 +374,7 @@ function App() {
       <Route path="/terminal/documents/other/master-services-agreement" element={<PrivateRoute><VerificationRequired><MasterServicesAgreementPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/central-register/company-changes" element={<PrivateRoute><VerificationRequired><CompanyChangesPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/central-register/company-formation" element={<PrivateRoute><VerificationRequired><CompanyFormationPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs" element={<PrivateRoute><ManageBlogs /></PrivateRoute>} />

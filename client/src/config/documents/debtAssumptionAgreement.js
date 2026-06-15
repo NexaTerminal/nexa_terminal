@@ -113,7 +113,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalCreditorName',
       type: 'text',
       label: 'Име на доверителот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'originalCreditorType',
@@ -126,7 +126,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalCreditorAddress',
       type: 'text',
       label: 'Адреса на доверителот',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'originalCreditorType',
@@ -168,7 +168,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalCreditorCompanyAddress',
       type: 'text',
       label: 'Адреса на довериталската компанија',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'originalCreditorType',
@@ -181,7 +181,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalCreditorCompanyManager',
       type: 'text',
       label: 'Управител на довериталската компанија',
-      placeholder: 'пр. Петар Николовски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'originalCreditorType',
@@ -225,7 +225,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalDebtorName',
       type: 'text',
       label: 'Име на првичниот должник',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'originalDebtorType',
@@ -238,7 +238,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalDebtorAddress',
       type: 'text',
       label: 'Адреса на првичниот должник',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'originalDebtorType',
@@ -280,7 +280,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalDebtorCompanyAddress',
       type: 'text',
       label: 'Адреса на првичната должничка компанија',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'originalDebtorType',
@@ -293,7 +293,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'originalDebtorCompanyManager',
       type: 'text',
       label: 'Управител на првичната должничка компанија',
-      placeholder: 'пр. Петар Николовски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'originalDebtorType',
@@ -321,7 +321,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'assumingPartyName',
       type: 'text',
       label: 'Име на преземачот на долг',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -334,7 +334,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'assumingPartyAddress',
       type: 'text',
       label: 'Адреса на преземачот на долг',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -376,7 +376,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'assumingPartyCompanyAddress',
       type: 'text',
       label: 'Адреса на компанијата преземач на долг',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       condition: {
         field: 'otherPartyType',
@@ -389,7 +389,7 @@ export const debtAssumptionAgreementConfig = {
       name: 'assumingPartyCompanyManager',
       type: 'text',
       label: 'Управител на компанијата преземач на долг',
-      placeholder: 'пр. Петар Николовски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       condition: {
         field: 'otherPartyType',

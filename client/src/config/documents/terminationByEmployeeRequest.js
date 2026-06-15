@@ -38,7 +38,7 @@ export const terminationByEmployeeRequestConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false, // Made optional for flexibility
       helpText: 'Внесете го целосното име и презиме на работникот кој поднесува барање'
     },

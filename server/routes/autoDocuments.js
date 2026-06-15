@@ -47,6 +47,7 @@ const warningBeforeLawsuitController = require('../controllers/autoDocuments/war
 const loanAgreementController = require('../controllers/autoDocuments/loanAgreementController');
 const companyChangesController = require('../controllers/autoDocuments/companyChangesController');
 const companyActExtraction = require('../controllers/autoDocuments/companyActExtractionController');
+const companyIncorporationController = require('../controllers/autoDocuments/companyIncorporationController');
 
 // Company Changes — Централен регистар (Промени во фирма)
 router.post('/company-changes', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), companyChangesController);
@@ -54,6 +55,9 @@ router.post('/company-changes', authenticateJWT, requireVerifiedCompany, checkCr
 router.post('/company-changes/extract-act', authenticateJWT, requireVerifiedCompany, companyActExtraction.uploadMiddleware, companyActExtraction.extractAct);
 // Amend the uploaded act in place (preserve formatting) and return the edited .docx
 router.post('/company-changes/amend-act', authenticateJWT, requireVerifiedCompany, companyActExtraction.amendAct);
+
+// Company Incorporation — Централен регистар (Основање на фирма)
+router.post('/company-incorporation', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), companyIncorporationController);
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data-processing', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);

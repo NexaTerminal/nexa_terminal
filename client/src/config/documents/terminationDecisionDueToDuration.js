@@ -16,7 +16,7 @@ export const terminationDecisionDueToDurationConfig = {
           label: 'Име и презиме на вработениот',
           type: 'text',
           required: true,
-          placeholder: 'пр. Марко Петровски',
+          placeholder: 'пр. Лице Лицески',
           validation: {
             minLength: 2,
             maxLength: 100

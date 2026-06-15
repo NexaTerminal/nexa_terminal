@@ -47,6 +47,64 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* ── Locked feature surface (no active subscription / suspended) ───────── */
+.lockedWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--spacing-6);
+}
+
+.lockedCard {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-8) var(--spacing-6);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+.lockedIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: var(--spacing-4);
+}
+
+.lockedTitle {
+  margin: 0 0 var(--spacing-3);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary, #111827);
+}
+
+.lockedText {
+  margin: 0 0 var(--spacing-6);
+  color: var(--color-text-secondary, #4b5563);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+}
+
+.lockedButton {
+  display: inline-block;
+  background: var(--color-primary, #1a73e8);
+  color: var(--color-white);
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  transition: var(--transition-all);
+}
+
+.lockedButton:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
 @media (max-width: 768px) {
   .bannerContent {
     flex-direction: column;

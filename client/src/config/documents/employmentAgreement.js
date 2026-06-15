@@ -44,7 +44,7 @@ export const employmentAgreementConfig = {
       name: 'employeeName',
       type: 'text',
       label: 'Име и презиме на работникот',
-      placeholder: 'пр. Марко Петровски',
+      placeholder: 'пр. Лице Лицески',
       required: false,
       helpText: 'Внесете го целосното име и презиме на работникот како што е наведено во личната карта или пасошот.'
     },
@@ -52,7 +52,7 @@ export const employmentAgreementConfig = {
       name: 'employeeAddress',
       type: 'text',
       label: 'Адреса на седиште на работникот',
-      placeholder: 'пр. ул. Македонија бр. 123, Скопје',
+      placeholder: 'пр. ул. Примерна бр. 123, Скопје',
       required: false,
       helpText: 'Внесете ја адресата на постојано живеење на работникот (улица, број, град) како што е регистрирана.'
     },
@@ -147,7 +147,7 @@ export const employmentAgreementConfig = {
       name: 'otherWorkPlace',
       type: 'text',
       label: 'Наведете го местото на вршење на работите',
-      placeholder: 'пр. Скопје, ул. Македонска 123',
+      placeholder: 'пр. Скопје, ул. Примерна 123',
       required: false,
       condition: {
         field: 'placeOfWork',

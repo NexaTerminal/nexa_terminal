@@ -122,7 +122,7 @@ const BaseDocumentPage = ({
                   />
 
                   {/* Live Preview Link - Only visible when terms are accepted */}
-                  {formData.acceptTerms && (
+                  {formData.acceptTerms && !config.disableLivePreview && (
                     <LivePreviewLink formData={formData} documentType={config.documentType} currentUser={currentUser} />
                   )}
                 </>

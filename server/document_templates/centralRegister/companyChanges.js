@@ -207,6 +207,31 @@ function shareholderSignatures(co, shareholders) {
   return out;
 }
 
+/**
+ * Signatories of a DECISION (одлука). The existing shareholders sign, and — per
+ * Martin's rule — whenever the package introduces a new manager (M4 a/b) or a new
+ * shareholder (M5 пристапување), that person also signs every decision. De-duped by
+ * name so a person who is already a shareholder isn't listed twice.
+ */
+function decisionSignatures(ctx) {
+  const { co, shareholders, changes, formData, m5 } = ctx;
+  const out = shareholderSignatures(co, shareholders);
+  const seen = new Set(shareholders.map((s) => (s.name || '').trim().toLowerCase()));
+  const append = (person, roleLabel) => {
+    if (!person || !person.name) return;
+    const key = person.name.trim().toLowerCase();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push(...signature({ roleLabel, lines: signatoryNameLines(person) }));
+  };
+  const newMgr = newManagerFromForm(formData, changes);
+  if (newMgr) append(newMgr, 'ИДЕН УПРАВИТЕЛ');
+  if (m5 && m5.transferee && m5.transferee._isNew) {
+    append(m5.transferee, `СОДРУЖНИК КОЈ ПРИСТАПУВА${m5.transferee._isManager ? ' / ИДЕН УПРАВИТЕЛ' : ''}`);
+  }
+  return out;
+}
+
 /** Name lines under a signature line; legal entity signs "За {name}" + manager. */
 function signatoryNameLines(person) {
   if (!person) return ['[Име и презиме]'];
@@ -302,7 +327,7 @@ function buildNameDecision(ctx) {
     article(4),
     closingArticleBody(),
     ...decisionNumberLine(formData, formData.nameDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -323,7 +348,7 @@ function buildSeatDecision(ctx) {
     article(3),
     closingArticleBody(),
     ...decisionNumberLine(formData, formData.seatDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -337,14 +362,14 @@ function buildPersonalDataDecision(ctx) {
     title('О Д Л У К А'),
     title(`за промена на лични податоци на ${capacity} на Друштвото`, { after: 300 }),
     article(1),
-    p(`Врз основа на оваа Одлука се врши промена на личните податоци на ${capacity} на Друштвото.`),
+    p(`Врз основа на оваа Одлука се врши промена на личните податоци на ${capacity} на Друштвото${formData.m3OldData ? `, кои досега гласеа: ${formData.m3OldData}` : ''}.`),
     article(2),
     p(`Личните податоци на ${capacity} ${name}, во иднина ќе гласат:`),
     p(formData.m3NewData || '[Нови лични податоци]', { after: 240, bold: true }),
     article(3),
     closingArticleBody(),
     ...decisionNumberLine(formData, formData.personalDataDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -386,7 +411,7 @@ function buildManagerDecision(ctx) {
     title(titles[type] || titles.a, { after: 300 }),
     ...body,
     ...decisionNumberLine(formData, formData.managerDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -404,7 +429,7 @@ function buildCapitalDecision(ctx) {
     article(2),
     closingArticleBody(),
     ...decisionNumberLine(formData, formData.capitalDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -429,7 +454,7 @@ function buildBranchDecision(ctx) {
       article(3),
       closingArticleBody(),
       ...decisionNumberLine(formData, formData.branchDecisionNumber),
-      ...shareholderSignatures(co, shareholders)
+      ...decisionSignatures(ctx)
     ];
   }
 
@@ -448,7 +473,7 @@ function buildBranchDecision(ctx) {
     article(3),
     p('Оваа одлука влегува во сила со денот на нејзиното донесување и истата ќе биде евидентирана во Трговскиот регистар.'),
     ...decisionNumberLine(formData, formData.branchDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -478,7 +503,7 @@ function buildActAmendmentDecision(ctx) {
     article(3),
     closingArticleBody(),
     ...decisionNumberLine(formData, formData.actAmendmentDecisionNumber),
-    ...shareholderSignatures(co, shareholders)
+    ...decisionSignatures(ctx)
   ];
 }
 
@@ -893,8 +918,21 @@ function transfereeFromForm(fd) {
 /** Computes all derived M5 values once (shared by builders + signatories). */
 function deriveM5(ctx) {
   const { shareholders, formData: fd } = ctx;
-  const transferor = findShareholderByName(shareholders, fd.m5TransferorName) ||
-    { name: fd.m5TransferorName || '[Отстапувач]', entityType: 'physical' };
+  // Transferor: prefer the matched shareholder, but fall back to the explicit
+  // M5 inputs field-by-field so address/ЕМБГ can never come out as [адреса]/[ЕМБГ].
+  const matchedTor = findShareholderByName(shareholders, fd.m5TransferorName);
+  const torForeign = matchedTor ? matchedTor.isForeign : (fd.m5TransferorForeign === 'да');
+  const transferor = {
+    name: (matchedTor && matchedTor.name) || fd.m5TransferorName || '[Отстапувач]',
+    entityType: (matchedTor && matchedTor.entityType) || (fd.m5TransferorIdType === 'ЕМБС' ? 'legal' : 'physical'),
+    isForeign: torForeign,
+    citizenship: (matchedTor && matchedTor.citizenship) || fd.m5TransferorCitizenship || '',
+    address: (matchedTor && matchedTor.address) || fd.m5TransferorAddress || '',
+    idType: (matchedTor && matchedTor.idType) || fd.m5TransferorIdType || (torForeign ? 'пасош' : 'ЕМБГ'),
+    idNumber: (matchedTor && matchedTor.idNumber) || fd.m5TransferorIdNumber || '',
+    sharePercent: (matchedTor && matchedTor.sharePercent) || fd.m5TransferorSharePercent || '',
+    shareAmountEUR: matchedTor && matchedTor.shareAmountEUR
+  };
 
   let transferee = transfereeFromForm(fd);
   if (!transferee._isNew) {
@@ -1263,20 +1301,35 @@ function generateCompanyChangesDoc(formData = {}, user, company) {
   const changes = Array.isArray(formData.changes) ? formData.changes.slice() : [];
   const co = resolveCompany(formData, company);
 
-  let shareholders = Array.isArray(formData.shareholdersList) ? formData.shareholdersList.filter((s) => s && s.name) : [];
-  if (shareholders.length === 0) {
-    shareholders = [{ name: co.manager, entityType: 'physical', address: '[адреса]', idNumber: '[ЕМБГ]' }];
-  }
-  let managers = Array.isArray(formData.managersList) ? formData.managersList.filter((m) => m && m.name) : [];
-  if (managers.length === 0) {
-    managers = [{ name: co.manager, entityType: 'physical', address: '[адреса]', idNumber: '[ЕМБГ]' }];
-  }
+  const shareholders = Array.isArray(formData.shareholdersList) ? formData.shareholdersList.filter((s) => s && s.name) : [];
+  const managers = Array.isArray(formData.managersList) ? formData.managersList.filter((m) => m && m.name) : [];
 
   const ctx = { changes, co, shareholders, managers, formData };
   if (changes.includes('M5')) {
     ctx.m5 = deriveM5(ctx);
     // The consolidated act + book reflect the NEW (post-transfer) ownership.
     ctx.actShareholders = ctx.m5.newShareholders;
+    // The leaving owner IS a current shareholder. When the user entered M5 manually
+    // without filling the shareholder list, seed it from the transferor so decisions
+    // are signed by the actual person — not a synthesized fallback.
+    if (ctx.shareholders.length === 0 && ctx.m5.transferor && ctx.m5.transferor.name && ctx.m5.transferor.name !== '[Отстапувач]') {
+      ctx.shareholders = [ctx.m5.transferor];
+    }
+  }
+
+  // Last-resort identity so signature lines are never empty (placeholders flag gaps).
+  if (ctx.shareholders.length === 0) {
+    ctx.shareholders = [{ name: co.manager, entityType: 'physical', address: '[адреса]', idNumber: '[ЕМБГ]' }];
+  }
+  // When no managers were entered, the manager is usually one of the known people
+  // (a shareholder, or the M5 transferor/transferee). Reuse their full identity so
+  // the чл.32 statement doesn't fall back to [адреса]/[ЕМБГ].
+  if (ctx.managers.length === 0) {
+    const known = [...ctx.shareholders];
+    if (ctx.m5) known.push(ctx.m5.transferor, ctx.m5.transferee);
+    const key = (co.manager || '').trim().toLowerCase();
+    const match = key && known.find((p) => p && (p.name || '').trim().toLowerCase() === key);
+    ctx.managers = [match ? { ...match } : { name: co.manager, entityType: 'physical', address: '[адреса]', idNumber: '[ЕМБГ]' }];
   }
 
   const doc = new Document({

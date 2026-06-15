@@ -7155,3 +7155,75 @@ p, span, div, h1, h2, h3, h4, h5, h6, li {
 /* ========================================
    END OF MOBILE OPTIMIZATIONS
    ======================================== */
+
+/* ========================================
+   COMPANY CHANGES — „Тековно → Ново" compare view
+   ======================================== */
+
+/* Change chips — each selected change is a selectable sub-step. */
+.change-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin: var(--spacing-4) 0;
+}
+.change-chip {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md, 8px);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-fast, all 0.15s ease);
+}
+.change-chip:hover { border-color: var(--color-primary-300); }
+.change-chip-active {
+  background: var(--color-primary-300);
+  border-color: var(--color-primary-300);
+  color: var(--color-white);
+}
+
+/* Current-data ("before") block on the left. */
+.compare-current {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md, 8px);
+  padding: var(--spacing-4);
+  margin: var(--spacing-4) 0;
+  background: var(--bg-secondary, var(--bg-primary));
+}
+.compare-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-2);
+}
+.compare-list { margin: 0; }
+.compare-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-1) 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-row dt { color: var(--text-muted); font-size: var(--font-size-sm); }
+.compare-row dd { margin: 0; text-align: right; color: var(--text-primary); font-weight: 600; }
+
+/* In-wizard navigation between changes. */
+.change-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+}
+
+/* Right-panel overview + new-data host. */
+.preview-changes { padding: var(--spacing-2) 0; }
+.preview-changes-list { margin: var(--spacing-2) 0 0 var(--spacing-4); }
+.preview-hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: var(--spacing-2);
+}

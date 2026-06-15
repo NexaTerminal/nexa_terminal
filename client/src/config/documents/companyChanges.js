@@ -30,6 +30,10 @@ export const companyChangesConfig = {
   apiEndpoint: 'company-changes',
   fileName: null,
 
+  // This package shows a „Тековно → Ново" comparison instead of a rendered live
+  // preview — suppress the generic DocumentPreview + share-link box.
+  disableLivePreview: true,
+
   initialFormData: {
     changes: [],
     companyForm: 'dooel',
@@ -187,6 +191,12 @@ export const companyChangesConfig = {
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M3'),
       helpText: 'Името и презимето на лицето чии лични податоци се менуваат (како што е во внесените содружници/управители).'
     },
+    m3OldData: {
+      name: 'm3OldData', type: 'textarea', label: 'Тековни лични податоци (целосно)', step: 3, rows: 3, maxLength: 600,
+      placeholder: 'пр. Марко Марковски, со живеалиште на ул. Стара бр. 1, Скопје, со ЕМБГ 0000000000000',
+      condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M3'),
+      helpText: 'Тековните (досегашни) лични податоци на лицето како што се регистрирани. Се наведуваат во одлуката за да се види што се менува.'
+    },
     m3NewData: {
       name: 'm3NewData', type: 'textarea', label: 'Нови лични податоци (целосно)', step: 3, rows: 3, maxLength: 600,
       placeholder: 'пр. Петар Петров, со живеалиште на ул. Нова бр. 5, Скопје, со ЕМБГ 1234567890123',
@@ -208,13 +218,13 @@ export const companyChangesConfig = {
     },
     m4DismissedName: {
       name: 'm4DismissedName', type: 'text', label: 'Управител што се отповикува', step: 3,
-      placeholder: 'пр. Марјан Малов, со ЕМБГ 1501973450150',
+      placeholder: 'пр. Стефан Стефановски, со ЕМБГ 0000000000000',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M4') && ['a', 'c'].includes(fd.m4ChangeType),
       helpText: 'Целосна идентификација на управителот што се отповикува (име, адреса, ЕМБГ/пасош).'
     },
     m4NewManagerName: {
       name: 'm4NewManagerName', type: 'text', label: 'Нов управител — име и презиме', step: 3,
-      placeholder: 'пр. Радосав Гочманац',
+      placeholder: 'пр. Никола Николовски',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M4') && ['a', 'b'].includes(fd.m4ChangeType),
       helpText: 'Името и презимето на новиот управител. Новиот управител дава Изјава по член 183 и 231 став 4 и потпишува ЗП образец.'
     },
@@ -314,13 +324,13 @@ export const companyChangesConfig = {
     },
     m7DismissedHeadName: {
       name: 'm7DismissedHeadName', type: 'text', label: 'Раководител што се отповикува', step: 3,
-      placeholder: 'пр. Марјан Малов, со ЕМБГ 1501973450150',
+      placeholder: 'пр. Стефан Стефановски, со ЕМБГ 0000000000000',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'раководител',
       helpText: 'Целосна идентификација на раководителот што се отповикува.'
     },
     m7NewHeadName: {
       name: 'm7NewHeadName', type: 'text', label: 'Нов раководител (целосна идентификација)', step: 3,
-      placeholder: 'пр. Радосав Гочманац, државјанин на Р. Србија, пасош 013826215, адреса ...',
+      placeholder: 'пр. Никола Николовски, државјанин на Р. Србија, пасош 000000000, адреса ...',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M7') && fd.m7Action === 'раководител',
       helpText: 'Целосна идентификација на новиот раководител на подружницата (име, државјанство/адреса, документ).'
     },
@@ -328,9 +338,37 @@ export const companyChangesConfig = {
     // M5 — Пренос на удел (most complex module)
     m5TransferorName: {
       name: 'm5TransferorName', type: 'text', label: 'Отстапувач (од постоечките содружници)', step: 3, required: true,
-      placeholder: 'пр. Андреја Хочевар',
+      placeholder: 'пр. Марко Марковски',
       condition: (fd) => Array.isArray(fd.changes) && fd.changes.includes('M5'),
-      helpText: 'Внесете го името на содружникот кој го отстапува уделот, точно како што е внесен во листата на содружници (чекор 2). Системот ги презема неговите целосни податоци од таму.'
+      helpText: 'Изберете го содружникот кој го отстапува уделот од листата на содружници (чекор 2). Системот ги презема неговите целосни податоци од таму. Кај ДООЕЛ единствениот содружник е автоматски избран.'
+    },
+    // Inline fallback identity for the transferor — shown only when the selected
+    // transferor cannot be resolved from the shareholders list (e.g. standard mode),
+    // so address/ЕМБГ are never left as [адреса]/[ЕМБГ] in the documents.
+    m5TransferorForeign: {
+      name: 'm5TransferorForeign', type: 'select', label: 'Отстапувач — странец', step: 3,
+      options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ],
+      helpText: 'Дали отстапувачот е странско лице (бара пасош + државјанство).'
+    },
+    m5TransferorCitizenship: {
+      name: 'm5TransferorCitizenship', type: 'text', label: 'Отстапувач — државјанство', step: 3,
+      placeholder: 'пр. Република Србија',
+      helpText: 'Државјанство на отстапувачот (само за странци).'
+    },
+    m5TransferorAddress: {
+      name: 'm5TransferorAddress', type: 'text', label: 'Отстапувач — адреса (живеалиште)', step: 3,
+      placeholder: 'пр. ул. Прва бр. 1, Скопје',
+      helpText: 'Адреса на живеење на отстапувачот. Се внесува само ако не може да се преземе од листата на содружници.'
+    },
+    m5TransferorIdType: {
+      name: 'm5TransferorIdType', type: 'select', label: 'Отстапувач — документ', step: 3,
+      options: [ { value: 'ЕМБГ', label: 'ЕМБГ (13 цифри)' }, { value: 'пасош', label: 'Број на пасош' }, { value: 'ЕМБС', label: 'ЕМБС / рег. број' } ],
+      helpText: 'ЕМБГ за домашно физичко лице, пасош за странец, ЕМБС/рег. број за правно лице.'
+    },
+    m5TransferorIdNumber: {
+      name: 'm5TransferorIdNumber', type: 'text', label: 'Отстапувач — ЕМБГ/пасош', step: 3,
+      placeholder: 'пр. 0000000000000',
+      helpText: 'Вредноста на документот на отстапувачот.'
     },
     m5TransferScope: {
       name: 'm5TransferScope', type: 'select', label: 'Обем на пренос', step: 3,
@@ -460,7 +498,7 @@ export const companyChangesConfig = {
     },
     agentName: {
       name: 'agentName', type: 'text', label: 'Регистрационен агент (адвокат/друштво)', step: 4,
-      placeholder: 'пр. Адвокатско друштво Лаличиќ и Партнери',
+      placeholder: 'пр. Адвокатско друштво Пример и Партнери',
       helpText: 'Назив на адвокатот или адвокатското друштво кое како регистрационен агент ги поднесува документите електронски до Централниот регистар.'
     },
     agentAddress: {

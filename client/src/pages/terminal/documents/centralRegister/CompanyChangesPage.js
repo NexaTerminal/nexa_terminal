@@ -19,7 +19,7 @@ const CompanyChangesPage = () => {
       case 2:
         return <CompanyAndPeople formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
       case 3:
-        return <ModuleFields formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
+        return <ChangeWizardCurrent formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
       case 4:
         return <PlainFields step={4} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
       case 5:
@@ -29,14 +29,77 @@ const CompanyChangesPage = () => {
     }
   };
 
+  // Right panel: a „Тековно → Ново" view instead of a rendered live preview.
+  // On the per-change step it hosts the NEW-data inputs; elsewhere it shows a
+  // running before/after overview of all selected changes.
+  const renderPreview = ({ formData, currentStep, onChange }) => (
+    <CompanyChangesPreview formData={formData} currentStep={currentStep} onChange={onChange} />
+  );
+
   return (
     <BaseDocumentPage
       config={companyChangesConfig}
       renderStepContent={renderStepContent}
+      customPreviewComponent={renderPreview}
       title="Промени во фирма"
       description="Пакет документи за упис на промени на основните податоци на друштвото во Трговскiот регистар при Централниот регистар на РСМ."
     />
   );
+};
+
+/**
+ * Ordered selected changes (canonical module order), used by both the left
+ * step (current data) and the right panel (new-data inputs).
+ */
+const MODULE_ORDER = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'];
+const MODULE_LABEL = {
+  M1: 'Назив', M2: 'Седиште', M3: 'Лични податоци',
+  M4: 'Управител', M5: 'Пренос на удел', M6: 'Уплата на влог', M7: 'Подружница'
+};
+
+const selectedModules = (formData) => {
+  const changes = Array.isArray(formData.changes) ? formData.changes : [];
+  return MODULE_ORDER.filter((m) => changes.includes(m));
+};
+
+/**
+ * Per-module field layout. Both columns are editable inputs:
+ *  - `top`     full-width shared selectors that gate the rest (rendered above current)
+ *  - `current` left column — current/registered values (prefilled, editable)
+ *  - `next`    right column — new values (empty, the user fills them in)
+ * (M5 is rendered by dedicated components — see M5Current / M5New.)
+ */
+const MODULE_PANELS = {
+  M1: { current: ['companyFullName', 'companyShortName', 'companyForeignName'], next: ['newCompanyFullName', 'newCompanyShortName', 'newCompanyForeignName'] },
+  M2: { current: ['companyAddress'], next: ['newSeatAddress', 'seatDecisionNumber'] },
+  M3: { top: ['m3Capacity', 'm3SubjectName'], current: ['m3OldData'], next: ['m3NewData'] },
+  M4: { top: ['m4ChangeType'], current: ['m4DismissedName'], next: ['m4NewManagerName', 'm4NewManagerForeign', 'm4NewManagerCitizenship', 'm4NewManagerAddress', 'm4NewManagerIdNumber', 'm4Mandate', 'm4MandateUntil', 'm4Powers', 'm4PowersText'] },
+  M6: { current: ['companyCapitalEUR', 'companyContributionType'], next: ['m6AmountEUR', 'm6AmountMKD'] },
+  M7: { top: ['m7Action', 'branchFullName', 'branchSubNumber'], current: ['m7OldBranchAddress', 'm7DismissedHeadName'], next: ['m7NewBranchAddress', 'm7NewHeadName'] }
+};
+
+/** Renders a list of config fields via FormField (conditions self-hide). */
+const renderFields = (names, formData, onChange) =>
+  (names || []).map((name) => {
+    const field = companyChangesConfig.fields[name];
+    if (!field) return null;
+    return (
+      <FormField key={name} field={field} value={formData[name]} onChange={onChange} formData={formData} />
+    );
+  });
+
+const findPerson = (fd, name) => {
+  if (!name) return null;
+  const key = name.trim().toLowerCase();
+  const all = [...(fd.shareholdersList || []), ...(fd.managersList || [])];
+  return all.find((p) => (p.name || '').trim().toLowerCase() === key) || null;
+};
+
+const personSummary = (p) => {
+  if (!p || !p.name) return '—';
+  const id = p.idNumber ? `, ${p.idType || 'ЕМБГ'} ${p.idNumber}` : '';
+  const addr = p.address ? `, ${p.address}` : '';
+  return `${p.name}${addr}${id}`;
 };
 
 /** Renders the plain (getStepFields) fields for a step via FormField. */
@@ -314,40 +377,240 @@ const CompanyAndPeople = ({ formData, onChange, errors, disabled }) => {
   );
 };
 
-/** Step 3 — per-change fields (FormField self-hides via each field's condition). */
-const ModuleFields = ({ formData, onChange, errors, disabled }) => {
+/**
+ * Step 3 (LEFT panel) — per-change sub-wizard. Renders the change chips + nav and
+ * the CURRENT (registered) values as EDITABLE inputs (prefilled from profile/act).
+ * The NEW-data inputs live in the right panel (CompanyChangesPreview), keyed to the
+ * same active index (formData._changeStep).
+ */
+const ChangeWizardCurrent = ({ formData, onChange, disabled }) => {
   const stepConfig = companyChangesConfig.steps.find((s) => s.id === 3);
-  const fields = getStepFields(3);
-  const selected = Array.isArray(formData.changes) ? formData.changes : [];
-  // Fields whose condition currently matches (so we can show an empty-state hint).
-  const visible = fields.filter((f) => !f.condition || f.condition(formData));
+  const modules = selectedModules(formData);
+  const active = Math.min(Number(formData._changeStep) || 0, Math.max(modules.length - 1, 0));
+  const module = modules[active];
+
+  // Keep the stored index in range when the selection changes.
+  useEffect(() => {
+    if ((Number(formData._changeStep) || 0) !== active) onChange('_changeStep', active);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, modules.length]);
+
+  if (modules.length === 0) {
+    return (
+      <div className={styles['form-section']}>
+        <h3>{stepConfig.title}</h3>
+        <p>Прво изберете промени во првиот чекор.</p>
+      </div>
+    );
+  }
+
+  const panel = MODULE_PANELS[module] || {};
 
   return (
     <div className={styles['form-section']}>
       <h3>{stepConfig.title}</h3>
-      {stepConfig.description && <p>{stepConfig.description}</p>}
+      <p>Промена {active + 1} од {modules.length}. Лево се тековните податоци (преземени од профил/акт — менливи), десно ги внесувате новите.</p>
 
-      {selected.length === 0 && (
-        <p>Прво изберете промени во првиот чекор.</p>
-      )}
-      {selected.length > 0 && visible.length === 0 && (
-        <p>За избраните промени нема дополнителни полиња во овој чекор.</p>
-      )}
+      {/* Change chips — each selected change is its own step. */}
+      <div className={styles['change-chips']}>
+        {modules.map((m, i) => (
+          <button
+            key={m}
+            type="button"
+            disabled={disabled}
+            className={`${styles['change-chip']} ${i === active ? styles['change-chip-active'] : ''}`}
+            onClick={() => onChange('_changeStep', i)}
+          >
+            {i + 1}. {MODULE_LABEL[m]}
+          </button>
+        ))}
+      </div>
 
-      {fields.map((field) => (
-        <FormField
-          key={field.name}
-          field={field}
-          value={formData[field.name]}
-          onChange={onChange}
-          error={errors[field.name]}
-          disabled={disabled}
-          formData={formData}
-        />
-      ))}
+      {/* Shared selectors that gate the two columns (e.g. вид на промена). */}
+      {renderFields(panel.top, formData, onChange)}
+
+      <div className={styles['compare-current']}>
+        <div className={styles['compare-label']}>Тековно (регистрирано) · менливо</div>
+        <h4>{MODULE_LABEL[module]}</h4>
+        {module === 'M5'
+          ? <M5Current formData={formData} onChange={onChange} />
+          : renderFields(panel.current, formData, onChange)}
+      </div>
+
+      {/* In-wizard navigation between changes. */}
+      <div className={styles['change-nav']}>
+        <button
+          type="button"
+          disabled={disabled || active === 0}
+          className={`${styles.btn} ${styles['prev-btn']}`}
+          onClick={() => onChange('_changeStep', active - 1)}
+        >
+          ← Претходна промена
+        </button>
+        <button
+          type="button"
+          disabled={disabled || active >= modules.length - 1}
+          className={`${styles.btn} ${styles['next-btn']}`}
+          onClick={() => onChange('_changeStep', active + 1)}
+        >
+          Следна промена →
+        </button>
+      </div>
     </div>
   );
 };
+
+/**
+ * Right panel — replaces the live document preview with the NEW-data inputs for the
+ * active change (Step 3); on the other steps it shows an overview of all changes.
+ */
+const CompanyChangesPreview = ({ formData, currentStep, onChange }) => {
+  const modules = selectedModules(formData);
+
+  if (currentStep !== 3) {
+    return (
+      <div className={styles['preview-changes']}>
+        <h3>Преглед на промените</h3>
+        {modules.length === 0 ? (
+          <p>Изберете промени во првиот чекор за да го видите прегледот.</p>
+        ) : (
+          <ol className={styles['preview-changes-list']}>
+            {modules.map((m) => <li key={m}>{MODULE_LABEL[m]}</li>)}
+          </ol>
+        )}
+        {currentStep < 3 && <p className={styles['preview-hint']}>Новите податоци по промена ги внесувате во чекорот „Полиња по промена".</p>}
+      </div>
+    );
+  }
+
+  const active = Math.min(Number(formData._changeStep) || 0, Math.max(modules.length - 1, 0));
+  const module = modules[active];
+  if (!module) {
+    return (
+      <div className={styles['preview-changes']}>
+        <h3>Нови податоци</h3>
+        <p>Прво изберете промени во првиот чекор.</p>
+      </div>
+    );
+  }
+
+  const panel = MODULE_PANELS[module] || {};
+
+  return (
+    <div className={styles['preview-changes']}>
+      <div className={styles['compare-label']}>Ново (по промената) · {MODULE_LABEL[module]}</div>
+      {module === 'M5'
+        ? <M5New formData={formData} onChange={onChange} />
+        : renderFields(panel.next, formData, onChange)}
+    </div>
+  );
+};
+
+/**
+ * M5 (пренос на удел) — split across the two columns.
+ *  LEFT (M5Current):  the transferor (current owner) + how much is leaving.
+ *  RIGHT (M5New):     the transferee (new owner) + compensation terms.
+ * The transferor is SELECTED from the entered shareholders (no free-text matching);
+ * the sole owner is auto-selected for ДООЕЛ. When the transferor's identity can't be
+ * resolved from the list, inline fallback inputs appear so address/ЕМБГ never leak.
+ */
+const M5_CURRENT_FIELDS = ['m5TransferorWithdraws', 'm5TransferScope', 'm5PartialPercent', 'm5TransferAmountEUR', 'm5TotalCapitalEUR'];
+const M5_NEW_FIELDS = [
+  'm5TransfereeName', 'm5TransfereeIsNew', 'm5TransfereeForeign', 'm5TransfereeCitizenship',
+  'm5TransfereeAddress', 'm5TransfereeIdType', 'm5TransfereeIdNumber', 'm5TransfereeIsManager',
+  'm5WithCompensation', 'm5Price', 'm5Currency', 'm5PaymentTerms'
+];
+const M5_TRANSFEROR_FALLBACK = ['m5TransferorForeign', 'm5TransferorCitizenship', 'm5TransferorAddress', 'm5TransferorIdType', 'm5TransferorIdNumber'];
+
+const M5Current = ({ formData, onChange }) => {
+  const shareholders = (formData.shareholdersList || []).filter((s) => s && s.name);
+  const noList = shareholders.length === 0;
+  const manual = noList || formData.m5TransferorManual === 'да';
+
+  // Auto-select the sole owner; seed amount/total capital from the company capital.
+  useEffect(() => {
+    if (!manual && !formData.m5TransferorName && shareholders.length === 1) onChange('m5TransferorName', shareholders[0].name);
+    if (!formData.m5TransferAmountEUR && formData.companyCapitalEUR) onChange('m5TransferAmountEUR', formData.companyCapitalEUR);
+    if (!formData.m5TotalCapitalEUR && formData.companyCapitalEUR) onChange('m5TotalCapitalEUR', formData.companyCapitalEUR);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shareholders.length]);
+
+  const transferor = findPerson(formData, formData.m5TransferorName);
+  const resolved = !manual && transferor && transferor.address && transferor.idNumber;
+  const showFallback = manual || (formData.m5TransferorName && !resolved);
+
+  const handleSelect = (val) => {
+    if (val === '__manual__') {
+      onChange('m5TransferorManual', 'да');
+      onChange('m5TransferorName', '');
+    } else {
+      onChange('m5TransferorManual', 'не');
+      onChange('m5TransferorName', val);
+    }
+  };
+
+  return (
+    <>
+      <div className={styles['form-group']}>
+        <label htmlFor={manual ? 'm5TransferorName' : 'm5TransferorSelect'}>
+          Отстапувач (содружникот кој го отстапува уделот)
+          <span className={styles['help-tooltip']} data-tooltip="Изберете го содружникот кој го отстапува уделот, или внесете го рачно ако не е во листата. Кај ДООЕЛ единствениот содружник е автоматски избран.">❓</span>
+        </label>
+
+        {!noList && (
+          <select
+            id="m5TransferorSelect"
+            value={manual ? '__manual__' : (formData.m5TransferorName || '')}
+            onChange={(e) => handleSelect(e.target.value)}
+          >
+            <option value="">Изберете содружник…</option>
+            {shareholders.map((s, i) => (
+              <option key={i} value={s.name}>{s.name}{s.sharePercent ? ` (${s.sharePercent}%)` : ''}</option>
+            ))}
+            <option value="__manual__">➕ Друго лице (внеси рачно)…</option>
+          </select>
+        )}
+
+        {manual && (
+          <input
+            type="text"
+            id="m5TransferorName"
+            placeholder="пр. Марко Марковски"
+            value={formData.m5TransferorName || ''}
+            onChange={(e) => onChange('m5TransferorName', e.target.value)}
+          />
+        )}
+
+        {!manual && formData.m5TransferorName && resolved && (
+          <p className={styles['preview-hint']}>✅ Податоци преземени: {personSummary(transferor)}</p>
+        )}
+        {!manual && formData.m5TransferorName && !resolved && (
+          <p className={styles['preview-hint']}>⚠️ Податоците за отстапувачот не можат да се преземат целосно — внесете ги подолу.</p>
+        )}
+        {manual && (
+          <p className={styles['preview-hint']}>Внесете ги целосните податоци за отстапувачот подолу.</p>
+        )}
+      </div>
+
+      {/* Identity inputs — shown for manual entry or an unresolved selection. */}
+      {showFallback && M5_TRANSFEROR_FALLBACK.map((name) => {
+        const field = companyChangesConfig.fields[name];
+        if (!field) return null;
+        // Citizenship only for foreign transferor.
+        if (name === 'm5TransferorCitizenship' && formData.m5TransferorForeign !== 'да') return null;
+        return (
+          <FormField key={name} field={field} value={formData[name]} onChange={onChange} formData={formData} />
+        );
+      })}
+
+      {renderFields(M5_CURRENT_FIELDS, formData, onChange)}
+    </>
+  );
+};
+
+const M5New = ({ formData, onChange }) => (
+  <>{renderFields(M5_NEW_FIELDS, formData, onChange)}</>
+);
 
 /** Step 5 — lists the documents the package will generate (mirrors backend §4). */
 const ReviewSummary = ({ formData }) => {

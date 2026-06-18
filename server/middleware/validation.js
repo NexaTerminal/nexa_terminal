@@ -145,12 +145,17 @@ const sanitizeInput = (input) => {
 
   if (typeof input === 'object' && input !== null) {
     const sanitized = {};
+    // Keys MongoDB would treat as query operators ($ne, $gt, $where, …) or as
+    // dotted paths must be dropped — operator injection only works when the
+    // operator arrives as an object KEY. Also drop prototype-pollution keys.
+    const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
     for (const key in input) {
-      if (input.hasOwnProperty(key)) {
-        // Sanitize object keys and values
-        const sanitizedKey = typeof key === 'string' ? sanitizeInput(key) : key;
-        sanitized[sanitizedKey] = sanitizeInput(input[key]);
+      if (!Object.prototype.hasOwnProperty.call(input, key)) continue;
+      if (typeof key === 'string' &&
+          (key.startsWith('$') || key.includes('.') || DANGEROUS_KEYS.has(key))) {
+        continue;
       }
+      sanitized[key] = sanitizeInput(input[key]);
     }
     return sanitized;
   }

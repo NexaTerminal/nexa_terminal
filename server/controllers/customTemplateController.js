@@ -1037,6 +1037,14 @@ async function bulkGenerate(req, res) {
 
     if (rows.length === 0) return res.status(400).json({ error: 'Датотеката е празна' });
 
+    // Bound processing — the xlsx parser has known ReDoS/prototype-pollution
+    // advisories with no upstream fix (tracked for a lib swap). Cap rows so a
+    // crafted/oversized sheet can't amplify into a long-running request.
+    const MAX_BULK_ROWS = 500;
+    if (rows.length > MAX_BULK_ROWS) {
+      return res.status(400).json({ error: `Премногу редови (максимум ${MAX_BULK_ROWS})` });
+    }
+
     // Validate headers match field names
     const fieldNames = template.fields.map(f => f.name);
     const headers = Object.keys(rows[0]);

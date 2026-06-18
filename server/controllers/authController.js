@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const { validatePassword } = require('../utils/passwordPolicy');
 const UserService = require('../services/userService');
 const PasswordResetService = require('../services/passwordResetService');
 const EmailService = require('../services/emailService');
@@ -80,8 +82,15 @@ class AuthController {
       const db = req.app.locals.db;
       const userService = new UserService(db);
 
-      // Only allow creation if secretKey matches
-      if (secretKey !== process.env.ADMIN_SETUP_KEY && secretKey !== 'nexa-admin-setup-key') {
+      // Gate admin creation on ADMIN_SETUP_KEY only — no hardcoded fallback.
+      // If the env key is unset, the endpoint is disabled entirely (fail closed),
+      // and the comparison is timing-safe to avoid leaking the key byte-by-byte.
+      const setupKey = process.env.ADMIN_SETUP_KEY;
+      const provided = typeof secretKey === 'string' ? secretKey : '';
+      const keyOk = !!setupKey &&
+        provided.length === setupKey.length &&
+        crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(setupKey));
+      if (!keyOk) {
         return res.status(403).json({ message: 'Invalid secret key' });
       }
 
@@ -122,34 +131,10 @@ class AuthController {
     }
   }
 
-  // Validate password strength
+  // Validate password strength (delegates to the shared policy so register
+  // and credentials-update stay in lockstep).
   validatePassword(password) {
-    const errors = [];
-    
-    if (password.length < 6) {
-      errors.push('Лозинката мора да има најмалку 6 карактери');
-    }
-    
-    if (!/\d/.test(password)) {
-      errors.push('Лозинката мора да содржи најмалку еден број');
-    }
-    
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('Лозинката мора да содржи најмалку еден специјален карактер');
-    }
-    
-    if (!/[A-Z]/.test(password)) {
-      errors.push('Лозинката мора да содржи најмалку една голема буква');
-    }
-    
-    if (!/[a-z]/.test(password)) {
-      errors.push('Лозинката мора да содржи најмалку една мала буква');
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+    return validatePassword(password);
   }
 
   // Validate username
@@ -523,49 +508,6 @@ class AuthController {
       });
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  }
-
-  // Direct login for testing
-  directLogin = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      const db = req.app.locals.db;
-      if (!db) {
-        console.error('Database not available in req.app.locals.db');
-        return res.status(500).json({ message: 'Database connection error' });
-      }
-      
-      const userService = new UserService(db);
-      const user = await userService.findByEmail(email);
-      
-      if (!user) {
-        return res.status(401).json({ message: 'User not found' });
-      }
-      
-      // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Incorrect password' });
-      }
-
-      // Generate JWT token
-      const token = this.generateToken(user);
-
-      res.json({
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          role: user.role,
-          isAdmin: user.isAdmin
-        }
-      });
-    } catch (error) {
-      console.error('Direct login error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }

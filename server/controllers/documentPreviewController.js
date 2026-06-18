@@ -195,11 +195,10 @@ class DocumentPreviewController {
     } catch (error) {
       console.error('[Preview] Error generating preview:', error);
       console.error('[Preview] Stack:', error.stack);
+      // Do not leak internal error message / stack trace to the client.
       res.status(500).json({
         success: false,
-        message: 'Грешка при генерирање на преглед',
-        error: error.message,
-        stack: error.stack
+        message: 'Грешка при генерирање на преглед'
       });
     }
   }

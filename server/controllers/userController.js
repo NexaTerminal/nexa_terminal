@@ -1,5 +1,6 @@
 const UserService = require('../services/userService');
 const bcrypt = require('bcryptjs');
+const { validatePassword } = require('../utils/passwordPolicy');
 
 class UserController {
   constructor() {
@@ -510,10 +511,11 @@ class UserController {
         updateData.username = username;
       }
       
-      // Update password if provided
+      // Update password if provided — same policy as registration.
       if (password) {
-        if (password.length < 6) {
-          return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        const { isValid, errors } = validatePassword(password);
+        if (!isValid) {
+          return res.status(400).json({ message: errors[0], errors });
         }
         const hashedPassword = await bcrypt.hash(password, 12);
         updateData.password = hashedPassword;

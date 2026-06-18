@@ -8,10 +8,11 @@ const ExtractJwt = require("passport-jwt").ExtractJwt;
 const bcrypt = require("bcryptjs");
 const UserService = require("../services/userService");
 
-// JWT options
+// JWT options — no hardcoded secret fallback. server.js aborts at boot if
+// JWT_SECRET is unset, so a public default key can never be used to verify tokens.
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET || 'your_jwt_secret_key',
+  secretOrKey: process.env.JWT_SECRET,
 };
 
 module.exports = (db) => {

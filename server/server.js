@@ -188,14 +188,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Debug endpoint to check CORS configuration
-app.get('/api/debug/cors', (req, res) => {
-  res.status(200).json({
-    corsOrigins: corsOrigins,
-    envCorsOrigins: process.env.CORS_ORIGINS || 'NOT SET',
-    origin: req.headers.origin || 'NO ORIGIN HEADER'
-  });
-});
+// (Removed /api/debug/cors — it disclosed the allowed-origins config publicly.)
 
 app.get('/', (req, res) => {
   res.status(200).json({ 
@@ -1006,10 +999,16 @@ function registerRoutes() {
     next(err);
   });
 
-  // General error handling middleware
+  // General error handling middleware. Log the full error server-side, but
+  // never leak internal messages / stack traces to clients in production —
+  // those reveal file paths, dependency internals and query structure.
   app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: err.message || 'Something went wrong!' });
+    console.error(err.stack || err);
+    const isDev = process.env.NODE_ENV !== 'production';
+    res.status(err.status || 500).json({
+      message: isDev ? (err.message || 'Something went wrong!') : 'Internal server error',
+      ...(isDev && err.stack ? { stack: err.stack } : {})
+    });
   });
 }
 

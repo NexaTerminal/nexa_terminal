@@ -85,6 +85,9 @@ class SubscriptionScheduler {
         } else if (due.type === 'paid-expired') {
           await this.subscriptionService.suspend(user._id, { reason: 'auto: subscription expired' });
           suspended++;
+        } else if (due.type === 'promo-expired') {
+          await this.subscriptionService.suspend(user._id, { reason: 'auto: promo period ended' });
+          suspended++;
         }
       } catch (err) {
         console.error('[SubscriptionScheduler] failed for user', String(user._id), err.message);
@@ -115,6 +118,8 @@ class SubscriptionScheduler {
       case 'paid-14d':     return subscriptionEmails.renewalIn14Days({ name, plan: sub.plan, cycle: sub.cycle, endsAt: sub.endsAt }, language);
       case 'paid-3d':      return subscriptionEmails.renewalIn3Days({ name, plan: sub.plan, cycle: sub.cycle, endsAt: sub.endsAt }, language);
       case 'paid-expired': return subscriptionEmails.subscriptionSuspended({ name }, language);
+      case 'promo-3d':     return subscriptionEmails.promoEndingIn3Days({ name, plan: sub.plan, endsAt: sub.endsAt }, language);
+      case 'promo-expired':return subscriptionEmails.promoEnded({ name, plan: sub.plan }, language);
       default: return null;
     }
   }

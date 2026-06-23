@@ -7,16 +7,16 @@
 
 const Joi = require('joi');
 const subscriptionEmails = require('../emails/subscriptionEmails');
+const { seatLimitFor } = require('../services/subSeatService');
 
 // Language field intentionally absent — invite emails are always Macedonian.
-// Any `language` field in the body is silently dropped to avoid extension/proxy
-// interception that reacts to the 'mk' value.
+// `companyMode` is no longer chosen by the caller — the seat type (co-worker vs
+// client) is DERIVED from the inviter's tier in SubSeatService. Any companyMode
+// in the body is accepted-but-ignored for backward compatibility.
 const inviteSchema = Joi.object({
   email: Joi.string().email().required(),
   fullName: Joi.string().trim().max(120).allow('', null),
-  // 'shared'      → seat uses the same company profile as the inviter
-  // 'independent' → seat has its own company profile (e.g. a client firm)
-  companyMode: Joi.string().valid('shared', 'independent').required()
+  companyMode: Joi.string().valid('shared', 'independent').optional()
 }).unknown(false);   // unknown fields rejected — keeps the surface clean
 
 class AdminUserController {
@@ -41,7 +41,7 @@ class AdminUserController {
         },
         subscription: u.subscription || null,
         superUser: u.superUser || null,
-        seats: { used: 0, limit: u.superUser?.seatLimit ?? 5 },
+        seats: { used: 0, limit: seatLimitFor(u) },
         leads: { open: 0, contacted: 0, won: 0 }
       };
       if (this.subSeatService) {
@@ -73,9 +73,10 @@ class AdminUserController {
   async listSeats(req, res) {
     try {
       const seats = await this.subSeatService.listForParent(req.user._id);
-      const limit = req.user.superUser?.seatLimit ?? 5;
+      const limit = seatLimitFor(req.user);
       const used = seats.filter(s => s.isActive !== false).length;
-      res.json({ success: true, seats, limit, used });
+      const seatType = req.user.role === 'admin_user' ? 'client' : 'coworker';
+      res.json({ success: true, seats, limit, used, seatType });
     } catch (err) {
       console.error('[admin-user/seats list] error:', err);
       res.status(500).json({ success: false, message: err.message });
@@ -88,10 +89,21 @@ class AdminUserController {
       const { error, value } = inviteSchema.validate(req.body);
       if (error) return res.status(400).json({ success: false, message: error.message });
 
+      // A locked / suspended owner cannot provision seats — needs active access.
+      const subSvc = req.app.locals.subscriptionService;
+      if (subSvc && req.user.role !== 'admin') {
+        const hasAccess = await subSvc.hasFeatureAccess(req.user);
+        if (!hasAccess) {
+          return res.status(402).json({
+            success: false, code: 'SUBSCRIPTION_REQUIRED',
+            message: 'Активирајте го пристапот за да поканите под-корисници.'
+          });
+        }
+      }
+
       const { user, tempPassword } = await this.subSeatService.invite(req.user, {
         email: value.email,
-        fullName: value.fullName,
-        companyMode: value.companyMode
+        fullName: value.fullName
       });
 
       // Send invite email — always Macedonian.

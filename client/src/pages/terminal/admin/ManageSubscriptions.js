@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
@@ -23,7 +24,8 @@ const TABS = [
   { key: 'pending_approval', label: 'Pending approval' },
   { key: 'active', label: 'Active' },
   { key: 'trial', label: 'Trial' },
-  { key: 'suspended', label: 'Suspended' }
+  { key: 'suspended', label: 'Suspended' },
+  { key: 'codes', label: 'Promo codes' }
 ];
 
 // Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
@@ -68,7 +70,12 @@ const daysRemaining = (d) => {
 
 export default function ManageSubscriptions() {
   const { token } = useAuth();
-  const [tab, setTab] = useState('pending_approval');
+  const [searchParams] = useSearchParams();
+  // Allow deep-linking straight to a tab, e.g. ?tab=codes from the sidebar.
+  const initialTab = searchParams.get('tab');
+  const [tab, setTab] = useState(
+    TABS.some(t => t.key === initialTab) ? initialTab : 'pending_approval'
+  );
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -78,6 +85,7 @@ export default function ManageSubscriptions() {
   const [extendTarget, setExtendTarget] = useState(null);
 
   const fetchItems = useCallback(async () => {
+    if (tab === 'codes') return; // codes tab manages its own data
     setLoading(true);
     setError('');
     try {
@@ -94,6 +102,13 @@ export default function ManageSubscriptions() {
   }, [tab, token]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  // Sync the active tab when the URL ?tab= changes (e.g. clicking the sidebar
+  // "Промо кодови" link while already on this page).
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    setTab(TABS.some(x => x.key === t) ? t : 'pending_approval');
+  }, [searchParams]);
 
   const showFlash = (msg) => { setFlash(msg); setTimeout(() => setFlash(''), 3500); };
 
@@ -178,6 +193,9 @@ export default function ManageSubscriptions() {
       {flash && <div className={styles.flash}>{flash}</div>}
       {error && <div className={styles.error}>{error}</div>}
 
+      {tab === 'codes' ? (
+        <PromoCodes token={token} showFlash={showFlash} setError={setError} />
+      ) : (
       <div className={styles.tableWrap}>
         {loading ? (
           <div className={styles.loading}>Loading…</div>
@@ -216,7 +234,12 @@ export default function ManageSubscriptions() {
                       <div className={styles.userEmail}>{u.email}</div>
                     </td>
                     <td><span className={styles.roleTag}>{u.role}</span></td>
-                    <td>{plan ? PLAN_LABEL[plan] || plan : '—'}</td>
+                    <td>
+                      {plan ? PLAN_LABEL[plan] || plan : '—'}
+                      {sub.paidVia === 'promo' && (
+                        <span className={styles.graceTag} title="Activated via promo code — €0">Promo</span>
+                      )}
+                    </td>
                     <td>{cycle ? (CYCLE_LABEL[cycle] || cycle) : '—'}</td>
                     <td>
                       <span className={`${styles.statusTag} ${styles[`status_${sub.status}`] || ''}`}>
@@ -264,6 +287,7 @@ export default function ManageSubscriptions() {
           </table>
         )}
       </div>
+      )}
 
       {approveTarget && (
         <ApproveModal
@@ -377,6 +401,203 @@ function RejectModal({ user, onCancel, onSubmit }) {
         <div className={styles.modalActions}>
           <button className={styles.btnGhost} onClick={onCancel}>Cancel</button>
           <button className={styles.btnDanger} onClick={() => onSubmit(reason)}>Reject</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -------------------- promo codes -------------------- //
+
+function PromoCodes({ token, showFlash, setError }) {
+  const [codes, setCodes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ code: '', plan: 'pro', maxRedemptions: 100, expiresAt: '' });
+  const [creating, setCreating] = useState(false);
+  const [inviteFor, setInviteFor] = useState(null); // code string
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get('/api/admin/subscriptions/codes', auth);
+      setCodes(res.data.items || []);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const onCreate = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const body = {
+        code: form.code.trim().toUpperCase(),
+        plan: form.plan,
+        cycle: 'monthly',
+        maxRedemptions: parseInt(form.maxRedemptions, 10),
+        expiresAt: form.expiresAt || null
+      };
+      await axios.post('/api/admin/subscriptions/codes', body, auth);
+      showFlash(`✓ Created ${form.plan === 'pro' ? 'Pro' : 'Basic'} code ${body.code}`);
+      setForm({ code: '', plan: form.plan, maxRedemptions: 100, expiresAt: '' });
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const onDeactivate = async (code) => {
+    if (!window.confirm(`Deactivate ${code}? Existing redemptions stay valid.`)) return;
+    try {
+      await axios.post(`/api/admin/subscriptions/codes/${encodeURIComponent(code)}/deactivate`, {}, auth);
+      showFlash(`✓ Deactivated ${code}`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    }
+  };
+
+  const linkFor = (code) => `${window.location.origin}/redeem?code=${encodeURIComponent(code)}`;
+  const copyLink = async (code) => {
+    try { await navigator.clipboard.writeText(linkFor(code)); showFlash('✓ Link copied'); }
+    catch { window.prompt('Copy the redeem link:', linkFor(code)); }
+  };
+
+  return (
+    <div className={styles.tableWrap}>
+      <form className={styles.modal} style={{ position: 'static', boxShadow: 'none', margin: '0 0 20px', maxWidth: 560 }} onSubmit={onCreate}>
+        <h2 style={{ marginTop: 0 }}>Mint a campaign code</h2>
+        <p className={styles.modalSub}>
+          Grants <strong>{form.plan === 'pro' ? 'Full Pro (25 client seats)' : 'Basic (3 co-worker seats)'} · 30 days · €0</strong>. One redemption per user.
+        </p>
+        <label className={styles.field}>
+          Tier
+          <select value={form.plan} onChange={(e) => setForm(s => ({ ...s, plan: e.target.value }))}>
+            <option value="pro">Pro — full access + 25 client seats</option>
+            <option value="basic">Basic — core tools + 3 co-worker seats</option>
+          </select>
+        </label>
+        <label className={styles.field}>
+          Code
+          <input type="text" value={form.code} required
+            onChange={(e) => setForm(s => ({ ...s, code: e.target.value.toUpperCase() }))}
+            placeholder={form.plan === 'pro' ? 'PRO30-JUNE' : 'BASIC30-JUNE'} />
+        </label>
+        <label className={styles.field}>
+          Max redemptions (cap)
+          <input type="number" min={1} value={form.maxRedemptions} required
+            onChange={(e) => setForm(s => ({ ...s, maxRedemptions: e.target.value }))} />
+        </label>
+        <label className={styles.field}>
+          Expiry date (optional)
+          <input type="date" value={form.expiresAt}
+            onChange={(e) => setForm(s => ({ ...s, expiresAt: e.target.value }))} />
+        </label>
+        <div className={styles.modalActions}>
+          <button type="submit" className={styles.btnPrimary} disabled={creating}>
+            {creating ? 'Creating…' : 'Create code'}
+          </button>
+        </div>
+      </form>
+
+      {loading ? (
+        <div className={styles.loading}>Loading…</div>
+      ) : codes.length === 0 ? (
+        <div className={styles.empty}>No codes yet.</div>
+      ) : (
+        <table className={styles.table}>
+          <thead>
+            <tr><th>Code</th><th>Tier</th><th>Redemptions</th><th>Expires</th><th>Status</th><th>Link / Email</th></tr>
+          </thead>
+          <tbody>
+            {codes.map(c => (
+              <tr key={c.code}>
+                <td className={styles.mono}>{c.code}</td>
+                <td>{(c.plan === 'pro' || c.plan === 'admin_5' || c.plan === 'admin_10') ? 'Pro' : 'Basic'}</td>
+                <td>{c.redemptions} / {c.maxRedemptions}</td>
+                <td>{fmtDate(c.expiresAt)}</td>
+                <td>
+                  <span className={`${styles.statusTag} ${c.active ? styles.status_active : ''}`}>
+                    {c.active ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className={styles.actions}>
+                  <button className={styles.btnGhost} onClick={() => copyLink(c.code)}>Copy link</button>
+                  <button className={styles.btnGhost} onClick={() => setInviteFor(c.code)}>Send invite</button>
+                  {c.active && <button className={styles.btnDanger} onClick={() => onDeactivate(c.code)}>Deactivate</button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {inviteFor && (
+        <SendInviteModal
+          code={inviteFor}
+          token={token}
+          onClose={() => setInviteFor(null)}
+          onDone={(msg) => { setInviteFor(null); showFlash(msg); }}
+          onError={(msg) => setError(msg)}
+        />
+      )}
+    </div>
+  );
+}
+
+function SendInviteModal({ code, token, onClose, onDone, onError }) {
+  const [emails, setEmails] = useState('');
+  const [language, setLanguage] = useState('mk');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    const recipients = emails.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+    if (recipients.length === 0) { onError('Enter at least one email.'); return; }
+    setBusy(true);
+    try {
+      const res = await axios.post(
+        '/api/admin/subscriptions/codes/send-invite',
+        { code, recipients, language },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      onDone(`✓ Sent ${res.data.sent}, failed ${res.data.failed}`);
+    } catch (err) {
+      onError(err.response?.data?.message || err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalBackdrop} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <h2>Send invite — {code}</h2>
+        <p className={styles.modalSub}>Sends the CTA email with the redeem deep link.</p>
+        <label className={styles.field}>
+          Recipients (comma / newline separated)
+          <textarea rows={4} value={emails} onChange={(e) => setEmails(e.target.value)}
+            placeholder="alice@firm.mk, bob@firm.mk" />
+        </label>
+        <label className={styles.field}>
+          Language
+          <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <option value="mk">Macedonian</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <div className={styles.modalActions}>
+          <button className={styles.btnGhost} onClick={onClose}>Cancel</button>
+          <button className={styles.btnPrimary} onClick={submit} disabled={busy}>
+            {busy ? 'Sending…' : 'Send'}
+          </button>
         </div>
       </div>
     </div>

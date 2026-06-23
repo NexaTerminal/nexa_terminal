@@ -3,14 +3,19 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import TerminalShell from '../../components/terminal/TerminalShell';
+import { PROMO_FLASH_KEY } from '../../components/PromoRedeemWatcher';
 import styles from './UserAccount.module.css';
 
 const PLAN_LABEL = {
+  basic:    'Основен',
+  pro:      'Про',
+  // legacy
   standard: 'Основен',
   admin_5:  'Про',
   admin_10: 'Ултра'
 };
 const STATUS_LABEL = {
+  none:             'Не е активирана',
   trial:            'Пробен период',
   pending_approval: 'Чека одобрување',
   active:           'Активна',
@@ -30,6 +35,46 @@ export default function UserSubscriptionPage() {
   const [sub, setSub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+
+  // ── Promo / code redemption ────────────────────────────────────────────
+  const [redeemMsg, setRedeemMsg]   = useState(null); // { ok, msg }
+  const [redeemCode, setRedeemCode] = useState('');
+  const [redeemBusy, setRedeemBusy] = useState(false);
+
+  const refreshSub = async () => {
+    try {
+      const res = await axios.get('/api/subscription/me', { headers: { Authorization: `Bearer ${token}` } });
+      setSub(res.data?.subscription || null);
+    } catch (_) { /* keep current */ }
+  };
+
+  const onRedeem = async (e) => {
+    e.preventDefault();
+    const code = redeemCode.trim();
+    if (!code) return;
+    setRedeemBusy(true); setRedeemMsg(null);
+    try {
+      await ApiService.request('/subscription/redeem-code', { method: 'POST', body: JSON.stringify({ code }) });
+      setRedeemMsg({ ok: true, msg: 'Кодот е успешно искористен — вашиот пристап е активен.' });
+      setRedeemCode('');
+      await refreshSub();
+    } catch (ex) {
+      setRedeemMsg({ ok: false, msg: ex.message || 'Кодот не може да се искористи.' });
+    } finally {
+      setRedeemBusy(false);
+    }
+  };
+
+  // Pick up a flash left by the deep-link auto-redeem (PromoRedeemWatcher).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PROMO_FLASH_KEY);
+      if (raw) {
+        setRedeemMsg(JSON.parse(raw));
+        localStorage.removeItem(PROMO_FLASH_KEY);
+      }
+    } catch (_) { /* ignore */ }
+  }, []);
 
   // ── Password / username change ─────────────────────────────────────────
   const [creds, setCreds] = useState({ currentPassword: '', newUsername: '', newPassword: '', confirmPassword: '' });
@@ -168,6 +213,45 @@ export default function UserSubscriptionPage() {
               </section>
             )}
           </>
+        )}
+
+        {/* ── Locked onboarding: enter code OR choose a plan ───────────── */}
+        {!isAdminRole && sub && ['none', 'suspended', 'cancelled'].includes(sub.status) && (
+          <section className={styles.panel}>
+            <div className={styles.panelHead}>Активирајте го пристапот</div>
+            <p className={styles.lead} style={{ fontSize: 13.5, margin: '0 0 12px' }}>
+              {sub.status === 'none'
+                ? 'Сметката сè уште не е активирана. Внесете промотивен код или изберете план за да започнете.'
+                : 'Внесете промотивен код или изберете план за да го вратите пристапот.'}
+            </p>
+            {redeemMsg && (
+              <div className={redeemMsg.ok ? styles.toastOk : styles.toastError} style={{ marginBottom: 12 }}>{redeemMsg.msg}</div>
+            )}
+            <form className={styles.passwordForm} onSubmit={onRedeem}>
+              <div className={styles.field}>
+                <label htmlFor="redeemCode">Промотивен код</label>
+                <input id="redeemCode" name="redeemCode" type="text" autoComplete="off"
+                  value={redeemCode}
+                  onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+                  placeholder="на пр. PRO30-JUNE" />
+              </div>
+              <div className={styles.actionRow}>
+                <button type="submit" className={styles.btnPrimary} disabled={redeemBusy || !redeemCode.trim()}>
+                  {redeemBusy ? 'Се применува…' : 'Искористи код'}
+                </button>
+                <button type="button" className={styles.btnSecondary} onClick={openGate}>
+                  Изберете план
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {/* ── Promo redemption result when NOT in the locked block above ── */}
+        {redeemMsg && !(sub && ['none', 'suspended', 'cancelled'].includes(sub.status)) && (
+          <section className={styles.panel}>
+            <div className={redeemMsg.ok ? styles.toastOk : styles.toastError}>{redeemMsg.msg}</div>
+          </section>
         )}
 
         {/* ── Password / username change ───────────────────────────────── */}

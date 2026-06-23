@@ -130,7 +130,47 @@ class SubscriptionService {
   // -------------------------------------------------------- state transitions ----
 
   /**
+   * Initialize a brand-new account in the LOCKED state (no auto-trial).
+   * Idempotent: no-op if a subscription status already exists. The account
+   * has no feature access until a code is redeemed or a plan is purchased.
+   */
+  async initLocked(userId) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    if (user.subscription?.status) return user;
+
+    const now = new Date();
+    const subscription = {
+      plan: null,
+      cycle: null,
+      status: SUBSCRIPTION_STATUSES.NONE,
+      startedAt: null,
+      endsAt: null,
+      durationDays: null,
+      autoRenew: false,
+      amountEur: 0,
+      paidVia: null,
+      invoiceNumber: null,
+      approvedBy: null,
+      approvedAt: null,
+      remindersSent: [],
+      notes: null,
+      requestedAt: null,
+      requestedPlan: null,
+      requestedCycle: null,
+      gracePeriod: { ...EMPTY_GRACE }
+    };
+    await this.users.updateOne(
+      { _id: toObjectId(userId) },
+      { $set: { subscription, updatedAt: now } }
+    );
+    return { ...user, subscription };
+  }
+
+  /**
    * Start a trial. Idempotent: no-op if already initialized.
+   * NOTE: trials are no longer auto-granted on signup — kept for admin/manual
+   * use and legacy callers. New accounts use initLocked().
    */
   async startTrial(userId) {
     const user = await this.getUser(userId);
@@ -264,12 +304,19 @@ class SubscriptionService {
   }
 
   /**
-   * Admin approves a pending subscription. Activates immediately.
-   * Sets role from PLAN_TO_ROLE; sets seatLimit from PLAN_SEATS.
+   * Core activation. Shared by admin-approve and promo-redeem so the two paths
+   * can never drift. Sets role from PLAN_TO_ROLE; sets seatLimit from PLAN_SEATS.
    * If this is an UPGRADE on an already-active subscription, preserves endsAt;
-   * otherwise endsAt = approvalDate + duration.
+   * otherwise endsAt = activationDate + duration.
+   *
+   * `paidVia` distinguishes how the period was paid for ('bank_transfer' |
+   * 'promo'); it is persisted on the subscription so reminder copy can adapt.
+   * `amountEur` defaults to the plan's list price; pass 0 explicitly for promos.
    */
-  async approve(userId, { plan, cycle, invoiceNumber, approvedBy, practiceAreas, cities, notes }) {
+  async _activate(userId, {
+    plan, cycle, invoiceNumber, approvedBy, practiceAreas, cities, notes,
+    paidVia = 'bank_transfer', amountEur
+  }) {
     if (!isValidPlan(plan))   throw new Error(`Invalid plan: ${plan}`);
     if (!isValidCycle(cycle)) throw new Error(`Invalid cycle: ${cycle}`);
 
@@ -280,7 +327,7 @@ class SubscriptionService {
     const durationDays = DURATION_DAYS[cycle];
     const newRole      = PLAN_TO_ROLE[plan];
     const newSeatLimit = PLAN_SEATS[plan];
-    const amountEur    = PLAN_PRICES[plan]?.[cycle] ?? 0;
+    const resolvedAmount = (typeof amountEur === 'number') ? amountEur : (PLAN_PRICES[plan]?.[cycle] ?? 0);
 
     // Upgrade case: user is currently active on the same role (admin → admin upgrade).
     // Preserve endsAt; just bump plan + seatLimit + amount.
@@ -299,7 +346,8 @@ class SubscriptionService {
       endsAt,
       durationDays: isUpgrade ? user.subscription.durationDays : durationDays,
       autoRenew: false,
-      amountEur,
+      amountEur: resolvedAmount,
+      paidVia,
       invoiceNumber: invoiceNumber || null,
       approvedBy: approvedBy ? toObjectId(approvedBy) : null,
       approvedAt: now,
@@ -339,18 +387,54 @@ class SubscriptionService {
     await this.history.insertOne({
       userId: toObjectId(userId),
       plan, cycle, durationDays,
-      amountEur,
+      amountEur: resolvedAmount,
       startedAt: now,
       endsAt,
       approvedBy: approvedBy ? toObjectId(approvedBy) : null,
       approvedAt: now,
       invoiceNumber: invoiceNumber || null,
-      paidVia: 'bank_transfer',
+      paidVia,
       status: isUpgrade ? 'upgrade' : 'active',
       notes: notes || null
     });
 
     return this.getUser(userId);
+  }
+
+  /**
+   * Admin approves a pending subscription. Activates immediately via _activate.
+   */
+  async approve(userId, opts) {
+    return this._activate(userId, { ...opts, paidVia: 'bank_transfer' });
+  }
+
+  /**
+   * Redeem a sales/promo code: free activation of `plan`/`cycle` at €0.
+   * The caller (controller) is responsible for atomically claiming the code
+   * first; this method only performs the activation with promo markers.
+   * Blocks redemption when the user is already on a live paid plan (no stacking).
+   */
+  async redeemPromo(userId, { plan, cycle, code }) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const sub = user.subscription || {};
+    const onLivePaidPlan =
+      sub.status === SUBSCRIPTION_STATUSES.ACTIVE &&
+      sub.endsAt && new Date(sub.endsAt) > new Date() &&
+      sub.paidVia && sub.paidVia !== 'promo';
+    if (onLivePaidPlan) {
+      const err = new Error('Имате активна платена претплата — кодот не може да се искористи сега.');
+      err.code = 'ALREADY_ACTIVE_PAID';
+      throw err;
+    }
+
+    return this._activate(userId, {
+      plan, cycle,
+      amountEur: 0,
+      paidVia: 'promo',
+      notes: code ? `promo:${code}` : 'promo'
+    });
   }
 
   async reject(userId, { reason }) {
@@ -424,6 +508,14 @@ class SubscriptionService {
 
     const days = daysUntil(user.subscription.endsAt);
     const sentTypes = new Set((user.subscription.remindersSent || []).map(r => r.type));
+
+    // Promo periods are free 30-day Pro trials. The paid "renew/send payment"
+    // cadence is wrong here — instead nudge them to convert to a paid plan.
+    if (status === SUBSCRIPTION_STATUSES.ACTIVE && user.subscription.paidVia === 'promo') {
+      if (days <= 3 && days > 0 && !sentTypes.has('promo-3d'))       return { type: 'promo-3d', daysRemaining: days };
+      if (days <= 0             && !sentTypes.has('promo-expired'))  return { type: 'promo-expired', daysRemaining: 0 };
+      return null;
+    }
 
     if (status === SUBSCRIPTION_STATUSES.TRIAL) {
       if (days <= 2 && days > 0  && !sentTypes.has('trial-2d'))      return { type: 'trial-2d', daysRemaining: days };

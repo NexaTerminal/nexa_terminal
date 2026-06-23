@@ -15,9 +15,22 @@
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { ROLES, DEFAULT_ADMIN_SEAT_LIMIT } = require('../constants/roles');
+const { ROLES, PLAN_SEATS } = require('../constants/roles');
 
 const toObjectId = (id) => (id instanceof ObjectId ? id : new ObjectId(id));
+
+// Two-tier, exclusive sub-user model:
+//   Basic (standard_user) → 'coworker' seats (shared company), max 3
+//   Pro   (admin_user)    → 'client'   seats (own company),    max 25
+// The seat type is derived from the parent's role — callers cannot choose it.
+const seatTypeFor = (parent) =>
+  parent.role === ROLES.ADMIN_USER ? 'client' : 'coworker';
+
+const seatLimitFor = (parent) => {
+  if (parent.role === ROLES.ADMIN_USER)    return parent.superUser?.seatLimit ?? PLAN_SEATS.pro;   // 25
+  if (parent.role === ROLES.STANDARD_USER) return PLAN_SEATS.basic;                                 // 3
+  return 0;
+};
 
 /** Generate a memorable-but-secure temp password: 4 random words + 4 digits. */
 const generateTempPassword = () => {
@@ -53,30 +66,31 @@ class SubSeatService {
   }
 
   /**
-   * Invite a sub-seat. Throws on any of:
-   *   - parent has no admin_user role or no active subscription
-   *   - email already taken
-   *   - seat limit reached
+   * Invite a sub-seat. The seat TYPE is derived from the parent's role:
+   *   - Basic (standard_user) → 'coworker' (shared company), max 3
+   *   - Pro   (admin_user)    → 'client'   (own company),    max 25
+   * Callers cannot choose the type — this enforces tier exclusivity.
    *
-   * Returns { user, tempPassword } where tempPassword is shown ONCE
-   * in the response so the inviter sees it before the email is sent.
+   * Throws on: invalid parent role, bad email, seat limit reached, email taken.
+   * Returns { user, tempPassword } where tempPassword is shown ONCE.
    */
-  async invite(parent, { email, fullName, companyMode }) {
-    if (!parent || parent.role !== ROLES.ADMIN_USER) {
-      throw new Error('Only admin_user accounts can invite sub-seats');
+  async invite(parent, { email, fullName }) {
+    if (!parent || (parent.role !== ROLES.ADMIN_USER && parent.role !== ROLES.STANDARD_USER)) {
+      throw new Error('Only Basic or Pro accounts can invite sub-users');
     }
     if (!isValidEmail(email)) {
       throw new Error('Невалидна е-пошта / Invalid email');
     }
-    if (companyMode !== 'shared' && companyMode !== 'independent') {
-      throw new Error('Изберете како се користи седиштето: иста компанија или своја.');
-    }
     const normEmail = email.trim().toLowerCase();
 
-    const seatLimit = parent.superUser?.seatLimit ?? DEFAULT_ADMIN_SEAT_LIMIT;
+    const seatType   = seatTypeFor(parent);                       // 'coworker' | 'client'
+    const companyMode = seatType === 'client' ? 'independent' : 'shared';
+
+    const seatLimit = seatLimitFor(parent);
     const current = await this.countActiveForParent(parent._id);
     if (current >= seatLimit) {
-      throw new Error(`Достигнат лимит на седишта (${seatLimit}) / Seat limit reached (${seatLimit})`);
+      const noun = seatType === 'client' ? 'клиенти' : 'соработници';
+      throw new Error(`Достигнат лимит на ${noun} (${seatLimit}) / Seat limit reached (${seatLimit})`);
     }
 
     // Reject if email or username already exists
@@ -95,15 +109,18 @@ class SubSeatService {
       email: normEmail,
       password: hashed,
       role: ROLES.SUB_SEAT,
+      seatType,
       parentSuperUserId: toObjectId(parent._id),
       fullName: fullName || null,
       // Terminal is MK-only; no per-user language field stored on sub-seats.
       isActive: true,
       mustChangePassword: true,
-      isVerified: false,
-      profileComplete: false,
-      // 'shared'      → uses the parent's company info (synced on parent updates)
-      // 'independent' → has its own company info, filled in by the seat itself
+      // Co-workers inherit the parent's verified company; clients are vouched
+      // for by the Pro account (no separate per-client verification).
+      isVerified: true,
+      profileComplete: companyMode === 'shared',
+      // 'shared'      → uses the parent's company info (co-worker)
+      // 'independent' → has its own company info, filled by the Pro per client
       companyMode,
       // For 'shared' seats: copy parent's companyInfo so legacy code that reads
       // user.companyInfo keeps working. Updates to the parent's profile propagate
@@ -187,7 +204,7 @@ class SubSeatService {
 
   /** Re-activate a previously revoked sub-seat (respects seatLimit). */
   async reactivate(parent, subSeatUserId) {
-    const seatLimit = parent.superUser?.seatLimit ?? DEFAULT_ADMIN_SEAT_LIMIT;
+    const seatLimit = seatLimitFor(parent);
     const current = await this.countActiveForParent(parent._id);
     if (current >= seatLimit) {
       throw new Error(`Seat limit reached (${seatLimit})`);
@@ -208,3 +225,5 @@ class SubSeatService {
 
 module.exports = SubSeatService;
 module.exports.generateTempPassword = generateTempPassword;
+module.exports.seatTypeFor = seatTypeFor;
+module.exports.seatLimitFor = seatLimitFor;

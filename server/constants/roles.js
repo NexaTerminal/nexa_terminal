@@ -20,30 +20,56 @@ const ROLES = Object.freeze({
 const LEGACY_VERIFIED = 'verified';
 
 const SUBSCRIPTION_STATUSES = Object.freeze({
-  TRIAL:            'trial',             // free 8-day evaluation
+  NONE:             'none',              // registered, never activated (no auto-trial)
+  TRIAL:            'trial',             // legacy free evaluation (no longer auto-granted)
   PENDING_APPROVAL: 'pending_approval',  // plan selected, awaiting admin approval after payment
-  ACTIVE:           'active',            // paid + approved
+  ACTIVE:           'active',            // paid + approved (or code-activated)
   SUSPENDED:        'suspended',         // endsAt passed without renewal
   CANCELLED:        'cancelled'          // user requested cancellation
 });
 
-// Plan identifiers — close enum. Plans encode their seat tier in the name.
+// Plan identifiers — canonical two-tier model (Basic + Pro).
+// Legacy keys (standard / admin_5 / admin_10) are retained for back-compat
+// during migration; resolve any plan to canonical with canonicalPlan().
 const PLANS = Object.freeze({
-  STANDARD: 'standard',
-  ADMIN_5:  'admin_5',
-  ADMIN_10: 'admin_10'
+  BASIC: 'basic',
+  PRO:   'pro'
 });
 
+const LEGACY_PLANS = Object.freeze({
+  STANDARD: 'standard',  // → basic
+  ADMIN_5:  'admin_5',   // → pro
+  ADMIN_10: 'admin_10'   // → pro (Ultra merged into Pro)
+});
+
+// Every plan key accepted anywhere (canonical + legacy).
+const ALL_PLANS = Object.freeze([...Object.values(PLANS), ...Object.values(LEGACY_PLANS)]);
+
+// Normalize a legacy-or-canonical plan key to the canonical two-tier value.
+const canonicalPlan = (p) => {
+  switch (p) {
+    case 'basic': case 'standard':                 return PLANS.BASIC;
+    case 'pro':   case 'admin_5': case 'admin_10':  return PLANS.PRO;
+    default: return null;
+  }
+};
+
 // Seat count granted per plan. 0 = no sub-seats allowed.
+// Basic → 3 co-worker seats; Pro → 25 client-company seats.
 const PLAN_SEATS = Object.freeze({
+  basic: 3,
+  pro:   25,
+  // legacy (pre-migration docs)
   standard: 0,
   admin_5:  5,
   admin_10: 10
 });
 
-// Role that a plan implies. All admin tiers map to the same admin_user role —
-// the seat count is the differentiator.
+// Role that a plan implies. Basic → standard_user, Pro → admin_user.
 const PLAN_TO_ROLE = Object.freeze({
+  basic: ROLES.STANDARD_USER,
+  pro:   ROLES.ADMIN_USER,
+  // legacy
   standard: ROLES.STANDARD_USER,
   admin_5:  ROLES.ADMIN_USER,
   admin_10: ROLES.ADMIN_USER
@@ -71,6 +97,9 @@ const GRACE_DAYS = 3;
 // Quarterly ≈ 14–16% off three months of monthly.
 // Annual    ≈ 22–24% off twelve months of monthly.
 const PLAN_PRICES = Object.freeze({
+  basic: { monthly: 19, quarterly: 49,  annual: 179 },
+  pro:   { monthly: 39, quarterly: 99,  annual: 359 },
+  // legacy
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
   admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
   admin_10: { monthly: 59, quarterly: 149, annual: 549 }
@@ -80,6 +109,9 @@ const PLAN_CURRENCY = 'EUR';
 // Public-facing tier labels (Nexa 3.0). Server-side keys above remain stable;
 // only these labels are user-visible.
 const PLAN_LABELS = Object.freeze({
+  basic: { mk: 'Основен', en: 'Basic' },
+  pro:   { mk: 'Про',     en: 'Pro'   },
+  // legacy
   standard: { mk: 'Основен', en: 'Basic' },
   admin_5:  { mk: 'Про',     en: 'Pro'   },
   admin_10: { mk: 'Ултра',   en: 'Ultra' }
@@ -118,7 +150,7 @@ const isAdminUser     = (user) => !!user && user.role === ROLES.ADMIN_USER;
 const isStandardUser  = (user) => !!user && (user.role === ROLES.STANDARD_USER || user.role === LEGACY_VERIFIED);
 const isSubSeat       = (user) => !!user && user.role === ROLES.SUB_SEAT;
 
-const isValidPlan  = (p) => Object.values(PLANS).includes(p);
+const isValidPlan  = (p) => ALL_PLANS.includes(p);
 const isValidCycle = (c) => ['monthly','quarterly','annual'].includes(c);
 const seatsForPlan = (plan) => (PLAN_SEATS[plan] ?? 0);
 const roleForPlan  = (plan) => (PLAN_TO_ROLE[plan] || ROLES.REGULAR);
@@ -129,6 +161,9 @@ module.exports = {
   LEGACY_VERIFIED,
   SUBSCRIPTION_STATUSES,
   PLANS,
+  LEGACY_PLANS,
+  ALL_PLANS,
+  canonicalPlan,
   PLAN_SEATS,
   PLAN_TO_ROLE,
   CYCLES,
@@ -149,7 +184,7 @@ module.exports = {
   seatsForPlan,
   roleForPlan,
   priceFor,
-  // Backwards-compat: callers that still want a default admin seat limit
-  // (e.g. legacy admin_user docs without a plan field) — use 5.
-  DEFAULT_ADMIN_SEAT_LIMIT: 5
+  // Backwards-compat: default seat limit for an admin_user (Pro) doc that has
+  // no explicit plan field. Pro = 25 client-company seats.
+  DEFAULT_ADMIN_SEAT_LIMIT: 25
 };

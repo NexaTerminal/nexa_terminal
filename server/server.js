@@ -390,8 +390,14 @@ async function initializeServices(database) {
     const proInvoicesController  = new ProInvoicesController({ proInvoicesService });
     app.locals.proInvoicesService = proInvoicesService;
 
+    // Promo / sales codes (free Pro activation triggered by the user).
+    const PromoCodeService = require('./services/promoCodeService');
+    const promoCodeService = new PromoCodeService(database);
+    await promoCodeService.ensureIndexes();
+    app.locals.promoCodeService = promoCodeService;
+
     const subscriptionController = new SubscriptionController({
-      subscriptionService, emailService, auditLoggingService, proInvoicesService
+      subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService
     });
 
     app.use('/api/subscription',        subscriptionRoutes.userRoutes(subscriptionController));

@@ -16,6 +16,7 @@ export default function Team() {
   const [seats, setSeats] = useState([]);
   const [limit, setLimit] = useState(5);
   const [used, setUsed] = useState(0);
+  const [seatType, setSeatType] = useState('coworker'); // 'coworker' (Basic) | 'client' (Pro)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [flash, setFlash] = useState('');
@@ -33,6 +34,7 @@ export default function Team() {
       setSeats(res.data.seats || []);
       setLimit(res.data.limit ?? 5);
       setUsed(res.data.used ?? 0);
+      setSeatType(res.data.seatType || 'coworker');
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -44,10 +46,11 @@ export default function Team() {
 
   const showFlash = (msg) => { setFlash(msg); setTimeout(() => setFlash(''), 3500); };
 
-  const onInvite = async ({ email, fullName, companyMode }) => {
+  const onInvite = async ({ email, fullName }) => {
     try {
+      // Seat type is derived server-side from the account's tier — no companyMode sent.
       const res = await axios.post('/api/admin-user/seats',
-        { email, fullName, companyMode },
+        { email, fullName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setInvited({ email, tempPassword: res.data.tempPassword });
@@ -105,16 +108,35 @@ export default function Team() {
     }
   };
 
+  const isClient = seatType === 'client';
+  const T = isClient ? {
+    title: 'Клиенти',
+    subtitle: 'Поканете клиентски фирми. Секоја работи под своја компанија, под вашата претплата.',
+    badgeNoun: 'клиенти',
+    inviteBtn: 'Покани клиент',
+    limitReached: 'Достигнат лимит на клиенти',
+    empty: 'Сè уште нема клиенти. Поканете ја првата фирма.',
+    colName: 'Клиент'
+  } : {
+    title: 'Тим',
+    subtitle: 'Поканете соработници. Тие ја делат вашата компанија и претплата.',
+    badgeNoun: 'седишта',
+    inviteBtn: 'Покани соработник',
+    limitReached: 'Достигнат лимит на седишта',
+    empty: 'Сè уште нема соработници. Поканете го првиот.',
+    colName: 'Соработник'
+  };
+
   return (
     <TerminalShell>
       <div className={styles.page}>
           <div className={styles.header}>
             <div>
-              <h1>Тим</h1>
-              <p>Поканете членови на тимот. Тие ја делат вашата претплата и кредитниот пул.</p>
+              <h1>{T.title}</h1>
+              <p>{T.subtitle}</p>
             </div>
             <div className={styles.seatBadge}>
-              <strong>{used}</strong> од <strong>{limit}</strong> искористени седишта
+              <strong>{used}</strong> од <strong>{limit}</strong> искористени {T.badgeNoun}
             </div>
           </div>
 
@@ -123,7 +145,7 @@ export default function Team() {
           {invited && (
             <CredentialsCard
               title="Поканата е испратена — споделете ги пристапните податоци"
-              hint="Препратете ги директно до вашиот колега ИЛИ почекајте да ја добие поканата по е-пошта. При првото најавување ќе биде побарано да постави своја лозинка."
+              hint="Препратете ги директно до корисникот ИЛИ почекајте да ја добие поканата по е-пошта. При првото најавување ќе биде побарано да постави своја лозинка."
               email={invited.email}
               tempPassword={invited.tempPassword}
               onClose={() => setInvited(null)}
@@ -145,7 +167,7 @@ export default function Team() {
               onClick={() => setShowInvite(true)}
               disabled={used >= limit}
             >
-              {used >= limit ? 'Достигнат лимит на седишта' : 'Покани член'}
+              {used >= limit ? T.limitReached : T.inviteBtn}
             </button>
           </div>
 
@@ -153,12 +175,12 @@ export default function Team() {
             {loading ? (
               <div className={styles.loading}>Се вчитува…</div>
             ) : seats.length === 0 ? (
-              <div className={styles.empty}>Сè уште нема членови. Поканете го првиот.</div>
+              <div className={styles.empty}>{T.empty}</div>
             ) : (
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Член</th>
+                    <th>{T.colName}</th>
                     <th>Статус</th>
                     <th>Поканет</th>
                     <th></th>
@@ -170,14 +192,13 @@ export default function Team() {
                       <td>
                         <div className={styles.name}>
                           {s.fullName || s.email}
-                          {s.companyMode === 'shared' && (
-                            <span className={`${styles.modeTag} ${styles.modeTagShared}`} title="Користи го профилот на вашата компанија">
-                              🤝 Иста компанија
+                          {(s.seatType === 'client' || s.companyMode === 'independent') ? (
+                            <span className={`${styles.modeTag} ${styles.modeTagIndep}`} title="Клиентска фирма со свој профил">
+                              🏢 Клиент
                             </span>
-                          )}
-                          {s.companyMode === 'independent' && (
-                            <span className={`${styles.modeTag} ${styles.modeTagIndep}`} title="Користи свој профил на компанија">
-                              🏢 Свој профил
+                          ) : (
+                            <span className={`${styles.modeTag} ${styles.modeTagShared}`} title="Соработник во вашата компанија">
+                              🤝 Соработник
                             </span>
                           )}
                         </div>
@@ -210,7 +231,7 @@ export default function Team() {
       </div>
 
       {showInvite && (
-        <InviteModal onCancel={() => setShowInvite(false)} onSubmit={onInvite} />
+        <InviteModal isClient={isClient} onCancel={() => setShowInvite(false)} onSubmit={onInvite} />
       )}
     </TerminalShell>
   );
@@ -218,24 +239,18 @@ export default function Team() {
 
 // ---------- modals ----------
 
-function InviteModal({ onCancel, onSubmit }) {
+function InviteModal({ isClient, onCancel, onSubmit }) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  // No default — user must explicitly choose between "shared" and "independent".
-  const [companyMode, setCompanyMode] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
-    if (!companyMode) {
-      setErr('Изберете како се користи седиштето: иста компанија или своја.');
-      return;
-    }
     setBusy(true);
     try {
-      await onSubmit({ email, fullName, companyMode });
+      await onSubmit({ email, fullName });
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -246,10 +261,11 @@ function InviteModal({ onCancel, onSubmit }) {
   return (
     <div className={styles.modalBackdrop} onClick={onCancel}>
       <form className={styles.modal} onClick={(e) => e.stopPropagation()} onSubmit={submit}>
-        <h2>Покани член на тимот</h2>
+        <h2>{isClient ? 'Покани клиентска фирма' : 'Покани соработник'}</h2>
         <p className={styles.modalSub}>
-          Ќе добие е-пошта со привремена лозинка. Изберете дали овој корисник
-          ќе работи под вашата компанија или под своја.
+          {isClient
+            ? 'Ќе добие е-пошта со привремена лозинка и ќе работи под своја компанија — нема потреба од посебна верификација.'
+            : 'Ќе добие е-пошта со привремена лозинка и ќе работи под вашата компанија. Вашите податоци автоматски се споделуваат.'}
         </p>
 
         <label className={styles.field}>
@@ -259,11 +275,11 @@ function InviteModal({ onCancel, onSubmit }) {
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            placeholder="kolega@primer.mk"
+            placeholder={isClient ? 'kontakt@klient.mk' : 'kolega@primer.mk'}
           />
         </label>
         <label className={styles.field}>
-          Име и презиме (опционално)
+          {isClient ? 'Назив / контакт лице (опционално)' : 'Име и презиме (опционално)'}
           <input
             type="text"
             value={fullName}
@@ -271,50 +287,11 @@ function InviteModal({ onCancel, onSubmit }) {
           />
         </label>
 
-        <fieldset className={styles.modeFieldset}>
-          <legend>Како се користи ова седиште?</legend>
-          <label className={`${styles.modeCard} ${companyMode === 'shared' ? styles.modeCardActive : ''}`}>
-            <input
-              type="radio"
-              name="companyMode"
-              value="shared"
-              checked={companyMode === 'shared'}
-              onChange={() => setCompanyMode('shared')}
-            />
-            <span className={styles.modeIcon} aria-hidden>🤝</span>
-            <span className={styles.modeBody}>
-              <span className={styles.modeName}>Колега во иста компанија</span>
-              <span className={styles.modeDesc}>
-                Споделете го истиот профил на компанија. Документите се потпишуваат
-                под вашата фирма. Промените во вашите податоци автоматски се
-                ажурираат и кај членот.
-              </span>
-            </span>
-          </label>
-          <label className={`${styles.modeCard} ${companyMode === 'independent' ? styles.modeCardActive : ''}`}>
-            <input
-              type="radio"
-              name="companyMode"
-              value="independent"
-              checked={companyMode === 'independent'}
-              onChange={() => setCompanyMode('independent')}
-            />
-            <span className={styles.modeIcon} aria-hidden>🏢</span>
-            <span className={styles.modeBody}>
-              <span className={styles.modeName}>Свој профил на компанија</span>
-              <span className={styles.modeDesc}>
-                Овој корисник работи под своја фирма — ќе си внесе свои податоци.
-                Корисно ако давате услуги на клиентски фирми.
-              </span>
-            </span>
-          </label>
-        </fieldset>
-
         {err && <div className={styles.modalErr}>{err}</div>}
 
         <div className={styles.modalActions}>
           <button type="button" className={styles.btnGhost} onClick={onCancel} disabled={busy}>Откажи</button>
-          <button type="submit" className={styles.btnPrimary} disabled={busy || !companyMode}>
+          <button type="submit" className={styles.btnPrimary} disabled={busy}>
             {busy ? 'Се испраќа…' : 'Прати покана'}
           </button>
         </div>

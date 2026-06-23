@@ -44,7 +44,7 @@ export default function PublicNavbarV2() {
           </div>
           <Link to="/login" className={styles.loginBtn}>{t('nav.terminalLogin')}</Link>
           <button
-            className={styles.hamburger}
+            className={`${styles.hamburger} ${open ? styles.hamburgerOpen : ''}`}
             aria-label={t('nav.menu')}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
@@ -57,6 +57,18 @@ export default function PublicNavbarV2() {
         {links.map(l => (
           <Link key={l.to} to={l.to} onClick={() => setOpen(false)}>{l.label}</Link>
         ))}
+        <div className={styles.mobileLangSwitch} role="group" aria-label="Language">
+          <button
+            type="button"
+            className={`${styles.langBtn} ${lang === 'mk' ? styles.langBtnActive : ''}`}
+            onClick={() => switchLang('mk')}
+          >MK</button>
+          <button
+            type="button"
+            className={`${styles.langBtn} ${lang === 'en' ? styles.langBtnActive : ''}`}
+            onClick={() => switchLang('en')}
+          >EN</button>
+        </div>
         <Link to="/login" className={styles.loginBtn} onClick={() => setOpen(false)}>{t('nav.terminalLogin')}</Link>
       </div>
     </nav>

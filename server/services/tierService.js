@@ -4,10 +4,9 @@
  * Single source of truth on the server for "which tier predicate should the
  * route gate on?" Mirrored by client/src/lib/tier.js — keep both in sync.
  *
- * Tier letters:
- *   A = standard       → Nexa Платформа
- *   B = admin_5        → Nexa Мрежа · Кантора
- *   C = admin_10       → Nexa Мрежа · Студио
+ * Tier letters (two-tier model — Ultra merged into Pro):
+ *   A = basic  (legacy: standard)                 → Nexa Basic
+ *   B = pro    (legacy: admin_5, admin_10)         → Nexa Pro
  *   ADMIN = platform admin (Martin).
  */
 
@@ -18,9 +17,9 @@ function effectiveTier(user) {
   if (user.role === 'admin') return 'ADMIN';
   if (user.role === 'sub_seat') return 'A';
   const plan = user.subscription?.plan;
-  if (plan === 'admin_10') return 'C';
-  if (plan === 'admin_5')  return 'B';
-  // Fallback: role=admin_user with missing/stale plan info → minimum B.
+  if (plan === 'pro' || plan === 'admin_5' || plan === 'admin_10') return 'B';
+  if (plan === 'basic' || plan === 'standard') return 'A';
+  // Fallback: role=admin_user with missing/stale plan info → Pro (B).
   if (user.role === 'admin_user') return 'B';
   return 'A';
 }
@@ -30,8 +29,8 @@ function isTrial(user) {
 }
 
 function intendedTier(user) {
-  if (user?.intendedPlan === 'admin_10') return 'C';
-  if (user?.intendedPlan === 'admin_5')  return 'B';
+  const p = user?.intendedPlan;
+  if (p === 'pro' || p === 'admin_5' || p === 'admin_10') return 'B';
   if (user?.role === 'admin_user') return 'B';
   return 'A';
 }
@@ -63,15 +62,14 @@ function canRequestQATopic(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'C')     return { allowed: true };
+  if (eff === 'B')     return { allowed: true }; // Topics Q&A is now a Pro feature
   return { allowed: false, reason: 'plan' };
 }
 
 function subSeatLimit(user) {
   const eff = effectiveTier(user);
-  if (eff === 'C') return 10;
-  if (eff === 'B') return 5;
-  return 0;
+  if (eff === 'B') return 25; // Pro → client companies
+  return 0;                   // Basic co-worker seats wired in the sub-user phase
 }
 
 // Virtual fair: any active paid plan (A/B/C) may post a booth; trial/preview

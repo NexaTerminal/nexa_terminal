@@ -20,19 +20,33 @@ const cases = [
               canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
               subSeats: 0 } },
 
-  // Paid Type B — admin_5 plan, active.
-  { name: 'paid-B',
+  // Canonical Basic — basic plan, active.
+  { name: 'paid-basic',
+    user: { role: 'standard_user', subscription: { status: 'active', plan: 'basic' } },
+    expect: { effective: 'A', isTrial: false, visible: 'A',
+              canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
+              subSeats: 0 } },
+
+  // Canonical Pro — pro plan, active. Pro gets blog/interest/Topics + 25 seats.
+  { name: 'paid-pro',
+    user: { role: 'admin_user', subscription: { status: 'active', plan: 'pro' } },
+    expect: { effective: 'B', isTrial: false, visible: 'B',
+              canSubmitBlog: true, canExpressInterest: true, canRequestQATopic: true,
+              subSeats: 25 } },
+
+  // Legacy admin_5 — resolves to Pro (B) post-merge.
+  { name: 'legacy-admin_5→B',
     user: { role: 'admin_user', subscription: { status: 'active', plan: 'admin_5' } },
     expect: { effective: 'B', isTrial: false, visible: 'B',
-              canSubmitBlog: true, canExpressInterest: true, canRequestQATopic: false,
-              subSeats: 5 } },
-
-  // Paid Type C — admin_10 plan, active.
-  { name: 'paid-C',
-    user: { role: 'admin_user', subscription: { status: 'active', plan: 'admin_10' } },
-    expect: { effective: 'C', isTrial: false, visible: 'C',
               canSubmitBlog: true, canExpressInterest: true, canRequestQATopic: true,
-              subSeats: 10 } },
+              subSeats: 25 } },
+
+  // Legacy admin_10 (Ultra) — MERGED into Pro (B).
+  { name: 'legacy-admin_10→B',
+    user: { role: 'admin_user', subscription: { status: 'active', plan: 'admin_10' } },
+    expect: { effective: 'B', isTrial: false, visible: 'B',
+              canSubmitBlog: true, canExpressInterest: true, canRequestQATopic: true,
+              subSeats: 25 } },
 
   // Trial user with intent of B — sees B sidebar, cannot act.
   { name: 'trial-intent-B',
@@ -41,15 +55,15 @@ const cases = [
               canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
               subSeats: 0 } },
 
-  // Trial user with intent of C — sees C sidebar, cannot act.
-  { name: 'trial-intent-C',
+  // Trial user with legacy intent admin_10 — now surfaces Pro (B) sidebar.
+  { name: 'trial-intent-admin_10→B',
     user: { role: 'standard_user', intendedPlan: 'admin_10', subscription: { status: 'trial' } },
-    expect: { effective: 'A', isTrial: true, visible: 'C',
+    expect: { effective: 'A', isTrial: true, visible: 'B',
               canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
               subSeats: 0 } },
 
-  // Sub-seat of a C-tier parent — always renders as A.
-  { name: 'sub-seat-of-C',
+  // Sub-seat of a Pro parent — always renders as A.
+  { name: 'sub-seat-of-pro',
     user: { role: 'sub_seat', parentSuperUserId: 'p1', subscription: { status: 'active', plan: 'admin_10' } },
     expect: { effective: 'A', isTrial: false, visible: 'A',
               canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
@@ -62,12 +76,14 @@ const cases = [
               canSubmitBlog: true, canExpressInterest: true, canRequestQATopic: true,
               subSeats: 0 } },
 
-  // Pending approval counts as trial — sidebar visible by intent but actions disabled.
-  { name: 'pending-approval-intent-B',
+  // Pending approval counts as trial — actions disabled (isTrial), but an
+  // admin_user resolves to Pro (B) via the stale-data fallback, so sidebar +
+  // seat hint reflect Pro. Real seat provisioning is gated server-side by status.
+  { name: 'pending-approval-admin_user',
     user: { role: 'admin_user', intendedPlan: 'admin_5', subscription: { status: 'pending_approval' } },
-    expect: { effective: 'A', isTrial: true, visible: 'B',
+    expect: { effective: 'B', isTrial: true, visible: 'B',
               canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
-              subSeats: 0 } }
+              subSeats: 25 } }
 ];
 
 let failed = 0;

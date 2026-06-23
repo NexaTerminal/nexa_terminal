@@ -2,6 +2,7 @@ import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import { OrganizationSchema, FAQSchema } from '../../components/seo/StructuredData';
+import styles from '../../styles/website/LegalLandingPage.module.css';
 
 export default function EmploymentPage() {
   const faqs = [
@@ -27,108 +28,60 @@ export default function EmploymentPage() {
       <FAQSchema questions={faqs} />
 
       {/* Dark header bar for navbar visibility */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '80px',
-        background: 'linear-gradient(135deg, #1E4DB7 0%, #3B82F6 50%, #06B6D4 100%)',
-        zIndex: 9998
-      }} />
+      <div className={styles.headerBar} />
 
       <SimpleNavbar />
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        background: '#f9fafb'
-      }}>
-        <main style={{
-          maxWidth: '900px',
-          margin: '0 auto',
-          padding: '8rem 2rem 4rem 2rem',
-          flex: 1,
-          width: '100%'
-        }}>
-        <header style={{ marginBottom: '3rem' }}>
-          <h1 style={{
-            fontSize: '2.5rem',
-            fontWeight: '800',
-            color: '#262626',
-            marginBottom: '1rem'
-          }}>
+      <div className={styles.page}>
+        <main className={styles.main}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>
             Работни односи
           </h1>
-          <p style={{
-            fontSize: '1.125rem',
-            color: '#525252',
-            lineHeight: '1.8'
-          }}>
+          <p className={styles.lead}>
             Сè што треба да знаете за договори за вработување, права на вработени и работно законодавство
           </p>
         </header>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Видови на договори
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+          <div className={styles.cardStack}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Договор на неопределено време
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 Стандарден договор без утврден рок за престанок. Полни права и бенефиции за вработениот.
               </p>
             </div>
 
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Договор на определено време
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 До 5 години вкупно (вклучувајќи продолжувања). Користи се за сезонски работи, замени или проекти.
               </p>
             </div>
 
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Договор за дополнителна работа
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 Работа кај друг работодавач покрај редовниот. Ограничена на 8 часа неделно.
               </p>
             </div>
           </div>
         </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Документи што ги генерираме
           </h2>
-          <ul style={{
-            listStyle: 'none',
-            padding: 0,
-            color: '#525252',
-            lineHeight: '2'
-          }}>
+          <ul className={styles.checkList}>
             <li>✓ Договор за вработување</li>
             <li>✓ Анекс на договор</li>
             <li>✓ Одлука за престанок на договор</li>
@@ -139,51 +92,30 @@ export default function EmploymentPage() {
           </ul>
         </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1.5rem' }}>
+        <section className={styles.section}>
+          <h2 className={`${styles.sectionTitle} ${styles.sectionTitleSpaced}`}>
             Често поставувани прашања
           </h2>
           {faqs.map((faq, index) => (
-            <div key={index} style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              marginBottom: '1rem'
-            }}>
-              <h3 style={{ fontSize: '1.125rem', color: '#262626', marginBottom: '0.75rem' }}>
+            <div key={index} className={styles.faqCard}>
+              <h3 className={styles.faqQuestion}>
                 {faq.question}
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6', margin: 0 }}>
+              <p className={styles.faqAnswer}>
                 {faq.answer}
               </p>
             </div>
           ))}
         </section>
 
-        <section style={{
-          background: '#F0F7FF',
-          padding: '2rem',
-          borderRadius: '12px'
-        }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.cta}>
+          <h2 className={styles.ctaTitle}>
             Генерирајте договори автоматски
           </h2>
-          <p style={{ color: '#525252', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+          <p className={styles.ctaText}>
             Со Nexa Terminal, сите работни документи се генерираат за 30 секунди.
           </p>
-          <a
-            href="/"
-            style={{
-              display: 'inline-block',
-              background: '#4F46E5',
-              color: 'white',
-              padding: '0.75rem 2rem',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: '600'
-            }}
-          >
+          <a href="/" className={styles.ctaButton}>
             Започни сега →
           </a>
         </section>

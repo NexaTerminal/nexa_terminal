@@ -77,6 +77,10 @@ export default function SubscriptionStatusBanner() {
       ? `Претплатата истекува за ${daysLabel(days)}. Извршете уплата за следниот период.`
       : 'Претплатата истекува денес.';
     ctaLabel = 'Обнови';
+  } else if (status === 'none') {
+    variant = 'trial';
+    line = 'Сметката не е активирана. Внесете код или изберете план за да започнете.';
+    ctaLabel = 'Изберете план';
   } else if (status === 'pending_approval') {
     variant = 'info';
     line = 'Барањето за претплата чека одобрување. Активирањето е автоматско по потврда на уплатата.';

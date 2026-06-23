@@ -86,6 +86,14 @@
   .statValue { font-size: 28px; }
 }
 
+/* Stack CTAs as full-width buttons on phones for easy tapping */
+@media (max-width: 480px) {
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 32px; }
+  .heroCtas { flex-direction: column; gap: 12px; }
+  .heroCtas > a { width: 100%; }
+}
+
 /* ============ Section heads ============ */
 .sectionHead {
   max-width: 700px;
@@ -251,6 +259,10 @@
 .ctaInner p { color: rgba(255,255,255,0.78); font-size: 17px; margin-bottom: 32px; }
 .ctaButtons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 @media (max-width: 640px) { .ctaInner h2 { font-size: 28px; } }
+@media (max-width: 480px) {
+  .ctaButtons { flex-direction: column; gap: 12px; }
+  .ctaButtons > a { width: 100%; }
+}
 
 /* ============ Satellite showcase — compact 3-col grid ============ */
 .satelliteList {

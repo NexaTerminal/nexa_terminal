@@ -2,6 +2,7 @@ import SimpleNavbar from '../../components/common/SimpleNavbar';
 import PublicFooter from '../../components/common/PublicFooter';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import { OrganizationSchema, FAQSchema } from '../../components/seo/StructuredData';
+import styles from '../../styles/website/LegalLandingPage.module.css';
 
 export default function TrademarkPage() {
   const faqs = [
@@ -27,113 +28,61 @@ export default function TrademarkPage() {
       <FAQSchema questions={faqs} />
 
       {/* Dark header bar for navbar visibility */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '80px',
-        background: 'linear-gradient(135deg, #1E4DB7 0%, #3B82F6 50%, #06B6D4 100%)',
-        zIndex: 9998
-      }} />
+      <div className={styles.headerBar} />
 
       <SimpleNavbar />
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        background: '#f9fafb'
-      }}>
-        <main style={{
-          maxWidth: '900px',
-          margin: '0 auto',
-          padding: '8rem 2rem 4rem 2rem',
-          flex: 1,
-          width: '100%'
-        }}>
-        <header style={{ marginBottom: '3rem' }}>
-          <h1 style={{
-            fontSize: '2.5rem',
-            fontWeight: '800',
-            color: '#262626',
-            marginBottom: '1rem'
-          }}>
+      <div className={styles.page}>
+        <main className={styles.main}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>
             Трговска марка и заштита на жиг
           </h1>
-          <p style={{
-            fontSize: '1.125rem',
-            color: '#525252',
-            lineHeight: '1.8'
-          }}>
+          <p className={styles.lead}>
             Комплетна заштита на вашиот бренд - од регистрација до обновување на трговска марка во Северна Македонија
           </p>
         </header>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Зошто е важна регистрацијата?
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+          <div className={styles.cardStack}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Ексклузивно право на користење
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 Само вие имате право да ја користите вашата трговска марка во регистрираните класи на производи и услуги.
               </p>
             </div>
 
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Правна заштита
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 Можност за тужба против секој што ја користи вашата марка без дозвола. Заштита од копирање и неовластена употреба.
               </p>
             </div>
 
-            <div style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#262626', marginBottom: '0.5rem' }}>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
                 Градење на бренд вредност
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6' }}>
+              <p className={styles.cardText}>
                 Регистрираната марка станува ваш актив што може да се продава, лицeнцира или користи како обезбедување.
               </p>
             </div>
           </div>
         </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Процес на регистрација
           </h2>
-          <div style={{
-            background: 'white',
-            padding: '2rem',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-          }}>
-            <ol style={{
-              color: '#525252',
-              lineHeight: '2',
-              paddingLeft: '1.5rem'
-            }}>
+          <div className={styles.panel}>
+            <ol className={styles.orderedList}>
               <li><strong>Пребарување</strong> - Проверка дали марката е слободна за регистрација</li>
               <li><strong>Подготовка на документација</strong> - Определување на класи и подготовка на барање</li>
               <li><strong>Поднесување на барање</strong> - Аплицирање во Државен завод за индустриска сопственост</li>
@@ -146,73 +95,43 @@ export default function TrademarkPage() {
           </div>
         </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Класи на производи и услуги
           </h2>
-          <p style={{
-            color: '#525252',
-            lineHeight: '1.6',
-            marginBottom: '1rem'
-          }}>
+          <p className={styles.note}>
             Трговските марки се регистрираат според Нискската класификација која содржи 45 класи:
           </p>
-          <ul style={{
-            listStyle: 'none',
-            padding: 0,
-            color: '#525252',
-            lineHeight: '2'
-          }}>
+          <ul className={styles.checkList}>
             <li>✓ Класи 1-34: Производи (хемикалии, прехранбени производи, облека, итн.)</li>
             <li>✓ Класи 35-45: Услуги (маркетинг, финансии, правни услуги, итн.)</li>
           </ul>
         </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1.5rem' }}>
+        <section className={styles.section}>
+          <h2 className={`${styles.sectionTitle} ${styles.sectionTitleSpaced}`}>
             Често поставувани прашања
           </h2>
           {faqs.map((faq, index) => (
-            <div key={index} style={{
-              background: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              marginBottom: '1rem'
-            }}>
-              <h3 style={{ fontSize: '1.125rem', color: '#262626', marginBottom: '0.75rem' }}>
+            <div key={index} className={styles.faqCard}>
+              <h3 className={styles.faqQuestion}>
                 {faq.question}
               </h3>
-              <p style={{ color: '#525252', lineHeight: '1.6', margin: 0 }}>
+              <p className={styles.faqAnswer}>
                 {faq.answer}
               </p>
             </div>
           ))}
         </section>
 
-        <section style={{
-          background: '#F0F7FF',
-          padding: '2rem',
-          borderRadius: '12px'
-        }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#262626', marginBottom: '1rem' }}>
+        <section className={styles.cta}>
+          <h2 className={styles.ctaTitle}>
             Заштитете ја вашата марка денес
           </h2>
-          <p style={{ color: '#525252', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+          <p className={styles.ctaText}>
             Nexa Terminal ви помага да ја регистрирате вашата трговска марка брзо и ефикасно.
           </p>
-          <a
-            href="/"
-            style={{
-              display: 'inline-block',
-              background: '#4F46E5',
-              color: 'white',
-              padding: '0.75rem 2rem',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: '600'
-            }}
-          >
+          <a href="/" className={styles.ctaButton}>
             Започни сега →
           </a>
         </section>

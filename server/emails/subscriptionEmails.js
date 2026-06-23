@@ -42,13 +42,23 @@ const fmtDate = (d, lang) => {
   return date.toLocaleDateString(lang === 'mk' ? 'mk-MK' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
-// Nexa 3.0 public-facing tier labels.
+// Public-facing tier labels (two-tier model — Basic + Pro).
 const planLabel = (plan, lang) => {
-  if (plan === 'admin_5')  return lang === 'mk' ? 'Nexa Мрежа · Кантора' : 'Nexa Network · Kantora';
-  if (plan === 'admin_10') return lang === 'mk' ? 'Nexa Мрежа · Студио'  : 'Nexa Network · Studio';
-  if (plan === 'admin')    return lang === 'mk' ? 'Nexa Мрежа · Кантора' : 'Nexa Network · Kantora'; // legacy fallback
-  if (plan === 'standard') return lang === 'mk' ? 'Nexa Платформа'       : 'Nexa Platform';
+  if (plan === 'pro')      return lang === 'mk' ? 'Nexa Про'   : 'Nexa Pro';
+  if (plan === 'basic')    return lang === 'mk' ? 'Nexa Основен' : 'Nexa Basic';
+  // legacy fallbacks
+  if (plan === 'admin_5')  return lang === 'mk' ? 'Nexa Про' : 'Nexa Pro';
+  if (plan === 'admin_10') return lang === 'mk' ? 'Nexa Про' : 'Nexa Pro';
+  if (plan === 'admin')    return lang === 'mk' ? 'Nexa Про' : 'Nexa Pro';
+  if (plan === 'standard') return lang === 'mk' ? 'Nexa Основен' : 'Nexa Basic';
   return plan || '';
+};
+
+// Short tier word for promo CTA copy ("30 дена Pro").
+const tierWord = (plan, lang) => {
+  const isBasic = plan === 'basic' || plan === 'standard';
+  if (isBasic) return lang === 'mk' ? 'Основен' : 'Basic';
+  return lang === 'mk' ? 'Про' : 'Pro';
 };
 
 // Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
@@ -302,6 +312,93 @@ const subSeatInvite = ({ name, parentName, email, tempPassword }, language = 'mk
   return { subject: title, html: wrap('en', title, body, loginUrl, 'Sign in') };
 };
 
+// ---------- promo / sales code ----------
+
+/**
+ * Cold-outreach invitation carrying the hard-coded redeem deep link.
+ * One link type, reusable across campaigns — the code travels in the URL.
+ */
+const promoInvite = ({ code, plan = 'pro', days = 30 }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const url = `${PORTAL_URL}/redeem?code=${encodeURIComponent(code)}`;
+  const tier = tierWord(plan, lang);
+  const isPro = !(plan === 'basic' || plan === 'standard');
+  if (lang === 'mk') {
+    const title = `Активирајте ${days} дена Nexa ${tier} — бесплатно`;
+    const perks = isPro
+      ? 'целосен пристап до автоматизирани документи, AI помош, проверки за усогласеност и B2B мрежата'
+      : 'автоматизирани документи, AI помош, проверки за усогласеност, барање понуди и виртуелен саем';
+    const body = `<p>Здраво,</p>
+<p>Ве покануваме да го пробате <strong>Nexa ${tier}</strong> без обврска — ${perks}.</p>
+<p>Кликнете на копчето подолу за да активирате <strong>${days} дена бесплатно</strong>. Ако сè уште немате сметка, ќе ве водиме низ брза регистрација, а кодот се применува автоматски.</p>`;
+    return { subject: title, html: wrap('mk', title, body, url, `Активирај ${days} дена ${tier}`) };
+  }
+  const title = `Activate ${days} days of Nexa ${tier} — free`;
+  const perks = isPro
+    ? 'full access to document automation, AI assistance, compliance checks and the B2B network'
+    : 'document automation, AI assistance, compliance checks, offer requests and the virtual fair';
+  const body = `<p>Hi,</p>
+<p>We'd like you to try <strong>Nexa ${tier}</strong>, no strings attached — ${perks}.</p>
+<p>Click below to activate <strong>${days} days free</strong>. If you don't have an account yet, we'll walk you through a quick sign-up and the code applies automatically.</p>`;
+  return { subject: title, html: wrap('en', title, body, url, `Activate ${days} days of ${tier}`) };
+};
+
+/** Confirmation sent right after a code is successfully redeemed. */
+const promoActivated = ({ name, plan, endsAt }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const tier = tierWord(plan, lang);
+  if (lang === 'mk') {
+    const title = `Вашиот ${tier} пристап е активен`;
+    const body = `<p>Здраво ${name || ''},</p>
+<p>Вашиот <strong>${planLabel(plan, 'mk')}</strong> пристап е активиран со кодот и важи до <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
+<p>За да ги користите сите функции, потврдете ја вашата фирма во Терминалот.</p>`;
+    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/terminal`, 'Отвори терминал') };
+  }
+  const title = `Your ${tier} access is active`;
+  const body = `<p>Hi ${name || ''},</p>
+<p>Your <strong>${planLabel(plan, 'en')}</strong> access has been activated with the code and is valid until <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
+<p>To use every feature, verify your company inside the Terminal.</p>`;
+  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/terminal`, 'Open the Terminal') };
+};
+
+// ---------- promo conversion nudges ----------
+
+/** "Your free {tier} ends in 3 days" → convert to a paid plan. */
+const promoEndingIn3Days = ({ name, plan = 'pro', endsAt }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const tier = tierWord(plan, lang);
+  if (lang === 'mk') {
+    const title = `Вашиот бесплатен ${tier} истекува за 3 дена`;
+    const body = `<p>Здраво ${name || ''},</p>
+<p>Вашиот бесплатен пристап до <strong>Nexa ${tier}</strong> завршува на <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
+<p>За да го задржите пристапот без прекин, изберете план и продолжете да работите без застој.</p>`;
+    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Изберете план') };
+  }
+  const title = `Your free ${tier} ends in 3 days`;
+  const body = `<p>Hi ${name || ''},</p>
+<p>Your free access to <strong>Nexa ${tier}</strong> ends on <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
+<p>To keep your access without interruption, pick a plan and carry on uninterrupted.</p>`;
+  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
+};
+
+/** "Your free {tier} has ended" → subscribe to restore access. */
+const promoEnded = ({ name, plan = 'pro' }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const tier = tierWord(plan, lang);
+  if (lang === 'mk') {
+    const title = `Вашиот бесплатен ${tier} период заврши`;
+    const body = `<p>Здраво ${name || ''},</p>
+<p>Вашиот бесплатен период со <strong>Nexa ${tier}</strong> заврши. Вашите податоци се сочувани.</p>
+<p>За да го вратите целосниот пристап, изберете план — продолжувате точно од таму каде што застанавте.</p>`;
+    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Изберете план') };
+  }
+  const title = `Your free ${tier} period has ended`;
+  const body = `<p>Hi ${name || ''},</p>
+<p>Your free <strong>Nexa ${tier}</strong> period has ended. Your data is safe.</p>
+<p>To restore full access, pick a plan — you'll continue right where you left off.</p>`;
+  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
+};
+
 // ---------- admin notification ----------
 
 const adminApprovalNeeded = ({ userEmail, userName, plan, cycle }, language = 'mk') => {
@@ -324,5 +421,9 @@ module.exports = {
   adminApprovalNeeded,
   subSeatInvite,
   paymentInstructions,
-  graceBegun
+  graceBegun,
+  promoInvite,
+  promoActivated,
+  promoEndingIn3Days,
+  promoEnded
 };

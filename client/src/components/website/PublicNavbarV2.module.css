@@ -108,36 +108,85 @@
 .hamburger:hover { background: var(--nx-bg-soft); }
 .hamburger span {
   display: block;
-  width: 20px;
-  height: 1.5px;
+  width: 22px;
+  height: 2px;
   background: var(--nx-ink);
   margin: 4px 0;
   border-radius: 2px;
-  transition: transform 120ms var(--nx-ease);
+  transition: transform 180ms var(--nx-ease), opacity 120ms var(--nx-ease);
 }
+/* Morph the three bars into an X when the menu is open */
+.hamburgerOpen span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburgerOpen span:nth-child(2) { opacity: 0; }
+.hamburgerOpen span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
 .mobileMenu {
   display: none;
   flex-direction: column;
-  padding: 8px 16px 20px;
+  padding: 10px 16px 18px;
   border-top: 1px solid var(--nx-line);
   background: #fff;
-  gap: 4px;
+  gap: 2px;
 }
 .mobileMenu a {
   color: var(--nx-text) !important;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 16px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   text-decoration: none !important;
 }
-.mobileMenu a:hover { background: var(--nx-bg-soft); color: var(--nx-ink) !important; }
-.mobileMenu .loginBtn { margin-top: 8px; }
+.mobileMenu a:hover,
+.mobileMenu a:active { background: var(--nx-bg-soft); color: var(--nx-ink) !important; }
+
+/* Language switch inside the open menu */
+.mobileLangSwitch {
+  display: inline-flex;
+  align-self: flex-start;
+  background: var(--nx-bg-soft);
+  border-radius: 999px;
+  padding: 4px;
+  border: 1px solid var(--nx-line);
+  margin: 10px 12px 4px;
+}
+.mobileLangSwitch .langBtn { padding: 8px 16px; font-size: 13px; }
+
+/* Divider + full-width login at the bottom of the menu */
+.mobileMenu .loginBtn {
+  margin: 12px 12px 0;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  justify-content: center;
+  border-top: 0;
+}
 
 @media (max-width: 960px) {
   .nav { display: none; }
   .hamburger { display: block; }
-  .mobileMenu.open { display: flex; }
   .inner { gap: 12px; padding: 12px 20px; }
   .right .loginBtn { display: none; }
+  /* Hide the cramped top-bar language switch; it lives in the menu on mobile */
+  .right .langSwitch { display: none; }
+
+  /* Animated dropdown panel anchored under the sticky bar */
+  .mobileMenu {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    box-shadow: 0 16px 32px -16px rgba(11, 18, 32, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 180ms var(--nx-ease), transform 180ms var(--nx-ease), visibility 180ms var(--nx-ease);
+  }
+  .mobileMenu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
 }

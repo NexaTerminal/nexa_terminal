@@ -6,17 +6,22 @@
 const express = require('express');
 const { authenticateJWT } = require('../middleware/auth');
 const requireAdminUser = require('../middleware/requireAdminUser');
+const requireSeatManager = require('../middleware/requireSeatManager');
 
 module.exports = function buildAdminUserRoutes(controller) {
   const router = express.Router();
-  router.use(authenticateJWT, requireAdminUser);
+  router.use(authenticateJWT);
 
-  router.get('/me',                     (req, res) => controller.getSummary(req, res));
-  router.get('/seats',                  (req, res) => controller.listSeats(req, res));
-  router.post('/seats',                 (req, res) => controller.inviteSeat(req, res));
-  router.delete('/seats/:id',             (req, res) => controller.revokeSeat(req, res));
-  router.post('/seats/:id/reactivate',    (req, res) => controller.reactivateSeat(req, res));
-  router.post('/seats/:id/reset-password',(req, res) => controller.resetSeatPassword(req, res));
+  // Pro dashboard summary — Pro (admin_user) only.
+  router.get('/me', requireAdminUser, (req, res) => controller.getSummary(req, res));
+
+  // Sub-user (seat) management — both tiers (Basic co-workers / Pro clients).
+  // The seat TYPE is derived from the caller's role inside SubSeatService.
+  router.get('/seats',                     requireSeatManager, (req, res) => controller.listSeats(req, res));
+  router.post('/seats',                    requireSeatManager, (req, res) => controller.inviteSeat(req, res));
+  router.delete('/seats/:id',              requireSeatManager, (req, res) => controller.revokeSeat(req, res));
+  router.post('/seats/:id/reactivate',     requireSeatManager, (req, res) => controller.reactivateSeat(req, res));
+  router.post('/seats/:id/reset-password', requireSeatManager, (req, res) => controller.resetSeatPassword(req, res));
 
   return router;
 };

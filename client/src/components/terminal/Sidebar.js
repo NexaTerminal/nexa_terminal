@@ -112,9 +112,10 @@ const Sidebar = () => {
     {
       key: 'users-admin', label: 'Корисници',
       children: [
-        { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
-        { path: '/terminal/admin/subscriptions', label: 'Претплати' },
-        { path: '/terminal/admin/pro-invoices',  label: 'Профактури' }
+        { path: '/terminal/admin/all-users',               label: 'Сите корисници' },
+        { path: '/terminal/admin/subscriptions',           label: 'Претплати' },
+        { path: '/terminal/admin/subscriptions?tab=codes', label: 'Промо кодови' },
+        { path: '/terminal/admin/pro-invoices',            label: 'Профактури' }
       ]
     },
     {

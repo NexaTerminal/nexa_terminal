@@ -17,6 +17,7 @@ function userRoutes(controller) {
   router.get('/me',                (req, res) => controller.getMine(req, res));
   router.post('/request-approval', (req, res) => controller.requestApproval(req, res));
   router.post('/request-invoice',  (req, res) => controller.requestInvoice(req, res));
+  router.post('/redeem-code',      (req, res) => controller.redeemCode(req, res));
   return router;
 }
 
@@ -29,6 +30,13 @@ function adminRoutes(controller) {
   router.post('/:userId/reject',      (req, res) => controller.reject(req, res));
   router.post('/:userId/extend',      (req, res) => controller.extend(req, res));
   router.post('/:userId/suspend',     (req, res) => controller.suspend(req, res));
+  // Promo / sales codes. Static paths are registered BEFORE the `:userId`
+  // routes above only matter for collisions; `/codes` does not collide with
+  // `/:userId/*`, so ordering is safe.
+  router.get('/codes',                  (req, res) => controller.listCodes(req, res));
+  router.post('/codes',                 (req, res) => controller.createCode(req, res));
+  router.post('/codes/send-invite',     (req, res) => controller.sendInvite(req, res));
+  router.post('/codes/:code/deactivate',(req, res) => controller.deactivateCode(req, res));
   return router;
 }
 

@@ -4,14 +4,13 @@
  * Single source of truth for "which tier surfaces should this user see?"
  * Mirrored by server/services/tierService.js — keep both in sync.
  *
- * Tier letters map to plan keys:
- *   A = standard       → Nexa Платформа
- *   B = admin_5        → Nexa Мрежа · Кантора
- *   C = admin_10       → Nexa Мрежа · Студио
+ * Tier letters map to plan keys (two-tier model — Ultra merged into Pro):
+ *   A = basic  (legacy: standard)             → Nexa Basic
+ *   B = pro    (legacy: admin_5, admin_10)     → Nexa Pro
  *   ADMIN = platform admin (Martin) — bypass everything.
  *
  * Sub-seats always render as A for sidebar visibility (they inherit access
- * from the parent's plan for gating, but never see B/C-only surfaces).
+ * from the parent's plan for gating, but never see B-only surfaces).
  */
 
 const TIER_TRIAL_STATUSES = new Set(['trial', 'pending_approval']);
@@ -20,10 +19,11 @@ export function effectiveTier(user) {
   if (!user) return null;
   if (user.role === 'admin') return 'ADMIN';
   if (user.role === 'sub_seat') return 'A';
-  if (user.subscription?.plan === 'admin_10') return 'C';
-  if (user.subscription?.plan === 'admin_5')  return 'B';
+  const plan = user.subscription?.plan;
+  if (plan === 'pro' || plan === 'admin_5' || plan === 'admin_10') return 'B';
+  if (plan === 'basic' || plan === 'standard') return 'A';
   // Fallback: a user with role=admin_user but missing/stale subscription data
-  // is at minimum tier B (admin_user implies an admin plan). Without this,
+  // is at minimum tier B (admin_user implies the Pro plan). Without this,
   // a stale token or partial response collapses them to A and the
   // Blogs / Leads / Sub-users sidebar entries disappear.
   if (user.role === 'admin_user') return 'B';
@@ -73,9 +73,9 @@ export function hasFeatureAccess(user) {
 }
 
 export function intendedTier(user) {
-  if (user?.intendedPlan === 'admin_10') return 'C';
-  if (user?.intendedPlan === 'admin_5')  return 'B';
-  // Trial user with role=admin_user (chose an admin tier at signup) — surface B.
+  const p = user?.intendedPlan;
+  if (p === 'pro' || p === 'admin_5' || p === 'admin_10') return 'B';
+  // Trial user with role=admin_user (chose Pro at signup) — surface B.
   if (user?.role === 'admin_user') return 'B';
   return 'A';
 }
@@ -115,7 +115,7 @@ export function canRequestQATopic(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'C')     return { allowed: true };
+  if (eff === 'B')     return { allowed: true }; // Topics Q&A is now a Pro feature
   return { allowed: false, reason: 'plan' };
 }
 
@@ -128,15 +128,14 @@ export function canPostBooth(user) {
   if (user?.role === 'sub_seat') return { allowed: false, reason: 'plan' };
   if (isTrial(user)) return { allowed: false, reason: 'trial' };
   if (previewMode(user)) return { allowed: false, reason: 'trial' };
-  if (eff === 'A' || eff === 'B' || eff === 'C') return { allowed: true };
+  if (eff === 'A' || eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
 export function subSeatLimit(user) {
   const eff = effectiveTier(user);
-  if (eff === 'C') return 10;
-  if (eff === 'B') return 5;
-  return 0;
+  if (eff === 'B') return 25; // Pro → client companies
+  return 0;                   // Basic co-worker seats wired in the sub-user phase
 }
 
 /**
@@ -188,7 +187,14 @@ export function openSubscriptionGate(detail = {}) {
 // so the user can re-engage; actions still gate behind the order modal.
 export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
 export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
-export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'C' || v === 'ADMIN'              || previewMode(user); }
-export function showsSubUsers(user) { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN'; }
+export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'B' || v === 'ADMIN'              || previewMode(user); }
+// Sub-users: both tiers manage them (Basic → co-workers, Pro → clients), but
+// only account OWNERS with active access — not sub-seats, not locked accounts.
+export function showsSubUsers(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  if (user.role === 'sub_seat') return false;
+  return (user.role === 'standard_user' || user.role === 'admin_user') && hasFeatureAccess(user);
+}
 // Virtual fair is a browse-for-everyone surface — visible to any logged-in user.
 export function showsFair(user)     { return !!user; }

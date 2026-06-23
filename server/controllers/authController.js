@@ -378,11 +378,12 @@ class AuthController {
         { $set: { emailVerified: true, emailVerifiedAt: new Date(), updatedAt: new Date() } }
       );
 
-      // Now that the email is real, start the trial + credits.
+      // Email verified — initialize the account LOCKED (no auto-trial).
+      // Access begins only when a code is redeemed or a plan is purchased.
       try {
         const sub = req.app.locals.subscriptionService;
-        if (sub) await sub.startTrial(userId);
-      } catch (e) { console.error('startTrial after verify warning:', e.message); }
+        if (sub) await sub.initLocked(userId);
+      } catch (e) { console.error('initLocked after verify warning:', e.message); }
 
       try {
         const creditService = req.app.locals.creditService;

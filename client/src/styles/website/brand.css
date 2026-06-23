@@ -90,6 +90,10 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  /* Decorative absolute elements (hero orbs, rotated mock-card stacks) must
+     never produce horizontal scroll on small screens. `clip` keeps sticky
+     descendants working, unlike `hidden`. */
+  overflow-x: clip;
 }
 
 .nexa-public * { box-sizing: border-box; }
@@ -241,6 +245,9 @@
 .nexa-public .nexa-btn-lg { padding: 16px 30px; font-size: 16px; border-radius: 10px; }
 .nexa-public .nexa-btn-xl { padding: 18px 36px; font-size: 17px; border-radius: 12px; }
 
+/* Full-width button — used to stack CTAs on small screens */
+.nexa-public .nexa-btn-block { width: 100%; }
+
 /* ---------- Layout primitives ---------- */
 .nexa-public .nexa-container {
   max-width: 1180px;
@@ -253,6 +260,12 @@
   padding: 0 var(--nx-s-5);
 }
 .nexa-public main { min-height: 60vh; }
+
+/* Tighter gutters on small phones for more usable content width */
+@media (max-width: 480px) {
+  .nexa-public .nexa-container,
+  .nexa-public .nexa-container-narrow { padding: 0 var(--nx-s-4); }
+}
 
 /* ---------- Sections ---------- */
 .nexa-public .nx-section { padding: var(--nx-s-9) 0; }
@@ -461,6 +474,13 @@
 }
 .nexa-public input::placeholder,
 .nexa-public textarea::placeholder { color: #9CA3AF; }
+
+/* 16px controls on mobile prevent iOS Safari from auto-zooming on focus */
+@media (max-width: 768px) {
+  .nexa-public input,
+  .nexa-public textarea,
+  .nexa-public select { font-size: 16px; }
+}
 
 /* ---------- Focus ---------- */
 .nexa-public *:focus { outline: none; }

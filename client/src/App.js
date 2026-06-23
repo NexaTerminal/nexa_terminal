@@ -197,6 +197,8 @@ import VerificationRequired from './components/common/VerificationRequired';
 // Auth Components
 import PrivateRoute from './components/common/PrivateRoute';
 import AuthCallback from './components/common/AuthCallback';
+import Redeem from './pages/Redeem';
+import PromoRedeemWatcher from './components/PromoRedeemWatcher';
 
 import './styles/global.css';
 
@@ -209,10 +211,13 @@ function App() {
   }, [location]);
 
   return (
+    <>
+    <PromoRedeemWatcher />
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/redeem" element={<Redeem />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/ecosystem" element={<About />} />
@@ -423,6 +428,7 @@ function App() {
       <Route path="/terminal/admin/topics/submissions"        element={<PrivateRoute><AdminTopicsSubmissionsPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
     </Routes>
+    </>
   );
 }
 

@@ -1,180 +1,149 @@
-# Promo codes + redeem deep link + CTA email
+# Plan: Consolidate content surfaces — kill the duplicate newsfeed, build a terminal Updates feed
 
-Grant **Full Pro (admin_5) for 30 days at €0** via redeemable sales codes.
-Multi-use with a redemption cap + expiry; one redemption per user.
-Hard-coded reusable deep link `/redeem?code=CODE` sent via email CTA.
+## Goal
+Stop showing the **same published blogs** both publicly and inside the terminal.
+End state = three surfaces, each with one job:
 
-## Backend
-- [x] `_activate()` extracted from `approve()` in subscriptionService (shared activation)
-- [x] `paidVia` stored on `user.subscription` (enables promo-aware reminder suppression)
-- [x] `redeemPromo()` on subscriptionService (blocks double-dip on active paid plan)
-- [x] `promoCodeService.js` — promo_codes collection: create / list / deactivate / atomic claim
-- [x] Reminder suppression for `paidVia === 'promo'` in computeDueReminder
-- [x] Controller: `redeemCode` (user) + admin `listCodes / createCode / deactivateCode / sendInvite`
-- [x] Routes: user `POST /redeem-code`; admin `/codes` GET/POST, `/codes/:code/deactivate`, `/codes/send-invite`
-- [x] Wire PromoCodeService in server.js
-- [x] Email templates: `promoInvite` (CTA) + `promoActivated` (confirmation)
+1. **Public Blog** (`/blog`) — admin-written + user-submitted (admin-approved). The *only*
+   place blogs are read. Acquisition / SEO / newsletter / "marketing moment" the user pays for.
+2. **Terminal "Updates / Известувања"** — admin-authored short, dated, action-linked posts.
+   Member-only value. Replaces the Dashboard "newsfeed". Visible to **all logged-in users**.
+3. **Topics Q&A** (`/terminal/topics-qa`) — community contributions. Unchanged.
 
-## Frontend
-- [x] Redeem field on UserSubscription.js (+ post-redeem flash)
-- [x] Promo Codes admin panel in ManageSubscriptions.js (mint, list, copy link, send invite)
-- [x] Public `/redeem?code=` route + PromoRedeemWatcher (auto-apply post-auth)
-
-## Follow-up (round 2)
-- [x] Promo conversion reminders: `promo-3d` + `promo-expired` in computeDueReminder
-      (replaces blanket suppression); scheduler suspends on promo-expired
-- [x] Email templates `promoEndingIn3Days` + `promoEnded` (CTA → /pricing)
-- [x] "Promo" badge in admin Active tab (reads sub.paidVia==='promo')
-
-## Follow-up (round 3 — link-only)
-- [x] Removed manual code field from UserSubscription (kept auto-redeem result banner)
-- [x] Added one-click "Продолжи со Google" button on /redeem (lowest-friction path)
-- [x] End-to-end test (throwaway local DB): 25/25 checks pass — redeem, single-use,
-      cap, expiry, deactivation, day-27 nudge, day-30 suspend, no-stacking, paid-unaffected
-
-## Verify
-- [x] Backend: `node --check` all files pass; modules load; templates render correct hard-coded link
-- [x] Frontend: babel parse-check passes for all changed/new files
-- [x] E2E lifecycle proven against real Mongo (local test DB, dropped after)
-- [ ] Optional: live browser click-through (needs dev server — not run to avoid disrupting sessions)
-
-## Review
-- Promo = "approve without payment, user-triggered". `approve()` and `redeemPromo()`
-  share one `_activate()` so they can't drift; promo passes `amountEur:0`,
-  `paidVia:'promo'`, history note `promo:<CODE>`.
-- Abuse controls all in `promoCodeService.claim()`: single-use/user, global cap,
-  expiry, active flag — cap+single-use enforced atomically (race-safe last slot).
-  `redeemPromo` additionally blocks stacking onto a live *paid* plan.
-- One hard-coded reusable link type: `${PORTAL_URL}/redeem?code=CODE`. Admin panel
-  shows it to copy AND can app-send the `promoInvite` CTA email. Deep link
-  auto-applies post-auth via `PromoRedeemWatcher` (works for every auth path).
-- Promo periods expire at day 30 via the existing request-time guard; promo-aware
-  reminder suppression avoids the wrong "renew your subscription" emails.
-- NOT committed (parallel agents share this repo — awaiting all-clear).
-</content>
+User-confirmed: keep the **user blog-submission → admin approves → publish** workflow.
+This is a deliberate paid feature (we can feature submissions in a newsletter / share them).
 
 ---
 
-# Mobile optimization — public website
-
-Goal: make the public website (`.nexa-public` scope) look better and feel more
-optimized on phones, without touching the authenticated terminal app. Minimal,
-token-driven changes that build on the existing `brand.css` design system.
-
-## Scope (files)
-- `client/src/styles/website/brand.css` — global mobile refinements
-- `client/src/components/website/PublicNavbarV2.{js,module.css}` — mobile menu polish
-- `client/src/pages/website/Home.module.css` — hero/CTA stacking, decorative stacks
-- `client/src/pages/website/Pricing.module.css` — toggle/card spacing on small screens
-
-## Tasks
-
-### 1. Global (brand.css)
-- [ ] `overflow-x: clip` guard on `.nexa-public` (decorative orbs / mock-card
-      stacks can never cause horizontal scroll).
-- [ ] Tighten container gutters on small phones: `.nexa-container` / `-narrow`
-      padding → 16px at `max-width: 480px`.
-- [ ] Bump form control font-size to 16px at `max-width: 768px` to stop iOS
-      auto-zoom on focus (currently 15px).
-- [ ] Add `.nexa-btn-block` helper (full-width button) for mobile CTA rows.
-
-### 2. Navbar mobile menu
-- [ ] Animate open/close (max-height + opacity) instead of hard show/hide.
-- [ ] Animate hamburger lines into an "X" when open.
-- [ ] Larger tap targets (rows ≥44px), divider before login button.
-- [ ] Surface MK/EN language switch inside the open mobile menu.
-
-### 3. Home
-- [ ] Stack hero CTAs full-width on ≤480px (`.heroCtas`, `.ctaButtons`).
-- [ ] Constrain decorative mock stacks (`finalVisual`, `topicsCardStack`) so
-      rotated cards stay inside the viewport; reduce reserved height on phones.
-
-### 4. Pricing
-- [ ] Ensure billing/currency toggles wrap cleanly and stay tappable on narrow
-      screens.
-
-## Verification
-- [x] `cd client && CI=false react-scripts build` — compiles clean (CSS +268 B,
-      JS +59 B), no new errors.
-- [x] Reasoning pass at 360 / 390 / 768px: `overflow-x: clip` removes horizontal
-      scroll risk; CTAs/menu rows ≥44–48px; 16px inputs stop iOS zoom.
-
-## Review
-- All changes scoped to `.nexa-public` / website CSS modules — terminal app untouched.
-- brand.css: overflow-x guard, 16px gutters @≤480px, 16px inputs @≤768px,
-  `.nexa-btn-block` helper.
-- Navbar: animated dropdown panel (opacity/transform), hamburger→X, ≥48px rows,
-  language switch + full-width login moved into the mobile menu; cramped top-bar
-  lang switch hidden <960px.
-- Home: hero + final CTAs stack full-width @≤480px.
-- Pricing: already responsive (toggles wrap, cards stack @720px) — no change.
-- NOT committed (parallel agents share this repo — awaiting all-clear).
+## What's actually there now (verified)
+- Public read: `GET /api/blog` + `/api/blog/:id` (routes/blog.js) → `blogs` collection, `status:'published'`.
+- **Dashboard "newsfeed"** = `client/src/components/terminal/SocialFeed.js`, rendered in
+  `pages/terminal/Dashboard.js`. Despite the name, it fetches `GET /blogs?limit=10` — i.e. the
+  **same published blogs** as the public site. ← THE DUPLICATE.
+- Submission workflow (KEEP): `pages/terminal/Blogs.js` hub (`/terminal/blogs`), `SubmitBlog.js`,
+  routes `/api/blogs/submissions` + `/api/admin/blogs/submissions`. `adminPublish` writes the
+  approved submission into the `blogs` collection → it goes public.
+- Legacy/vestigial social system: `routes/social.js`, `controllers/socialController.js`,
+  `services/socialPostService.js`, `socialPosts` collection, `/api/social/*`. SocialFeed no longer
+  even uses it (reads `/blogs` instead). Open to all authenticated users to post.
+- In-terminal reader `BlogDetail.js` (`/terminal/blogs/:id`) — reads `/blogs/:id`.
 
 ---
 
-# Mobile optimization — phase 2 (remaining public pages)
+## Phase 1 — Remove the duplicate newsfeed
+- [ ] Replace the Dashboard `SocialFeed` with a new `UpdatesFeed` (Phase 2). Keep the genuinely
+      useful **action-shortcut grid** (templates / screening / AI) that SocialFeed currently renders —
+      move it into a small `DashboardShortcuts` block so we don't lose navigation value.
+- [ ] Delete `components/terminal/SocialFeed.js` + `styles/terminal/SocialFeed.module.css`
+      once UpdatesFeed lands.
+- [ ] Remove the in-terminal published-blog readers that duplicate the public site:
+      `pages/terminal/BlogDetail.js` route `/terminal/blogs/:id`. Where the submission hub links
+      "view my published article", point it to the public `/blog/:slug` instead (opens public page).
 
-## Findings
-- Blog / BlogPost / Login already have thorough responsive CSS (480/768/1024
-  breakpoints, grids → 1fr, 16px inputs, 44px targets, layout reorder). No change.
-- Real weak spot: the 5 SEO "legal landing" pages (/corporate, /employment,
-  /residence, /trademark, /topics) were built with pure inline styles (no media
-  queries possible), dated SimpleNavbar — fixed 40–48px headings + 8rem/2rem
-  padding on phones, and a `minmax(300px)` grid that overflows <320px.
+## Phase 2 — Build the terminal Updates feed (admin-authored)
+Reuse the existing `socialPosts` collection + `socialPostService` (no paying users → no migration
+cost) rather than adding a new collection. Repurpose it as "updates".
+- [ ] **Model/shape** per update: `{ title, body (short/markdown), category, ctaLabel?, ctaHref?,
+      status: 'published'|'draft', publishedAt, authorId }`.
+- [ ] **Server**: lock writes to admin only.
+      - `POST/PUT/DELETE /api/social/posts*` → require `isAdmin` (currently any auth user).
+      - Repurpose `GET /api/social/newsfeed` → returns published updates, newest first, paginated.
+        (Rename internally to `getUpdates`; default: add a clean `/api/updates` route + deprecate old.)
+- [ ] **Admin authoring UI**: small page `pages/terminal/admin/ManageUpdates.js` (+ add/edit) under
+      the existing admin sidebar group. Mirror the AddBlog form style but lighter (no image required).
+- [ ] **Dashboard**: new `components/terminal/UpdatesFeed.js` (+ css) → fetches updates, renders
+      dated cards with optional CTA ("view more" / action link). Visible to all logged-in users.
 
-## Done
-- [x] New shared `client/src/styles/website/LegalLandingPage.module.css` —
-      responsive container/typography/cards/FAQ/CTA + Topics grid; mobile
-      breakpoints @768/@480; `minmax(min(100%,300px),1fr)` overflow fix.
-- [x] Refactored all 5 pages off inline styles onto the module (also removes the
-      bulk of their inline styles per CLAUDE.md).
-- [x] `react-scripts build` compiles clean; verified new rules present in the
-      built CSS bundle.
+## Phase 3 — Strengthen the public blog + submission ("marketing moment")
+- [ ] Verify the public `/blog` cleanly shows both admin posts and approved user submissions
+      (they already land in `blogs` collection on publish — confirm author attribution renders).
+- [ ] Keep submission hub `/terminal/blogs` as-is (draft → submitted → admin review → published).
+- [ ] (Light) Ensure published author gets a clear "your article is live at /blog/..." state in
+      `MyPublishedBlogs` / hub so it's shareable. No new newsletter system in this pass.
 
-## Not done (out of scope unless asked)
-- Full inline-style purge across all website pages (Home still uses a few
-  intentional dynamic inline styles, e.g. reveal transition-delay, progress width).
+## Phase 4 — Cleanup
+- [ ] Decommission the legacy open social-posting path: remove `routes/social.js` user-post
+      endpoints we no longer use; keep only the admin updates surface. Drop any demo seeding in
+      `socialPostService` startup.
+- [ ] Remove dead CSRF-exempt entries in `server.js` for `/social/posts*` / `/social/newsfeed`
+      that no longer apply; add exemptions for the new updates read endpoint if public-cached.
+- [ ] i18n: rename `newsfeed` ("Business Newsfeed") strings to "Updates / Известувања";
+      remove unused social-post keys in `en/translation.json`, `mk/translation.json`,
+      `mk/translation_new.json`.
+- [ ] Sidebar: add admin "Updates / Известувања" entry to the admin sidebar group.
+      (No user-facing sidebar change — Updates lives on the Dashboard.)
+
+## Phase 5 — Verify
+- [ ] `cd server && npm test` (tierService etc. still green).
+- [ ] Manual: Dashboard shows UpdatesFeed (not blogs); public `/blog` shows admin + approved
+      user posts; submission flow still works end-to-end; no broken `/terminal/blogs/:id` links;
+      grep for residual `SocialFeed` / `newsfeed` references = none.
+- [ ] Build client (`cd client && npm run build`) to catch removed-import breakage.
 
 ---
 
-# Login / Signup redesign — minimal single card (mobile-first)
+## Decisions
+- Updates feed audience: **all logged-in users** (confirmed) — no tier gate this pass.
+- Keep user blog submissions (confirmed) — the paid "write & we feature it" feature.
+- Reuse `socialPosts` collection for Updates (no migration; no paying users).
+- In-terminal blog *reader* (`BlogDetail`) is removed; public `/blog/:slug` is the single reader.
 
-User picked: one centered card on a subtle aurora gradient, same on mobile &
-desktop (no side panel). Keep all existing auth logic.
+## Out of scope (note for later)
+- Actual newsletter sending pipeline.
+- Pro-gating Updates (can layer a tier check later if it becomes an upsell).
 
-## Constraints
-- `Login.module.css` is SHARED by ForgotPassword.js + ResetPassword.js → do NOT
-  rewrite it. New Login gets its own `Auth.module.css`; Login.js stops importing
-  the old module. Forgot/Reset untouched.
+## Review (implemented)
 
-## Tasks
-- [ ] New `client/src/styles/website/Auth.module.css` — brand `--nx-*` tokens,
-      centered card, aurora bg, segmented Login/Signup toggle, Google-first,
-      48px inputs/16px font, show/hide password, slim footer, verification step.
-- [ ] Rewrite `Login.js` JSX to the single-card layout; keep handlers (login,
-      registerSimple, verifyEmailCode, resend, Google OAuth, trial, strength).
-- [ ] Google OAuth above the form; segmented toggle replaces bottom text switch.
-- [ ] Add show/hide password toggle.
-- [ ] Remove dead code: SimpleNavbar, unused Header/Footer imports, i18n import,
-      TypewriterFeatures, commented blocks, empty `t('')` heading.
-- [x] VerificationForm → module classes (no inline styles).
-- [x] `react-scripts build` — Compiled successfully, no warnings.
+**Server**
+- New clean `updates` collection surface instead of repurposing the messy `socialPosts`
+  (deviation from plan — no real data to migrate, far more elegant):
+  - `controllers/updatesController.js` (list / adminList / create / update / remove).
+  - `routes/updates.js` — `GET /` (any logged-in user), `GET /admin` + `POST/PUT/DELETE` (admin only).
+  - Mounted unconditionally in `server.js`; CSRF exemptions swapped `/social/*` → `/updates*`.
+- Decommissioned the dead social system: removed `SocialPostService` startup and deleted
+  `routes/social.js`, `controllers/socialController.js`, `services/socialPostService.js`.
+- Left harmless residual `socialPosts` refs in analytics / userDeletion / investment cross-post
+  and the `social` feature flag — out of scope, no behavior impact.
 
-## Review
-- New `Auth.module.css` (single centered card on aurora bg, --nx tokens with
-  fallbacks). `Login.js` rewritten: logo + title + segmented Login/Signup toggle
-  + trial pill (signup) + Google-first + divider + form with show/hide password
-  + slim legal footer. Verification step restyled (no inline styles).
-- All auth logic preserved: loginWithUsername, registerSimple, verifyEmailCode,
-  resendVerificationCode, Google OAuth (+redirect state), password strength,
-  forgot-password link, redirect-if-logged-in.
-- Removed: SimpleNavbar, unused Header/Footer imports, i18n import,
-  TypewriterFeatures, all commented dead blocks, the empty `t('')` heading.
-- `Login.module.css` left untouched → ForgotPassword/ResetPassword unchanged
-  (still compile; same split layout as before).
-- Same layout mobile + desktop (max-width 440px card, centered).
-- NOT committed (parallel agents share this repo — awaiting all-clear).
+**Client**
+- `components/terminal/SocialFeed.js` (read the public blog) → new `UpdatesFeed.js` reading
+  `/api/updates`; kept the useful action-shortcut grid + tier B/C summary tiles.
+- Renamed `SocialFeed.module.css` → `UpdatesFeed.module.css`, added update-card + CTA styles.
+- `Dashboard.js` now renders `<UpdatesFeed/>`.
+- Removed the in-terminal blog reader `BlogDetail.js` + route `/terminal/blogs/:id`
+  (only the deleted SocialFeed linked to it; public `/blog/:slug` is the single reader).
+- Admin authoring: `pages/terminal/admin/ManageUpdates.js` (+ css), route
+  `/terminal/admin/updates`, sidebar group "Известувања".
 
-## Possible follow-up
-- Modernize ForgotPassword + ResetPassword to match (they can adopt Auth.module.css).
+**Verification**
+- `node -c` on all changed server files — OK.
+- `react-scripts build` — Compiled successfully (bundle −2 KB).
+- Grep sweep — no dangling imports to deleted files.
+- Server jest not installed in this env (tierService test untouched by this work).
 
+**Left as-is (noted)**
+- Dead i18n `newsfeed` keys in en/mk translations (unreferenced; not worth JSON-edit risk).
+- The user blog-submission → admin-approve → publish flow is untouched (kept by design).
+
+---
+
+## Follow-up: engagement (likes + comments) + read-more modal
+
+**Server** (`updatesController.js` + `routes/updates.js`)
+- Update docs now carry `likes: [ObjectId]` and `comments: [{ _id, userId, authorName, content, createdAt }]`.
+- `GET /api/updates` returns `likesCount`, `commentsCount`, `likedByMe` per card (no heavy arrays).
+- `GET /api/updates/:id` → full body + sorted comments (each flagged `mine`) for the modal.
+- `POST /api/updates/:id/like` — any logged-in user toggles their like.
+- `POST /api/updates/:id/comments` — add comment (denormalized `authorName` from companyInfo/userName).
+- `DELETE /api/updates/:id/comments/:commentId` — comment author or admin only.
+- Admin list moved to `GET /api/updates/admin/all` so it can't be shadowed by `/:id`.
+- All covered by the existing `/^\/updates\/.*$/` CSRF exemption.
+
+**Client**
+- `UpdateCard`: body truncated to 50 words; "Прочитај повеќе" appears only when longer; inline
+  like button (optimistic via `patchItem`) + comment count button — both open the modal.
+- New `UpdateModal.js`: full text, CTA, like toggle, comment list + add form, delete-own-comment,
+  Escape/overlay close. Counts sync back to the card through `onPatch`.
+- Added engagement + modal styles to `UpdatesFeed.module.css`.
+
+**Verify**: `node -c` server OK; `react-scripts build` Compiled successfully.

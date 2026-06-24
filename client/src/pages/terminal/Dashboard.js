@@ -5,7 +5,7 @@ import Sidebar from "../../components/terminal/Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
 import RightSidebar from "../../components/terminal/RightSidebar";
-import SocialFeed from "../../components/terminal/SocialFeed";
+import UpdatesFeed from "../../components/terminal/UpdatesFeed";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
 
@@ -64,7 +64,7 @@ const Dashboard = () => {
             </div>
           ) : null}
 
-          <SocialFeed />
+          <UpdatesFeed />
         </main>
 
         <RightSidebar />

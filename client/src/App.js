@@ -38,6 +38,7 @@ import ManageChatbot from './pages/terminal/admin/ManageChatbot';
 import AddBlog from './pages/terminal/admin/AddBlog';
 import ManageBlogs from './pages/terminal/admin/ManageBlogs';
 import EditBlog from './pages/terminal/admin/EditBlog';
+import ManageUpdates from './pages/terminal/admin/ManageUpdates';
 
 // Nexa 3.0 stubs (prompts 05–06 wire the remaining real UX)
 import BlogsPage from './pages/terminal/Blogs';
@@ -102,7 +103,6 @@ import HRQuestionnaire from './pages/terminal/hhc/HRQuestionnaire';
 import HRReport from './pages/terminal/hhc/HRReport';
 import Investments from './pages/terminal/Investments';
 import InvestmentDetail from './pages/terminal/InvestmentDetail';
-import BlogDetail from './pages/terminal/BlogDetail';
 import Contact from './pages/terminal/Contact';
 import FindLawyer from './pages/terminal/FindLawyer';
 import Disclaimer from './pages/terminal/Disclaimer';
@@ -307,7 +307,6 @@ function App() {
       <Route path="/terminal/contract-analysis" element={<PrivateRoute><VerificationRequired><ContractAnalysis /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
       <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
-      <Route path="/terminal/blogs/:id" element={<PrivateRoute><BlogDetail /></PrivateRoute>} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
       <Route path="/terminal/find-lawyer" element={<PrivateRoute><VerificationRequired><FindLawyer /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
@@ -385,6 +384,7 @@ function App() {
       <Route path="/terminal/admin/blogs" element={<PrivateRoute><ManageBlogs /></PrivateRoute>} />
       <Route path="/terminal/admin/blogs/add" element={<PrivateRoute><AddBlog /></PrivateRoute>} />
       <Route path="/terminal/admin/blogs/edit/:id" element={<PrivateRoute><EditBlog /></PrivateRoute>} />
+      <Route path="/terminal/admin/updates" element={<PrivateRoute><ManageUpdates /></PrivateRoute>} />
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
       <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />

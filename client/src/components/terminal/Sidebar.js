@@ -110,6 +110,12 @@ const Sidebar = () => {
       ]
     },
     {
+      key: 'updates-admin', label: 'Известувања',
+      children: [
+        { path: '/terminal/admin/updates', label: 'Управувај известувања' }
+      ]
+    },
+    {
       key: 'users-admin', label: 'Корисници',
       children: [
         { path: '/terminal/admin/all-users',               label: 'Сите корисници' },

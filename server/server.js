@@ -294,12 +294,10 @@ async function initializeServices(database) {
 
   // --- Core services (synchronous, cannot fail) ---
   const UserService = require('./services/userService');
-  const SocialPostService = require('./services/socialPostService');
   const InvestmentService = require('./services/investmentService');
   const UserAnalyticsService = require('./services/userAnalyticsService');
 
   const userService = new UserService(database);
-  new SocialPostService(database);
   new InvestmentService(database);
   new UserAnalyticsService(database);
   app.locals.userService = userService;
@@ -641,11 +639,8 @@ function registerRoutes() {
     '/users/company',           // Exempt company profile update
     '/users/profile',           // Exempt user profile update (mark complete)
     '/users/credentials',       // Exempt credentials update (JWT protected; header-based auth is not CSRF-exploitable)
-    '/social/posts',            // Social media posts
-    '/social/newsfeed',         // Social media newsfeed
-    /^\/social\/posts\/[^\/]+\/like$/,      // Like/unlike posts
-    /^\/social\/posts\/[^\/]+\/comments$/,    // Comment on posts
-    /^\/social\/posts\/[^\/]+$/,             // Individual post operations
+    '/updates',                 // Updates feed (JWT protected; header auth, not CSRF-exploitable)
+    /^\/updates\/.*$/,          // Admin updates CRUD (JWT protected)
     '/blogs',                   // Blog posts (JWT protected)
     /^\/blogs\/[^\/]+\/like$/,  // Like/unlike blog posts (JWT protected)
     /^\/blogs\/[^\/]+\/dislike$/, // Dislike/un-dislike blog posts (JWT protected)
@@ -908,15 +903,13 @@ function registerRoutes() {
     }
   }
   
-  if (settings.isRouteEnabled('social')) {
-    try {
-      const socialSubSeatGuard = (settings.isFeatureEnabled('subSeats'))
-        ? require('./middleware/subSeatGuard')
-        : (req, _res, next) => next();
-      app.use('/api/social', socialSubSeatGuard, require('./routes/social'));
-    } catch (error) {
-      // Social routes file not found - skipping
-    }
+  // Terminal "Updates / Известувања" feed — admin-authored member notices on the
+  // Dashboard. Replaces the old /api/social newsfeed (which only re-rendered blogs).
+  try {
+    app.use('/api/updates', require('./routes/updates'));
+    console.log('✅ Updates feed routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Updates routes error:', error.message);
   }
   
   if (settings.isRouteEnabled('notifications')) {

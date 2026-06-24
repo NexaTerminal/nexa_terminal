@@ -9,15 +9,14 @@ import useScrollReveal from '../../hooks/useScrollReveal';
 import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Nexa 3.0 — three-plan public chooser with EUR/MKD currency toggle.
+// Nexa — two-tier public chooser (Basic + Pro) with EUR/MKD currency toggle.
 // EUR is the source of truth (set per the public pricing spec). MKD is
 // derived at the documented National Bank parity 1 EUR = 61.5 MKD.
 const EUR_TO_MKD = 61.5;
 // Prices mirror server/constants/roles.js PLAN_PRICES (single source of truth).
 const PLANS_EUR = [
-  { key: 'platform', intent: null,      accent: false, prices: { monthly: 19, quarterly: 49,  annual: 179 } },
-  { key: 'kantora',  intent: 'kantora', accent: true,  prices: { monthly: 39, quarterly: 99,  annual: 359 } },
-  { key: 'studio',   intent: 'studio',  accent: false, prices: { monthly: 59, quarterly: 149, annual: 549 } }
+  { key: 'basic', intent: null,  accent: false, prices: { monthly: 19, quarterly: 49, annual: 179 } },
+  { key: 'pro',   intent: 'pro', accent: true,  prices: { monthly: 39, quarterly: 99, annual: 359 } }
 ];
 
 const CYCLE_MONTHS = { monthly: 1, quarterly: 3, annual: 12 };
@@ -57,12 +56,12 @@ export default function Pricing() {
     : { monthly: 'MKD / month', quarterly: 'MKD / quarter', annual: 'MKD / year' };
 
   const PLAN_COPY = {
-    platform: {
+    basic: {
       tag:   isMk ? 'За бизнисите'        : 'For SMBs',
       title: isMk ? 'Основен'             : 'Basic',
       body:  isMk
-        ? 'Сите алатки на Терминалот за индивидуална употреба.'
-        : 'All Terminal tools for individual use.',
+        ? 'Сите алатки на Терминалот за Вашата компанија.'
+        : 'All Terminal tools for your company.',
       featuresHead: isMk ? 'Што добивате' : 'What you get',
       features: isMk ? [
         'Автоматизирани шаблони (работни односи, договори, безбедност и здравје, лични податоци, сметководствени и др.)',
@@ -71,11 +70,11 @@ export default function Pricing() {
         'Маркетинг AI помошник',
         'Анализа на договор',
         'Лични AI преференци (тон и стил)',
-        'Правна проверка на усогласеност',
-        'Маркетинг проверка',
-        'HR и оперативна проверка',
-        'Сајбер безбедност проверка',
-        'Курсеви и едукативни ресурси'
+        'Правна, маркетинг, HR и сајбер проверки на усогласеност',
+        'Барање за понуди — побарајте понуди од провајдери',
+        'Виртуелен саем',
+        'Курсеви и едукативни ресурси',
+        'До 3 соработници во Вашата компанија'
       ] : [
         'Automated templates (employment, contracts, health & safety, personal data, accounting and more)',
         'My templates — upload your own .docx and automate it',
@@ -83,51 +82,36 @@ export default function Pricing() {
         'Marketing AI assistant',
         'Contract analysis',
         'Personal AI preferences (tone & style)',
-        'Legal compliance check',
-        'Marketing compliance check',
-        'HR & operations compliance check',
-        'Cybersecurity check',
-        'Courses & learning resources'
+        'Legal, marketing, HR and cybersecurity compliance checks',
+        'Request for offers — source quotes from providers',
+        'Virtual Fair',
+        'Courses & learning resources',
+        'Up to 3 co-workers in your company'
       ]
     },
-    kantora: {
-      tag:   isMk ? 'За кантори / тимови'  : 'For small teams',
-      title: isMk ? 'Про'                  : 'Pro',
+    pro: {
+      tag:   isMk ? 'За провајдери на услуги' : 'For service providers',
+      title: isMk ? 'Про'                      : 'Pro',
       body:  isMk
-        ? 'Сè во Основен + членство во Nexa мрежата.'
-        : 'Everything in Basic + Nexa Network membership.',
+        ? 'Сè во Основен + членство во Nexa мрежата и до 25 клиентски сметки.'
+        : 'Everything in Basic + Nexa Network membership and up to 25 client accounts.',
       featuresHead: isMk ? 'Сè во Основен, плус:' : 'Everything in Basic, plus:',
       features: isMk ? [
-        'До 5 под-корисници',
-        'Месечна Nexa блог позиција',
+        'До 25 клиентски под-сметки — водете ги Вашите клиенти под Вашата претплата',
         'Случаи (leads) добиени преку нашите сателит страни',
         'Виртуелен саем — штанд со Вашите производи или услуги',
-        'Барање за понуди (тендер) — 1 барање и 1 измена месечно',
+        'Месечна Nexa блог позиција',
+        'Topics Q&A — експертски одговори на јавни прашања',
+        'Барање за понуди (тендер) — давајте понуди на клиентски барања',
         'Позиција во Nexa Newsletter'
       ] : [
-        'Up to 5 sub-users',
-        'Monthly Nexa blog placement',
+        'Up to 25 client sub-accounts — manage your clients under your subscription',
         'Cases (leads) sourced via our satellite sites',
         'Virtual Fair — a booth with your products or services',
-        'Request for offers (tender) — 1 request and 1 edit per month',
+        'Monthly Nexa blog placement',
+        'Topics Q&A — expert answers to public questions',
+        'Request for offers (tender) — respond to client requests',
         'Placement in the Nexa Newsletter'
-      ]
-    },
-    studio: {
-      tag:   isMk ? 'За канцеларии / студиа' : 'For studios',
-      title: isMk ? 'Ултра'                  : 'Ultra',
-      body:  isMk
-        ? 'Сè во Про, со поголеми квоти и Topics Q&A.'
-        : 'Everything in Pro, with larger quotas and Topics Q&A.',
-      featuresHead: isMk ? 'Сè во Про, плус:' : 'Everything in Pro, plus:',
-      features: isMk ? [
-        'До 10 под-корисници',
-        'Барање за понуди (тендер) — 3 барања и 3 измени месечно',
-        'Topics Q&A — експертски одговори на јавни прашања'
-      ] : [
-        'Up to 10 sub-users',
-        'Request for offers (tender) — 3 requests and 3 edits per month',
-        'Topics Q&A — expert answers to public questions'
       ]
     }
   };
@@ -220,7 +204,7 @@ export default function Pricing() {
                     )}
                   </div>
                   <div className={styles.chooserSubline}>
-                    {isMk ? '8 дена бесплатен пробен период, без картичка' : '8-day free trial, no card required'}
+                    {isMk ? 'Без обврска · сменете или откажете во секое време' : 'No commitment · switch or cancel anytime'}
                   </div>
 
                   {copy.features && copy.features.length > 0 && (
@@ -240,7 +224,7 @@ export default function Pricing() {
                   )}
 
                   <span className={styles.chooserCta}>
-                    {isMk ? 'Пробај бесплатно' : 'Try free'} <span aria-hidden>→</span>
+                    {isMk ? 'Започни' : 'Get started'} <span aria-hidden>→</span>
                   </span>
                 </Link>
               );
@@ -257,16 +241,16 @@ export default function Pricing() {
               </span>
               <p className={styles.flowLead}>
                 {isMk
-                  ? 'По регистрацијата добивате бесплатен пристап до Терминалот. Во рамки на или по пробниот период, по избор на план, Ви испраќаме профактура. Со уплатата веднаш го отклучувате користењето.'
-                  : 'After signup you get free access to the Terminal. During or after the trial, when you choose a plan, we issue a pro-forma invoice. Payment unlocks usage immediately.'}
+                  ? 'Регистрирајте се и изберете план. Ви испраќаме профактура на е-пошта, а со уплатата веднаш го отклучувате користењето на Терминалот.'
+                  : 'Register and pick a plan. We email you a pro-forma invoice, and payment unlocks the Terminal immediately.'}
               </p>
             </div>
             <ol className={styles.flowSteps}>
               {[
-                { n: '1', t: isMk ? 'Пробен период'    : 'Trial',          d: isMk ? '8 дена, без картичка'        : '8 days, no card' },
-                { n: '2', t: isMk ? 'Изберете план'    : 'Pick a plan',    d: isMk ? 'Кога ќе бидете спремни'      : 'When you are ready' },
+                { n: '1', t: isMk ? 'Регистрирајте се' : 'Register',        d: isMk ? 'Бесплатно, за неколку минути' : 'Free, in a few minutes' },
+                { n: '2', t: isMk ? 'Изберете план'    : 'Pick a plan',     d: isMk ? 'Основен или Про'             : 'Basic or Pro' },
                 { n: '3', t: isMk ? 'Прими профактура' : 'Receive invoice', d: isMk ? 'На е-пошта, за Вашето сметководство' : 'By email, for your books' },
-                { n: '4', t: isMk ? 'Уплати и користи' : 'Pay and use',    d: isMk ? 'Активирањето е веднашно'      : 'Activation is immediate' }
+                { n: '4', t: isMk ? 'Уплати и користи' : 'Pay and use',     d: isMk ? 'Активирањето е веднашно'      : 'Activation is immediate' }
               ].map((s) => (
                 <li key={s.n} className={styles.flowStep}>
                   <span className={styles.flowNum}>{s.n}</span>

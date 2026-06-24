@@ -21,7 +21,7 @@
   flex: 0 0 auto;
 }
 .logo img {
-  height: 28px;
+  height: 24px;
   width: auto;
   display: block;
 }
@@ -161,12 +161,16 @@
   padding-bottom: 14px;
   justify-content: center;
   border-top: 0;
+  /* Beat the generic `.mobileMenu a` colour so the dark button stays readable */
+  color: #FFFFFF !important;
 }
 
 @media (max-width: 960px) {
   .nav { display: none; }
   .hamburger { display: block; }
   .inner { gap: 12px; padding: 12px 20px; }
+  /* With the desktop nav hidden, push the hamburger cluster to the right */
+  .right { margin-left: auto; }
   .right .loginBtn { display: none; }
   /* Hide the cramped top-bar language switch; it lives in the menu on mobile */
   .right .langSwitch { display: none; }

@@ -180,12 +180,6 @@ const Login = () => {
               : 'Започнете со Nexa Terminal за неколку минути'}
           </p>
 
-          {!isLogin && !verificationStep && (
-            <div className={styles.trialPillWrap}>
-              <span className={styles.trialPill}>🎁 8 дена бесплатно · без картичка</span>
-            </div>
-          )}
-
           {!verificationStep && (
             <div className={styles.segment} role="tablist" aria-label="Најава или регистрација">
               <button

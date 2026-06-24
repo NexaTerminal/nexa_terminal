@@ -98,10 +98,10 @@
     "s7P1": "Monthly newsletter with curated content from the ecosystem: leading articles, new Topics answers, and columns from Super Users. Distribution is to subscribers who have opted in.",
     "s7SubscribeLabel": "Email",
     "s7SubscribeCta": "Subscribe",
-    "s8Heading": "Nexa Platform",
-    "s8P1": "€19 / month, €49 / quarter or €179 / year. For a single user. Full Terminal access — automated documents, business news, compliance checks, contract analysis and AI assistance.",
-    "s9Heading": "Admin plans",
-    "s9P1": "Nexa Network · Kantora: €39/mo (up to 5 sub-seats). Nexa Network · Studio: €59/mo (up to 10 sub-seats + Topics Q&A). Everything in Nexa Platform, plus promotional channels via the Nexa newsletter, satellite sites and Topics. Application-based.",
+    "s8Heading": "Basic — for businesses",
+    "s8P1": "€19 / month, €49 / quarter or €179 / year. For your company. Full Terminal access — automated documents, compliance checks, contract analysis, AI assistance, offer requests and the Virtual Fair. Up to 3 co-workers in your company.",
+    "s9Heading": "Pro — for service providers",
+    "s9P1": "€39 / month. Everything in Basic, plus Nexa Network membership and up to 25 client sub-accounts you manage under your subscription. Includes cases (leads) via the satellite sites, a Virtual Fair booth, monthly blog placement, Topics Q&A and a spot in the Nexa newsletter.",
     "s10Heading": "How everything connects",
     "s10P1": "A visitor arrives at one of the guide sites with a question. They fill out a contact form with consent. The inquiry is routed to a Super User with matching expertise and location. The Super User contacts the visitor directly. Optionally, the visitor also becomes a Terminal user to manage their own documents.",
     "s11Heading": "Authorship, expertise, governance",
@@ -156,7 +156,7 @@
   },
   "pricing": {
     "seoTitle": "Pricing — Nexa",
-    "seoDesc": "Nexa Platform from €19/month. Nexa Network · application-based. Transparent pricing, no hidden fees.",
+    "seoDesc": "Two plans: Basic from €19/month and Pro from €39/month. Transparent pricing, no hidden fees.",
     "title": "Pricing",
     "intro": "Simple plans. No hidden costs. Cancel any time.",
     "billing": {

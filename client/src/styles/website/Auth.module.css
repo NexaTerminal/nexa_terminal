@@ -79,20 +79,6 @@
   line-height: 1.5;
   margin: 0 0 20px;
 }
-.trialPillWrap { display: flex; justify-content: center; margin: 0 0 20px; }
-.trialPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: var(--nx-secondary-50, #F0FDF9);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: var(--nx-secondary-600, #059669);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
 /* ---- Segmented Login / Signup toggle ---- */
 .segment {
   display: grid;

@@ -81,7 +81,7 @@ export const superUserService = (language = 'mk') => ({
   areaServed: { '@type': 'Country', name: 'North Macedonia' },
   audience: { '@type': 'BusinessAudience', audienceType: 'Lawyers, accountants, consultants' },
   offers: [
-    { '@type': 'Offer', name: 'Standard', price: '19', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
+    { '@type': 'Offer', name: 'Pro', price: '39', priceCurrency: 'EUR', url: 'https://nexa.mk/pricing' }
   ]
 });
 

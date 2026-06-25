@@ -188,7 +188,7 @@ export default function LeadsPage() {
 
         {trial && <TrialDisabledNotice />}
         {!isMember && !trial && (
-          <div className={styles.toastError}>Случаите се достапни за Про и Ултра корисници.</div>
+          <div className={styles.toastError}>Случаите се достапни за Про корисници.</div>
         )}
         {toast && <div className={toast.type === 'ok' ? styles.toastOk : styles.toastError}>{toast.text}</div>}
         {trial && (

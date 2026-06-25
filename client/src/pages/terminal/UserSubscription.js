@@ -12,7 +12,7 @@ const PLAN_LABEL = {
   // legacy
   standard: 'Основен',
   admin_5:  'Про',
-  admin_10: 'Ултра'
+  admin_10: 'Про'
 };
 const STATUS_LABEL = {
   none:             'Не е активирана',

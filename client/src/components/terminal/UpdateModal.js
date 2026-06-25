@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
 import styles from '../../styles/terminal/UpdatesFeed.module.css';
@@ -84,7 +85,7 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
   const cta = (item.ctaLabel && item.ctaHref) ? item : null;
   const isExternal = cta && /^https?:\/\//i.test(cta.ctaHref);
 
-  return (
+  return createPortal((
     <div className={styles.modalOverlay} onMouseDown={onClose}>
       <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <header className={styles.modalHeader}>
@@ -161,7 +162,7 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 };
 
 export default UpdateModal;

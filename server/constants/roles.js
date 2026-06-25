@@ -114,7 +114,7 @@ const PLAN_LABELS = Object.freeze({
   // legacy
   standard: { mk: 'Основен', en: 'Basic' },
   admin_5:  { mk: 'Про',     en: 'Pro'   },
-  admin_10: { mk: 'Ултра',   en: 'Ultra' }
+  admin_10: { mk: 'Про',     en: 'Pro'   }
 });
 const labelForPlan = (plan, lang = 'mk') => {
   const l = PLAN_LABELS[plan];

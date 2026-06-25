@@ -1489,6 +1489,7 @@
   gap: 8px;
   min-width: 0;
 }
+.updateClickable { cursor: pointer; }
 .blogPostMeta {
   display: flex;
   align-items: center;
@@ -1935,7 +1936,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 1000;
+  z-index: 10000;
 }
 .modal {
   background: #fff;

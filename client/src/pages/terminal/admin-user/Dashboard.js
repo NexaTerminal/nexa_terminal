@@ -22,7 +22,7 @@ const daysLabel = (n) => {
 const PLAN_LABEL = {
   standard: 'Основен',
   admin_5:  'Про',
-  admin_10: 'Ултра',
+  admin_10: 'Про',
   admin:    'Про'
 };
 

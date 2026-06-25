@@ -153,7 +153,7 @@ const ActionGridCard = () => (
 // ─────────────────────────────────────────────────────────────────────────────
 
 const UpdateCard = ({ update, onOpen, onPatch }) => {
-  const { text: preview, truncated } = previewBody(update.body);
+  const { text: preview } = previewBody(update.body);
 
   const toggleLike = async (e) => {
     e.stopPropagation();
@@ -165,7 +165,13 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
 
   return (
     <article className={styles.blogPost}>
-      <div className={styles.blogPostContent}>
+      <div
+        className={`${styles.blogPostContent} ${styles.updateClickable}`}
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
+      >
         <div className={styles.blogPostMeta}>
           {update.category
             ? <span className={styles.updateCategory}>{update.category}</span>
@@ -185,13 +191,15 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
             <span className={styles.engageIcon}>{update.likedByMe ? '♥' : '♡'}</span>
             <span>{update.likesCount || 0}</span>
           </button>
-          <button type="button" className={styles.engageBtn} onClick={onOpen} title="Коментари">
+          <button
+            type="button"
+            className={styles.engageBtn}
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            title="Коментари"
+          >
             <span className={styles.engageIcon}>💬</span>
             <span>{update.commentsCount || 0}</span>
           </button>
-          {truncated && (
-            <button type="button" className={styles.readMoreBtn} onClick={onOpen}>Повеќе</button>
-          )}
         </div>
       </div>
     </article>

@@ -137,7 +137,7 @@ export default function SourcingRequestPage() {
           <div className={styles.quotaBar}>
             <span>Барања овој месец: <strong>{quotaText(u.requestsUsed, q.requests)}</strong></span>
             <span>Измени: <strong>{quotaText(u.editsUsed, q.edits)}</strong></span>
-            {q.requests === 0 && <span className={styles.quotaUpgrade}>Достапно за Про и Ултра членови</span>}
+            {q.requests === 0 && <span className={styles.quotaUpgrade}>Достапно за Про членови</span>}
           </div>
         )}
 
@@ -223,7 +223,7 @@ export default function SourcingRequestPage() {
               {blocked && (
                 <p className={styles.error}>
                   {q.requests === 0
-                    ? 'Барање за понуди е достапно за Про и Ултра членови.'
+                    ? 'Барање за понуди е достапно за Про членови.'
                     : (editId ? 'Ја искористивте квотата за измени овој месец.' : 'Ја искористивте квотата за барања овој месец. Обновата е на почетокот на наредниот месец.')}
                 </p>
               )}

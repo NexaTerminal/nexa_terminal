@@ -5,13 +5,31 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 import AuthMessage from '../../components/common/AuthMessage';
+import ApiService from '../../services/api';
+import { PENDING_PROMO_KEY } from '../../components/PromoRedeemWatcher';
 import { validatePassword, validatePasswordMatch, validateUsername } from '../../utils/passwordValidation';
+
+// Onboarding is invite-only: a new account can be created only when the user
+// arrives via a campaign link (`/redeem?code=…`) that stashes a promo code.
+// Code-less visitors get the "Побарај пристап" panel instead of an open signup
+// form (which would land them in a locked, unusable terminal).
+//
+// To re-open public self-registration later, flip this flag to `true`. The full
+// signup form is preserved below — nothing was deleted.
+const OPEN_REGISTRATION = false;
 
 const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   // Plan is always standard at signup; admins/upgrades happen post-trial via the gate modal.
   const intendedPlan = 'standard';
+
+  // A campaign link stashes a promo code before bouncing here. Its presence is
+  // what unlocks the signup form (the user was invited). Read once on mount.
+  const [hasInvite] = useState(() => {
+    try { return !!localStorage.getItem(PENDING_PROMO_KEY); } catch { return false; }
+  });
+  const canRegister = OPEN_REGISTRATION || hasInvite;
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -172,12 +190,14 @@ const Login = () => {
         <div className={styles.card}>
           <img src="/nexa-logo-navbar.png" alt="Nexa" className={styles.logo} />
           <h1 className={styles.title}>
-            {isLogin ? 'Добредојдовте назад' : 'Создадете профил'}
+            {isLogin ? 'Добредојдовте назад' : (canRegister ? 'Создадете профил' : 'Побарај пристап')}
           </h1>
           <p className={styles.subtitle}>
             {isLogin
               ? 'Најавете се за да продолжите во Nexa Terminal'
-              : 'Започнете со Nexa Terminal за неколку минути'}
+              : (canRegister
+                  ? 'Започнете со Nexa Terminal за неколку минути'
+                  : 'Пристапот до Nexa е со покана. Оставете ги вашите податоци и ќе ве контактираме со линк за активација (30 дена Pro).')}
           </p>
 
           {!verificationStep && (
@@ -198,7 +218,7 @@ const Login = () => {
                 className={`${styles.segmentBtn} ${!isLogin ? styles.segmentBtnActive : ''}`}
                 onClick={() => setMode(false)}
               >
-                Регистрација
+                {canRegister ? 'Регистрација' : 'Побарај пристап'}
               </button>
             </div>
           )}
@@ -241,6 +261,8 @@ const Login = () => {
                 setVerifyEmailAddr('');
               }}
             />
+          ) : (!isLogin && !canRegister) ? (
+            <RequestAccessPanel styles={styles} onSwitchToLogin={() => setMode(true)} />
           ) : (
             <>
               {/* Google OAuth first — lowest-friction path */}
@@ -439,6 +461,98 @@ function VerificationForm({ styles, email, code, setCode, loading, onSubmit, onR
         <button type="button" onClick={onCancel} className={`${styles.linkBtn} ${styles.linkBtnMuted}`}>Откажи</button>
       </div>
     </div>
+  );
+}
+
+// Invite-only access wall. Code-less visitors leave their details; Martin
+// follows up with a campaign link (`/redeem?code=…`) that grants 30 days Pro.
+// Reuses the existing public contact endpoint — no new backend surface.
+function RequestAccessPanel({ styles, onSwitchToLogin }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!name.trim()) { setError('Внесете го вашето име.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Внесете валидна е-пошта.'); return; }
+    if (!company.trim()) { setError('Внесете го името на фирмата или дејноста.'); return; }
+
+    const message =
+      `Барање за пристап преку најавната страница.\n` +
+      `Име: ${name.trim()}\n` +
+      `Фирма / дејност: ${company.trim()}\n` +
+      `Телефон: ${phone.trim() || '-'}`;
+
+    setLoading(true);
+    try {
+      await ApiService.request('/contact/public', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          subject: 'Барање за пристап (Nexa)',
+          message,
+          phone: phone.trim().length >= 8 ? phone.trim() : ''
+        })
+      });
+      setDone(true);
+    } catch (err) {
+      setError(err.message || 'Настана грешка. Обидете се повторно или пишете на info@nexa.mk.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <div className={styles.verify}>
+        <p className={styles.verifyText}>
+          Ви благодариме! Вашето барање е примено. Ќе ве контактираме со <strong>линк за активација</strong> (30 дена Pro) на е-поштата.
+        </p>
+        <button type="button" onClick={onSwitchToLogin} className={styles.linkBtn}>← Назад на најава</button>
+      </div>
+    );
+  }
+
+  return (
+    <form className={styles.form} onSubmit={submit}>
+      <AuthMessage type="error" message={error} onClose={() => setError('')} />
+
+      <div className={styles.field}>
+        <label htmlFor="ra-name" className={styles.label}>Име и презиме</label>
+        <input id="ra-name" type="text" className={styles.input} value={name}
+          onChange={(e) => setName(e.target.value)} required placeholder="Вашето име" />
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="ra-email" className={styles.label}>Е-пошта</label>
+        <input id="ra-email" type="email" className={styles.input} value={email}
+          onChange={(e) => setEmail(e.target.value)} required placeholder="vie@vasata-firma.mk" />
+        <p className={styles.hint}>Тука ќе го испратиме линкот за активација.</p>
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="ra-company" className={styles.label}>Фирма / дејност</label>
+        <input id="ra-company" type="text" className={styles.input} value={company}
+          onChange={(e) => setCompany(e.target.value)} required placeholder="пр. сметководствено биро, адвокат, ИТ фирма" />
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="ra-phone" className={styles.label}>Телефон <span className={styles.hint}>(опционо)</span></label>
+        <input id="ra-phone" type="tel" className={styles.input} value={phone}
+          onChange={(e) => setPhone(e.target.value)} placeholder="07x xxx xxx" />
+      </div>
+
+      <button type="submit" className={styles.submit} disabled={loading}>
+        {loading ? (<><span className={styles.spinner}></span>Се испраќа…</>) : 'Побарај пристап'}
+      </button>
+    </form>
   );
 }
 

@@ -10,8 +10,7 @@ const emailService = require('../services/emailService'); // singleton instance
  *
  * Monthly quotas by paid tier (calendar month):
  *   Pro (B)   → 1 нов барање + 1 измена
- *   Ultra (C) → 3 нови барања + 3 измени
- *   Basic (A) / trial → 0 (мора Про/Ултра); ADMIN → неограничено.
+ *   Basic (A) / trial → 0 (мора Про); ADMIN → неограничено.
  */
 
 const COLLECTION = 'sourcing_requests';
@@ -114,7 +113,7 @@ exports.createRequest = async (req, res) => {
       return res.status(403).json({
         success: false, code: 'QUOTA_REQUESTS',
         message: quota.requests === 0
-          ? 'Барање за понуди е достапно за Про и Ултра членови.'
+          ? 'Барање за понуди е достапно за Про членови.'
           : `Ја искористивте месечната квота за барања (${quota.requests}). Обновата е на почетокот на наредниот месец.`
       });
     }
@@ -158,7 +157,7 @@ exports.editRequest = async (req, res) => {
       return res.status(403).json({
         success: false, code: 'QUOTA_EDITS',
         message: quota.edits === 0
-          ? 'Измена на барања е достапна за Про и Ултра членови.'
+          ? 'Измена на барања е достапна за Про членови.'
           : `Ја искористивте месечната квота за измени (${quota.edits}).`
       });
     }

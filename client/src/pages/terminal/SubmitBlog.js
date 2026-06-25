@@ -188,7 +188,7 @@ export default function SubmitBlogPage() {
         {trial && <TrialDisabledNotice />}
         {!allowed.allowed && allowed.reason === 'plan' && (
           <div className={styles.toastError} style={{ marginBottom: 16 }}>
-            Поднесувањето на прилози е достапно за Про и Ултра корисници.
+            Поднесувањето на прилози е достапно за Про корисници.
           </div>
         )}
 

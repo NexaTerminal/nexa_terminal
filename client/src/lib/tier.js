@@ -56,7 +56,7 @@ export function isAccountSuspended(user) {
  * trial/active without grace, cancelled, or no subscription.
  *
  * NOTE: distinct from previewMode() — a *valid* trial user is in preview mode
- * (B/C action buttons gate) yet DOES have feature access. This predicate gates
+ * (B action buttons gate) yet DOES have feature access. This predicate gates
  * the feature pages themselves; previewMode only gates upsell actions.
  */
 export function hasFeatureAccess(user) {
@@ -82,7 +82,7 @@ export function intendedTier(user) {
 
 /**
  * What the sidebar should reveal.
- * Paid B/C → their effective tier. Trial users → their intended tier.
+ * Paid B → their effective tier. Trial users → their intended tier.
  * Everyone else → A.
  */
 export function visibleTier(user) {
@@ -99,7 +99,7 @@ export function canSubmitBlog(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B' || eff === 'C') return { allowed: true };
+  if (eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
@@ -107,7 +107,7 @@ export function canExpressInterest(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B' || eff === 'C') return { allowed: true };
+  if (eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
@@ -119,7 +119,7 @@ export function canRequestQATopic(user) {
   return { allowed: false, reason: 'plan' };
 }
 
-// Virtual fair: any active paid plan (A/B/C) may post a booth; trial/preview
+// Virtual fair: any active paid plan (A/B) may post a booth; trial/preview
 // users browse read-only; sub-seats don't own a booth. Server gate is
 // middleware/requireBoothPoster.js.
 export function canPostBooth(user) {
@@ -144,7 +144,7 @@ export function subSeatLimit(user) {
  * (trial+grace exhausted, no payment yet). Active paid users + sub-seats
  * (inherited access) + active grace are full-access and never in preview.
  *
- * UX: preview users SEE the B/C surfaces (Blogs/Leads/Topics) and the
+ * UX: preview users SEE the B surfaces (Blogs/Leads/Topics) and the
  * core feature pages, but action buttons + cards open the SubscriptionGate
  * via the can* predicates or the server's 402 → axios interceptor path.
  */
@@ -183,10 +183,10 @@ export function openSubscriptionGate(detail = {}) {
 }
 
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
-// previewMode (trial / suspended / no-access) keeps the B/C surfaces visible
+// previewMode (trial / suspended / no-access) keeps the B surfaces visible
 // so the user can re-engage; actions still gate behind the order modal.
-export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
-export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'C' || v === 'ADMIN' || previewMode(user); }
+export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'ADMIN' || previewMode(user); }
+export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'ADMIN' || previewMode(user); }
 export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'B' || v === 'ADMIN'              || previewMode(user); }
 // Sub-users: both tiers manage them (Basic → co-workers, Pro → clients), but
 // only account OWNERS with active access — not sub-seats, not locked accounts.

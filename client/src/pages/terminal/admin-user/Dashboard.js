@@ -20,6 +20,9 @@ const daysLabel = (n) => {
   return `${n} денови`;
 };
 const PLAN_LABEL = {
+  basic: 'Основен',
+  pro:   'Про',
+  // legacy
   standard: 'Основен',
   admin_5:  'Про',
   admin_10: 'Про',

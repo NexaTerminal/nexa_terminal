@@ -79,7 +79,7 @@ const UpdatesFeed = () => {
   }, []);
 
   const tier = visibleTier(currentUser);
-  const showBcTiles = tier === 'B' || tier === 'C';
+  const showBcTiles = tier === 'B';
   const openItem = updates.find(u => u._id === openId) || null;
 
   return (
@@ -233,8 +233,8 @@ const BcTileRow = ({ tier }) => {
       })
       .catch(() => !cancelled && setInquiriesWeek(0));
 
-    // Topics worklist (only tier C sees this tile).
-    if (tier === 'C') {
+    // Topics worklist tile — Topics Q&A is a Pro (B) feature.
+    if (tier === 'B') {
       fetch('/api/topics/worklist', auth)
         .then(r => r.ok ? r.json() : { items: [] })
         .then(data => !cancelled && setTopicsOpen((data?.items || []).length))
@@ -259,7 +259,7 @@ const BcTileRow = ({ tier }) => {
         <div className={styles.bcTileValue}>{showValue(inquiriesWeek)}</div>
         <div className={styles.bcTileSub}>нови во Вашата област</div>
       </Link>
-      {tier === 'C' && (
+      {tier === 'B' && (
         <Link to="/terminal/topics-qa" className={styles.bcTile}>
           <div className={styles.bcTileLabel}>Прашања на чекање</div>
           <div className={styles.bcTileValue}>{showValue(topicsOpen)}</div>

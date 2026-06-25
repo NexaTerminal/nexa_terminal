@@ -3,31 +3,27 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './SubscriptionGate.module.css';
 
-// EUR prices (Nexa 3.0). Match server/constants/roles.js PLAN_PRICES.
+// EUR prices (two-tier model). Match server/constants/roles.js PLAN_PRICES.
 const PRICES = {
-  standard: { monthly: 19, quarterly: 49,  annual: 179 },
-  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
-  admin_10: { monthly: 59, quarterly: 149, annual: 549 }
+  basic: { monthly: 19, quarterly: 49, annual: 179 },
+  pro:   { monthly: 39, quarterly: 99, annual: 359 }
 };
-// Public-facing tier labels (Nexa 3.0).
+// Public-facing tier labels.
 const PLAN_LABEL = {
-  standard: 'Основен',
-  admin_5:  'Про',
-  admin_10: 'Про'
+  basic: 'Основен',
+  pro:   'Про'
 };
 // Short MK description per plan.
 const PLAN_TOOLTIP = {
-  standard: 'Сите алатки на Терминалот за индивидуална употреба.',
-  admin_5:  'Терминалот + членство во Nexa мрежата. До 5 под-сметки за Вашите клиенти или тим.',
-  admin_10: 'Терминалот + членство во Nexa мрежата · поголемо. До 10 под-сметки. Пристап до Topics Q&A авторска работна табла.'
+  basic: 'Сите алатки на Терминалот за индивидуална употреба.',
+  pro:   'Терминалот + членство во Nexa мрежата. До 25 под-сметки за Вашите клиенти, Topics Q&A и B2B можности.'
 };
 const PLAN_SHORT = {
-  standard: 'Индивидуално',
-  admin_5:  'До 5 под-сметки',
-  admin_10: 'До 10 под-сметки'
+  basic: 'Индивидуално',
+  pro:   'До 25 под-сметки'
 };
 
-const ALL_PLANS = ['standard', 'admin_5', 'admin_10'];
+const ALL_PLANS = ['basic', 'pro'];
 
 /**
  * Event-driven subscription gate.
@@ -36,7 +32,7 @@ const ALL_PLANS = ['standard', 'admin_5', 'admin_10'];
  * the user can navigate freely. The strip CTA or the global 402 interceptor
  * dispatch `subscription:blocked`. This component listens and opens.
  *
- * Single ordering flow: pick plan (3 tiles), pick cycle (3 tiles), confirm
+ * Single ordering flow: pick plan (2 tiles), pick cycle (3 tiles), confirm
  * email if missing, click ONE button — Нарачај. Backend auto-grants the
  * 3-day grace on first use; silently skips it after grace is consumed.
  */
@@ -46,7 +42,7 @@ export default function SubscriptionGate() {
   const [blockedInfo, setBlockedInfo] = useState(null);
   const [cycle, setCycle] = useState('monthly');
   const [email, setEmail] = useState('');
-  const [plan, setPlan] = useState('standard');
+  const [plan, setPlan] = useState('basic');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -78,8 +74,8 @@ export default function SubscriptionGate() {
     setCycle(sub.cycle && sub.cycle !== 'trial' ? sub.cycle : 'monthly');
     const defaultPlan =
       sub.plan && ALL_PLANS.includes(sub.plan)        ? sub.plan
-    : currentUser?.role === 'admin_user'              ? 'admin_5'
-    :                                                   'standard';
+    : currentUser?.role === 'admin_user'              ? 'pro'
+    :                                                   'basic';
     setPlan(defaultPlan);
     setEmail(currentUser?.email || '');
     // Seed company-info fields from whatever is already on the user.
@@ -290,9 +286,9 @@ export default function SubscriptionGate() {
                 : 'Изберете план и циклус. Ќе Ви испратиме инструкции за уплата и автоматски ќе Ви дадеме 3 дена дополнителен пристап.'}
             </p>
 
-            {/* ============ PLAN TILES (always 3) ============ */}
+            {/* ============ PLAN TILES (Basic / Pro) ============ */}
             <div className={styles.sectionLabel}>План</div>
-            <div className={styles.planTiles3}>
+            <div className={styles.planTiles}>
               {ALL_PLANS.map(p => (
                 <button
                   key={p}

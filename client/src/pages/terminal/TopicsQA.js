@@ -54,7 +54,7 @@ export default function TopicsQAPage() {
 
   const trial = isTrial(currentUser);
   const vt = visibleTier(currentUser);
-  const visible = vt === 'C' || vt === 'ADMIN';
+  const visible = vt === 'B' || vt === 'ADMIN';
 
   const [worklist, setWorklist] = useState([]);
   const [mine, setMine] = useState([]);

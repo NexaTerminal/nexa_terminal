@@ -69,7 +69,7 @@ export default function LeadsPage() {
   const trial = isTrial(currentUser);
   const previewMode = trialPreview(currentUser); // trial: see real cards, blurred
   const vt = visibleTier(currentUser);
-  const isMember = vt === 'B' || vt === 'C' || vt === 'ADMIN';
+  const isMember = vt === 'B' || vt === 'ADMIN';
 
   const [board, setBoard] = useState([]);
   const [claims, setClaims] = useState([]);

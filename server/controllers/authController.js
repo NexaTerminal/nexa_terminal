@@ -260,7 +260,7 @@ class AuthController {
       // Determine role from intendedPlan (Step "I'm signing up as a…").
       // Falls back to 'standard_user' if not provided (legacy clients).
       const { roleForPlan, seatsForPlan, isValidPlan } = require('../constants/roles');
-      const planChoice = isValidPlan(intendedPlan) ? intendedPlan : 'standard';
+      const planChoice = isValidPlan(intendedPlan) ? intendedPlan : 'basic';
       const intendedRole = roleForPlan(planChoice);
       const intendedSeats = seatsForPlan(planChoice);
 

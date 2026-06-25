@@ -237,10 +237,10 @@ class AdminUsersController {
       // Promote → admin_user: require a plan so we can seed seatLimit.
       const updates = { role: newRole, updatedAt: new Date() };
       if (newRole === ROLES.ADMIN_USER) {
-        if (!plan || !plan.startsWith('admin')) {
-          return res.status(400).json({ success: false, message: 'При промовирање во admin_user, мора да изберете admin план (admin_5 или admin_10).' });
+        if (plan !== PLANS.PRO) {
+          return res.status(400).json({ success: false, message: 'При промовирање во Pro корисник, планот мора да биде „pro“.' });
         }
-        const resolvedSeats = typeof seatLimit === 'number' ? seatLimit : (PLAN_SEATS[plan] || 5);
+        const resolvedSeats = typeof seatLimit === 'number' ? seatLimit : (PLAN_SEATS[plan] || 25);
         updates.superUser = {
           ...(user.superUser || {}),
           seatLimit: resolvedSeats,

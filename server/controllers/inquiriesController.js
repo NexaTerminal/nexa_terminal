@@ -180,9 +180,9 @@ exports.adminClose = async (req, res) => {
 
 exports.requireBcOrAdmin = (req, res, next) => {
   const t = tierService.effectiveTier(req.user);
-  if (t === 'B' || t === 'C' || t === 'ADMIN') return next();
+  if (t === 'B' || t === 'ADMIN') return next();
   return res.status(403).json({ success: false, code: 'TIER_FORBIDDEN',
-    message: 'Барањата се достапни само за Nexa Мрежа корисници.' });
+    message: 'Барањата се достапни само за Про членови.' });
 };
 
 exports.requireAdmin = (req, res, next) => {

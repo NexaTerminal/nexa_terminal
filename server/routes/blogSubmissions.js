@@ -24,18 +24,18 @@ const coverUpload = multer({
 router.use(authenticateJWT);
 
 // All member endpoints are gated to B/C/admin (Type A and sub-seats blocked).
-router.get('/',           c.requireBcOrAdmin, c.listMine);
-router.get('/published',  c.requireBcOrAdmin, c.listMyPublished);
-router.post('/',          c.requireBcOrAdmin, c.create);
-router.get('/:id',        c.requireBcOrAdmin, c.getOne);
-router.put('/:id',        c.requireBcOrAdmin, c.update);
+router.get('/',           c.requireProOrAdmin, c.listMine);
+router.get('/published',  c.requireProOrAdmin, c.listMyPublished);
+router.post('/',          c.requireProOrAdmin, c.create);
+router.get('/:id',        c.requireProOrAdmin, c.getOne);
+router.put('/:id',        c.requireProOrAdmin, c.update);
 
 // Submit & retry additionally require not-trial (paid B/C/admin).
 router.post('/:id/submit', c.requireSubmitAllowed, c.submit);
 router.post('/:id/retry',  c.requireSubmitAllowed, c.retry);
 
 // Image upload (tier-gated; reuses the existing storage convention)
-router.post('/upload-image', c.requireBcOrAdmin, coverUpload.single('image'), (req, res) => {
+router.post('/upload-image', c.requireProOrAdmin, coverUpload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No image file provided.' });
   return res.json({ success: true, imageUrl: `/uploads/blogs/${req.file.filename}` });
 });

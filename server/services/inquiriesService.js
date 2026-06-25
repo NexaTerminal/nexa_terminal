@@ -164,7 +164,7 @@ class InquiriesService {
                       user?.role !== 'sub_seat' &&
                       !inActive &&
                       !inGrace;
-    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN' && !isPreview) return [];
+    if (tier !== 'B' && tier !== 'ADMIN' && !isPreview) return [];
 
     // Map the user's declared practiceAreas (kebab-case legal subcategories
     // from roles.js — 'labor-law', 'tax-accounting', etc.) onto the inquiry
@@ -214,7 +214,7 @@ class InquiriesService {
 
     const docs = await this.col.find(matchFilter).sort({ postedAt: -1 }).limit(100).toArray();
 
-    // First-look window removed (2026-05-31). Both tier B and tier C see
+    // First-look window removed (2026-05-31). Pro (tier B) members see
     // new inquiries the moment they're posted. FIRST_LOOK_HOURS is still
     // exported in case the product policy changes again.
 

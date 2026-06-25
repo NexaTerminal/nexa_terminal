@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Simple registration with just username and password
-  const registerSimple = async (username, password, intendedPlan = 'standard', email = '') => {
+  const registerSimple = async (username, password, intendedPlan = 'basic', email = '') => {
     setError(null);
 
     try {

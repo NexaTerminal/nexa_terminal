@@ -6,12 +6,15 @@ import TerminalShell from '../../../components/terminal/TerminalShell';
 import styles from './ManageSubscriptions.module.css';
 
 const PLAN_LABEL = {
-  standard: 'Nexa Platform',
-  admin:    'Nexa Network · Kantora',
-  admin_5:  'Nexa Network · Kantora',
-  admin_10: 'Nexa Network · Studio'
+  basic: 'Nexa Basic',
+  pro:   'Nexa Pro',
+  // legacy (pre-migration docs)
+  standard: 'Nexa Basic',
+  admin:    'Nexa Pro',
+  admin_5:  'Nexa Pro',
+  admin_10: 'Nexa Pro'
 };
-const PLAN_SEATS = { standard: 0, admin_5: 5, admin_10: 10 };
+const PLAN_SEATS = { basic: 3, pro: 25, standard: 0, admin_5: 5, admin_10: 10 };
 const CYCLE_LABEL = { monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
 const STATUS_LABEL = {
   trial: 'Trial',
@@ -30,6 +33,9 @@ const TABS = [
 
 // Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
 const PLAN_PRICES = {
+  basic: { monthly: 19, quarterly: 49, annual: 179 },
+  pro:   { monthly: 39, quarterly: 99, annual: 359 },
+  // legacy (pre-migration docs)
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
   admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
   admin_10: { monthly: 59, quarterly: 149, annual: 549 }
@@ -319,10 +325,11 @@ export default function ManageSubscriptions() {
 
 function ApproveModal({ user, onCancel, onSubmit }) {
   const sub = user.subscription || {};
-  // Normalize legacy 'admin' → 'admin_5'
-  const initialPlan = (sub.requestedPlan || sub.plan) === 'admin'
-    ? 'admin_5'
-    : (sub.requestedPlan || sub.plan || 'standard');
+  // Normalize any legacy plan key to the canonical two-tier value.
+  const rawPlan = sub.requestedPlan || sub.plan;
+  const initialPlan = ['admin', 'admin_5', 'admin_10', 'pro'].includes(rawPlan)
+    ? 'pro'
+    : 'basic';
   const [plan, setPlan]   = useState(initialPlan);
   const [cycle, setCycle] = useState(sub.requestedCycle || sub.cycle || 'monthly');
   const [invoice, setInvoice] = useState('');
@@ -338,9 +345,8 @@ function ApproveModal({ user, onCancel, onSubmit }) {
         <label className={styles.field}>
           Plan
           <select value={plan} onChange={e => setPlan(e.target.value)}>
-            <option value="standard">Nexa Platform</option>
-            <option value="admin_5">Nexa Network · Kantora (5 seats)</option>
-            <option value="admin_10">Nexa Network · Studio (10 seats)</option>
+            <option value="basic">Nexa Basic</option>
+            <option value="pro">Nexa Pro (до 25 seats)</option>
           </select>
         </label>
 

@@ -13,6 +13,9 @@ const ROLE_LABEL = {
   verified:       'Основен (стар)'
 };
 const PLAN_LABEL = {
+  basic: 'Основен',
+  pro:   'Про',
+  // legacy
   standard: 'Основен',
   admin_5:  'Про',
   admin_10: 'Про',
@@ -578,7 +581,7 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
 
 function RoleChangeForm({ user, token, onCancel, onDone }) {
   const [newRole, setNewRole] = useState(user.role === 'admin_user' ? 'standard_user' : 'admin_user');
-  const [plan, setPlan] = useState('admin_5');
+  const [plan, setPlan] = useState('pro');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -607,10 +610,9 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
 
       {newRole === 'admin_user' && (
         <>
-          <label className={styles.fieldLabel}>Admin план (определува лимит на седишта)</label>
+          <label className={styles.fieldLabel}>План</label>
           <select value={plan} onChange={e => setPlan(e.target.value)}>
-            <option value="admin_5">Про (5 под-сметки)</option>
-            <option value="admin_10">Про (10 под-сметки)</option>
+            <option value="pro">Про (до 25 под-сметки)</option>
           </select>
         </>
       )}

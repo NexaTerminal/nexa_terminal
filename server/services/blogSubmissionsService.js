@@ -8,7 +8,7 @@
  *   ai_passed → accepted (admin) → published (admin) → row in `blogs` collection
  *   ai_passed → rejected (admin, terminal)
  *
- * Quotas: tier B = 1/month, tier C = 2/month. Counted by `submittedAt` falling
+ * Quota: Pro (tier B) = 2/month. Counted by `submittedAt` falling
  * in the current calendar month, in any status except `draft` and `rejected`.
  */
 
@@ -39,7 +39,7 @@ const STATUS = Object.freeze({
   ARCHIVED:    'archived'
 });
 
-const QUOTA_BY_TIER = { B: 1, C: 2 };
+const QUOTA_BY_TIER = { B: 2 };
 
 class BlogSubmissionsService {
   constructor(db) {
@@ -84,13 +84,13 @@ class BlogSubmissionsService {
     const tier = tierService.effectiveTier(user);
     const max = QUOTA_BY_TIER[tier] || 0;
     if (max === 0) {
-      const err = new Error('Поднесувањето на прилози е достапно само за Nexa Мрежа корисници.');
+      const err = new Error('Поднесувањето на прилози е достапно само за Про членови.');
       err.code = 'TIER_FORBIDDEN';
       throw err;
     }
     const used = await this.monthlyCount(user);
     if (used >= max) {
-      const err = new Error(`Достигната месечна граница. ${tier === 'B' ? 'Кантора' : 'Студио'} дозволува ${max} поднесувања месечно. Се ресетира на 1-ви во наредниот месец.`);
+      const err = new Error(`Достигната месечна граница. Про дозволува ${max} поднесувања месечно. Се ресетира на 1-ви во наредниот месец.`);
       err.code = 'QUOTA_EXCEEDED';
       throw err;
     }
@@ -107,8 +107,8 @@ class BlogSubmissionsService {
     }
     // Permission check; quota is enforced on submit, not on draft creation.
     const tier = tierService.effectiveTier(user);
-    if (tier !== 'B' && tier !== 'C' && tier !== 'ADMIN') {
-      const err = new Error('Поднесувањето на прилози е достапно само за Nexa Мрежа корисници.');
+    if (tier !== 'B' && tier !== 'ADMIN') {
+      const err = new Error('Поднесувањето на прилози е достапно само за Про членови.');
       err.code = 'TIER_FORBIDDEN';
       throw err;
     }

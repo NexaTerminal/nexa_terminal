@@ -46,7 +46,7 @@ function canSubmitBlog(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B' || eff === 'C') return { allowed: true };
+  if (eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
@@ -54,7 +54,7 @@ function canExpressInterest(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B' || eff === 'C') return { allowed: true };
+  if (eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
@@ -72,7 +72,7 @@ function subSeatLimit(user) {
   return 0;                   // Basic co-worker seats wired in the sub-user phase
 }
 
-// Virtual fair: any active paid plan (A/B/C) may post a booth; trial/preview
+// Virtual fair: any active paid plan (A/B) may post a booth; trial/preview
 // browse read-only; sub-seats don't own a booth. Authoritative server gate is
 // middleware/requireBoothPoster.js — this mirrors the client predicate.
 function canPostBooth(user) {

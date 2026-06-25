@@ -262,12 +262,12 @@ exports.publicPageBySlug = async (req, res) => {
 
 // ── middleware ─────────────────────────────────────────────────────────────
 
-exports.requireCOrAdmin = (req, res, next) => {
-  // Visibility: tier C, plus trial-with-intent-C can SEE the list (but not request).
+exports.requireProOrAdmin = (req, res, next) => {
+  // Topics Q&A is a Pro (B) feature; trial-with-Pro-intent can SEE the list too.
   const v = tierService.visibleTier(req.user);
-  if (v === 'C' || v === 'ADMIN') return next();
+  if (v === 'B' || v === 'ADMIN') return next();
   return res.status(403).json({ success: false, code: 'TIER_FORBIDDEN',
-    message: 'Topics Q&A е достапно само за Nexa Мрежа · Студио членови.' });
+    message: 'Topics Q&A е достапно само за Про членови.' });
 };
 
 exports.requireAdmin = (req, res, next) => {

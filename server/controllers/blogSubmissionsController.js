@@ -198,11 +198,11 @@ exports.adminPublish = async (req, res) => {
 // but cannot submit; this gate runs on the action endpoints, not on draft
 // updates so revisions during trial don't block.
 
-exports.requireBcOrAdmin = (req, res, next) => {
+exports.requireProOrAdmin = (req, res, next) => {
   const t = tierService.effectiveTier(req.user);
-  if (t === 'B' || t === 'C' || t === 'ADMIN') return next();
+  if (t === 'B' || t === 'ADMIN') return next();
   return res.status(403).json({ success: false, code: 'TIER_FORBIDDEN',
-    message: 'Поднесувањето на прилози е достапно само за Nexa Мрежа корисници.' });
+    message: 'Поднесувањето на прилози е достапно само за Про членови.' });
 };
 
 exports.requireSubmitAllowed = (req, res, next) => {

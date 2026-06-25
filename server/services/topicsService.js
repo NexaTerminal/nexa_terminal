@@ -133,7 +133,7 @@ class TopicsService {
     await this._ensureIndexes();
     const tier = tierService.effectiveTier(user);
     const visible = tierService.visibleTier(user);
-    if (visible !== 'C' && tier !== 'ADMIN') return [];
+    if (visible !== 'B' && tier !== 'ADMIN') return [];
     // Filter by member's declared practice areas/categories. If none declared,
     // show everything that's open.
     const filter = {

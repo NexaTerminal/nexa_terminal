@@ -21,8 +21,8 @@ const OPEN_REGISTRATION = false;
 const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
-  // Plan is always standard at signup; admins/upgrades happen post-trial via the gate modal.
-  const intendedPlan = 'standard';
+  // Plan is always Basic at signup; Pro upgrade happens post-signup via the gate modal.
+  const intendedPlan = 'basic';
 
   // A campaign link stashes a promo code before bouncing here. Its presence is
   // what unlocks the signup form (the user was invited). Read once on mount.
@@ -119,7 +119,7 @@ const Login = () => {
           throw new Error('Внесете валидна е-пошта.');
         }
 
-        const result = await registerSimple(username, password, intendedPlan || 'standard', email);
+        const result = await registerSimple(username, password, intendedPlan || 'basic', email);
         if (result.success && result.requireEmailVerification) {
           setVerifyUserId(result.userId);
           setVerifyEmailAddr(result.email);

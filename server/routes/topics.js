@@ -4,7 +4,7 @@ const c = require('../controllers/topicsController');
 
 const router = express.Router();
 router.use(authenticateJWT);
-router.use(c.requireCOrAdmin);
+router.use(c.requireProOrAdmin);
 
 router.get('/worklist',                  c.listOpenWorklist);
 router.get('/worklist/:id',              c.getWorklistItem);

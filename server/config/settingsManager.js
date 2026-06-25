@@ -76,7 +76,8 @@ class SettingsManager {
         chatbot: features.aiChatbot,
         contractAnalysis: features.contractAnalysis,
         admin: true, // Always enabled for admin functionality
-        verification: true // Always enabled for company verification
+        verification: true, // Always enabled for company verification
+        contact: true // Always enabled for public contact / request-access form
       },
       // Map features to collections automatically
       database: {
@@ -163,7 +164,8 @@ class SettingsManager {
         chatbot: true,
         contractAnalysis: true,
         admin: true,  // Enable admin routes
-        verification: true  // Enable verification routes
+        verification: true,  // Enable verification routes
+        contact: true  // Enable public contact / request-access route
       },
       middleware: {
         authentication: true,

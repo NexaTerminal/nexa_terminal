@@ -1965,7 +1965,7 @@
 .modalBody { padding: 16px 22px 4px; overflow-y: auto; }
 .modalMeta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .modalText { margin: 0 0 14px; font-size: 14px; color: #334155; line-height: 1.65; white-space: pre-line; }
-.modalEngage { display: flex; align-items: center; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #eef2f7; }
+.modalEngage { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #eef2f7; }
 
 /* Comments */
 .commentsWrap { padding: 14px 22px 20px; }

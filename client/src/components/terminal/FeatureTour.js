@@ -5,40 +5,36 @@ import styles from '../../styles/terminal/FeatureTour.module.css';
 const STORAGE_KEY = 'nexa_tour_views';
 const MAX_TOUR_VIEWS = 3;
 
+// Steps anchor to sidebar items via their `data-tour={item.key}` attribute
+// (set in components/terminal/Sidebar.js). Keep keys in sync with the sidebar.
 const TOUR_STEPS = [
   {
     target: '[data-tour="documents"]',
-    title: 'Автоматизирани документи',
-    text: 'Генерирај документи брзо и во неколку клика.',
-    position: 'right'
-  },
-  {
-    target: '[data-tour="my-templates"]',
-    title: 'Мои шаблони',
-    text: 'Прикачи свој .docx и создај шаблон со динамични полиња. AI ќе ти помогне.',
+    title: 'Документи',
+    text: 'Генерирај правни документи во неколку клика — а во „Мои шаблони“ прикачи свој .docx и автоматизирај го со помош на AI.',
     position: 'right'
   },
   {
     target: '[data-tour="screening"]',
-    title: 'Скрининг',
-    text: 'Провери ја правната, маркетинг и сајбер усогласеност на твојот бизнис.',
+    title: 'Проверки',
+    text: 'Провери ја правната, маркетинг, HR и сајбер усогласеност на твојот бизнис.',
     position: 'right'
   },
   {
-    target: '[data-tour="ai"]',
+    target: '[data-tour="nexaai"]',
     title: 'Nexa AI',
-    text: 'Постави правно или маркетинг прашање и добиј одговор базиран на македонското законодавство.',
+    text: 'Постави правно или маркетинг прашање и анализирај договори — со одговори базирани на македонското законодавство.',
     position: 'right'
   },
   {
-    target: '[data-tour="find-lawyer"]',
-    title: 'Најди адвокат',
-    text: 'Пронајди правен експерт за твоите деловни потреби.',
+    target: '[data-tour="sourcing"]',
+    title: 'Барање за понуди',
+    text: 'Побарај понуди од проверени провајдери — ние ги собираме и ти ги доставуваме.',
     position: 'right'
   },
   {
     target: '[data-tour="education"]',
-    title: 'Обуки',
+    title: 'Курсеви',
     text: 'Едуцирај се со стручни содржини за бизнис и право.',
     position: 'right'
   }

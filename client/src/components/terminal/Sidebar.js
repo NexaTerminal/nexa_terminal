@@ -167,6 +167,7 @@ const Sidebar = () => {
         <Link
           key={item.key || item.path}
           to={item.path}
+          data-tour={item.key}
           className={`${styles['menu-item']} ${isPathActive(item.path) ? styles.active : ''}`}
         >
           {item.icon && <span className={styles['menu-icon']}><Icon name={item.icon} /></span>}
@@ -184,6 +185,7 @@ const Sidebar = () => {
       <div key={item.key} className={styles['menu-item-with-submenu']}>
         <button
           type="button"
+          data-tour={item.key}
           className={`${styles['menu-item']} ${childActive ? styles.active : ''}`}
           onClick={() => toggleGroup(item.key)}
         >

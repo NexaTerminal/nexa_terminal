@@ -43,7 +43,9 @@ export default function PromoRedeemWatcher() {
       } finally {
         localStorage.removeItem(PENDING_PROMO_KEY);
         busy.current = false;
-        navigate('/terminal/subscription');
+        // Land the user in the Terminal; the Dashboard shows the one-time
+        // promo flash (PROMO_FLASH_KEY) the first time it mounts.
+        navigate('/terminal');
       }
     })();
   }, [currentUser, navigate]);

@@ -8,12 +8,26 @@ import RightSidebar from "../../components/terminal/RightSidebar";
 import UpdatesFeed from "../../components/terminal/UpdatesFeed";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
+import { PROMO_FLASH_KEY } from "../../components/PromoRedeemWatcher";
 
 const Dashboard = () => {
   const { currentUser, token } = useAuth();
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [promoFlash, setPromoFlash] = useState(null);
+
+  // One-time promo notice after a deep-link code redemption. PromoRedeemWatcher
+  // stashes it, redirects here; we show it once then clear the key.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PROMO_FLASH_KEY);
+      if (raw) {
+        setPromoFlash(JSON.parse(raw));
+        localStorage.removeItem(PROMO_FLASH_KEY);
+      }
+    } catch (_) { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -54,6 +68,14 @@ const Dashboard = () => {
 
       <div className={styles["dashboard-layout"]}>
         <main className={styles["dashboard-main"]}>
+          {promoFlash && (
+            <div className={`${styles.promoFlash} ${promoFlash.ok ? styles.promoFlashOk : styles.promoFlashErr}`} role="status">
+              <span className={styles.promoFlashIcon} aria-hidden>{promoFlash.ok ? '✓' : '⚠️'}</span>
+              <span className={styles.promoFlashMsg}>{promoFlash.msg}</span>
+              <button type="button" className={styles.promoFlashClose} onClick={() => setPromoFlash(null)} aria-label="Затвори">×</button>
+            </div>
+          )}
+
           <SubscriptionStatusBanner />
 
           {/* Removed dashboard-header section - profile info now in header dropdown */}

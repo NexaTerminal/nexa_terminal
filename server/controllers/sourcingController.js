@@ -8,9 +8,9 @@ const emailService = require('../services/emailService'); // singleton instance
  * A verified company posts a need (product/service). We store it and email
  * info@nexa.mk with the full details. Brokering is manual.
  *
- * Monthly quotas by paid tier (calendar month):
- *   Pro (B)   → 1 нов барање + 1 измена
- *   Basic (A) / trial → 0 (мора Про); ADMIN → неограничено.
+ * Monthly quotas by tier (calendar month):
+ *   Basic (A) → 1 ново барање + 1 измена
+ *   Pro (B)   → 3 нови барања + 3 измени; ADMIN → неограничено.
  */
 
 const COLLECTION = 'sourcing_requests';
@@ -22,8 +22,8 @@ const DISCLOSURE_MK = { full: 'Целосно (име на фирмата)', con
 const TYPE_MK = { product: 'Производ', service: 'Услуга' };
 
 const QUOTAS = {
-  A: { requests: 0, edits: 0 },
-  B: { requests: 1, edits: 1 },
+  A: { requests: 1, edits: 1 },
+  B: { requests: 3, edits: 3 },
   C: { requests: 3, edits: 3 }
 };
 function quotaFor(user) {

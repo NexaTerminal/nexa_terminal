@@ -1890,21 +1890,24 @@
 .updateFooter {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  margin-top: 6px;
-  flex-wrap: wrap;
+  margin-top: 12px;
 }
 .readMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
-  padding: 0;
-  font-size: 13px;
+  padding: 5px 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #1e4db7;
   cursor: pointer;
 }
+.readMoreBtn::after { content: '→'; font-size: 13px; line-height: 1; }
 .readMoreBtn:hover { text-decoration: underline; }
-.engageSpacer { flex: 1 1 auto; }
 .engageBtn {
   display: inline-flex;
   align-items: center;

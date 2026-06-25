@@ -176,10 +176,6 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
         {update.body && <p className={styles.updateBody}>{preview}</p>}
 
         <div className={styles.updateFooter}>
-          {truncated && (
-            <button type="button" className={styles.readMoreBtn} onClick={onOpen}>Прочитај повеќе</button>
-          )}
-          <span className={styles.engageSpacer} />
           <button
             type="button"
             className={`${styles.engageBtn} ${update.likedByMe ? styles.engageBtnActive : ''}`}
@@ -193,6 +189,9 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
             <span className={styles.engageIcon}>💬</span>
             <span>{update.commentsCount || 0}</span>
           </button>
+          {truncated && (
+            <button type="button" className={styles.readMoreBtn} onClick={onOpen}>Повеќе</button>
+          )}
         </div>
       </div>
     </article>

@@ -9,7 +9,7 @@ function verificationCodeEmail(code) {
   <h2 style="margin: 0 0 10px; font-size: 20px;">Потврдете ја Вашата е-пошта</h2>
   <p style="font-size: 14px; color: #334155;">
     Внесете го следниов код во прозорецот за регистрација за да ја потврдите Вашата е-пошта
-    и да го активирате 8-дневниот пробен период:
+    и да ја активирате Вашата сметка:
   </p>
 
   <div style="margin: 22px 0; text-align: center;">

@@ -27,6 +27,7 @@ import About from './pages/website/About';
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import ManageSubscriptions from './pages/terminal/admin/ManageSubscriptions';
 import AllUsers from './pages/terminal/admin/AllUsers';
+import InvitedProspects from './pages/terminal/admin/InvitedProspects';
 import Team from './pages/terminal/admin-user/Team';
 import AdminUserDashboard from './pages/terminal/admin-user/Dashboard';
 import LeadsInbox from './pages/terminal/admin-user/LeadsInbox';
@@ -388,6 +389,7 @@ function App() {
       <Route path="/terminal/admin/users" element={<PrivateRoute><EnhancedManageUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
       <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />
+      <Route path="/terminal/admin/invited-prospects" element={<PrivateRoute><InvitedProspects /></PrivateRoute>} />
       <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
       <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />

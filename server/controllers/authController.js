@@ -347,8 +347,9 @@ class AuthController {
 
   /**
    * POST /api/auth/verify-email  { userId, code }
-   * On success: marks emailVerified=true, starts the 8-day trial, initializes
-   * credits, and returns { token, user } so the client logs in immediately.
+   * On success: marks emailVerified=true, initializes the account LOCKED (no
+   * auto-trial) + credits, and returns { token, user } so the client logs in
+   * immediately. Feature access begins only via a redeem code or a paid plan.
    */
   verifyEmail = async (req, res) => {
     try {

@@ -15,7 +15,7 @@ const daysLabel = (n) => {
 };
 
 /**
- * Compact subscription/trial indicator. Single-line slim strip at the top
+ * Compact subscription indicator. Single-line slim strip at the top
  * of the terminal main area.
  *
  * Hidden when status is 'active' and >14 days remain.
@@ -65,12 +65,6 @@ export default function SubscriptionStatusBanner() {
     variant = 'warn';
     line = `Гејс период — останува ${daysLabel(Math.max(0, graceDays))}. Извршете уплата за да го задржите пристапот.`;
     ctaLabel = 'Обнови';
-  } else if (status === 'trial') {
-    variant = 'trial';
-    line = days > 0
-      ? `Пробен период — остануваат ${daysLabel(days)}. Изберете план за да го задржите пристапот.`
-      : 'Пробниот период истекува денес.';
-    ctaLabel = 'Изберете план';
   } else if (status === 'active' && days <= 14) {
     variant = days <= 3 ? 'warn' : 'info';
     line = days > 0

@@ -36,7 +36,14 @@ function adminRoutes(controller) {
   router.get('/codes',                  (req, res) => controller.listCodes(req, res));
   router.post('/codes',                 (req, res) => controller.createCode(req, res));
   router.post('/codes/send-invite',     (req, res) => controller.sendInvite(req, res));
+  router.get('/codes/:code/invite-draft',(req, res) => controller.getInviteDraft(req, res));
   router.post('/codes/:code/deactivate',(req, res) => controller.deactivateCode(req, res));
+  // Cold-contact ledger (invited prospects).
+  router.get('/prospects',              (req, res) => controller.listProspects(req, res));
+  router.delete('/prospects/:id',       (req, res) => controller.deleteProspect(req, res));
+  // Manually fire the trial→paid reminder run (testing). Respects per-stage
+  // idempotency; ignores the banking-hours window.
+  router.post('/run-trial-reminders',   (req, res) => controller.runTrialReminders(req, res));
   return router;
 }
 

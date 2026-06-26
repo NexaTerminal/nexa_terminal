@@ -11,7 +11,8 @@ router.post('/create-admin', RateLimitingService.createLoginLimiter(), authContr
 // Register new user with simplified username/password signup
 router.post('/register', RateLimitingService.createRegistrationLimiter(), authController.register);
 
-// Verify the 6-digit code sent during registration → issues JWT + starts trial.
+// Verify the 6-digit code sent during registration → issues JWT (account stays
+// locked until a redeem code or paid plan grants access).
 router.post('/verify-email', authController.verifyEmail);
 
 // Resend the verification code (60-second cooldown enforced server-side).

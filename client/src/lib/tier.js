@@ -13,7 +13,10 @@
  * from the parent's plan for gating, but never see B-only surfaces).
  */
 
-const TIER_TRIAL_STATUSES = new Set(['trial', 'pending_approval']);
+// Gated statuses: the user has an account but no live paid access yet. There is
+// no auto-trial anymore — a fresh account is 'none' (locked) until a code or
+// paid plan activates it. 'pending_approval' waits on admin payment confirmation.
+const TIER_TRIAL_STATUSES = new Set(['pending_approval']);
 
 export function effectiveTier(user) {
   if (!user) return null;
@@ -68,8 +71,8 @@ export function hasFeatureAccess(user) {
   const now = Date.now();
   const endsAt      = s.endsAt      ? new Date(s.endsAt).getTime()      : 0;
   const graceEndsAt = s.graceEndsAt ? new Date(s.graceEndsAt).getTime() : 0;
-  const inTrialOrActive = (s.status === 'trial' || s.status === 'active') && endsAt > now;
-  return inTrialOrActive || graceEndsAt > now;
+  const inActive = s.status === 'active' && endsAt > now;
+  return inActive || graceEndsAt > now;
 }
 
 export function intendedTier(user) {

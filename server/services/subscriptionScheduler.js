@@ -1,12 +1,8 @@
 /**
  * SubscriptionScheduler — daily cron that:
- *   1. Sends due reminder emails.
- *   2. On trial expiry:
- *        - auto-grants the one-time 3-day grace if user already requested a plan
- *          (and grace not yet used)
- *        - otherwise suspends.
- *   3. Suspends users whose grace window has run out.
- *   4. Suspends users whose paid endsAt has passed.
+ *   1. Sends due reminder emails (paid renewal + promo conversion nudges).
+ *   2. Suspends users whose grace window has run out.
+ *   3. Suspends users whose paid/promo endsAt has passed.
  */
 
 const cron = require('node-cron');
@@ -47,7 +43,7 @@ class SubscriptionScheduler {
     let suspended = 0;
     let gracesGranted = 0;
 
-    // 1. Reminders + trial/paid expiry transitions.
+    // 1. Reminders + paid/promo expiry transitions.
     const upcoming = await this.subscriptionService.listUpcomingExpiries({ withinDays: 30 });
     for (const user of upcoming) {
       const due = this.subscriptionService.computeDueReminder(user);
@@ -65,24 +61,7 @@ class SubscriptionScheduler {
           remindersSent++;
         }
 
-        if (due.type === 'trial-expired') {
-          // If the user has shown payment intent → auto-grant grace.
-          if (sub.requestedPlan && !sub.gracePeriod?.used) {
-            const granted = await this.subscriptionService.grantGracePeriod(user._id, { triggeredBy: 'auto-from-pending' });
-            if (granted) {
-              gracesGranted++;
-              // Notify with the grace email.
-              try {
-                const graceTpl = subscriptionEmails.graceBegun({ name, endsAt: granted.endsAt }, language);
-                await this.emailService.sendEmail(user.email, graceTpl.subject, graceTpl.html);
-              } catch (e) { /* email best-effort */ }
-            }
-          } else {
-            // No intent → suspend immediately.
-            await this.subscriptionService.suspend(user._id, { reason: 'auto: trial expired without intent' });
-            suspended++;
-          }
-        } else if (due.type === 'paid-expired') {
+        if (due.type === 'paid-expired') {
           await this.subscriptionService.suspend(user._id, { reason: 'auto: subscription expired' });
           suspended++;
         } else if (due.type === 'promo-expired') {
@@ -113,8 +92,6 @@ class SubscriptionScheduler {
 
   _buildTemplate(type, { name, sub, language }) {
     switch (type) {
-      case 'trial-2d':     return subscriptionEmails.trialEndingIn2Days({ name, endsAt: sub.endsAt }, language);
-      case 'trial-expired':return subscriptionEmails.trialExpired({ name }, language);
       case 'paid-14d':     return subscriptionEmails.renewalIn14Days({ name, plan: sub.plan, cycle: sub.cycle, endsAt: sub.endsAt }, language);
       case 'paid-3d':      return subscriptionEmails.renewalIn3Days({ name, plan: sub.plan, cycle: sub.cycle, endsAt: sub.endsAt }, language);
       case 'paid-expired': return subscriptionEmails.subscriptionSuspended({ name }, language);

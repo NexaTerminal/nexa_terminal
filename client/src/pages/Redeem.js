@@ -13,11 +13,20 @@ export default function Redeem() {
   const { search } = useLocation();
   const { currentUser, token } = useAuth();
   const navigate = useNavigate();
-  const code = new URLSearchParams(search).get('code');
+  const params = new URLSearchParams(search);
+  const code = params.get('code');
+  const prospectId = params.get('p'); // cold-invite tracking id
 
   useEffect(() => {
     if (code) localStorage.setItem(PENDING_PROMO_KEY, code);
   }, [code]);
+
+  // Report the click back for the invited→clicked funnel (best-effort, once).
+  useEffect(() => {
+    if (!prospectId) return;
+    const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    fetch(`${apiURL}/invite/click?p=${encodeURIComponent(prospectId)}`, { keepalive: true }).catch(() => {});
+  }, [prospectId]);
 
   // Already authenticated → let the watcher redeem; bounce into the terminal.
   useEffect(() => {

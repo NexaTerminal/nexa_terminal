@@ -17,7 +17,7 @@ const PLAN_LABEL = {
 const PLAN_SEATS = { basic: 3, pro: 25, standard: 0, admin_5: 5, admin_10: 10 };
 const CYCLE_LABEL = { monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
 const STATUS_LABEL = {
-  trial: 'Trial',
+  none: 'Not activated',
   pending_approval: 'Pending',
   active: 'Active',
   suspended: 'Suspended',
@@ -26,7 +26,6 @@ const STATUS_LABEL = {
 const TABS = [
   { key: 'pending_approval', label: 'Pending approval' },
   { key: 'active', label: 'Active' },
-  { key: 'trial', label: 'Trial' },
   { key: 'suspended', label: 'Suspended' },
   { key: 'codes', label: 'Promo codes' }
 ];
@@ -276,7 +275,7 @@ export default function ManageSubscriptions() {
                           <button className={styles.btnGhost}   onClick={() => setRejectTarget(u)}>Reject</button>
                         </>
                       )}
-                      {(sub.status === 'active' || sub.status === 'trial') && (
+                      {sub.status === 'active' && (
                         <>
                           <button className={styles.btnGhost} onClick={() => setExtendTarget(u)}>Extend</button>
                           <button className={styles.btnDanger} onClick={() => onSuspend(u)}>Suspend</button>
@@ -562,7 +561,29 @@ function PromoCodes({ token, showFlash, setError }) {
 function SendInviteModal({ code, token, onClose, onDone, onError }) {
   const [emails, setEmails] = useState('');
   const [language, setLanguage] = useState('mk');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [edited, setEdited] = useState(false); // don't clobber manual edits on language switch
+  const [loadingDraft, setLoadingDraft] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Load the default draft for this code + language (unless the admin edited it).
+  useEffect(() => {
+    let cancelled = false;
+    if (edited) return;
+    setLoadingDraft(true);
+    axios.get(`/api/admin/subscriptions/codes/${encodeURIComponent(code)}/invite-draft?language=${language}`,
+      { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (cancelled) return;
+        setSubject(res.data.subject || '');
+        setBody(res.data.body || '');
+      })
+      .catch(err => onError(err.response?.data?.message || err.message))
+      .finally(() => { if (!cancelled) setLoadingDraft(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, language]);
 
   const submit = async () => {
     const recipients = emails.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
@@ -571,10 +592,13 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
     try {
       const res = await axios.post(
         '/api/admin/subscriptions/codes/send-invite',
-        { code, recipients, language },
+        { code, recipients, language, subject, body },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      onDone(`✓ Sent ${res.data.sent}, failed ${res.data.failed}`);
+      const { sent, failed, skipped = [] } = res.data;
+      let msg = `✓ Sent ${sent}, failed ${failed}`;
+      if (skipped.length) msg += ` · skipped ${skipped.length} already-invited`;
+      onDone(msg);
     } catch (err) {
       onError(err.response?.data?.message || err.message);
     } finally {
@@ -584,12 +608,14 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
 
   return (
     <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
         <h2>Send invite — {code}</h2>
-        <p className={styles.modalSub}>Sends the CTA email with the redeem deep link.</p>
+        <p className={styles.modalSub}>
+          Edit the draft below, then send. Already-invited addresses are skipped automatically. The CTA button keeps the redeem deep link.
+        </p>
         <label className={styles.field}>
           Recipients (comma / newline separated)
-          <textarea rows={4} value={emails} onChange={(e) => setEmails(e.target.value)}
+          <textarea rows={3} value={emails} onChange={(e) => setEmails(e.target.value)}
             placeholder="alice@firm.mk, bob@firm.mk" />
         </label>
         <label className={styles.field}>
@@ -599,9 +625,19 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
             <option value="en">English</option>
           </select>
         </label>
+        <label className={styles.field}>
+          Subject {loadingDraft && <span className={styles.modalSub}>(loading…)</span>}
+          <input type="text" value={subject}
+            onChange={(e) => { setSubject(e.target.value); setEdited(true); }} />
+        </label>
+        <label className={styles.field}>
+          Body (HTML)
+          <textarea rows={8} value={body}
+            onChange={(e) => { setBody(e.target.value); setEdited(true); }} />
+        </label>
         <div className={styles.modalActions}>
           <button className={styles.btnGhost} onClick={onClose}>Cancel</button>
-          <button className={styles.btnPrimary} onClick={submit} disabled={busy}>
+          <button className={styles.btnPrimary} onClick={submit} disabled={busy || loadingDraft}>
             {busy ? 'Sending…' : 'Send'}
           </button>
         </div>

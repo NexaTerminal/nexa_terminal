@@ -84,38 +84,6 @@ const cycleLabel = (cycle, lang) => {
   return map[cycle] || cycle || '';
 };
 
-// ---------- trial reminders ----------
-
-const trialEndingIn2Days = ({ name, endsAt }, language = 'mk') => {
-  const lang = language === 'en' ? 'en' : 'mk';
-  if (lang === 'mk') {
-    const title = 'Вашиот пробен период истекува за 2 дена';
-    const body = `<p>Здраво ${name || ''},</p>
-<p>Вашиот 8-дневен пробен период во Nexa завршува на <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
-<p>За да продолжите со неограничен пристап, изберете план и пратете доказ за уплата.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Избери план') };
-  }
-  const title = 'Your trial ends in 2 days';
-  const body = `<p>Hi ${name || ''},</p>
-<p>Your 8-day Nexa trial ends on <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
-<p>To keep your access, pick a plan and confirm payment.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
-};
-
-const trialExpired = ({ name }, language = 'mk') => {
-  const lang = language === 'en' ? 'en' : 'mk';
-  if (lang === 'mk') {
-    const title = 'Вашиот пробен период заврши';
-    const body = `<p>Здраво ${name || ''},</p>
-<p>Вашиот пробен период во Nexa заврши. За да го активирате пристапот до функциите, изберете план и пратете доказ за уплата.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Избери план') };
-  }
-  const title = 'Your trial has ended';
-  const body = `<p>Hi ${name || ''},</p>
-<p>Your Nexa trial has ended. To regain access to the features, pick a plan and confirm payment.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
-};
-
 // ---------- subscription request + approval ----------
 
 const subscriptionPending = ({ name, plan, cycle }, language = 'mk') => {
@@ -270,13 +238,13 @@ const graceBegun = ({ name, endsAt }, language = 'mk') => {
   if (lang === 'mk') {
     const title = 'Имате 3 дена дополнителен пристап';
     const body = `<p>Здраво ${name || ''},</p>
-<p>Вашиот пробен период заврши, но ви даваме 3 дена дополнителен пристап до <strong>${fmtDate(endsAt, 'mk')}</strong> за да ја процесирате уплатата.</p>
+<p>Ви даваме 3 дена дополнителен пристап до <strong>${fmtDate(endsAt, 'mk')}</strong> за да ја процесирате уплатата.</p>
 <p>Ова е еднократна можност — после ова, сметката се суспендира додека не пристигне уплатата.</p>`;
     return { subject: title, html: wrap('mk', title, body) };
   }
   const title = "You have 3 days of extended access";
   const body = `<p>Hi ${name || ''},</p>
-<p>Your trial has ended, but we're giving you 3 days of extended access until <strong>${fmtDate(endsAt, 'en')}</strong> to process payment.</p>
+<p>We're giving you 3 days of extended access until <strong>${fmtDate(endsAt, 'en')}</strong> to process payment.</p>
 <p>This is a one-time courtesy — after this window, the account is suspended until payment arrives.</p>`;
   return { subject: title, html: wrap('en', title, body) };
 };
@@ -318,30 +286,68 @@ const subSeatInvite = ({ name, parentName, email, tempPassword }, language = 'mk
  * Cold-outreach invitation carrying the hard-coded redeem deep link.
  * One link type, reusable across campaigns — the code travels in the URL.
  */
-const promoInvite = ({ code, plan = 'pro', days = 30 }, language = 'mk') => {
+/**
+ * Editable parts of the promo-invite email: subject + inner body (paragraph
+ * HTML) + the CTA. The admin can override `subject`/`body` in the Send-invite
+ * modal; `wrapInvite` re-assembles them into the final HTML.
+ */
+const promoInviteParts = ({ code, plan = 'pro', days = 30 }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
-  const url = `${PORTAL_URL}/redeem?code=${encodeURIComponent(code)}`;
+  const ctaUrl = `${PORTAL_URL}/redeem?code=${encodeURIComponent(code)}`;
   const tier = tierWord(plan, lang);
   const isPro = !(plan === 'basic' || plan === 'standard');
+  const videoUrl = 'https://www.youtube.com/watch?v=gVbjhEwWaBc';
+  // Small helper for a clean, evenly-spaced perks list inside the email body.
+  const perkList = (items) =>
+    `<ul style="margin:6px 0 18px;padding:0;list-style:none;">${items
+      .map(p => `<li style="margin:0 0 8px;padding-left:22px;position:relative;">` +
+        `<span style="position:absolute;left:0;top:0;color:#1E4DB7;font-weight:700;">✓</span>${p}</li>`)
+      .join('')}</ul>`;
+
   if (lang === 'mk') {
-    const title = `Активирајте ${days} дена Nexa ${tier} — бесплатно`;
+    const subject = `Подарок за вас: ${days} дена Nexa ${tier} — бесплатно`;
     const perks = isPro
-      ? 'целосен пристап до автоматизирани документи, AI помош, проверки за усогласеност и B2B мрежата'
-      : 'автоматизирани документи, AI помош, проверки за усогласеност, барање понуди и виртуелен саем';
+      ? ['Автоматско изготвување правни документи за неколку минути',
+         'AI помошник за секојдневните прашања на вашата фирма',
+         'Проверки за усогласеност и пристап до B2B мрежата']
+      : ['Автоматско изготвување правни документи',
+         'AI помошник и проверки за усогласеност',
+         'Барање понуди и виртуелен саем'];
     const body = `<p>Здраво,</p>
-<p>Ве покануваме да го пробате <strong>Nexa ${tier}</strong> без обврска — ${perks}.</p>
-<p>Кликнете на копчето подолу за да активирате <strong>${days} дена бесплатно</strong>. Ако сè уште немате сметка, ќе ве водиме низ брза регистрација, а кодот се применува автоматски.</p>`;
-    return { subject: title, html: wrap('mk', title, body, url, `Активирај ${days} дена ${tier}`) };
+<p>Јас сум дел од тимот на <strong>Nexa</strong> — платформа создадена да им го поедностави секојдневието на македонските фирми. Лично би сакале да ве поканиме да ја пробате <strong>Nexa ${tier}</strong>, без никаква обврска.</p>
+<p>Еве што добивате со неколку клика:</p>
+${perkList(perks)}
+<p>Повеќе за многуте можности на Nexa, можете да видите на <a href="${videoUrl}" target="_blank" style="color:#1E4DB7;">овој видео линк</a>.</p>
+<p>Кликнете на копчето подолу за да активирате <strong>${days} дена бесплатно</strong>. Ако сè уште немате сметка, ќе ве водиме низ брза регистрација, а кодот се применува автоматски.</p>
+<p style="margin-top:22px;">Со искрена почит,<br/><strong>Тимот на Nexa</strong></p>`;
+    return { subject, body, ctaUrl, ctaLabel: `Активирај ${days} дена ${tier}` };
   }
-  const title = `Activate ${days} days of Nexa ${tier} — free`;
+  const subject = `A gift for you: ${days} days of Nexa ${tier} — free`;
   const perks = isPro
-    ? 'full access to document automation, AI assistance, compliance checks and the B2B network'
-    : 'document automation, AI assistance, compliance checks, offer requests and the virtual fair';
+    ? ['Draft legal documents in minutes, automatically',
+       'An AI assistant for your everyday business questions',
+       'Compliance checks and access to the B2B network']
+    : ['Automated legal document drafting',
+       'AI assistant and compliance checks',
+       'Offer requests and the virtual fair'];
   const body = `<p>Hi,</p>
-<p>We'd like you to try <strong>Nexa ${tier}</strong>, no strings attached — ${perks}.</p>
-<p>Click below to activate <strong>${days} days free</strong>. If you don't have an account yet, we'll walk you through a quick sign-up and the code applies automatically.</p>`;
-  return { subject: title, html: wrap('en', title, body, url, `Activate ${days} days of ${tier}`) };
+<p>I'm part of the team at <strong>Nexa</strong> — a platform built to make day-to-day life simpler for businesses. We'd personally like to invite you to try <strong>Nexa ${tier}</strong>, with no strings attached.</p>
+<p>Here's what you get in just a few clicks:</p>
+${perkList(perks)}
+<p>You can see more of what Nexa can do in <a href="${videoUrl}" target="_blank" style="color:#1E4DB7;">this short video</a>.</p>
+<p>Click the button below to activate <strong>${days} days free</strong>. If you don't have an account yet, we'll walk you through a quick sign-up and the code applies automatically.</p>
+<p style="margin-top:22px;">Warm regards,<br/><strong>The Nexa team</strong></p>`;
+  return { subject, body, ctaUrl, ctaLabel: `Activate ${days} days of ${tier}` };
 };
+
+/** Assemble a (possibly admin-edited) invite draft into the final email HTML. */
+const wrapInvite = ({ subject, body, ctaUrl, ctaLabel }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  return { subject, html: wrap(lang, subject, body, ctaUrl, ctaLabel) };
+};
+
+const promoInvite = (opts, language = 'mk') =>
+  wrapInvite(promoInviteParts(opts, language), language);
 
 /** Confirmation sent right after a code is successfully redeemed. */
 const promoActivated = ({ name, plan, endsAt }, language = 'mk') => {
@@ -410,8 +416,6 @@ const adminApprovalNeeded = ({ userEmail, userName, plan, cycle }, language = 'm
 };
 
 module.exports = {
-  trialEndingIn2Days,
-  trialExpired,
   subscriptionPending,
   subscriptionApproved,
   subscriptionRejected,
@@ -423,6 +427,8 @@ module.exports = {
   paymentInstructions,
   graceBegun,
   promoInvite,
+  promoInviteParts,
+  wrapInvite,
   promoActivated,
   promoEndingIn3Days,
   promoEnded

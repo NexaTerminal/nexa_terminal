@@ -19,7 +19,6 @@ const {
   PLANS,
   PLAN_SEATS,
   PLAN_TO_ROLE,
-  CYCLES,
   DURATION_DAYS,
   GRACE_DAYS,
   PLAN_PRICES,
@@ -107,8 +106,8 @@ class SubscriptionService {
   }
 
   /**
-   * Single rule: access is granted iff trial/active is unexpired OR grace is active.
-   * Used by subscriptionGuard and by the frontend banner.
+   * Single rule: access is granted iff an ACTIVE subscription is unexpired OR
+   * grace is active. Used by subscriptionGuard and by the frontend banner.
    */
   async hasFeatureAccess(user) {
     if (!user) return false;
@@ -121,10 +120,9 @@ class SubscriptionService {
 
     const sub = resolved.subscription || {};
     const now = new Date();
-    const inTrial  = sub.status === SUBSCRIPTION_STATUSES.TRIAL  && sub.endsAt && new Date(sub.endsAt) > now;
     const inActive = sub.status === SUBSCRIPTION_STATUSES.ACTIVE && sub.endsAt && new Date(sub.endsAt) > now;
     const inGrace  = this.isInGrace(resolved);
-    return inTrial || inActive || inGrace;
+    return inActive || inGrace;
   }
 
   // -------------------------------------------------------- state transitions ----
@@ -150,44 +148,6 @@ class SubscriptionService {
       autoRenew: false,
       amountEur: 0,
       paidVia: null,
-      invoiceNumber: null,
-      approvedBy: null,
-      approvedAt: null,
-      remindersSent: [],
-      notes: null,
-      requestedAt: null,
-      requestedPlan: null,
-      requestedCycle: null,
-      gracePeriod: { ...EMPTY_GRACE }
-    };
-    await this.users.updateOne(
-      { _id: toObjectId(userId) },
-      { $set: { subscription, updatedAt: now } }
-    );
-    return { ...user, subscription };
-  }
-
-  /**
-   * Start a trial. Idempotent: no-op if already initialized.
-   * NOTE: trials are no longer auto-granted on signup — kept for admin/manual
-   * use and legacy callers. New accounts use initLocked().
-   */
-  async startTrial(userId) {
-    const user = await this.getUser(userId);
-    if (!user) throw new Error('User not found');
-    if (user.subscription?.status) return user;
-
-    const now = new Date();
-    const endsAt = addDays(now, DURATION_DAYS.trial);
-    const subscription = {
-      plan: null,
-      cycle: CYCLES.TRIAL,
-      status: SUBSCRIPTION_STATUSES.TRIAL,
-      startedAt: now,
-      endsAt,
-      durationDays: DURATION_DAYS.trial,
-      autoRenew: false,
-      amountEur: 0,
       invoiceNumber: null,
       approvedBy: null,
       approvedAt: null,
@@ -281,14 +241,15 @@ class SubscriptionService {
     }
     await this.users.updateOne({ _id: toObjectId(userId) }, { $set: update });
 
-    // If user is past trial endsAt and grace not yet used → grant it.
-    const trialExpired = user.subscription?.status === SUBSCRIPTION_STATUSES.TRIAL &&
-                         user.subscription?.endsAt && new Date(user.subscription.endsAt) <= now;
-    const noActiveSub  = !user.subscription?.endsAt || new Date(user.subscription.endsAt) <= now;
-    const graceUnused  = !user.subscription?.gracePeriod?.used;
+    // If the user has no live access (locked / suspended / expired) and grace is
+    // unused → grant the one-time 3-day courtesy so they keep working while the
+    // bank transfer clears. Active subscribers don't need it.
+    const noActiveSub = !user.subscription?.endsAt || new Date(user.subscription.endsAt) <= now;
+    const graceUnused = !user.subscription?.gracePeriod?.used;
+    const notActive   = user.subscription?.status !== SUBSCRIPTION_STATUSES.ACTIVE;
 
     let graceGranted = null;
-    if ((trialExpired || (user.subscription?.status === SUBSCRIPTION_STATUSES.SUSPENDED)) && noActiveSub && graceUnused) {
+    if (notActive && noActiveSub && graceUnused) {
       graceGranted = await this.grantGracePeriod(userId, { triggeredBy });
     }
 
@@ -441,13 +402,10 @@ class SubscriptionService {
     const user = await this.getUser(userId);
     if (!user) throw new Error('User not found');
     const now = new Date();
-    const stillInTrial = user.subscription?.cycle === CYCLES.TRIAL &&
-                         user.subscription?.endsAt && new Date(user.subscription.endsAt) > now;
-    const newStatus = stillInTrial ? SUBSCRIPTION_STATUSES.TRIAL : SUBSCRIPTION_STATUSES.SUSPENDED;
     await this.users.updateOne(
       { _id: toObjectId(userId) },
       { $set: {
-        'subscription.status': newStatus,
+        'subscription.status': SUBSCRIPTION_STATUSES.SUSPENDED,
         'subscription.requestedAt': null,
         'subscription.requestedPlan': null,
         'subscription.requestedCycle': null,
@@ -504,27 +462,22 @@ class SubscriptionService {
   computeDueReminder(user) {
     if (!user || !user.subscription || !user.subscription.endsAt) return null;
     const status = user.subscription.status;
-    if (![SUBSCRIPTION_STATUSES.TRIAL, SUBSCRIPTION_STATUSES.ACTIVE].includes(status)) return null;
+    if (status !== SUBSCRIPTION_STATUSES.ACTIVE) return null;
 
     const days = daysUntil(user.subscription.endsAt);
     const sentTypes = new Set((user.subscription.remindersSent || []).map(r => r.type));
 
-    // Promo periods are free 30-day Pro trials. The paid "renew/send payment"
+    // Promo periods are free 30-day Pro windows. The paid "renew/send payment"
     // cadence is wrong here — instead nudge them to convert to a paid plan.
-    if (status === SUBSCRIPTION_STATUSES.ACTIVE && user.subscription.paidVia === 'promo') {
+    if (user.subscription.paidVia === 'promo') {
       if (days <= 3 && days > 0 && !sentTypes.has('promo-3d'))       return { type: 'promo-3d', daysRemaining: days };
       if (days <= 0             && !sentTypes.has('promo-expired'))  return { type: 'promo-expired', daysRemaining: 0 };
       return null;
     }
 
-    if (status === SUBSCRIPTION_STATUSES.TRIAL) {
-      if (days <= 2 && days > 0  && !sentTypes.has('trial-2d'))      return { type: 'trial-2d', daysRemaining: days };
-      if (days <= 0              && !sentTypes.has('trial-expired')) return { type: 'trial-expired', daysRemaining: 0 };
-    } else {
-      if (days <= 14 && days > 3 && !sentTypes.has('paid-14d'))      return { type: 'paid-14d', daysRemaining: days };
-      if (days <= 3  && days > 0 && !sentTypes.has('paid-3d'))       return { type: 'paid-3d',  daysRemaining: days };
-      if (days <= 0              && !sentTypes.has('paid-expired'))  return { type: 'paid-expired', daysRemaining: 0 };
-    }
+    if (days <= 14 && days > 3 && !sentTypes.has('paid-14d'))        return { type: 'paid-14d', daysRemaining: days };
+    if (days <= 3  && days > 0 && !sentTypes.has('paid-3d'))         return { type: 'paid-3d',  daysRemaining: days };
+    if (days <= 0              && !sentTypes.has('paid-expired'))    return { type: 'paid-expired', daysRemaining: 0 };
     return null;
   }
 
@@ -547,7 +500,7 @@ class SubscriptionService {
   async listUpcomingExpiries({ withinDays = 30 } = {}) {
     const upper = addDays(new Date(), withinDays);
     return this.users.find({
-      'subscription.status': { $in: [SUBSCRIPTION_STATUSES.TRIAL, SUBSCRIPTION_STATUSES.ACTIVE] },
+      'subscription.status': SUBSCRIPTION_STATUSES.ACTIVE,
       'subscription.endsAt': { $ne: null, $lte: upper }
     }).toArray();
   }

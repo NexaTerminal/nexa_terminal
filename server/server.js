@@ -142,6 +142,16 @@ app.use('/api/blog', require('./routes/blog'));
 // Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
 app.use('/api/seo', require('./routes/seo'));
 
+// Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
+// page pings this with the prospect id so we can measure invited → clicked.
+app.get('/api/invite/click', async (req, res) => {
+  try {
+    const svc = req.app.locals.invitedProspectsService;
+    if (svc && req.query.p) await svc.recordClick(req.query.p);
+  } catch (_) { /* best-effort — never block the prospect */ }
+  res.status(204).end();
+});
+
 // Mount shared documents routes BEFORE CSRF middleware (public + authenticated API)
 // Route registration is deferred until after controller initialization
 // See registerRoutes() function for actual mounting
@@ -394,13 +404,35 @@ async function initializeServices(database) {
     await promoCodeService.ensureIndexes();
     app.locals.promoCodeService = promoCodeService;
 
+    // Cold-contact ledger: every prospect we email a promo invite to (dedup source).
+    const InvitedProspectsService = require('./services/invitedProspectsService');
+    const invitedProspectsService = new InvitedProspectsService(database);
+    await invitedProspectsService.ensureIndexes();
+    app.locals.invitedProspectsService = invitedProspectsService;
+
     const subscriptionController = new SubscriptionController({
-      subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService
+      subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService,
+      invitedProspectsService
     });
 
     app.use('/api/subscription',        subscriptionRoutes.userRoutes(subscriptionController));
     app.use('/api/admin/subscriptions', subscriptionRoutes.adminRoutes(subscriptionController));
     console.log('✅ /api/subscription + /api/admin/subscriptions mounted');
+
+    // Trial → paid reminders: emails a subscription-offer proforma to promo-trial
+    // users during MK bank working hours (Mon–Fri 08–14). Idempotent per stage.
+    try {
+      const TrialReminderService   = require('./services/trialReminderService');
+      const TrialReminderScheduler = require('./services/trialReminderScheduler');
+      const trialReminderService   = new TrialReminderService(database, emailService);
+      const trialReminderScheduler = new TrialReminderScheduler(trialReminderService);
+      trialReminderScheduler.start();
+      app.locals.trialReminderService   = trialReminderService;
+      app.locals.trialReminderScheduler = trialReminderScheduler;
+      console.log('✅ Trial reminder scheduler initialized');
+    } catch (e) {
+      console.error('⚠️  Trial reminder scheduler init failed:', e.message);
+    }
 
     app.use('/api/pro-invoices',       proInvoicesRoutes.userRoutes(proInvoicesController));
     app.use('/api/admin/pro-invoices', proInvoicesRoutes.adminRoutes(proInvoicesController));

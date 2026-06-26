@@ -20,8 +20,7 @@ const ROLES = Object.freeze({
 const LEGACY_VERIFIED = 'verified';
 
 const SUBSCRIPTION_STATUSES = Object.freeze({
-  NONE:             'none',              // registered, never activated (no auto-trial)
-  TRIAL:            'trial',             // legacy free evaluation (no longer auto-granted)
+  NONE:             'none',              // registered, never activated (no auto-trial — access needs a code or paid plan)
   PENDING_APPROVAL: 'pending_approval',  // plan selected, awaiting admin approval after payment
   ACTIVE:           'active',            // paid + approved (or code-activated)
   SUSPENDED:        'suspended',         // endsAt passed without renewal
@@ -76,21 +75,19 @@ const PLAN_TO_ROLE = Object.freeze({
 });
 
 const CYCLES = Object.freeze({
-  TRIAL:     'trial',
   MONTHLY:   'monthly',
   QUARTERLY: 'quarterly',
   ANNUAL:    'annual'
 });
 
 const DURATION_DAYS = Object.freeze({
-  trial:     8,
   monthly:   30,
   quarterly: 90,
   annual:    365
 });
 
-// One-time grace window (days) granted after trial expiry if the user has
-// shown intent (clicked Subscribe / Email-Invoice) but hasn't paid yet.
+// One-time grace window (days) granted when a locked / expired user shows intent
+// (clicks Subscribe / Email-Invoice) but hasn't paid yet.
 const GRACE_DAYS = 3;
 
 // EUR prices per the public pricing page (Nexa 3.0).
@@ -124,8 +121,6 @@ const labelForPlan = (plan, lang = 'mk') => {
 
 // Reminder cadence (days before endsAt, negative number = days remaining).
 const REMINDER_SCHEDULE = Object.freeze({
-  TRIAL_2D:       { type: 'trial-2d',       daysBefore: 2  },
-  TRIAL_EXPIRED:  { type: 'trial-expired',  daysBefore: 0  },
   PAID_14D:       { type: 'paid-14d',       daysBefore: 14 },
   PAID_3D:        { type: 'paid-3d',        daysBefore: 3  },
   PAID_EXPIRED:   { type: 'paid-expired',   daysBefore: 0  },

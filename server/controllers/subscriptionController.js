@@ -55,16 +55,20 @@ const createCodeSchema = Joi.object({
 const sendInviteSchema = Joi.object({
   code: Joi.string().trim().max(40).required(),
   recipients: Joi.array().items(Joi.string().email()).min(1).max(100).required(),
-  language: Joi.string().valid('mk', 'en').default('mk')
+  language: Joi.string().valid('mk', 'en').default('mk'),
+  // Optional admin overrides of the draft (from the Send-invite modal).
+  subject: Joi.string().trim().max(300).allow('', null),
+  body: Joi.string().max(20000).allow('', null)
 });
 
 class SubscriptionController {
-  constructor({ subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService }) {
+  constructor({ subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService, invitedProspectsService }) {
     this.subscriptionService = subscriptionService;
     this.emailService = emailService;
     this.auditLoggingService = auditLoggingService;
     this.proInvoicesService = proInvoicesService || null;
     this.promoCodeService = promoCodeService || null;
+    this.invitedProspectsService = invitedProspectsService || null;
   }
 
   // ----------------- promo codes ----------------- //
@@ -171,7 +175,38 @@ class SubscriptionController {
     }
   }
 
-  /** POST /api/admin/subscriptions/codes/send-invite { code, recipients[], language } */
+  /** POST /api/admin/subscriptions/run-trial-reminders — manual trigger. */
+  async runTrialReminders(req, res) {
+    try {
+      const scheduler = req.app.locals.trialReminderScheduler;
+      if (!scheduler) return res.status(503).json({ success: false, message: 'Потсетниците се недостапни.' });
+      const result = await scheduler.runNow();
+      res.json({ success: true, result });
+    } catch (err) {
+      console.error('[admin/subscriptions/run-trial-reminders] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /** GET /api/admin/subscriptions/codes/:code/invite-draft?language=mk
+   * Returns the default editable draft { subject, body } to prefill the modal. */
+  async getInviteDraft(req, res) {
+    try {
+      if (!this.promoCodeService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const language = req.query.language === 'en' ? 'en' : 'mk';
+      const codeDoc = await this.promoCodeService.findByCode(req.params.code);
+      if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
+      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, language);
+      res.json({ success: true, subject: parts.subject, body: parts.body });
+    } catch (err) {
+      console.error('[admin/subscriptions/codes:invite-draft] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /** POST /api/admin/subscriptions/codes/send-invite
+   * { code, recipients[], language, subject?, body? }
+   * Skips emails already in the prospect ledger and records every new send. */
   async sendInvite(req, res) {
     try {
       if (!this.promoCodeService) return res.status(503).json({ success: false, message: 'Unavailable' });
@@ -181,15 +216,80 @@ class SubscriptionController {
       const codeDoc = await this.promoCodeService.findByCode(value.code);
       if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
 
-      const tpl = subscriptionEmails.promoInvite({ code: codeDoc.code, plan: codeDoc.plan }, value.language);
-      const results = await Promise.allSettled(
-        value.recipients.map(to => this.emailService.sendEmail(to, tpl.subject, tpl.html))
-      );
-      const sent = results.filter(r => r.status === 'fulfilled' && r.value?.success !== false).length;
-      const failed = value.recipients.length - sent;
-      res.json({ success: true, sent, failed });
+      // Dedup: never invite an address we've already invited.
+      const already = this.invitedProspectsService
+        ? await this.invitedProspectsService.findExisting(value.recipients)
+        : new Set();
+      const skipped = [];
+      const toSend = [];
+      for (const to of value.recipients) {
+        if (already.has(String(to).trim().toLowerCase())) skipped.push(to);
+        else toSend.push(to);
+      }
+
+      // Build the email — start from the default parts, apply admin overrides.
+      // The CTA link gets a per-prospect `&p=<id>` so the Redeem page can report
+      // the click back to us (invited → clicked funnel).
+      const baseParts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, value.language);
+      if (value.subject && value.subject.trim()) baseParts.subject = value.subject.trim();
+      if (value.body && value.body.trim()) baseParts.body = value.body;
+
+      let sent = 0, failed = 0;
+      await Promise.all(toSend.map(async (to) => {
+        // Record first (upsert) so we have the prospect id for the tracking link.
+        let prospectId = null;
+        if (this.invitedProspectsService) {
+          const doc = await this.invitedProspectsService.record({
+            email: to, code: codeDoc.code, plan: codeDoc.plan,
+            language: value.language, subject: baseParts.subject,
+            status: 'sent', invitedBy: req.user?._id || null
+          });
+          prospectId = doc?._id || null;
+        }
+        const ctaUrl = prospectId ? `${baseParts.ctaUrl}&p=${prospectId}` : baseParts.ctaUrl;
+        const tpl = subscriptionEmails.wrapInvite({ ...baseParts, ctaUrl }, value.language);
+
+        let ok = false;
+        try {
+          const r = await this.emailService.sendEmail(to, tpl.subject, tpl.html);
+          ok = r?.success !== false;
+        } catch (_) { ok = false; }
+        if (ok) sent++; else failed++;
+        if (prospectId && !ok && this.invitedProspectsService) {
+          await this.invitedProspectsService.setStatus(prospectId, 'failed');
+        }
+      }));
+      res.json({ success: true, sent, failed, skipped });
     } catch (err) {
       console.error('[admin/subscriptions/codes:send-invite] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /** GET /api/admin/subscriptions/prospects — the cold-contact ledger + funnel. */
+  async listProspects(req, res) {
+    try {
+      if (!this.invitedProspectsService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const [items, stats] = await Promise.all([
+        this.invitedProspectsService.list(),
+        this.invitedProspectsService.stats()
+      ]);
+      res.json({ success: true, items, stats });
+    } catch (err) {
+      console.error('[admin/subscriptions/prospects] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /** DELETE /api/admin/subscriptions/prospects/:id — archive (frees re-invite, keeps stats). */
+  async deleteProspect(req, res) {
+    try {
+      if (!this.invitedProspectsService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const doc = await this.invitedProspectsService.softDelete(req.params.id);
+      if (!doc) return res.status(404).json({ success: false, message: 'Не е пронајден.' });
+      res.json({ success: true });
+    } catch (err) {
+      console.error('[admin/subscriptions/prospects:delete] error:', err);
       res.status(500).json({ success: false, message: err.message });
     }
   }

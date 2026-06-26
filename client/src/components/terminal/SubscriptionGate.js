@@ -96,7 +96,7 @@ export default function SubscriptionGate() {
   const price = PRICES[plan]?.[cycle];
 
   const headerTitle =
-      sub.status === 'suspended'         ? 'Пробниот период истече'
+      sub.status === 'suspended'         ? 'Потребна е активна претплата'
     : sub.status === 'pending_approval'  ? 'Барањето чека одобрување'
     :                                      'Изберете план за да продолжите';
 

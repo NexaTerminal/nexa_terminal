@@ -16,7 +16,6 @@ const PLAN_LABEL = {
 };
 const STATUS_LABEL = {
   none:             'Не е активирана',
-  trial:            'Пробен период',
   pending_approval: 'Чека одобрување',
   active:           'Активна',
   suspended:        'Суспендирана',
@@ -125,7 +124,7 @@ export default function UserSubscriptionPage() {
   };
 
   const daysLeft = daysUntil(sub?.endsAt);
-  const planLabel = PLAN_LABEL[sub?.plan] || (sub?.status === 'trial' ? PLAN_LABEL[currentUser?.intendedPlan] || 'Пробен' : '—');
+  const planLabel = PLAN_LABEL[sub?.plan] || PLAN_LABEL[currentUser?.intendedPlan] || '—';
   const isAdminRole = currentUser?.role === 'admin' || currentUser?.role === 'sub_seat';
 
   return (
@@ -174,7 +173,7 @@ export default function UserSubscriptionPage() {
 
                 {sub.endsAt && (
                   <>
-                    <div className={styles.kvK}>{sub.status === 'trial' ? 'Пробниот период завршува' : 'Истекува'}</div>
+                    <div className={styles.kvK}>Истекува</div>
                     <div className={styles.kvV}>
                       {fmtDate(sub.endsAt)}
                       {daysLeft !== null && daysLeft >= 0 && (
@@ -188,7 +187,7 @@ export default function UserSubscriptionPage() {
               {!isAdminRole && (
                 <div className={styles.actionRow}>
                   <button type="button" className={styles.btnPrimary} onClick={openGate}>
-                    {sub.status === 'trial' || sub.status === 'suspended'
+                    {sub.status === 'none' || sub.status === 'suspended'
                       ? 'Изберете план'
                       : 'Промени или обнови план'}
                   </button>

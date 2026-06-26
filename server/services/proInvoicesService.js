@@ -150,6 +150,8 @@ class ProInvoicesService {
 
   static get ISSUER() { return ISSUER; }
   static get EUR_TO_MKD() { return EUR_TO_MKD; }
+  // Issuer/bank block, reused by the trial-reminder subscription-offer PDF.
+  static get ISSUER() { return { ...ISSUER }; }
 
   /**
    * Create a pro-invoice row for a subscribe / invoice-request action.

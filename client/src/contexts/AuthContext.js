@@ -252,7 +252,8 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Submit the verification code received by email. On success, server
-   * issues the JWT and starts the trial.
+   * issues the JWT; the account stays locked until a redeem code or paid
+   * plan grants access (no auto-trial).
    */
   const verifyEmailCode = async (userId, code) => {
     try {

@@ -121,6 +121,7 @@ const Sidebar = () => {
         { path: '/terminal/admin/all-users',               label: 'Сите корисници' },
         { path: '/terminal/admin/subscriptions',           label: 'Претплати' },
         { path: '/terminal/admin/subscriptions?tab=codes', label: 'Промо кодови' },
+        { path: '/terminal/admin/invited-prospects',       label: 'Поканети потенцијални корисници' },
         { path: '/terminal/admin/pro-invoices',            label: 'Профактури' }
       ]
     },

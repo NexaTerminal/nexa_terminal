@@ -24,7 +24,7 @@ const VerificationRequired = ({ children }) => {
   }
 
   const suspended = isAccountSuspended(currentUser);
-  const title = suspended ? 'Сметката е суспендирана' : 'Пробниот период истече';
+  const title = suspended ? 'Сметката е суспендирана' : 'Потребна е активна претплата';
   const text = suspended
     ? (currentUser.suspensionReason
         ? `Вашата сметка е суспендирана: ${currentUser.suspensionReason}. Контактирајте нè за повеќе информации.`

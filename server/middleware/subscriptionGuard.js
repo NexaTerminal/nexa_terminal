@@ -74,39 +74,38 @@ async function check(req, res, next, subscriptionService) {
     }
 
     // Backfill: if this is an own-account user without a subscription record yet
-    // (predates the subscription system or signup didn't initialize), start the
-    // trial now. startTrial is idempotent.
+    // (predates the subscription system or signup didn't initialize), initialize
+    // it LOCKED — no auto-trial. Access begins only via a redeem code or a paid
+    // plan. initLocked is idempotent.
     let effUser = user;
     if (user.role !== ROLES.ADMIN && user.role !== ROLES.SUB_SEAT && !user.subscription?.status) {
       try {
-        effUser = await subscriptionService.startTrial(user._id);
+        effUser = await subscriptionService.initLocked(user._id);
       } catch (e) {
-        console.warn('[subscriptionGuard] backfill startTrial failed:', e.message);
+        console.warn('[subscriptionGuard] backfill initLocked failed:', e.message);
       }
     }
 
     const eff = await subscriptionService.effectiveStatus(effUser);
 
-    // Access is granted only while trial/active is UNEXPIRED, or grace is live.
-    // Checking endsAt at request time (rather than trusting the stored status)
-    // means an expired trial loses access immediately — we never depend on the
-    // nightly cron having run to flip status → suspended.
+    // Access is granted only while an ACTIVE subscription is UNEXPIRED, or grace
+    // is live. Checking endsAt at request time (rather than trusting the stored
+    // status) means an expired subscription loses access immediately — we never
+    // depend on the nightly cron having run to flip status → suspended.
     const endsAtMs = eff.endsAt      ? new Date(eff.endsAt).getTime()      : 0;
     const graceMs  = eff.graceEndsAt ? new Date(eff.graceEndsAt).getTime() : 0;
-    const isTrialOrActive =
-      eff.status === SUBSCRIPTION_STATUSES.TRIAL ||
-      eff.status === SUBSCRIPTION_STATUSES.ACTIVE;
+    const isActive = eff.status === SUBSCRIPTION_STATUSES.ACTIVE;
 
-    if ((isTrialOrActive && endsAtMs > nowMs) || graceMs > nowMs) {
+    if ((isActive && endsAtMs > nowMs) || graceMs > nowMs) {
       req.subscription = eff;
       return next();
     }
 
-    // Lapsed trial/active with no live grace → self-heal the stored status to
+    // Lapsed active with no live grace → self-heal the stored status to
     // 'suspended' so the admin dashboard reflects reality without waiting for
     // the cron. Only for the user's own subscription (sub-seats inherit the
     // parent's state; the parent's own request / cron handles that side).
-    if (isTrialOrActive && endsAtMs <= nowMs && eff.source === 'self') {
+    if (isActive && endsAtMs <= nowMs && eff.source === 'self') {
       try {
         await subscriptionService.suspend(effUser._id || effUser.id, { reason: 'auto: expired (request-time)' });
         eff.status = SUBSCRIPTION_STATUSES.SUSPENDED;
@@ -122,7 +121,7 @@ async function check(req, res, next, subscriptionService) {
       message = 'Вашето барање чека одобрување. Откако ќе пристигне уплатата, пристапот се активира.';
     } else if (eff.status === SUBSCRIPTION_STATUSES.SUSPENDED) {
       code = 'SUBSCRIPTION_SUSPENDED';
-      message = 'Пробниот период истече. Изберете план за да продолжите.';
+      message = 'Потребна е активна претплата. Внесете код или изберете план за да продолжите.';
     } else if (eff.status === SUBSCRIPTION_STATUSES.CANCELLED) {
       code = 'SUBSCRIPTION_CANCELLED';
       message = 'Претплатата е откажана. Реактивирајте за да продолжите.';

@@ -1,7 +1,7 @@
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from './TerminalShell';
 import TrialDisabledNotice from './TrialDisabledNotice';
-import { isTrial } from '../../lib/tier';
+import { previewMode } from '../../lib/tier';
 import styles from './StubPage.module.css';
 
 /**
@@ -9,13 +9,14 @@ import styles from './StubPage.module.css';
  * Stance Preferences, admin Inquiries, admin Topics worklist).
  *
  * Renders: page header + optional sub-tab labels (visually inactive) +
- * TrialDisabledNotice if the user is in trial + a short explanatory paragraph.
+ * the locked-feature notice for any user without active paid access +
+ * a short explanatory paragraph.
  *
  * Real UX lands in prompts 03/04/05/06.
  */
 export default function StubPage({ title, subtabs = [], blurb, showTrialNotice = true }) {
   const { currentUser } = useAuth();
-  const trial = isTrial(currentUser);
+  const locked = previewMode(currentUser);
 
   return (
     <TerminalShell>
@@ -40,7 +41,7 @@ export default function StubPage({ title, subtabs = [], blurb, showTrialNotice =
           )}
         </header>
 
-        {showTrialNotice && trial && <TrialDisabledNotice />}
+        {showTrialNotice && locked && <TrialDisabledNotice />}
 
         <div className={styles.body}>
           <p className={styles.blurb}>

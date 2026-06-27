@@ -282,3 +282,12 @@
   padding: 9px 16px;
   font-size: 13.5px;
 }
+
+/* Mobile: let wide tables scroll horizontally instead of being clipped, and
+   allow row action buttons (Share / Copy link / Send invite) to wrap so they
+   stay reachable on a phone. */
+@media (max-width: 640px) {
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 600px; }
+  .actions { flex-wrap: wrap; gap: 6px; }
+}

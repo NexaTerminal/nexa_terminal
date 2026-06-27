@@ -7,6 +7,35 @@ class EmailService {
     this.resend = null;
     this.fromEmail = process.env.FROM_EMAIL || 'noreply@nexa.mk';
     this.gmailTransporter = null;
+
+    // Resend caps API calls at 10 requests/second. Bulk senders (cold invites,
+    // trial reminders) can fire many sends at once, so we gate every Resend call
+    // through a rolling-window limiter kept safely under the cap. The gate is
+    // serialized via a promise chain so concurrent callers queue deterministically.
+    this._rlMaxPerSec = 8;
+    this._rlTimes = [];
+    this._rlChain = Promise.resolve();
+  }
+
+  /** Block until starting another Resend request stays within the rate cap. */
+  async _throttleResend() {
+    const prev = this._rlChain;
+    let release;
+    this._rlChain = new Promise((r) => { release = r; });
+    try {
+      await prev;
+      let now = Date.now();
+      this._rlTimes = this._rlTimes.filter((t) => now - t < 1000);
+      if (this._rlTimes.length >= this._rlMaxPerSec) {
+        const waitMs = 1000 - (now - this._rlTimes[0]) + 10;
+        await new Promise((r) => setTimeout(r, waitMs));
+        now = Date.now();
+        this._rlTimes = this._rlTimes.filter((t) => now - t < 1000);
+      }
+      this._rlTimes.push(Date.now());
+    } finally {
+      release();
+    }
   }
 
   // Lazy initialization of Resend client
@@ -490,11 +519,22 @@ class EmailService {
         }));
       }
 
-      const result = await resendClient.emails.send(emailData);
+      await this._throttleResend();
+      let result = await resendClient.emails.send(emailData);
 
       // The Resend SDK does NOT throw on API errors (e.g. 429 rate-limit / 422
-      // validation) — it resolves with { data: null, error }. Treat that as a
-      // failure so callers don't count a dropped email as sent.
+      // validation) — it resolves with { data: null, error }. On a rate-limit
+      // hit, wait out Retry-After and try once more before giving up.
+      const isRateLimited = (r) => r?.error && (r.error.statusCode === 429 || r.error.name === 'rate_limit_exceeded');
+      if (isRateLimited(result)) {
+        const retryAfter = Number(result?.headers?.['retry-after']) || 1;
+        await new Promise((r) => setTimeout(r, retryAfter * 1000 + 50));
+        await this._throttleResend();
+        result = await resendClient.emails.send(emailData);
+      }
+
+      // Treat any remaining error as a failure so callers don't count a dropped
+      // email as sent.
       if (result?.error) {
         throw new Error(result.error.message || `Resend error: ${result.error.name || 'unknown'}`);
       }

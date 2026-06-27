@@ -472,8 +472,22 @@ function PromoCodes({ token, showFlash, setError }) {
 
   const linkFor = (code) => `${window.location.origin}/redeem?code=${encodeURIComponent(code)}`;
   const copyLink = async (code) => {
-    try { await navigator.clipboard.writeText(linkFor(code)); showFlash('✓ Link copied'); }
-    catch { window.prompt('Copy the redeem link:', linkFor(code)); }
+    try { await navigator.clipboard.writeText(linkFor(code)); showFlash('✓ Линкот е копиран'); }
+    catch { window.prompt('Копирајте го линкот:', linkFor(code)); }
+  };
+  // On mobile, open the native share sheet (WhatsApp/Viber/…) so the link can be
+  // sent in one tap during a 1-on-1 demo. Falls back to clipboard on desktop.
+  const shareLink = async (code) => {
+    const url = linkFor(code);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Nexa', text: 'Активирајте го вашиот пристап на Nexa:', url });
+      } catch (err) {
+        if (err?.name !== 'AbortError') copyLink(code); // ignore user-cancelled
+      }
+      return;
+    }
+    copyLink(code);
   };
 
   return (
@@ -535,6 +549,7 @@ function PromoCodes({ token, showFlash, setError }) {
                   </span>
                 </td>
                 <td className={styles.actions}>
+                  <button className={styles.btnPrimary} onClick={() => shareLink(c.code)}>Сподели</button>
                   <button className={styles.btnGhost} onClick={() => copyLink(c.code)}>Copy link</button>
                   <button className={styles.btnGhost} onClick={() => setInviteFor(c.code)}>Send invite</button>
                   {c.active && <button className={styles.btnDanger} onClick={() => onDeactivate(c.code)}>Deactivate</button>}

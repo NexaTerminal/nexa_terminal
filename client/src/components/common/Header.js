@@ -248,6 +248,8 @@ const Header = ({ isTerminal = false }) => {
   const mobileAdminItems = [
     { path: '/terminal/admin/all-users',     label: 'Сите корисници' },
     { path: '/terminal/admin/subscriptions', label: 'Претплати' },
+    { path: '/terminal/admin/subscriptions?tab=codes', label: 'Промо кодови' },
+    { path: '/terminal/admin/invited-prospects', label: 'Поканети корисници' },
     { path: '/terminal/admin/blogs',         label: 'Блогови' },
     { path: '/terminal/admin/blogs/pending', label: 'Прилози за преглед' },
     { path: '/terminal/admin/inquiries',     label: 'Случаи' },

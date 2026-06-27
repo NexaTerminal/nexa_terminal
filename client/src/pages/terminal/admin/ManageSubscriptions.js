@@ -595,8 +595,9 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
         { code, recipients, language, subject, body },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const { sent, failed, skipped = [] } = res.data;
-      let msg = `✓ Sent ${sent}, failed ${failed}`;
+      const { queued = 0, skipped = [], estimateSec = 0 } = res.data;
+      const eta = estimateSec >= 60 ? `~${Math.ceil(estimateSec / 60)} min` : `~${estimateSec}s`;
+      let msg = `✓ Queued ${queued} — sending in the background (${eta}). Watch progress on Invited Prospects.`;
       if (skipped.length) msg += ` · skipped ${skipped.length} already-invited`;
       onDone(msg);
     } catch (err) {

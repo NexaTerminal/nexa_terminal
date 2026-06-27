@@ -6,7 +6,7 @@
  *
  * Collection `invited_prospects`:
  *   { email (lowercased, unique), code, plan, language, subject,
- *     status ('sent' | 'failed'),
+ *     status ('queued' | 'sent' | 'failed'),
  *     invitedCount, firstInvitedAt, lastInvitedAt,
  *     clicks, firstClickedAt, lastClickedAt,
  *     deleted (bool — archived; excluded from dedup + active list, stats kept),
@@ -38,13 +38,19 @@ class InvitedProspectsService {
 
   /**
    * Of the given emails, return the set (lowercased) that still actively blocks
-   * a re-invite. Archived (deleted) rows do NOT block — they can be invited again.
+   * a re-invite. Does NOT block:
+   *   - archived (deleted) rows — freed for a fresh invite;
+   *   - status 'failed' rows — the last send didn't land, so a re-run retries them.
+   * Blocks 'sent' (delivered) and 'queued' (in-flight) so we never double-send.
    */
   async findExisting(emails) {
     const normalized = (emails || []).map(normalizeEmail).filter(Boolean);
     if (normalized.length === 0) return new Set();
     const rows = await this.col
-      .find({ email: { $in: normalized }, deleted: { $ne: true } }, { projection: { email: 1 } })
+      .find(
+        { email: { $in: normalized }, deleted: { $ne: true }, status: { $ne: 'failed' } },
+        { projection: { email: 1 } }
+      )
       .toArray();
     return new Set(rows.map((r) => r.email));
   }

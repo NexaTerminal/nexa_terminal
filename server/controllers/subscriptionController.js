@@ -14,6 +14,12 @@ const Joi = require('joi');
 const subscriptionEmails = require('../emails/subscriptionEmails');
 const { ALL_PLANS, isValidPlan } = require('../constants/roles');
 
+// Pacing for cold-invite sends. Resend's default rate limit is 2 requests/sec;
+// we send one invite every INVITE_SEND_INTERVAL_MS to stay safely under it (and
+// gentler on inbox-provider spam heuristics). Tune via env without a redeploy.
+const INVITE_SEND_INTERVAL_MS = Math.max(0, Number(process.env.INVITE_SEND_INTERVAL_MS) || 1500);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Accept both canonical (basic/pro) and legacy (standard/admin_5/admin_10)
 // plan keys while migration is in flight.
 const PLAN_VALUES = ALL_PLANS;
@@ -206,7 +212,13 @@ class SubscriptionController {
 
   /** POST /api/admin/subscriptions/codes/send-invite
    * { code, recipients[], language, subject?, body? }
-   * Skips emails already in the prospect ledger and records every new send. */
+   *
+   * Skips emails already invited (delivered or in-flight), records the rest as
+   * 'queued', and responds immediately. The actual sending runs in the
+   * background, PACED one email every INVITE_SEND_INTERVAL_MS so we never blow
+   * past Resend's rate limit (which silently dropped most of a big batch
+   * before). Progress is visible on the Invited Prospects page as each row
+   * flips queued → sent / failed. */
   async sendInvite(req, res) {
     try {
       if (!this.promoCodeService) return res.status(503).json({ success: false, message: 'Unavailable' });
@@ -216,7 +228,7 @@ class SubscriptionController {
       const codeDoc = await this.promoCodeService.findByCode(value.code);
       if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
 
-      // Dedup: never invite an address we've already invited.
+      // Dedup: never re-invite an address that was already delivered or is queued.
       const already = this.invitedProspectsService
         ? await this.invitedProspectsService.findExisting(value.recipients)
         : new Set();
@@ -234,36 +246,63 @@ class SubscriptionController {
       if (value.subject && value.subject.trim()) baseParts.subject = value.subject.trim();
       if (value.body && value.body.trim()) baseParts.body = value.body;
 
-      let sent = 0, failed = 0;
-      await Promise.all(toSend.map(async (to) => {
-        // Record first (upsert) so we have the prospect id for the tracking link.
+      // Mark everyone 'queued' up front so the ledger reflects intent immediately
+      // and a double-click can't enqueue them twice (queued blocks the dedup).
+      const queued = [];
+      for (const to of toSend) {
         let prospectId = null;
         if (this.invitedProspectsService) {
           const doc = await this.invitedProspectsService.record({
             email: to, code: codeDoc.code, plan: codeDoc.plan,
             language: value.language, subject: baseParts.subject,
-            status: 'sent', invitedBy: req.user?._id || null
+            status: 'queued', invitedBy: req.user?._id || null
           });
           prospectId = doc?._id || null;
         }
-        const ctaUrl = prospectId ? `${baseParts.ctaUrl}&p=${prospectId}` : baseParts.ctaUrl;
-        const tpl = subscriptionEmails.wrapInvite({ ...baseParts, ctaUrl }, value.language);
+        queued.push({ to, prospectId });
+      }
 
-        let ok = false;
-        try {
-          const r = await this.emailService.sendEmail(to, tpl.subject, tpl.html);
-          ok = r?.success !== false;
-        } catch (_) { ok = false; }
-        if (ok) sent++; else failed++;
-        if (prospectId && !ok && this.invitedProspectsService) {
-          await this.invitedProspectsService.setStatus(prospectId, 'failed');
-        }
-      }));
-      res.json({ success: true, sent, failed, skipped });
+      // Fire-and-forget the paced sender. Errors are contained inside the worker
+      // so an unhandled rejection can never crash the process.
+      this._runInviteBatch(queued, { baseParts, language: value.language })
+        .catch((e) => console.error('[send-invite] batch worker crashed:', e.message));
+
+      const estimateSec = Math.ceil((queued.length * INVITE_SEND_INTERVAL_MS) / 1000);
+      res.json({ success: true, queued: queued.length, skipped, estimateSec });
     } catch (err) {
       console.error('[admin/subscriptions/codes:send-invite] error:', err);
       res.status(500).json({ success: false, message: err.message });
     }
+  }
+
+  /** Background worker: send queued invites one at a time, pausing
+   * INVITE_SEND_INTERVAL_MS between each, flipping every prospect's status to
+   * 'sent' or 'failed' as it goes. Not awaited by the request handler. */
+  async _runInviteBatch(queued, { baseParts, language }) {
+    let sent = 0, failed = 0;
+    for (let i = 0; i < queued.length; i++) {
+      const { to, prospectId } = queued[i];
+      const ctaUrl = prospectId ? `${baseParts.ctaUrl}&p=${prospectId}` : baseParts.ctaUrl;
+      const tpl = subscriptionEmails.wrapInvite({ ...baseParts, ctaUrl }, language);
+
+      let ok = false;
+      try {
+        const r = await this.emailService.sendEmail(to, tpl.subject, tpl.html);
+        ok = r?.success !== false;
+      } catch (_) { ok = false; }
+
+      if (ok) sent++; else failed++;
+      if (prospectId && this.invitedProspectsService) {
+        try { await this.invitedProspectsService.setStatus(prospectId, ok ? 'sent' : 'failed'); }
+        catch (e) { console.warn('[send-invite] setStatus failed:', e.message); }
+      }
+
+      // Pace: wait before the next send (skip the wait after the last one).
+      if (i < queued.length - 1 && INVITE_SEND_INTERVAL_MS > 0) {
+        await sleep(INVITE_SEND_INTERVAL_MS);
+      }
+    }
+    console.log(`[send-invite] batch done — sent:${sent} failed:${failed} of ${queued.length}`);
   }
 
   /** GET /api/admin/subscriptions/prospects — the cold-contact ledger + funnel. */

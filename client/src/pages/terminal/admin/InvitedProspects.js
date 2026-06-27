@@ -144,7 +144,7 @@ export default function InvitedProspects() {
                     <td>{PLAN_LABEL[p.plan] || p.plan}</td>
                     <td>
                       <span className={`${styles.statusTag} ${p.status === 'sent' ? styles.status_active : ''}`}>
-                        {p.status === 'sent' ? 'Sent' : 'Failed'}
+                        {p.status === 'sent' ? 'Sent' : p.status === 'queued' ? 'Queued…' : 'Failed'}
                       </span>
                     </td>
                     <td className={styles.actions}>

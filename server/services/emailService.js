@@ -491,6 +491,13 @@ class EmailService {
       }
 
       const result = await resendClient.emails.send(emailData);
+
+      // The Resend SDK does NOT throw on API errors (e.g. 429 rate-limit / 422
+      // validation) — it resolves with { data: null, error }. Treat that as a
+      // failure so callers don't count a dropped email as sent.
+      if (result?.error) {
+        throw new Error(result.error.message || `Resend error: ${result.error.name || 'unknown'}`);
+      }
       console.log('Email sent successfully via Resend:', result);
 
       return { success: true, data: result };

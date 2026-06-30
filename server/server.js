@@ -434,6 +434,19 @@ async function initializeServices(database) {
       console.error('⚠️  Trial reminder scheduler init failed:', e.message);
     }
 
+    // Off-site backup (Phase 2): weekly cron → zip all collections → Google Drive
+    // → prune → email notice. Inert unless BACKUP_SCHEDULE_ENABLED=true and Drive
+    // is configured (see config/backupConfig.js).
+    try {
+      const BackupScheduler = require('./services/backupScheduler');
+      const backupScheduler = new BackupScheduler(emailService).setDb(database);
+      backupScheduler.start();
+      app.locals.backupScheduler = backupScheduler;
+      console.log('✅ Backup scheduler initialized');
+    } catch (e) {
+      console.error('⚠️  Backup scheduler init failed:', e.message);
+    }
+
     app.use('/api/pro-invoices',       proInvoicesRoutes.userRoutes(proInvoicesController));
     app.use('/api/admin/pro-invoices', proInvoicesRoutes.adminRoutes(proInvoicesController));
     console.log('✅ /api/pro-invoices + /api/admin/pro-invoices mounted');
@@ -875,6 +888,14 @@ function registerRoutes() {
     console.log('✅ Inquiry Board routes loaded successfully');
   } catch (error) {
     console.error('❌ Inquiry Board routes error:', error.message);
+  }
+
+  // Admin-only on-demand database backup ("fire up backup" -> downloads a .zip).
+  try {
+    app.use('/api/admin/backup', require('./routes/adminBackup'));
+    console.log('✅ /api/admin/backup mounted');
+  } catch (error) {
+    console.error('❌ Backup route error:', error.message);
   }
 
   // Nexa 3.0 — Topics Q&A Authoring (Studio-only).

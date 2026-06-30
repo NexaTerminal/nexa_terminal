@@ -19,5 +19,8 @@ uploads/temp/
 cookies.txt
 .vercel
 
+# Database backups (contain PII — never commit)
+backups/
+
 # AI Chatbot - Vector store (now in MongoDB)
 chatbot/vector_store/vectors.json

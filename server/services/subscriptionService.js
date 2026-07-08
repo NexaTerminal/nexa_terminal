@@ -323,8 +323,14 @@ class SubscriptionService {
       gracePeriod: user.subscription?.gracePeriod || { ...EMPTY_GRACE }
     };
 
+    // Never demote the Nexa platform admin (Martin). A promo/paid plan may
+    // attach a subscription to the admin account, but role must stay 'admin'
+    // so the admin sidebar + tools remain visible. PLAN_TO_ROLE maps Pro →
+    // admin_user, which would otherwise overwrite the platform-admin role.
+    const preservePlatformAdmin = user.role === ROLES.ADMIN || user.isAdmin === true;
+
     const userUpdate = {
-      role: newRole,
+      ...(preservePlatformAdmin ? {} : { role: newRole }),
       subscription,
       updatedAt: now
     };

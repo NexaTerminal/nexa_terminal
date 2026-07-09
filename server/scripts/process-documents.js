@@ -15,10 +15,18 @@ const { QdrantClient } = require('@qdrant/js-client-rest');
  * This script:
  * 1. Reads PDF and DOCX files from legal_sources folder
  * 2. Extracts text (supports Macedonian/Cyrillic)
- * 3. Splits text into chunks (1000 chars with 200 overlap)
- * 4. Creates embeddings using OpenAI
- * 5. Saves to local HNSWLib vector store
- * 6. Tracks processed documents in MongoDB
+ * 3. Splits text into chunks — by article (Член) for laws, characters otherwise
+ * 4. Prefixes every chunk with its law/document name so the embedding carries
+ *    the source identity ("Член 76" of ЗРО ≠ "Член 76" of ЗТД)
+ * 5. Skips stale institutional brochures (older than BROCHURE_YEAR_CUTOFF)
+ * 6. Creates embeddings, rebuilds the Qdrant collection, adds full-text index
+ * 7. Tracks processed documents in MongoDB
+ *
+ * NOTE: This is a FULL REBUILD every run. The previous incremental mode had a
+ * destructive bug: it deleted the whole Qdrant collection but re-uploaded only
+ * the chunks of *changed* files, silently dropping every unchanged document.
+ * With a ~60-doc corpus a full rebuild costs ~$0.10 in embeddings — correctness
+ * is worth far more than the delta.
  */
 
 // Configuration
@@ -26,6 +34,45 @@ const LEGAL_SOURCES_FOLDER = path.join(__dirname, '../legal sources');
 const VECTOR_STORE_PATH = path.join(__dirname, '../chatbot/vector_store');
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;
+// Institutional brochures/flyers older than this year are excluded — they cite
+// superseded rates/procedures and pollute retrieval. Laws are never excluded.
+const BROCHURE_YEAR_CUTOFF = parseInt(process.env.BROCHURE_YEAR_CUTOFF || '2020', 10);
+
+/**
+ * Detect whether a file is an institutional brochure/flyer/prospect (guidance,
+ * NOT a law) from its filename.
+ */
+function isBrochureFile(fileName) {
+  return /brosura|flaer|prospekt|informativen|isbn|^\d{2}[-_]\d+/i.test(fileName);
+}
+
+/**
+ * Extract a publication year from the filename (e.g. "19.10.2021", "_2013").
+ * Returns null when no plausible year is found.
+ */
+function extractYearFromFilename(fileName) {
+  const dateMatch = fileName.match(/\d{2}\.\d{2}\.(20\d{2})/);
+  if (dateMatch) return parseInt(dateMatch[1], 10);
+  const yearMatch = fileName.match(/(?:^|[_\-\s])(20\d{2})(?:[._\-\s]|$)/);
+  if (yearMatch) return parseInt(yearMatch[1], 10);
+  return null;
+}
+
+/**
+ * Human-readable source title from a filename: strips extension, date suffixes
+ * and archival codes, and de-underscores. Used as the chunk content prefix.
+ */
+function cleanDocTitle(fileName) {
+  return fileName
+    .replace(/\.(pdf|docx)$/i, '')
+    .replace(/\d{2}\.\d{2}\.\d{4}/g, '')
+    .replace(/^[\d\-_.]+/, '')
+    .replace(/ISBN[-_][\d\-_]+/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/[,\s]+$/, '')
+    .trim() || fileName;
+}
 
 // MongoDB connection (for document tracking only)
 let db;
@@ -99,6 +146,16 @@ async function createIntelligentChunks(text, fileName, pageCount) {
 
   const matches = [...text.matchAll(articlePattern)];
 
+  // Source identity prefix embedded INTO the chunk text. Without it, the
+  // vector for "Член 76" of ЗРО is indistinguishable from "Член 76" of ЗТД —
+  // the document name lived only in metadata, invisible to the embedder.
+  const docTitle = cleanDocTitle(fileName);
+  const docYear = extractYearFromFilename(fileName);
+  const isBrochure = isBrochureFile(fileName);
+  const sourceLabel = isBrochure
+    ? `${docTitle}${docYear ? ` (упатство, ${docYear})` : ' (упатство)'}`
+    : docTitle;
+
   // If we found articles, split by them
   if (matches.length > 5) { // At least 5 articles to consider it a legal document
     console.log(`  📑 Detected ${matches.length} articles (using article-based chunking)`);
@@ -118,16 +175,18 @@ async function createIntelligentChunks(text, fileName, pageCount) {
 
       // If article is too long (>3000 chars), split it into sub-chunks
       if (articleText.length > 3000) {
-        const subChunks = splitLongArticle(articleText, articleNumber, fileName, pageCount);
+        const subChunks = splitLongArticle(articleText, articleNumber, fileName, pageCount, sourceLabel);
         chunks.push(...subChunks);
       } else {
         // Create single chunk for this article
         chunks.push({
-          pageContent: articleText,
+          pageContent: `${sourceLabel} — ${articleText}`,
           metadata: {
             documentName: fileName,
             pageCount: pageCount,
             article: articleNumber,
+            docYear,
+            isBrochure,
             processedAt: new Date().toISOString(),
             chunkType: 'article'
           }
@@ -146,24 +205,32 @@ async function createIntelligentChunks(text, fileName, pageCount) {
       separators: ['\n\n', '\n', '. ', ' ', '']
     });
 
-    return await textSplitter.createDocuments(
+    const docs = await textSplitter.createDocuments(
       [text],
       [{
         documentName: fileName,
         pageCount: pageCount,
+        docYear,
+        isBrochure,
         processedAt: new Date().toISOString(),
         chunkType: 'standard'
       }]
     );
+    // Prefix each chunk with the source label (embedded + visible to the LLM).
+    for (const doc of docs) {
+      doc.pageContent = `${sourceLabel} — ${doc.pageContent}`;
+    }
+    return docs;
   }
 }
 
 /**
  * Split a long article into smaller sub-chunks while preserving context
  */
-function splitLongArticle(articleText, articleNumber, fileName, pageCount) {
+function splitLongArticle(articleText, articleNumber, fileName, pageCount, sourceLabel) {
   const chunks = [];
   const maxChunkSize = 2500; // Slightly smaller than CHUNK_SIZE to allow for overlap
+  const prefix = sourceLabel ? `${sourceLabel} — ` : '';
 
   // Try to split by paragraphs or numbered items first
   const paragraphs = articleText.split(/\n\n+/);
@@ -173,9 +240,11 @@ function splitLongArticle(articleText, articleNumber, fileName, pageCount) {
 
   for (const paragraph of paragraphs) {
     if ((currentChunk + paragraph).length > maxChunkSize && currentChunk.length > 0) {
-      // Save current chunk
+      // Save current chunk (sub-chunks after the first repeat the article
+      // number in the text since the split point loses the "Член X" header)
+      const header = subChunkIndex > 1 ? `${articleNumber} (продолжение): ` : '';
       chunks.push({
-        pageContent: currentChunk.trim(),
+        pageContent: `${prefix}${header}${currentChunk.trim()}`,
         metadata: {
           documentName: fileName,
           pageCount: pageCount,
@@ -194,8 +263,9 @@ function splitLongArticle(articleText, articleNumber, fileName, pageCount) {
 
   // Add remaining chunk
   if (currentChunk.trim().length > 0) {
+    const header = subChunkIndex > 1 ? `${articleNumber} (продолжение): ` : '';
     chunks.push({
-      pageContent: currentChunk.trim(),
+      pageContent: `${prefix}${header}${currentChunk.trim()}`,
       metadata: {
         documentName: fileName,
         pageCount: pageCount,
@@ -218,15 +288,24 @@ async function processDocument(filePath) {
   const fileName = path.basename(filePath);
   const fileExt = path.extname(filePath).toLowerCase();
 
-  // Calculate file hash
-  const fileHash = await calculateFileHash(filePath);
-
-  // Check if already processed with same hash
-  const existing = await db.collection('chatbot_documents').findOne({ fileName });
-  if (existing && existing.fileHash === fileHash) {
-    console.log(`  ⏭️  Skipping ${fileName} (already processed, unchanged)`);
-    return null;
+  // Skip stale institutional brochures — outdated rates/procedures presented
+  // as current actively harm answer quality. Laws are never skipped.
+  if (isBrochureFile(fileName)) {
+    const year = extractYearFromFilename(fileName);
+    if (year && year < BROCHURE_YEAR_CUTOFF) {
+      console.log(`  🗑️  Excluding stale brochure (${year} < ${BROCHURE_YEAR_CUTOFF}): ${fileName}`);
+      await db.collection('chatbot_documents').updateOne(
+        { fileName },
+        { $set: { fileName, status: 'excluded_stale', docYear: year, processedAt: new Date() } },
+        { upsert: true }
+      );
+      return null;
+    }
   }
+
+  // Calculate file hash (kept for tracking/telemetry — NOT used to skip:
+  // every run is a full rebuild, see header comment)
+  const fileHash = await calculateFileHash(filePath);
 
   // Extract text based on file type
   let extractedData;
@@ -388,8 +467,21 @@ async function createVectorStore(documents) {
       // Include article metadata if available (for legal documents)
       article: doc.metadata.article || null,
       chunkType: doc.metadata.chunkType || 'standard',
+      docYear: doc.metadata.docYear || null,
+      isBrochure: doc.metadata.isBrochure || false,
     },
   }));
+
+  // Full-text index on pageContent — REQUIRED for the chatbot's keyword
+  // search (Qdrant text-match filters need it; without it the hybrid search
+  // silently degrades to vector-only).
+  console.log('  🔠 Creating full-text payload index on pageContent...');
+  await qdrantClient.createPayloadIndex(collectionName, {
+    field_name: 'pageContent',
+    field_schema: { type: 'text', tokenizer: 'word', lowercase: true },
+    wait: true,
+  });
+  console.log('  ✓ Full-text index created\n');
 
   // Upload to Qdrant in batches (to avoid request size limits)
   console.log('  💾 Uploading vectors to Qdrant in batches...');

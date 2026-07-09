@@ -760,3 +760,6 @@
   .finalTitle { font-size: 24px; }
   .finalMockBadge { display: none; }
 }
+
+/* Accountant-program CTA line inside the provider section */
+.providerCtaLine { margin-top: 18px; }

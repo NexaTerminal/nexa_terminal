@@ -79,8 +79,11 @@ const corsOrigins = process.env.CORS_ORIGINS
 app.use(cors({
   origin: corsOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token', 'X-XSRF-Token']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token', 'X-XSRF-Token'],
+  // Custom response headers the SPA reads after document generation
+  // (share link + savings meter) — invisible cross-origin without this.
+  exposedHeaders: ['X-Share-Token', 'X-Share-URL', 'X-Generation-Warnings', 'X-Market-Price']
 }));
 
 // Rate Limiting
@@ -103,6 +106,12 @@ const subscriptionGuard = require('./middleware/subscriptionGuard');
 
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocuments'));
+
+// Contract Management System — „Договори" (Basic tool, not credit-metered)
+app.use('/api/contracts', subscriptionGuard, require('./routes/contracts'));
+
+// Dashboard command-center summary (master-plan Phase 3)
+app.use('/api/dashboard', subscriptionGuard, require('./routes/dashboard'));
 
 // Feature terms acceptance (JWT-protected; before CSRF, cross-domain SPA)
 app.use('/api/terms', require('./routes/terms'));
@@ -141,6 +150,10 @@ app.use('/api/blog', require('./routes/blog'));
 
 // Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
 app.use('/api/seo', require('./routes/seo'));
+
+// Public teaser screening — „Бесплатна проверка" acquisition funnel
+// (no auth, no CSRF; general /api/ rate limit applies). Master-plan Phase 1.
+app.use('/api/public/screening', require('./routes/publicScreening'));
 
 // Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
 // page pings this with the prospect id so we can measure invited → clicked.
@@ -335,6 +348,29 @@ async function initializeServices(database) {
     await ensurePlatformOwners(database);
   } catch (e) {
     console.error('ensurePlatformOwners failed:', e.message);
+  }
+
+  // --- Contract Management System (master-plan Phase 2 / cms-v1-plan.md) ---
+  try {
+    const ContractService = require('./services/contractService');
+    const ContractReminderService = require('./services/contractReminderService');
+    const ContractReminderScheduler = require('./services/contractReminderScheduler');
+
+    const contractService = new ContractService(database);
+    await contractService.ensureIndexes();
+    app.locals.contractService = contractService;
+
+    const contractReminderService = new ContractReminderService(
+      database, contractService, require('./services/emailService')
+    );
+    app.locals.contractReminderService = contractReminderService;
+
+    const contractReminderScheduler = new ContractReminderScheduler(contractReminderService);
+    contractReminderScheduler.start();
+    app.locals.contractReminderScheduler = contractReminderScheduler;
+    console.log('✅ Contract Management System ready');
+  } catch (e) {
+    console.error('Contract Management System init failed:', e.message);
   }
 
   // --- Credit System (initialized FIRST after userService because it

@@ -1,75 +1,56 @@
-# Cold-invite upgrade: editable draft + invited-prospects ledger
+# Legal AI quality overhaul (budget-constrained)
 
-## Goal
-Upgrade the "Send invite" flow (admin → Промо кодови) so the admin can:
-1. Preview & edit the draft email (subject + body) before sending.
-2. Persist every invited "potential user" in one DB collection (email, date, code, plan, etc.).
-3. Auto-skip emails that were already invited (no double-invites).
-4. View the ledger on a new admin-only page.
+Constraint: token budget is tight. 4 questions/week limit STAYS. Auxiliary LLM
+calls on gpt-4o-mini; embeddings stay -small; eval is retrieval-only by default.
 
-## Backend
+## ChatBotService.js
+- [ ] Utility model (gpt-4o-mini, temp 0) for condensation + decomposition
+- [ ] Query condensation: history + follow-up → standalone MK search query; use for RETRIEVAL in both askQuestion and askQuestionStream
+- [ ] Fix keywordSearch: MK stopword-stripped keywords + Qdrant min_should filter (fallback to must), instead of whole-question match
+- [ ] maxTokens 2048 → 4096 (cap only; short answers unaffected)
+- [ ] Prompt rebalance (~35% shorter):
+  - hard rule: always answer in Macedonian (Cyrillic)
+  - graduated certainty: categorical where law is explicit; hedge only for interpretation/fact-dependent points
+  - labeled general-knowledge fallback when context is silent (no refusal wall; never invent article numbers)
+  - cut marketing plugs; condense conversation-continuity + checklist sections
 
-- [ ] **New service** `server/services/invitedProspectsService.js`, collection `invited_prospects`
-  - doc: `{ email (lowercased, unique), code, plan, language, subject, invitedBy, invitedAt, status }`
-  - `ensureIndexes()` → unique index on `email`
-  - `hasInvited(email)` / `findExisting(emails[])` → dedup lookup
-  - `record({ email, code, plan, language, subject, invitedBy, status })`
-  - `list()` → newest first
-- [ ] Wire it in `server/server.js` (mirror promoCodeService: construct, ensureIndexes, app.locals, pass into SubscriptionController constructor).
-- [ ] **Email module** `server/emails/subscriptionEmails.js`
-  - Refactor `promoInvite` into `promoInviteParts({code, plan, days, language})` → `{ subject, body, ctaUrl, ctaLabel }` and `wrapInvite(parts, language)` → full html. Keep `promoInvite` working (compose the two).
-  - Export both so the controller can build a default draft and re-wrap an edited one.
-- [ ] **Controller** `server/controllers/subscriptionController.js`
-  - `GET /codes/:code/invite-draft?language=` → returns default `{ subject, body }` to prefill the modal.
-  - Extend `sendInviteSchema` with optional `subject` / `body`.
-  - `sendInvite`: split recipients into already-invited (skip) vs new; render html via `wrapInvite` using the (edited) subject/body + the code's deep link; send; record each in `invited_prospects`. Return `{ sent, failed, skipped: [emails] }`.
-  - `GET /prospects` → list for the new admin page.
-- [ ] **Routes** `server/routes/subscriptions.js`: add `GET /codes/:code/invite-draft`, `GET /prospects` (both admin-gated, after static `/codes/send-invite`).
+## process-documents.js
+- [ ] Full rebuild every run (fixes latent bug: incremental run deleted the whole collection but re-uploaded only changed docs)
+- [ ] Prefix each chunk's embedded text with law/doc name (+ year for brochures)
+- [ ] Parse year from filename → metadata docYear/isBrochure; skip brochures older than BROCHURE_YEAR_CUTOFF (default 2020)
+- [ ] Create Qdrant full-text payload index on pageContent (keyword search needs it)
 
-## Frontend
+## Eval harness
+- [ ] scripts/eval-rag.js + golden set (~20 MK legal questions → expected doc/article), retrieval-only (hit@k), ~free to run
 
-- [ ] Upgrade `SendInviteModal` in `client/src/pages/terminal/admin/ManageSubscriptions.js`
-  - On open / language change: fetch default draft, prefill editable **Subject** input + **Body (HTML)** textarea.
-  - Keep recipients + language fields; submit `{ code, recipients, language, subject, body }`.
-  - Show result incl. skipped (already-invited) emails.
-- [ ] **New admin page** `client/src/pages/terminal/admin/InvitedProspects.js` (reuse `ManageSubscriptions.module.css`)
-  - Table: email · invited date · code · plan · language · status.
-- [ ] Route in `client/src/App.js`: `/terminal/admin/invited-prospects`.
-- [ ] Sidebar entry under `users-admin` (+ Header.js): "Поканети потенцијални корисници".
-
-## Verification
-- [ ] Send invite to a fresh email → row appears in ledger; re-sending same email is skipped.
-- [ ] Edited subject/body is what actually gets emailed (re-wrapped, CTA link intact).
-- [ ] New page lists prospects; admin-only.
+## Corpus (user action)
+- [ ] tasks/legal-corpus-missing.md — list of missing laws to collect
 
 ## Review
 
-Implemented all items.
+All code items done and verified (node --check on all files; template renders
+with exactly stancePrefix/context/question; keyword extraction tested on real
+MK questions; filename year/brochure detection tested against real corpus names).
 
-**Backend**
-- `server/services/invitedProspectsService.js` — new `invited_prospects` collection (unique `email`), `findExisting`/`record`(upsert)/`list`.
-- `server/server.js` — constructs the service, ensures indexes, injects into `SubscriptionController`.
-- `server/emails/subscriptionEmails.js` — `promoInvite` split into `promoInviteParts` + `wrapInvite`; verified the recomposed output is byte-identical to the old `promoInvite` and the CTA deep link is preserved.
-- `server/controllers/subscriptionController.js` — `getInviteDraft`, dedup + per-recipient ledger recording in `sendInvite` (returns `{sent,failed,skipped[]}`), `listProspects`.
-- `server/routes/subscriptions.js` — `GET /codes/:code/invite-draft`, `GET /prospects` (admin-gated).
+- ChatBotService: utilityModel (gpt-4o-mini) for condensation+decomposition;
+  condenseSearchQuery wired into askQuestion AND askQuestionStream; keywordSearch
+  rewritten (stopword-stripped keywords, min_should≥2, must-fallback);
+  maxTokens→4096; prompt rewritten — ~50% smaller, always-MK hard rule,
+  decisive-where-law-is-clear, labeled general-knowledge fallback instead of
+  refusal wall, marketing cut, verified-article rule kept.
+- process-documents.js: full rebuild each run (fixes destructive incremental
+  bug), chunk text prefixed with law/doc title (+year for brochures), stale
+  brochures (<2020) excluded, full-text payload index created (keyword search
+  precondition).
+- scripts/eval-rag.js + eval/golden-questions.json: 22 MK golden questions,
+  retrieval-only hit@k scoring via the real retrieval path (~free to run).
+- tasks/legal-corpus-missing.md: prioritized law list for the user to collect.
 
-**Frontend**
-- `SendInviteModal` now loads the draft and exposes editable Subject + Body (HTML); reports skipped already-invited addresses.
-- `InvitedProspects.js` new admin page (table + search), routed at `/terminal/admin/invited-prospects`, linked from the Sidebar under Корисници.
+Deploy note: service changes are safe against the EXISTING Qdrant collection
+(keyword search fails soft exactly as before until reprocess adds the index).
+Full effect requires: node scripts/process-documents.js (rebuild, ~$0.10) and
+then node scripts/eval-rag.js for the baseline.
 
-**Verification done**
-- Backend modules parse; email parts round-trip identical; client files lint clean (eslint exit 0).
-
-**Not yet done**
-- Live end-to-end test (send a real invite → row appears → re-send skipped) requires running the app/DB. Not committed/pushed (per multi-agent push coordination).
-
-## Follow-up: delete + click-funnel stats
-
-- `invitedProspectsService.js` — schema now tracks `invitedCount`, `firstInvitedAt`/`lastInvitedAt`, `clicks`/`firstClickedAt`/`lastClickedAt`, soft-delete `deleted`. New methods: `recordClick`, `setStatus`, `softDelete`, `stats` (funnel aggregate). `findExisting` ignores archived rows so deleted emails are re-invitable. `record` upserts (returns doc) + un-archives + increments count.
-- `subscriptionController.js` — `sendInvite` now records per-recipient first (gets prospect `_id`), appends `&p=<id>` to the CTA for click attribution, then sends + sets status. `listProspects` returns `{items, stats}`. New `deleteProspect` (soft delete).
-- `routes/subscriptions.js` — `DELETE /prospects/:id`.
-- `server.js` — public `GET /api/invite/click?p=<id>` (before CSRF, no auth) → `recordClick`.
-- `client/.../Redeem.js` — on mount, pings `/api/invite/click?p=` when the deep link carries `p` (best-effort).
-- `client/.../InvitedProspects.js` — summary cards (Invited / Clicked / Click rate / Archived), Clicks + Sends columns, per-row Delete, "Show archived" toggle.
-
-Verified: backend parses, server.js `--check` ok, tracking link composes correctly (`/redeem?code=…&p=<id>`), client lints clean.
+Budget: aux calls on mini (~$0.0002/q), prompt halved (saves input on every
+question), maxTokens is a cap not a spend, embeddings stay -small, eval is
+retrieval-only, 4/week limit untouched.

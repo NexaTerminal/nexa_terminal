@@ -1,0 +1,116 @@
+/* /smetkovoditeli — accountant partner landing page. */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 88px 0 64px;
+}
+
+.heroInner { position: relative; text-align: center; max-width: 760px; }
+
+.heroPill { margin-bottom: 24px; }
+
+.heroSub {
+  margin: 20px auto 0;
+  max-width: 620px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--nx-muted, #5b6472);
+}
+
+.heroCtas {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.sectionHead { text-align: center; max-width: 640px; margin: 0 auto 40px; }
+.sectionHead h2 { margin: 10px 0 0; font-size: clamp(26px, 3.5vw, 36px); letter-spacing: -0.02em; }
+
+/* Benefits grid */
+.benefitGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.benefit {
+  background: #fff;
+  border: 1px solid var(--nx-border, #e6e8ec);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.benefitIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  background: var(--color-primary-50, #f0f7ff);
+  color: var(--color-primary, #1e4db7);
+  margin-bottom: 14px;
+}
+
+.benefitTitle { margin: 0 0 6px; font-size: 17px; letter-spacing: -0.01em; }
+.benefitDesc { margin: 0; font-size: 14px; line-height: 1.55; color: var(--nx-muted, #5b6472); }
+
+/* Steps */
+.stepsSection { background: var(--nx-surface, #f7f9fc); }
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid var(--nx-border, #e6e8ec);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.stepNum {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-primary, #1e4db7);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.stepTitle { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.stepDesc { font-size: 14px; line-height: 1.55; color: var(--nx-muted, #5b6472); }
+
+/* Closing CTA */
+.ctaCard {
+  text-align: center;
+  background: linear-gradient(120deg, var(--color-primary, #1e4db7), var(--color-primary-700, #163a8f));
+  color: #fff;
+  border-radius: 18px;
+  padding: 48px 32px;
+}
+
+.ctaTitle { margin: 0 0 10px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -0.02em; }
+.ctaText { margin: 0 auto 24px; max-width: 480px; font-size: 15px; line-height: 1.6; opacity: 0.92; }
+.ctaCard .heroCtas { margin-top: 0; }
+
+@media (max-width: 640px) {
+  .hero { padding: 60px 0 44px; }
+  .heroSub { font-size: 16px; }
+}

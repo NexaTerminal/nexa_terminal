@@ -6,6 +6,8 @@ import { trackPageView } from './utils/analytics';
 import Login from './pages/website/Login';
 import Home from './pages/website/Home';
 import Pricing from './pages/website/Pricing';
+import Proverka from './pages/website/Proverka';
+import Accountants from './pages/website/Accountants';
 import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
@@ -28,6 +30,7 @@ import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import ManageSubscriptions from './pages/terminal/admin/ManageSubscriptions';
 import AllUsers from './pages/terminal/admin/AllUsers';
 import InvitedProspects from './pages/terminal/admin/InvitedProspects';
+import ProverkaFunnel from './pages/terminal/admin/ProverkaFunnel';
 import Team from './pages/terminal/admin-user/Team';
 import AdminUserDashboard from './pages/terminal/admin-user/Dashboard';
 import LeadsInbox from './pages/terminal/admin-user/LeadsInbox';
@@ -74,6 +77,9 @@ import AdminTopicsSubmissionDetailPage  from './pages/terminal/admin/AdminTopics
 // Terminal Pages
 import Dashboard from './pages/terminal/Dashboard';
 import DocumentGen from './pages/terminal/DocumentGen';
+import Contracts from './pages/terminal/contracts/Contracts';
+import ContractDetail from './pages/terminal/contracts/ContractDetail';
+import ContractForm from './pages/terminal/contracts/ContractForm';
 import DocumentGeneratorPage from './pages/DocumentGeneratorPage';
 import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTemplateGenerator';
 import LegalScreening from './pages/terminal/LegalScreening';
@@ -102,10 +108,7 @@ import CyberQuestionnaire from './pages/terminal/chc/CyberQuestionnaire';
 import CyberReport from './pages/terminal/chc/CyberReport';
 import HRQuestionnaire from './pages/terminal/hhc/HRQuestionnaire';
 import HRReport from './pages/terminal/hhc/HRReport';
-import Investments from './pages/terminal/Investments';
-import InvestmentDetail from './pages/terminal/InvestmentDetail';
 import Contact from './pages/terminal/Contact';
-import FindLawyer from './pages/terminal/FindLawyer';
 import Disclaimer from './pages/terminal/Disclaimer';
 import TerminalPrivacyPolicy from './pages/terminal/PrivacyPolicy';
 import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
@@ -220,6 +223,8 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/redeem" element={<Redeem />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/proverka" element={<Proverka />} />
+      <Route path="/smetkovoditeli" element={<Accountants />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/ecosystem" element={<About />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -257,6 +262,11 @@ function App() {
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
       <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
+      {/* Договори — Contract Management System (master-plan Phase 2) */}
+      <Route path="/terminal/contracts" element={<PrivateRoute><VerificationRequired><Contracts /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/contracts/new" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/contracts/:id" element={<PrivateRoute><VerificationRequired><ContractDetail /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/contracts/:id/edit" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}
@@ -306,10 +316,12 @@ function App() {
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contract-analysis" element={<PrivateRoute><VerificationRequired><ContractAnalysis /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/investments" element={<PrivateRoute><Investments /></PrivateRoute>} />
-      <Route path="/terminal/investments/:investmentId" element={<PrivateRoute><InvestmentDetail /></PrivateRoute>} />
+      {/* Parked scope (master-plan Phase 0.4): Investments and FindLawyer are
+          off-strategy surfaces — old links redirect into the core product. */}
+      <Route path="/terminal/investments" element={<Navigate to="/terminal" replace />} />
+      <Route path="/terminal/investments/:investmentId" element={<Navigate to="/terminal" replace />} />
       <Route path="/terminal/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
-      <Route path="/terminal/find-lawyer" element={<PrivateRoute><VerificationRequired><FindLawyer /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/find-lawyer" element={<Navigate to="/terminal/sourcing" replace />} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
       <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
@@ -390,6 +402,7 @@ function App() {
       <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
       <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/invited-prospects" element={<PrivateRoute><InvitedProspects /></PrivateRoute>} />
+      <Route path="/terminal/admin/proverka-funnel" element={<PrivateRoute><ProverkaFunnel /></PrivateRoute>} />
       <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
       <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />

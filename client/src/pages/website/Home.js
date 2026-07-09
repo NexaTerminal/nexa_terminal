@@ -97,15 +97,16 @@ export default function Home() {
         <div className={`nexa-container ${styles.heroInner}`}>
           <span className={`nx-pill ${styles.heroPill} nx-fade-in-up`}>
             <Icon name="globe" size={14} />
-            {isMk ? 'Деловен екосистем за мали и средни фирми во Македонија' : 'Business ecosystem for small and medium businesses in Macedonia'}
+            {isMk ? 'Правни алатки за мали и средни бизниси во Македонија' : 'Legal tools for small and medium businesses in Macedonia'}
           </span>
           <h1 className="nx-fade-in-up nx-d-100">{t('home.heroTitle')}</h1>
+          <p className={`${styles.heroSub} nx-fade-in-up nx-d-200`}>{t('home.heroSubtitle')}</p>
           <div className={`${styles.heroCtas} nx-fade-in-up nx-d-300`}>
-            <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
+            <Link to="/pricing" className="nexa-btn nexa-btn-accent nexa-btn-lg">
               {t('home.ctaTerminal')}
               <Icon name="arrowRight" size={18} />
             </Link>
-            <Link to="/pricing" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
+            <Link to="/proverka" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
               {t('home.ctaProfessionals')}
             </Link>
           </div>
@@ -115,25 +116,118 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ ECOSYSTEM ============ */}
+      {/* ============ PART 1: AUTOMATE (the product, SMB story first) ============ */}
+      <section className={`${styles.ctaFinal} nx-section-ink`}>
+        <div className="nexa-container">
+          <div className={`${styles.finalGrid} nx-reveal`}>
+            <div className={styles.finalContent}>
+              <span className={`${styles.chapterNum} ${styles.chapterNumInk}`}>
+                {isMk ? 'Дел 1' : 'Part 1'}
+              </span>
+              <h2 className={styles.finalTitle}>
+                {isMk ? 'Автоматизирајте го Вашето работење' : 'Automate your operations'}
+              </h2>
+              <ul className={styles.finalFeatures}>
+                {[
+                  isMk ? 'Автоматизирани документи'  : 'Automated documents',
+                  isMk ? 'Проверки за усогласеност'  : 'Compliance health checks',
+                  isMk ? 'AI правен помошник'        : 'AI legal assistant',
+                  isMk ? 'Анализа на договор'        : 'Contract analysis'
+                ].map(f => (
+                  <li key={f}>
+                    <span className={styles.finalFeatureDot} aria-hidden />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <div className={styles.ctaButtons}>
+                <Link to="/pricing" className="nexa-btn nexa-btn-accent nexa-btn-lg">
+                  {isMk ? 'Изберете план' : 'Choose a plan'}
+                  <Icon name="arrowRight" size={18} />
+                </Link>
+                <Link to="/contact" className="nexa-btn nexa-btn-glass nexa-btn-lg">
+                  {isMk ? 'Контактирајте нé' : 'Contact us'}
+                </Link>
+              </div>
+            </div>
+
+            <div className={styles.finalVisual} aria-hidden>
+              <div className={styles.finalMockStack}>
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard1}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconBlue}`}>
+                    <Icon name="documents" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'Договор за вработување' : 'Employment agreement'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? 'Генериран за 30 сек' : 'Generated in 30s'}
+                    </div>
+                  </div>
+                  <span className={styles.finalMockBadge}>DOCX</span>
+                </div>
+
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard2}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconAmber}`}>
+                    <Icon name="shield" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'Правна проверка' : 'Legal screening'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? '8 / 12 прашања' : '8 / 12 questions'}
+                    </div>
+                  </div>
+                  <span className={styles.finalMockProgress}>
+                    <span className={styles.finalMockProgressFill} style={{ width: '66%' }} />
+                  </span>
+                </div>
+
+                <div className={`${styles.finalMockCard} ${styles.finalMockCard3}`}>
+                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconTeal}`}>
+                    <Icon name="ai" size={18} />
+                  </span>
+                  <div>
+                    <div className={styles.finalMockTitle}>
+                      {isMk ? 'AI одговор' : 'AI answer'}
+                    </div>
+                    <div className={styles.finalMockMeta}>
+                      {isMk ? 'Прашање за ДДВ · готов' : 'VAT question · ready'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FOR PROVIDERS (satellites — demoted below the product) ============ */}
       <section className="nx-section">
         <div className="nexa-container">
           <div className={`${styles.sectionHead} nx-reveal`}>
-            <span className="nx-eyebrow">{isMk ? 'Екосистем' : 'Ecosystem'}</span>
+            <span className="nx-eyebrow">{isMk ? 'За провајдери на услуги' : 'For service providers'}</span>
             <h2>
               {isMk
-                ? 'Nexa е целосен екосистем кој го надградува Вашиот бизнис.'
-                : 'Nexa is a complete ecosystem that upgrades your business.'}
+                ? 'Адвокат, сметководител или консултант? Nexa Ви носи клиенти.'
+                : 'Lawyer, accountant or consultant? Nexa brings you clients.'}
             </h2>
             <p>
               {isMk
-                ? 'Не е само алатка. Прво Ви ги автоматизира внатрешните процеси — документи, проверки за усогласеност, AI помош. Потоа Ви носи нови клиенти преку мрежа од специјализирани сајтови. И на крај, Ве прави видливи како експерт во Вашата област. Еве како го правиме сето тоа — еден дел по еден.'
-                : 'Not just a tool. First it automates your internal processes — documents, compliance checks, AI assistance. Then it brings you new clients through a network of specialized sites. Finally it makes you visible as an expert in your field. Here is how we do all of this — one part at a time.'}
+                ? 'Про членството е за оние што продаваат услуги. Управуваме мрежа од специјализирани сајтови што привлекуваат посетители со конкретна потреба — а нивните барања стигнуваат до Вас. Плус, Вашата експертиза станува видлива содржина што клиентите ја наоѓаат пред да Ве побараат.'
+                : 'The Pro membership is for those who sell services. We run a network of specialized sites that attract visitors with a concrete need — and their requests reach you. Plus, your expertise becomes visible content clients find before they even search for you.'}
+            </p>
+            <p className={styles.providerCtaLine}>
+              <Link to="/smetkovoditeli" className="nexa-btn nexa-btn-secondary">
+                {isMk ? 'Сметководител? Водете ги сите клиенти од една сметка →' : 'An accountant? Manage all clients from one account →'}
+              </Link>
             </p>
           </div>
 
           <div className={`${styles.chapterMarker} nx-reveal`}>
-            <span className={styles.chapterNum}>{isMk ? 'Дел 1' : 'Part 1'}</span>
+            <span className={styles.chapterNum}>{isMk ? 'Дел 2' : 'Part 2'}</span>
             <h3 className={styles.chapterTitle}>
               {isMk ? 'Носиме клиенти кај Вас' : 'We bring clients to you'}
             </h3>
@@ -176,7 +270,7 @@ export default function Home() {
       <section className={`nx-section ${styles.topicsSection}`}>
         <div className="nexa-container">
           <div className={`${styles.chapterMarker} ${styles.chapterMarkerCentered} nx-reveal`}>
-            <span className={styles.chapterNum}>{isMk ? 'Дел 2' : 'Part 2'}</span>
+            <span className={styles.chapterNum}>{isMk ? 'Дел 3' : 'Part 3'}</span>
             <h3 className={styles.chapterTitle}>
               {isMk ? 'Ве правиме видливи како експерт' : 'We make you a visible expert'}
             </h3>
@@ -237,90 +331,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ PART 3: AUTOMATE / FINAL CTA ============ */}
-      <section className={`${styles.ctaFinal} nx-section-ink`}>
-        <div className="nexa-container">
-          <div className={`${styles.finalGrid} nx-reveal`}>
-            <div className={styles.finalContent}>
-              <span className={`${styles.chapterNum} ${styles.chapterNumInk}`}>
-                {isMk ? 'Дел 3' : 'Part 3'}
-              </span>
-              <h2 className={styles.finalTitle}>
-                {isMk ? 'Автоматизирајте го Вашето работење' : 'Automate your operations'}
-              </h2>
-              <ul className={styles.finalFeatures}>
-                {[
-                  isMk ? 'Автоматизирани документи'  : 'Automated documents',
-                  isMk ? 'Проверки за усогласеност'  : 'Compliance health checks',
-                  isMk ? 'AI правен помошник'        : 'AI legal assistant',
-                  isMk ? 'Анализа на договор'        : 'Contract analysis'
-                ].map(f => (
-                  <li key={f}>
-                    <span className={styles.finalFeatureDot} aria-hidden />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <div className={styles.ctaButtons}>
-                <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-                  {isMk ? 'Започнете бесплатно' : 'Start free'}
-                  <Icon name="arrowRight" size={18} />
-                </Link>
-                <Link to="/contact" className="nexa-btn nexa-btn-glass nexa-btn-lg">
-                  {isMk ? 'Контактирајте нé' : 'Contact us'}
-                </Link>
-              </div>
-            </div>
-
-            <div className={styles.finalVisual} aria-hidden>
-              <div className={styles.finalMockStack}>
-                <div className={`${styles.finalMockCard} ${styles.finalMockCard1}`}>
-                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconBlue}`}>
-                    <Icon name="documents" size={18} />
-                  </span>
-                  <div>
-                    <div className={styles.finalMockTitle}>
-                      {isMk ? 'Договор за вработување' : 'Employment agreement'}
-                    </div>
-                    <div className={styles.finalMockMeta}>
-                      {isMk ? 'Генериран за 30 сек' : 'Generated in 30s'}
-                    </div>
-                  </div>
-                  <span className={styles.finalMockBadge}>DOCX</span>
-                </div>
-
-                <div className={`${styles.finalMockCard} ${styles.finalMockCard2}`}>
-                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconAmber}`}>
-                    <Icon name="shield" size={18} />
-                  </span>
-                  <div>
-                    <div className={styles.finalMockTitle}>
-                      {isMk ? 'Правна проверка' : 'Legal screening'}
-                    </div>
-                    <div className={styles.finalMockMeta}>
-                      {isMk ? '8 / 12 прашања' : '8 / 12 questions'}
-                    </div>
-                  </div>
-                  <span className={styles.finalMockProgress}>
-                    <span className={styles.finalMockProgressFill} style={{ width: '66%' }} />
-                  </span>
-                </div>
-
-                <div className={`${styles.finalMockCard} ${styles.finalMockCard3}`}>
-                  <span className={`${styles.finalMockIcon} ${styles.finalMockIconTeal}`}>
-                    <Icon name="ai" size={18} />
-                  </span>
-                  <div>
-                    <div className={styles.finalMockTitle}>
-                      {isMk ? 'AI одговор' : 'AI answer'}
-                    </div>
-                    <div className={styles.finalMockMeta}>
-                      {isMk ? 'Прашање за ДДВ · готов' : 'VAT question · ready'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* ============ CLOSING CTA ============ */}
+      <section className="nx-section">
+        <div className="nexa-container text-center">
+          <div className={`${styles.sectionHead} nx-reveal`}>
+            <h2>{isMk ? 'Подготвени да започнете?' : 'Ready to start?'}</h2>
+            <p>
+              {isMk
+                ? 'Изберете план, примете профактура и активирајте го Терминалот уште денес.'
+                : 'Pick a plan, receive a pro-forma invoice, and activate the Terminal today.'}
+            </p>
+          </div>
+          <div className={`${styles.heroCtas} nx-reveal`}>
+            <Link to="/pricing" className="nexa-btn nexa-btn-accent nexa-btn-lg">
+              {isMk ? 'Погледни ги цените' : 'See pricing'}
+              <Icon name="arrowRight" size={18} />
+            </Link>
+            <Link to="/contact" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
+              {isMk ? 'Контактирајте нé' : 'Contact us'}
+            </Link>
           </div>
         </div>
       </section>

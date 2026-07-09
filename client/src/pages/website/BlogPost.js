@@ -570,13 +570,13 @@ export default function BlogPost() {
               </div>
 
               <button onClick={handleModalSignup} className={styles.scrollModalButton}>
-                Започнете, целосно бесплатно
+                Отворете сметка
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path d="M3.75 9H14.25M14.25 9L9.75 4.5M14.25 9L9.75 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               <p className={styles.scrollModalNote}>
-                Бесплатен пристап · Без банкарска картичка
+                Бесплатна регистрација · Активација со код или претплата
               </p>
             </div>
           </div>

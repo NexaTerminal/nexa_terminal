@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/terminal/documents/DocumentSuccessModal.module.css';
 
 /**
@@ -13,14 +16,32 @@ import styles from '../../styles/terminal/documents/DocumentSuccessModal.module.
 const DocumentSuccessModal = ({
   isOpen,
   shareUrl,
+  shareToken,
+  marketPrice,
   fileName,
   expiresAt,
   onClose,
   onDownloadAgain
 }) => {
   const [copied, setCopied] = useState(false);
+  const { token } = useAuth();
+  // 'idle' | 'busy' | { id } | 'error' — generate→store→track hook (CMS M3).
+  const [saveState, setSaveState] = useState('idle');
 
   if (!isOpen) return null;
+
+  const saveToContracts = async () => {
+    if (!shareToken || saveState === 'busy') return;
+    setSaveState('busy');
+    try {
+      const res = await axios.post(`/api/contracts/from-share/${shareToken}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSaveState({ id: res.data.data._id });
+    } catch (err) {
+      setSaveState('error');
+    }
+  };
 
   /**
    * Copy shareable link to clipboard
@@ -95,6 +116,14 @@ const DocumentSuccessModal = ({
             Вашиот документ е зачуван и можете да го споделите со други лица користејќи го линкот подолу.
           </p>
 
+          {/* Savings line (master-plan Phase 5) — market-price anchor */}
+          {marketPrice > 0 && (
+            <p className={styles.description}>
+              💡 Ваков документ во адвокатска канцеларија чини ~<strong>€{marketPrice}</strong>
+              {' '}— во Nexa е вклучен во претплатата.
+            </p>
+          )}
+
           {/* Shareable Link Section */}
           <div className={styles.shareSection}>
             <label className={styles.shareLabel}>Линк за споделување:</label>
@@ -135,6 +164,35 @@ const DocumentSuccessModal = ({
             </ul>
           </div>
         </div>
+
+        {/* Save to Contract Manager (Договори) — generate→store→track */}
+        {shareToken && (
+          <div className={styles.expiryInfo}>
+            {saveState === 'idle' || saveState === 'busy' ? (
+              <>
+                <span className={styles.expiryIcon}>📁</span>
+                <span>
+                  Следете рокови и обврски за овој документ —{' '}
+                  <button
+                    type="button"
+                    onClick={saveToContracts}
+                    disabled={saveState === 'busy'}
+                    className={styles.copyButton}
+                  >
+                    {saveState === 'busy' ? 'Се зачувува…' : 'Зачувај во Договори'}
+                  </button>
+                </span>
+              </>
+            ) : saveState === 'error' ? (
+              <span>⚠ Зачувувањето не успеа. Обидете се повторно подоцна.</span>
+            ) : (
+              <span>
+                ✓ Зачувано во Договори —{' '}
+                <Link to={`/terminal/contracts/${saveState.id}`}>отвори и додади рокови</Link>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div className={styles.modalFooter}>

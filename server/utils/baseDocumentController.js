@@ -191,6 +191,9 @@ const createDocumentController = (config) => {
           // Add shareable link info to response headers
           res.setHeader('X-Share-Token', shareToken);
           res.setHeader('X-Share-URL', shareUrl);
+          // Savings meter (master-plan Phase 5): estimated market price of
+          // this document at a law office — shown in the success modal.
+          res.setHeader('X-Market-Price', String(require('../constants/documentPrices').priceFor(documentName)));
 
           console.log(`[${documentName}] ✅ Shareable link created: ${shareUrl}`);
         } else {

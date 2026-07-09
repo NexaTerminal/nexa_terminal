@@ -1,6 +1,7 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { hasFeatureAccess, isAccountSuspended } from '../../lib/tier';
+import { hasFeatureAccess, isAccountSuspended, hasFreeDocPass } from '../../lib/tier';
 import styles from '../../styles/VerificationRequired.module.css';
 
 /**
@@ -16,10 +17,18 @@ import styles from '../../styles/VerificationRequired.module.css';
  */
 const VerificationRequired = ({ children }) => {
   const { currentUser } = useAuth();
+  const location = useLocation();
 
   // No user yet (loading) or full access → render normally. PrivateRoute
   // already handles the unauthenticated case upstream.
   if (!currentUser || hasFeatureAccess(currentUser)) {
+    return <>{children}</>;
+  }
+
+  // One-free-document pass: a locked funnel registrant may open the DOCUMENT
+  // pages (only) to use their single free generation. The server-side guard
+  // (subscriptionGuard → creditMiddleware) enforces the single use.
+  if (hasFreeDocPass(currentUser) && location.pathname.startsWith('/terminal/documents')) {
     return <>{children}</>;
   }
 

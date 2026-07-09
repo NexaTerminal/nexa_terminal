@@ -176,6 +176,8 @@ const BaseDocumentPage = ({
       <DocumentSuccessModal
         isOpen={showSuccessModal}
         shareUrl={shareData?.shareUrl}
+        shareToken={shareData?.shareToken}
+        marketPrice={shareData?.marketPrice}
         fileName={shareData?.fileName}
         expiresAt={shareData?.expiresAt}
         onClose={closeSuccessModal}

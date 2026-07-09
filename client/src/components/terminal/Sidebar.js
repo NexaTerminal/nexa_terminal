@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers, showsFair } from '../../lib/tier';
+import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers, showsFair, showsSourcing } from '../../lib/tier';
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
@@ -50,6 +50,7 @@ const Sidebar = () => {
             { path: '/terminal/my-templates', label: 'Мои шаблони' }
           ]
         },
+        { key: 'contracts', icon: 'inbox', label: 'Договори', path: '/terminal/contracts' },
         {
           key: 'screening', icon: 'check', label: 'Проверки',
           children: [
@@ -75,7 +76,7 @@ const Sidebar = () => {
       label: 'Вмрежување и можности',
       items: [
         { key: 'fair',  icon: 'store', label: 'Виртуелен саем', path: '/terminal/fair', visible: showsFair },
-        { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsFair },
+        { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing },
         { key: 'blogs', icon: 'pencil', label: 'Објави блог', path: '/terminal/blogs', visible: showsBlogs },
         { key: 'leads', icon: 'inbox', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
         {
@@ -122,6 +123,7 @@ const Sidebar = () => {
         { path: '/terminal/admin/subscriptions',           label: 'Претплати' },
         { path: '/terminal/admin/subscriptions?tab=codes', label: 'Промо кодови' },
         { path: '/terminal/admin/invited-prospects',       label: 'Поканети потенцијални корисници' },
+        { path: '/terminal/admin/proverka-funnel',         label: 'Проверка — функел' },
         { path: '/terminal/admin/pro-invoices',            label: 'Профактури' }
       ]
     },

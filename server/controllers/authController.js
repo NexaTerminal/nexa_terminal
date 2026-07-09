@@ -53,6 +53,9 @@ class AuthController {
       parentSuperUserId: user.parentSuperUserId || null,
       intendedPlan: user.intendedPlan || null,
       needsTierOnboarding: user.needsTierOnboarding === true,
+      // One-free-document state (master-plan Phase 1.2) — lib/tier.js
+      // hasFreeDocPass() and LockedWelcome read this.
+      freeDocUsed: user.freeDocUsed === true,
       superUser: user.superUser ? {
         // Surface fields the frontend needs without exposing back-office config.
         practiceAreas: user.superUser.practiceAreas || [],

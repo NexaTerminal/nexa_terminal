@@ -114,6 +114,24 @@ async function check(req, res, next, subscriptionService) {
       }
     }
 
+    // ── One free document (master-plan Phase 1.2 / decision D-2) ─────────
+    // A never-activated account (status 'none' — fresh funnel registrant) may
+    // generate exactly ONE document. The pass applies only to the document
+    // generators; creditMiddleware honors req.freeDocPass (skips the balance
+    // check) and marks users.freeDocUsed=true on the first successful
+    // generation. Suspended/cancelled ex-subscribers do NOT qualify.
+    if (
+      req.method === 'POST' &&
+      req.baseUrl === '/api/auto-documents' &&
+      eff.status === SUBSCRIPTION_STATUSES.NONE &&
+      user.role !== ROLES.SUB_SEAT &&
+      user.freeDocUsed !== true
+    ) {
+      req.freeDocPass = true;
+      req.subscription = eff;
+      return next();
+    }
+
     let code = 'SUBSCRIPTION_REQUIRED';
     let message = 'Потребна е активна претплата за оваа функција.';
     if (eff.status === SUBSCRIPTION_STATUSES.PENDING_APPROVAL) {

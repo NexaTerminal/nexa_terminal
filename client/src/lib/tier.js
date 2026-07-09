@@ -185,6 +185,21 @@ export function openSubscriptionGate(detail = {}) {
   } catch (_) { /* SSR / no window */ }
 }
 
+/**
+ * One-free-document pass (master-plan Phase 1.2, decision D-2): a LOCKED
+ * owner account (status 'none' — fresh funnel registrant, never activated)
+ * that hasn't used its single free generation. Mirrors the server pass in
+ * middleware/subscriptionGuard.js — the client uses it to open the document
+ * pages; the server still enforces the single use.
+ */
+export function hasFreeDocPass(user) {
+  if (!user) return false;
+  if (user.role === 'admin' || user.role === 'sub_seat') return false;
+  if (user.freeDocUsed === true) return false;
+  const status = user.subscription?.status;
+  return !status || status === 'none';
+}
+
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
 // previewMode (trial / suspended / no-access) keeps the B surfaces visible
 // so the user can re-engage; actions still gate behind the order modal.
@@ -199,5 +214,10 @@ export function showsSubUsers(user) {
   if (user.role === 'sub_seat') return false;
   return (user.role === 'standard_user' || user.role === 'admin_user') && hasFeatureAccess(user);
 }
-// Virtual fair is a browse-for-everyone surface — visible to any logged-in user.
-export function showsFair(user)     { return !!user; }
+// Virtual fair is HIDDEN until there is real supply (master-plan Phase 0.3):
+// an SMB opening an empty marketplace reads it as a dead product. Admin keeps
+// access to seed booths; reopening is a marketable event later.
+export function showsFair(user)     { return user?.role === 'admin'; }
+// Sourcing (Барање за понуди) stays visible to everyone — it is the demand-side
+// "get offers" surface and works concierge-style regardless of visible supply.
+export function showsSourcing(user) { return !!user; }

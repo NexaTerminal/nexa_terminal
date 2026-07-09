@@ -54,6 +54,8 @@ class DocumentService {
       // Extract shareable link data from response headers
       const shareToken = response.headers.get('X-Share-Token');
       const shareUrl = response.headers.get('X-Share-URL');
+      // Savings meter: estimated law-office price for this document type.
+      const marketPrice = Number(response.headers.get('X-Market-Price')) || null;
 
       // Download the file
       this.downloadFile(blob, `${fileName}.docx`);
@@ -63,6 +65,7 @@ class DocumentService {
         warnings,
         shareToken,
         shareUrl,
+        marketPrice,
         fileName: `${fileName}.docx`,
         expiresAt: shareToken ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null
       });

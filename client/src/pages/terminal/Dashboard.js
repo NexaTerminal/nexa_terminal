@@ -7,23 +7,11 @@ import { Link } from "react-router-dom";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import UpdatesFeed from "../../components/terminal/UpdatesFeed";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
-import LockedWelcome from "../../components/terminal/LockedWelcome";
-import UpcomingObligations from "../../components/terminal/UpcomingObligations";
-import CommandCenter from "../../components/terminal/CommandCenter";
 import FeatureTour from "../../components/terminal/FeatureTour";
 import { PROMO_FLASH_KEY } from "../../components/PromoRedeemWatcher";
 
 const Dashboard = () => {
   const { currentUser, token } = useAuth();
-
-  // Locked account: registered but never activated (no code, no payment).
-  // Owners only — admin bypasses, sub-seats inherit the parent's access.
-  const isLocked =
-    !!currentUser &&
-    currentUser.role !== 'admin' &&
-    currentUser.role !== 'sub_seat' &&
-    (!currentUser.subscription || currentUser.subscription.status === 'none');
-
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -88,28 +76,17 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Locked accounts get the selling onboarding panel instead of the
-              slim strip + feed dead-end (master-plan Phase 0.1). */}
-          {isLocked ? (
-            <LockedWelcome />
-          ) : (
-            <>
-              <SubscriptionStatusBanner />
+          <SubscriptionStatusBanner />
 
-              {/* Compliance command center (master-plan Phase 3) — the main
-                  stage. The admin updates feed stays below as secondary. */}
-              <CommandCenter />
-              <UpcomingObligations />
+          {/* Removed dashboard-header section - profile info now in header dropdown */}
 
-              {loading ? (
-                <div className="text-center">
-                  <p>Се вчитува...</p>
-                </div>
-              ) : null}
+          {loading ? (
+            <div className="text-center">
+              <p>Се вчитува...</p>
+            </div>
+          ) : null}
 
-              <UpdatesFeed />
-            </>
-          )}
+          <UpdatesFeed />
         </main>
 
         <RightSidebar />

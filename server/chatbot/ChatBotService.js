@@ -158,7 +158,7 @@ Nexa Terminal има функции што решаваат дел од проб
 - НИКОГАШ не измислувајте број на член. Цитирајте конкретен член САМО ако во контекстот стои ознака „ВЕРИФИЦИРАН ЧЛЕН: ..." — тогаш цитирајте го точно. Инаку: „во соодветниот член на [законот]" + проверка во Службен весник.
 - НИКОГАШ не измислувајте износи, стапки, рокови или казни. Ако бројката не е во контекстот, кажете дека треба да се провери — не претпоставувајте.
 - ЦИТИРАЈТЕ ВЕРБАТИМ (во наводници) само текст што навистина стои во контекстот; инаку парафразирајте.
-- НЕ споменувајте имиња на внатрешни фајлови/документи. ИСКЛУЧОК: извори означени со [EXTERNAL] (судска пракса, EU) цитирајте ги природно во текстот со URL-то.
+- НЕ споменувајте имиња на внатрешни фајлови/документи. ИСКЛУЧОЦИ: (а) извори означени со [EXTERNAL] (судска пракса, EU) цитирајте ги природно во текстот со URL-то; (б) судски одлуки и билтени од контекстот (пр. „Апелационен суд Скопје, РОЖ-293-24") цитирајте ги со суд и број на предмет — тоа е правилен начин на цитирање судска пракса и ЗНАЧИТЕЛНО го зајакнува одговорот кога постои релевантна одлука.
 
 ## ФОРМАТ
 
@@ -584,17 +584,21 @@ Nexa Terminal има функции што решаваат дел од проб
     const searchTime = Date.now() - searchStartTime;
     console.log(`✓ [RAG DEBUG] Vector search completed in ${searchTime}ms - ${searchResult.length} results`);
 
+    // Defensive payload mapping: chunks ingested by other pipelines may use
+    // { content, filename } instead of { pageContent, documentName }. An
+    // undefined pageContent used to throw deep in RRF and silently killed the
+    // ENTIRE retrieval (LLM answered with zero context) — never again.
     return searchResult.map(result => ({
-      pageContent: result.payload.pageContent,
+      pageContent: result.payload.pageContent || result.payload.content || '',
       metadata: {
-        documentName: result.payload.documentName,
+        documentName: result.payload.documentName || result.payload.filename || 'Unknown',
         pageCount: result.payload.pageCount,
         processedAt: result.payload.processedAt,
         score: result.score,
         article: result.payload.article || null,
         chunkType: result.payload.chunkType || 'standard',
       },
-    }));
+    })).filter(doc => doc.pageContent.length > 0);
   }
 
   /**
@@ -649,16 +653,16 @@ Nexa Terminal има функции што решаваат дел од проб
     console.log(`✓ [RAG DEBUG] Keyword search completed in ${searchTime}ms - ${points.length} results`);
 
     return points.map(point => ({
-      pageContent: point.payload.pageContent,
+      pageContent: point.payload.pageContent || point.payload.content || '',
       metadata: {
-        documentName: point.payload.documentName,
+        documentName: point.payload.documentName || point.payload.filename || 'Unknown',
         pageCount: point.payload.pageCount,
         processedAt: point.payload.processedAt,
         score: 0.5, // Default score for keyword matches (no vector similarity)
         article: point.payload.article || null,
         chunkType: point.payload.chunkType || 'standard',
       },
-    }));
+    })).filter(doc => doc.pageContent.length > 0);
   }
 
   /**
@@ -671,7 +675,7 @@ Nexa Terminal има функции што решаваат дел од проб
   reciprocalRankFusion(vectorResults, keywordResults, k = 60) {
     const scoreMap = new Map(); // key: content prefix -> {doc, score}
 
-    const getKey = (doc) => doc.pageContent.substring(0, 200);
+    const getKey = (doc) => (doc.pageContent || '').substring(0, 200);
 
     // Score vector results
     vectorResults.forEach((doc, rank) => {
@@ -847,7 +851,7 @@ Nexa Terminal има функции што решаваат дел од проб
         // Deduplicate by content prefix
         const seen = new Set();
         topResults = allResults.filter(doc => {
-          const key = doc.pageContent.substring(0, 200);
+          const key = (doc.pageContent || '').substring(0, 200);
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
@@ -907,7 +911,7 @@ Nexa Terminal има функции што решаваат дел од проб
       console.log(`\n📚 [RAG DEBUG] Final ${topResults.length} chunks:`);
       topResults.forEach((result, index) => {
         const scorePercent = (result.metadata.score * 100).toFixed(1);
-        const preview = result.pageContent.substring(0, 100).replace(/\n/g, ' ');
+        const preview = (result.pageContent || '').substring(0, 100).replace(/\n/g, ' ');
         const articleInfo = result.metadata.article ? ` [${result.metadata.article}]` : '';
         console.log(`  [${index + 1}] ${result.metadata.documentName}${articleInfo} - Score: ${scorePercent}%`);
         console.log(`      Preview: "${preview}..."`);

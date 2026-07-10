@@ -52,9 +52,12 @@ async function main() {
   for (const [i, item] of questions.entries()) {
     const docs = await chatBotService.retrieveRelevantDocuments(item.q);
     const names = docs.map(d => (d.metadata?.documentName || '').toLowerCase());
-    const expected = item.expectDoc.toLowerCase();
-    const hit = names.some(n => n.includes(expected));
-    const rank = names.findIndex(n => n.includes(expected)) + 1;
+    // expectDoc is a case-insensitive regex — corpus filenames mix Cyrillic and
+    // Latin transliteration ("Кривичен Законик" vs "35-23-Krivicen-zakonik"),
+    // so entries use alternates like "кривичен|krivicen".
+    const expected = new RegExp(item.expectDoc, 'i');
+    const hit = names.some(n => expected.test(n));
+    const rank = names.findIndex(n => expected.test(n)) + 1;
 
     if (hit) {
       hits++;

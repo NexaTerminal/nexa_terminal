@@ -180,15 +180,14 @@ export default function SubmitBlogPage() {
         </header>
 
         <nav className={styles.tabs}>
-          <Link to="/terminal/blogs/submit"          className={`${styles.tab} ${styles.tabActive}`}>Поднеси прилог</Link>
-          <Link to="/terminal/blogs/my-submissions"  className={styles.tab}>Мои поднесувања</Link>
-          <Link to="/terminal/blogs/published"       className={styles.tab}>Објавени</Link>
+          <Link to="/terminal/blogs/submit"           className={`${styles.tab} ${styles.tabActive}`}>Поднеси прилог</Link>
+          <Link to="/terminal/marketing-hub?tab=blog" className={styles.tab}>Мои прилози</Link>
         </nav>
 
         {trial && <TrialDisabledNotice />}
         {!allowed.allowed && allowed.reason === 'plan' && (
           <div className={styles.toastError} style={{ marginBottom: 16 }}>
-            Поднесувањето на прилози е достапно за Про корисници.
+            Поднесувањето на прилози е достапно за претплатници.
           </div>
         )}
 
@@ -324,7 +323,7 @@ export default function SubmitBlogPage() {
             contactEmail={authorContactEmail || currentUser?.email || ''}
             onClose={() => {
               setShowSuccessModal(false);
-              navigate('/terminal/blogs/my-submissions');
+              navigate('/terminal/marketing-hub?tab=blog');
             }}
           />
         )}

@@ -45,8 +45,10 @@ function visibleTier(user) {
 function canSubmitBlog(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
+  // Sub-seats resolve to tier A but publish under the parent company account.
+  if (user?.role === 'sub_seat') return { allowed: false, reason: 'plan' };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B') return { allowed: true };
+  if (eff === 'A' || eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 

@@ -101,8 +101,11 @@ export function visibleTier(user) {
 export function canSubmitBlog(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
+  // Sub-seats resolve to tier A but publish under the parent company account.
+  if (user?.role === 'sub_seat') return { allowed: false, reason: 'plan' };
   if (isTrial(user))   return { allowed: false, reason: 'trial' };
-  if (eff === 'B') return { allowed: true };
+  if (previewMode(user)) return { allowed: false, reason: 'trial' };
+  if (eff === 'A' || eff === 'B') return { allowed: true };
   return { allowed: false, reason: 'plan' };
 }
 
@@ -203,7 +206,15 @@ export function hasFreeDocPass(user) {
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
 // previewMode (trial / suspended / no-access) keeps the B surfaces visible
 // so the user can re-engage; actions still gate behind the order modal.
-export function showsBlogs(user)    { const v = visibleTier(user); return v === 'B' || v === 'ADMIN' || previewMode(user); }
+// Маркетинг hub (blog articles + newsletter banner): every owner account sees
+// it — both tiers get marketing value; sub-seats don't own the company surface.
+export function showsMarketing(user) {
+  if (!user) return false;
+  if (user.role === 'sub_seat') return false;
+  return true;
+}
+// Back-compat alias — pre-existing call sites keep working.
+export const showsBlogs = showsMarketing;
 export function showsLeads(user)    { const v = visibleTier(user); return v === 'B' || v === 'ADMIN' || previewMode(user); }
 export function showsTopicsQA(user) { const v = visibleTier(user); return v === 'B' || v === 'ADMIN'              || previewMode(user); }
 // Sub-users: both tiers manage them (Basic → co-workers, Pro → clients), but

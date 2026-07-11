@@ -72,6 +72,8 @@ export default function Pricing() {
         'Лични AI преференци (тон и стил)',
         'Правна, маркетинг, HR и сајбер проверки на усогласеност',
         'Барање за понуди — побарајте понуди од провајдери',
+        'Блог статија на Nexa блогот — 1 месечно, објавена под Ваше име',
+        'Банер во Nexa билтенот до 1000+ претплатници — еднаш квартално',
         'Виртуелен саем',
         'Курсеви и едукативни ресурси',
         'До 3 соработници во Вашата компанија'
@@ -84,6 +86,8 @@ export default function Pricing() {
         'Personal AI preferences (tone & style)',
         'Legal, marketing, HR and cybersecurity compliance checks',
         'Request for offers — source quotes from providers',
+        'Blog post on the Nexa blog — 1 per month, published under your name',
+        'Banner in the Nexa newsletter reaching 1000+ subscribers — once per quarter',
         'Virtual Fair',
         'Courses & learning resources',
         'Up to 3 co-workers in your company'
@@ -100,18 +104,18 @@ export default function Pricing() {
         'До 25 клиентски под-сметки — водете ги Вашите клиенти под Вашата претплата',
         'Случаи (leads) добиени преку нашите сателит страни',
         'Виртуелен саем — штанд со Вашите производи или услуги',
-        'Месечна Nexa блог позиција',
+        '2 блог статии месечно (наместо 1)',
         'Topics Q&A — експертски одговори на јавни прашања',
         'Барање за понуди (тендер) — давајте понуди на клиентски барања',
-        'Позиција во Nexa Newsletter'
+        'Уредничко место во месечниот билтен за прифатените блог статии'
       ] : [
         'Up to 25 client sub-accounts — manage your clients under your subscription',
         'Cases (leads) sourced via our satellite sites',
         'Virtual Fair — a booth with your products or services',
-        'Monthly Nexa blog placement',
+        '2 blog posts per month (instead of 1)',
         'Topics Q&A — expert answers to public questions',
         'Request for offers (tender) — respond to client requests',
-        'Placement in the Nexa Newsletter'
+        'Editorial spot in the monthly newsletter for accepted blog posts'
       ]
     }
   };

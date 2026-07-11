@@ -784,6 +784,11 @@ function registerRoutes() {
     /^\/blogs\/submissions\/.*$/,
     '/admin/blogs/submissions',
     /^\/admin\/blogs\/submissions\/.*$/,
+    // Nexa 3.0 — Newsletter banner slots (member booking + admin)
+    '/newsletter-ads',
+    /^\/newsletter-ads\/.*$/,
+    '/admin/newsletter-ads',
+    /^\/admin\/newsletter-ads\/.*$/,
     // Nexa 3.0 — Inquiry Board (manual model)
     '/inquiries',
     /^\/inquiries\/.*$/,
@@ -912,6 +917,17 @@ function registerRoutes() {
     console.log('✅ Blog Submissions routes loaded successfully');
   } catch (error) {
     console.error('❌ Blog submissions routes error:', error.message);
+  }
+
+  // Nexa 3.0 — Newsletter banner slots (member booking + admin, flag-gated)
+  if (settings.isFeatureEnabled('newsletterAds') || process.env.NEXA_FF_NEWSLETTER_ADS === 'true') {
+    try {
+      app.use('/api/newsletter-ads',       require('./routes/newsletterAds'));
+      app.use('/api/admin/newsletter-ads', require('./routes/adminNewsletterAds'));
+      console.log('✅ Newsletter ad-slot routes loaded successfully');
+    } catch (error) {
+      console.error('❌ Newsletter ad-slot routes error:', error.message);
+    }
   }
 
   // Nexa 3.0 — Inquiry Board (manual model — operator-curated, no auto-routing)

@@ -38,8 +38,8 @@ async function sendIfEmail(req, user, template) {
   if (!email) return;
   try {
     const svc = req.app.locals.emailService;
-    if (!svc?.send) return;
-    await svc.send({ to: email, subject: template.subject, html: template.html });
+    if (!svc?.sendEmail) return;
+    await svc.sendEmail(email, template.subject, template.html);
   } catch (e) {
     console.warn('[blog-submissions] email send failed:', e.message);
   }
@@ -194,16 +194,20 @@ exports.adminPublish = async (req, res) => {
 };
 
 // ── middleware ──────────────────────────────────────────────────────────────
-// Member endpoints require visibleTier B/C/ADMIN. Trial users see the form
-// but cannot submit; this gate runs on the action endpoints, not on draft
-// updates so revisions during trial don't block.
+// Member endpoints are open to every subscriber (Basic + Pro); sub-seats are
+// blocked because posts publish under the parent company account. Trial users
+// see the form but cannot submit; that gate runs on the action endpoints, not
+// on draft updates, so revisions during trial don't block.
 
-exports.requireProOrAdmin = (req, res, next) => {
+exports.requireSubscriber = (req, res, next) => {
   const t = tierService.effectiveTier(req.user);
-  if (t === 'B' || t === 'ADMIN') return next();
+  const isSubSeat = req.user?.role === 'sub_seat';
+  if (!isSubSeat && (t === 'A' || t === 'B' || t === 'ADMIN')) return next();
   return res.status(403).json({ success: false, code: 'TIER_FORBIDDEN',
-    message: 'Поднесувањето на прилози е достапно само за Про членови.' });
+    message: 'Поднесувањето на прилози е достапно за претплатници.' });
 };
+// Back-compat alias — old name still referenced elsewhere is safe to keep.
+exports.requireProOrAdmin = exports.requireSubscriber;
 
 exports.requireSubmitAllowed = (req, res, next) => {
   const check = tierService.canSubmitBlog(req.user);
@@ -211,7 +215,7 @@ exports.requireSubmitAllowed = (req, res, next) => {
   const code = check.reason === 'trial' ? 'TRIAL_LOCKED' : 'TIER_FORBIDDEN';
   const message = check.reason === 'trial'
     ? 'Поднесувањето на прилози е достапно по активирање на платена претплата.'
-    : 'Поднесувањето на прилози е достапно само за Nexa Мрежа корисници.';
+    : 'Поднесувањето на прилози е достапно за претплатници.';
   return res.status(403).json({ success: false, code, message });
 };
 

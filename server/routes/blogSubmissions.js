@@ -23,19 +23,19 @@ const coverUpload = multer({
 // ── member endpoints (auth + tier gate) ─────────────────────────────────────
 router.use(authenticateJWT);
 
-// All member endpoints are gated to B/C/admin (Type A and sub-seats blocked).
-router.get('/',           c.requireProOrAdmin, c.listMine);
-router.get('/published',  c.requireProOrAdmin, c.listMyPublished);
-router.post('/',          c.requireProOrAdmin, c.create);
-router.get('/:id',        c.requireProOrAdmin, c.getOne);
-router.put('/:id',        c.requireProOrAdmin, c.update);
+// All member endpoints are open to subscribers (Basic + Pro; sub-seats blocked).
+router.get('/',           c.requireSubscriber, c.listMine);
+router.get('/published',  c.requireSubscriber, c.listMyPublished);
+router.post('/',          c.requireSubscriber, c.create);
+router.get('/:id',        c.requireSubscriber, c.getOne);
+router.put('/:id',        c.requireSubscriber, c.update);
 
-// Submit & retry additionally require not-trial (paid B/C/admin).
+// Submit & retry additionally require not-trial (any paid plan / admin).
 router.post('/:id/submit', c.requireSubmitAllowed, c.submit);
 router.post('/:id/retry',  c.requireSubmitAllowed, c.retry);
 
 // Image upload (tier-gated; reuses the existing storage convention)
-router.post('/upload-image', c.requireProOrAdmin, coverUpload.single('image'), (req, res) => {
+router.post('/upload-image', c.requireSubscriber, coverUpload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No image file provided.' });
   return res.json({ success: true, imageUrl: `/uploads/blogs/${req.file.filename}` });
 });

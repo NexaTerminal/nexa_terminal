@@ -31,7 +31,8 @@ class SettingsManager {
           subSeats:         process.env.NEXA_FF_SUB_SEATS          === 'true',
           leadRouting:      process.env.NEXA_FF_LEAD_ROUTING       === 'true',
           topicsSlots:      process.env.NEXA_FF_TOPICS_SLOTS       === 'true',
-          blogSubmissions:  process.env.NEXA_FF_BLOG_SUBMISSIONS   === 'true'
+          blogSubmissions:  process.env.NEXA_FF_BLOG_SUBMISSIONS   === 'true',
+          newsletterAds:    process.env.NEXA_FF_NEWSLETTER_ADS     === 'true'
         };
         return;
       }
@@ -131,7 +132,8 @@ class SettingsManager {
         subSeats: false,
         leadRouting: false,
         topicsSlots: false,
-        blogSubmissions: false
+        blogSubmissions: false,
+        newsletterAds: false
       },
       database: {
         collections: {

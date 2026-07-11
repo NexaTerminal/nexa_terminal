@@ -45,7 +45,8 @@ import EditBlog from './pages/terminal/admin/EditBlog';
 import ManageUpdates from './pages/terminal/admin/ManageUpdates';
 
 // Nexa 3.0 stubs (prompts 05–06 wire the remaining real UX)
-import BlogsPage from './pages/terminal/Blogs';
+import MarketingHub from './pages/terminal/MarketingHub';
+import NewsletterAdBookingsPage from './pages/terminal/admin/NewsletterAdBookings';
 import LeadsPage from './pages/terminal/Leads';
 import TopicsQAPage from './pages/terminal/TopicsQA';
 import FairPage from './pages/terminal/Fair';
@@ -414,7 +415,9 @@ function App() {
       <Route path="/terminal/admin/chatbot" element={<PrivateRoute><ManageChatbot /></PrivateRoute>} />
 
       {/* Nexa 3.0 stubs */}
-      <Route path="/terminal/blogs"                  element={<PrivateRoute><BlogsPage /></PrivateRoute>} />
+      {/* Маркетинг hub — Блог статии + Банер во билтенот (all subscribers) */}
+      <Route path="/terminal/marketing-hub"          element={<PrivateRoute><MarketingHub /></PrivateRoute>} />
+      <Route path="/terminal/blogs"                  element={<Navigate to="/terminal/marketing-hub?tab=blog" replace />} />
       <Route path="/terminal/leads"                  element={<PrivateRoute><LeadsPage /></PrivateRoute>} />
       <Route path="/terminal/topics-qa"              element={<PrivateRoute><TopicsQAPage /></PrivateRoute>} />
       {/* Виртуелен саем — /admin before /:id */}
@@ -431,6 +434,7 @@ function App() {
       <Route path="/terminal/blogs/my-submissions"   element={<Navigate to="/terminal/blogs" replace />} />
       <Route path="/terminal/blogs/published"        element={<Navigate to="/terminal/blogs" replace />} />
       <Route path="/terminal/admin/blogs/pending"    element={<PrivateRoute><PendingBlogSubmissionsPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/newsletter-ads"   element={<PrivateRoute><NewsletterAdBookingsPage /></PrivateRoute>} />
 
       {/* Nexa 3.0 · 05 — Inquiry Board (admin) */}
       <Route path="/terminal/admin/inquiries/new"    element={<PrivateRoute><AdminInquiryNewPage /></PrivateRoute>} />

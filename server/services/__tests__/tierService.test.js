@@ -13,18 +13,18 @@ const assert = require('node:assert/strict');
 const t = require('../tierService');
 
 const cases = [
-  // Paid Type A — standard plan, active.
+  // Paid Type A — standard plan, active. Blog opened to Basic (Маркетинг hub).
   { name: 'paid-A',
     user: { role: 'standard_user', subscription: { status: 'active', plan: 'standard' } },
     expect: { effective: 'A', isTrial: false, visible: 'A',
-              canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
+              canSubmitBlog: true, canExpressInterest: false, canRequestQATopic: false,
               subSeats: 0 } },
 
-  // Canonical Basic — basic plan, active.
+  // Canonical Basic — basic plan, active. Blog opened to Basic (Маркетинг hub).
   { name: 'paid-basic',
     user: { role: 'standard_user', subscription: { status: 'active', plan: 'basic' } },
     expect: { effective: 'A', isTrial: false, visible: 'A',
-              canSubmitBlog: false, canExpressInterest: false, canRequestQATopic: false,
+              canSubmitBlog: true, canExpressInterest: false, canRequestQATopic: false,
               subSeats: 0 } },
 
   // Canonical Pro — pro plan, active. Pro gets blog/interest/Topics + 25 seats.

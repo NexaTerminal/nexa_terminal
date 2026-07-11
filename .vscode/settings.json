@@ -13,6 +13,7 @@
     "subSeats": true,
     "leadRouting": true,
     "topicsSlots": false,
-    "blogSubmissions": false
+    "blogSubmissions": false,
+    "newsletterAds": true
   }
 }

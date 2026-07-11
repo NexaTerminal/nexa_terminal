@@ -73,7 +73,12 @@ const Feature = ({ icon, title, text }) => (
   </div>
 );
 
-export default function BlogsPage() {
+/**
+ * Blog-submissions section. Rendered standalone by BlogsPage (legacy URL) and
+ * as the „Блог статии" tab of the Маркетинг hub (MarketingHub.js) — hence no
+ * TerminalShell / page wrapper here.
+ */
+export function BlogsSection() {
   const { token, currentUser } = useAuth();
   const navigate = useNavigate();
   const canSubmit = canSubmitBlog(currentUser);
@@ -126,11 +131,10 @@ export default function BlogsPage() {
   }, [submissions, published]);
 
   return (
-    <TerminalShell>
-      <div className={styles.page}>
+    <>
         <header className={styles.header}>
           <div className={styles.headerTop}>
-            <span className={styles.eyebrow}>Објави блог</span>
+            <span className={styles.eyebrow}>Блог статии</span>
             <Link to="/terminal/blogs/submit" className={styles.btnPrimary} onClick={handleNewBlog}>
               + Напиши прилог
             </Link>
@@ -192,6 +196,15 @@ export default function BlogsPage() {
             onEdit={() => navigate(`/terminal/blogs/submit?id=${detail._id}`)}
           />
         )}
+    </>
+  );
+}
+
+export default function BlogsPage() {
+  return (
+    <TerminalShell>
+      <div className={styles.page}>
+        <BlogsSection />
       </div>
     </TerminalShell>
   );

@@ -2,45 +2,56 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '../../styles/terminal/FeatureTour.module.css';
 
-const STORAGE_KEY = 'nexa_tour_views';
+// v2: bumped when the sidebar was regrouped into the 4 task groups so
+// existing users see the new tour again (old key left behind is harmless).
+const STORAGE_KEY = 'nexa_tour_views_v2';
 const MAX_TOUR_VIEWS = 3;
 
 // Steps anchor to sidebar items via their `data-tour={item.key}` attribute
 // (set in components/terminal/Sidebar.js). Keep keys in sync with the sidebar.
+// The walk follows the 4 task groups: Администрација → Набавки →
+// Маркетинг и раст → Едукација.
 const TOUR_STEPS = [
   {
     target: '[data-tour="documents"]',
-    title: 'Документи',
+    title: 'Администрација — Документи',
     text: 'Генерирај правни документи во неколку клика — а во „Мои шаблони“ прикачи свој .docx и автоматизирај го со помош на AI.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="legal-ai"]',
+    title: 'Правен AI',
+    text: 'Постави правно прашање и добиј одговор базиран на македонското законодавство — а во „Договори“ анализирај договор пред да потпишеш.',
     position: 'right'
   },
   {
     target: '[data-tour="screening"]',
     title: 'Проверки',
-    text: 'Провери ја правната, маркетинг, HR и сајбер усогласеност на твојот бизнис.',
-    position: 'right'
-  },
-  {
-    target: '[data-tour="nexaai"]',
-    title: 'Nexa AI',
-    text: 'Постави правно или маркетинг прашање и анализирај договори — со одговори базирани на македонското законодавство.',
+    text: 'Провери ја правната, HR и сајбер усогласеноста на твојот бизнис и дознај што ти недостасува.',
     position: 'right'
   },
   {
     target: '[data-tour="sourcing"]',
-    title: 'Барање за понуди',
-    text: 'Побарај понуди од проверени провајдери — ние ги собираме и ти ги доставуваме.',
+    title: 'Набавки',
+    text: 'Побарај понуди од проверени добавувачи — ние ги собираме и ти ги доставуваме.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="marketing-hub"]',
+    title: 'Маркетинг и раст',
+    text: 'Промовирај го бизнисот: објави статија под твое име на Nexa блогот или резервирај банер во месечниот билтен до 1000+ претплатници. Тука се и Маркетинг AI и маркетинг проверката.',
     position: 'right'
   },
   {
     target: '[data-tour="education"]',
-    title: 'Курсеви',
+    title: 'Едукација',
     text: 'Едуцирај се со стручни содржини за бизнис и право.',
     position: 'right'
   }
 ];
 
 const FeatureTour = () => {
+  const [steps, setSteps] = useState(TOUR_STEPS);
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState({});
@@ -51,15 +62,21 @@ const FeatureTour = () => {
     const views = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
     if (views >= MAX_TOUR_VIEWS) return;
 
-    // Small delay to let the sidebar render
-    const timer = setTimeout(() => setIsVisible(true), 800);
+    // Small delay to let the sidebar render, then keep only the steps whose
+    // sidebar item actually exists for this user (tier predicates hide some).
+    const timer = setTimeout(() => {
+      const present = TOUR_STEPS.filter((s) => document.querySelector(s.target));
+      if (present.length === 0) return;
+      setSteps(present);
+      setIsVisible(true);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
   const positionTooltip = useCallback(() => {
     if (!isVisible) return;
 
-    const step = TOUR_STEPS[currentStep];
+    const step = steps[currentStep];
     const target = document.querySelector(step.target);
     if (!target) return;
 
@@ -87,7 +104,7 @@ const FeatureTour = () => {
     return () => {
       target.removeAttribute('data-tour-active');
     };
-  }, [currentStep, isVisible]);
+  }, [currentStep, isVisible, steps]);
 
   useEffect(() => {
     const cleanup = positionTooltip();
@@ -107,10 +124,10 @@ const FeatureTour = () => {
 
   const handleNext = () => {
     // Remove highlight from current
-    const currentTarget = document.querySelector(TOUR_STEPS[currentStep].target);
+    const currentTarget = document.querySelector(steps[currentStep].target);
     currentTarget?.removeAttribute('data-tour-active');
 
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       completeTour();
@@ -128,8 +145,8 @@ const FeatureTour = () => {
 
   if (!isVisible) return null;
 
-  const step = TOUR_STEPS[currentStep];
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const step = steps[currentStep];
+  const isLast = currentStep === steps.length - 1;
 
   return createPortal(
     <>
@@ -143,7 +160,7 @@ const FeatureTour = () => {
         <div className={styles.content}>
           <div className={styles.header}>
             <span className={styles.stepBadge}>
-              {currentStep + 1} / {TOUR_STEPS.length}
+              {currentStep + 1} / {steps.length}
             </span>
           </div>
 
@@ -167,7 +184,7 @@ const FeatureTour = () => {
 
         {/* Progress dots */}
         <div className={styles.dots}>
-          {TOUR_STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <div
               key={i}
               className={`${styles.dot} ${i === currentStep ? styles.dotActive : ''} ${i < currentStep ? styles.dotDone : ''}`}

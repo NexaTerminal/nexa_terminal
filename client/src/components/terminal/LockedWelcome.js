@@ -17,6 +17,8 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
  * order a plan (opens the in-terminal SubscriptionGate modal).
  */
 
+// Mirrors the 4 task groups of the terminal sidebar:
+// Администрирај · Набави · Расти · Учи.
 const PILLARS = [
   {
     icon: (
@@ -24,26 +26,26 @@ const PILLARS = [
         <path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>
       </svg>
     ),
-    title: 'Автоматизирани документи',
-    desc: '45+ правни документи — договори, одлуки, политики — подготвени за 30 секунди.'
+    title: 'Администрација',
+    desc: '45+ автоматизирани документи, свои шаблони, Правен AI, анализа на договори и проверки на усогласеност.'
   },
   {
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>
+        <rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4"/><circle cx="14.5" cy="15.5" r="2.2"/><path d="M16.2 17.2L18 19"/>
       </svg>
     ),
-    title: 'Проверки за усогласеност',
-    desc: 'Правна, HR, маркетинг и сајбер проверка — дознајте што Ви недостасува.'
+    title: 'Набавки',
+    desc: 'Побарајте понуди од проверени добавувачи — ние ги собираме и Ви ги доставуваме.'
   },
   {
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M5.5 18.5l2-2M16.5 7.5l2-2"/>
+        <path d="M3 17l6-6 4 4 7-7"/><path d="M17 7h4v4"/>
       </svg>
     ),
-    title: 'Nexa AI',
-    desc: 'Правен AI помошник базиран на македонското право + анализа на договори.'
+    title: 'Маркетинг и раст',
+    desc: 'Блог статија под Ваше име, банер во билтенот до 1000+ претплатници, Маркетинг AI и маркетинг проверка.'
   },
   {
     icon: (
@@ -51,8 +53,8 @@ const PILLARS = [
         <path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 7h6M9 11h6"/>
       </svg>
     ),
-    title: 'Мои шаблони и курсеви',
-    desc: 'Прикачете свој .docx и автоматизирајте го + едукативни ресурси.'
+    title: 'Едукација',
+    desc: 'Курсеви и стручни содржини за бизнис и право.'
   }
 ];
 

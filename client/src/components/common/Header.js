@@ -4,7 +4,7 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
-import { showsSubUsers, showsBlogs, showsLeads, showsTopicsQA } from '../../lib/tier';
+import { showsSubUsers, showsMarketing, showsLeads, showsTopicsQA } from '../../lib/tier';
 
 // Inline SVG icons matching the sidebar style (stroke-only, currentColor).
 const DropdownIcon = ({ name }) => {
@@ -15,6 +15,7 @@ const DropdownIcon = ({ name }) => {
     case 'receipt':  return (<svg {...c}><path d="M5 3h14v18l-3-2-3 2-3-2-3 2-2-1.5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>);
     case 'users':    return (<svg {...c}><circle cx="9" cy="9" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 11a3 3 0 0 0 0-6"/><path d="M21 20a6 6 0 0 0-5-5.9"/></svg>);
     case 'logout':   return (<svg {...c}><path d="M10 17l-5-5 5-5"/><path d="M5 12h12"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg>);
+    case 'sliders':  return (<svg {...c}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>);
     default: return null;
   }
 };
@@ -200,35 +201,46 @@ const Header = ({ isTerminal = false }) => {
   }, [location]);
 
 
-  // ── Mobile drawer nav — mirrors the desktop Sidebar (3 sections) ────────
+  // ── Mobile drawer nav — mirrors the desktop Sidebar (4 task groups) ─────
   // Each section: { key, label, items: [ { path } | { key, label, children } ] }
   const mobileSections = [
     {
-      key: 'work', label: 'Работа',
+      key: 'top', label: null,
       items: [
-        { key: 'dashboard',  label: 'Контролна табла', path: '/terminal' },
+        { key: 'dashboard',  label: 'Контролна табла', path: '/terminal' }
+      ]
+    },
+    {
+      key: 'administration', label: 'Администрација',
+      items: [
         { key: 'documents',  label: 'Документи', children: [
             { path: '/terminal/documents',    label: 'Автоматизирани документи' },
             { path: '/terminal/my-templates', label: 'Мои шаблони' }
           ]},
-        { key: 'screening',  label: 'Проверки', children: [
-            { path: '/terminal/legal-screening',     label: 'Правен' },
-            { path: '/terminal/marketing-screening', label: 'Маркетинг' },
-            { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
-            { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
+        { key: 'contracts',  label: 'Договори', children: [
+            { path: '/terminal/contracts',         label: 'Мои договори' },
+            { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
           ]},
-        { key: 'nexaai',     label: 'Nexa AI', children: [
-            { path: '/terminal/ai-chat',           label: 'Правен AI' },
-            { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
-            { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
-            { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+        { key: 'legal-ai',   label: 'Правен AI', path: '/terminal/ai-chat' },
+        { key: 'screening',  label: 'Проверки', children: [
+            { path: '/terminal/legal-screening', label: 'Правна' },
+            { path: '/terminal/hr-screening',    label: 'HR и Оперативна' },
+            { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
           ]}
       ]
     },
     {
-      key: 'network', label: 'Вмрежување и можности',
+      key: 'procurement', label: 'Набавки',
       items: [
-        { key: 'blogs', label: 'Објави блог', path: '/terminal/blogs', visible: showsBlogs },
+        { key: 'sourcing', label: 'Барање за понуди', path: '/terminal/sourcing' }
+      ]
+    },
+    {
+      key: 'growth', label: 'Маркетинг и раст',
+      items: [
+        { key: 'marketing-hub', label: 'Маркетинг', path: '/terminal/marketing-hub', visible: showsMarketing },
+        { key: 'marketing-ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' },
+        { key: 'marketing-screening', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' },
         { key: 'leads', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
         { key: 'topicsqa', label: 'Topics Q&A', visible: showsTopicsQA, children: [
             { path: '/terminal/topics-qa',               label: 'Отворени прашања' },
@@ -238,7 +250,7 @@ const Header = ({ isTerminal = false }) => {
       ]
     },
     {
-      key: 'resources', label: 'Ресурси',
+      key: 'education-sec', label: 'Едукација',
       items: [
         { key: 'education', label: 'Курсеви', path: '/terminal/education' }
       ]
@@ -329,6 +341,14 @@ const Header = ({ isTerminal = false }) => {
                 Корисници
               </Link>
             )}
+            <Link
+              to="/terminal/ai/stance"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}><DropdownIcon name="sliders" /></span>
+              AI преференци
+            </Link>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -549,7 +569,7 @@ const Header = ({ isTerminal = false }) => {
               if (visibleItems.length === 0) return null;
               return (
                 <React.Fragment key={section.key}>
-                  <div className={styles['mobile-menu-divider']}>{section.label}</div>
+                  {section.label && <div className={styles['mobile-menu-divider']}>{section.label}</div>}
                   {visibleItems.map((item) => {
                     if (item.path) {
                       return (
@@ -623,6 +643,9 @@ const Header = ({ isTerminal = false }) => {
             </Link>
             <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметководство</span>
+            </Link>
+            <Link to="/terminal/ai/stance" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+              <span>AI преференци</span>
             </Link>
             {showsSubUsers(currentUser) && (
               <Link to="/terminal/team" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>

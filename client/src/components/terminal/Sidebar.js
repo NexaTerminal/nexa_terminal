@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { visibleTier, showsBlogs, showsLeads, showsTopicsQA, showsSubUsers, showsFair, showsSourcing } from '../../lib/tier';
+import { visibleTier, showsMarketing, showsLeads, showsTopicsQA, showsSubUsers, showsFair, showsSourcing } from '../../lib/tier';
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
@@ -36,13 +36,22 @@ const Sidebar = () => {
   const [openGroups, setOpenGroups] = useState({});
   const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
-  // ── Sections — each contains its own ordered list of groups ─────────────
+  // ── Sections — task-based grouping for the SMB owner ────────────────────
+  // I. Администрација (handle obligations) · II. Набавки (buy) ·
+  // III. Маркетинг и раст (sell/promote) · IV. Едукација (learn).
+  // AI tools are distributed by job, not kept in an "AI" bucket.
   const userSections = [
     {
-      key: 'work',
-      label: 'Работа',
+      key: 'top',
+      label: null, // dashboard sits above the groups
       items: [
-        { key: 'dashboard', icon: 'home', label: 'Контролна табла', path: '/terminal' },
+        { key: 'dashboard', icon: 'home', label: 'Контролна табла', path: '/terminal' }
+      ]
+    },
+    {
+      key: 'administration',
+      label: 'Администрација',
+      items: [
         {
           key: 'documents', icon: 'doc', label: 'Документи',
           children: [
@@ -50,34 +59,39 @@ const Sidebar = () => {
             { path: '/terminal/my-templates', label: 'Мои шаблони' }
           ]
         },
-        { key: 'contracts', icon: 'inbox', label: 'Договори', path: '/terminal/contracts' },
+        {
+          key: 'contracts', icon: 'inbox', label: 'Договори',
+          children: [
+            { path: '/terminal/contracts',         label: 'Мои договори' },
+            { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
+          ]
+        },
+        { key: 'legal-ai', icon: 'ai', label: 'Правен AI', path: '/terminal/ai-chat' },
         {
           key: 'screening', icon: 'check', label: 'Проверки',
           children: [
-            { path: '/terminal/legal-screening',     label: 'Правен' },
-            { path: '/terminal/marketing-screening', label: 'Маркетинг' },
-            { path: '/terminal/hr-screening',        label: 'HR и Оперативен' },
-            { path: '/terminal/cyber-screening',     label: 'Сајбер безбедност' }
-          ]
-        },
-        {
-          key: 'nexaai', icon: 'ai', label: 'Nexa AI',
-          children: [
-            { path: '/terminal/ai-chat',           label: 'Правен AI' },
-            { path: '/terminal/marketing-ai',      label: 'Маркетинг AI' },
-            { path: '/terminal/contract-analysis', label: 'Анализа на договор' },
-            { path: '/terminal/ai/stance',         label: 'Лични преференци' }
+            { path: '/terminal/legal-screening', label: 'Правна' },
+            { path: '/terminal/hr-screening',    label: 'HR и Оперативна' },
+            { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
           ]
         }
       ]
     },
     {
-      key: 'network',
-      label: 'Вмрежување и можности',
+      key: 'procurement',
+      label: 'Набавки',
       items: [
+        { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing }
+      ]
+    },
+    {
+      key: 'growth',
+      label: 'Маркетинг и раст',
+      items: [
+        { key: 'marketing-hub', icon: 'pencil', label: 'Маркетинг', path: '/terminal/marketing-hub', visible: showsMarketing },
+        { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' },
+        { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' },
         { key: 'fair',  icon: 'store', label: 'Виртуелен саем', path: '/terminal/fair', visible: showsFair },
-        { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing },
-        { key: 'blogs', icon: 'pencil', label: 'Објави блог', path: '/terminal/blogs', visible: showsBlogs },
         { key: 'leads', icon: 'inbox', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
         {
           key: 'topicsqa', icon: 'qa', label: 'Topics Q&A', visible: showsTopicsQA,
@@ -90,14 +104,14 @@ const Sidebar = () => {
       ]
     },
     {
-      key: 'resources',
-      label: 'Ресурси',
+      key: 'education-sec',
+      label: 'Едукација',
       items: [
         { key: 'education', icon: 'book', label: 'Курсеви', path: '/terminal/education' }
       ]
     }
-    // Account, Billing, Password, and Под-сметки live in the Header profile
-    // dropdown — see client/src/components/common/Header.js
+    // Account, Billing, Password, Под-сметки and AI преференци live in the
+    // Header profile dropdown — see client/src/components/common/Header.js
   ];
 
   // ── Admin section (Martin) — kept flat, simple, no icons (utility role) ─
@@ -105,9 +119,10 @@ const Sidebar = () => {
     {
       key: 'blogs-admin', label: 'Блогови',
       children: [
-        { path: '/terminal/admin/blogs',         label: 'Управувај блогови' },
-        { path: '/terminal/admin/blogs/add',     label: 'Додади блог' },
-        { path: '/terminal/admin/blogs/pending', label: 'Чекаат уреднички преглед' }
+        { path: '/terminal/admin/blogs',          label: 'Управувај блогови' },
+        { path: '/terminal/admin/blogs/add',      label: 'Додади блог' },
+        { path: '/terminal/admin/blogs/pending',  label: 'Чекаат уреднички преглед' },
+        { path: '/terminal/admin/newsletter-ads', label: 'Банери во билтен' }
       ]
     },
     {
@@ -242,7 +257,7 @@ const Sidebar = () => {
           if (!anyVisible) return null;
           return (
             <div key={section.key} className={styles['nav-section']}>
-              <div className={styles['nav-section-label']}>{section.label}</div>
+              {section.label && <div className={styles['nav-section-label']}>{section.label}</div>}
               {section.items.map(renderGroup)}
             </div>
           );

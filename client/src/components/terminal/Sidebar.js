@@ -25,6 +25,7 @@ const Icon = ({ name }) => {
     case 'qa':         return (<svg {...common}><path d="M21 12a9 9 0 1 1-3.5-7.1"/><path d="M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>);
     case 'store':      return (<svg {...common}><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M9 20v-5h6v5"/></svg>);
     case 'rfq':        return (<svg {...common}><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4"/><circle cx="14.5" cy="15.5" r="2.2"/><path d="M16.2 17.2L18 19"/></svg>);
+    case 'people':     return (<svg {...common}><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.6.4 4.5 2.7 4.5 5.5"/></svg>);
     default: return null;
   }
 };
@@ -59,6 +60,7 @@ const Sidebar = () => {
             { path: '/terminal/my-templates', label: 'Мои шаблони' }
           ]
         },
+        { key: 'employees', icon: 'people', label: 'Вработени', path: '/terminal/employees' },
         {
           key: 'contracts', icon: 'inbox', label: 'Договори',
           children: [

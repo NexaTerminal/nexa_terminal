@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
 import jobsData from '../../data/jobs.json';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Universal Form Field Component
@@ -186,6 +188,15 @@ const FormField = ({
             allowCustom={allowCustom}
             disabled={disabled}
             error={error}
+            onItemSelect={(item) => {
+              // Config-driven auto-fill: field.autoFill = { targetField: sourceProp }.
+              if (!field.autoFill) return;
+              Object.entries(field.autoFill).forEach(([target, src]) => {
+                if (item[src] !== undefined && item[src] !== null) {
+                  onChange(target, String(item[src]));
+                }
+              });
+            }}
           />
         );
 
@@ -288,29 +299,47 @@ const FormField = ({
 /**
  * Searchable Select Component - Handles job position selection with search
  */
-const SearchableSelect = ({ 
-  name, 
-  value, 
-  onChange, 
-  placeholder, 
-  dataSource, 
+const SearchableSelect = ({
+  name,
+  value,
+  onChange,
+  placeholder,
+  dataSource,
   displayField,
   searchable,
   allowCustom,
   disabled,
-  error 
+  error,
+  onItemSelect
 }) => {
+  const { token } = useAuth() || {};
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputValue, setInputValue] = useState(value || '');
+  const [remoteData, setRemoteData] = useState([]);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Remote data sources are fetched once; static ones resolve synchronously.
+  useEffect(() => {
+    if (dataSource !== 'employees' || !token) return;
+    let active = true;
+    axios.get('/api/employees', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { status: 'active', limit: 200 }
+    })
+      .then((r) => { if (active) setRemoteData(r.data?.data?.items || []); })
+      .catch(() => { if (active) setRemoteData([]); });
+    return () => { active = false; };
+  }, [dataSource, token]);
 
   // Get data based on dataSource
   const getData = () => {
     switch (dataSource) {
       case 'jobs':
         return jobsData;
+      case 'employees':
+        return remoteData;
       default:
         return [];
     }
@@ -360,6 +389,7 @@ const SearchableSelect = ({
     setSearchTerm('');
     setIsOpen(false);
     onChange(selectedValue);
+    if (onItemSelect) onItemSelect(item);
   };
 
   const handleInputFocus = () => {

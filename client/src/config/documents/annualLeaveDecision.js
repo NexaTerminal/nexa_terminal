@@ -21,6 +21,19 @@ export const annualLeaveDecisionConfig = {
 
   // Form fields configuration
   fields: {
+    employeeSelect: {
+      name: 'employeeSelect',
+      type: 'searchable-select',
+      label: 'Изберете вработен од регистарот (опционално)',
+      placeholder: 'Пребарајте по име…',
+      dataSource: 'employees',
+      displayField: 'fullName',
+      searchable: true,
+      allowCustom: false,
+      required: false,
+      autoFill: { employeeName: 'fullName', employeePosition: 'position' },
+      helpText: 'Ако вработениот е внесен во Регистарот на вработени, изберете го за автоматско пополнување. Полињата подолу остануваат уредливи.'
+    },
     employeeName: {
       name: 'employeeName',
       type: 'text',
@@ -96,6 +109,7 @@ export const annualLeaveDecisionConfig = {
 
   // Initial form data - must match the field names exactly
   initialFormData: {
+    employeeSelect: '',
     employeeName: '',
     employeePosition: '',
     annualLeaveStart: '',
@@ -108,7 +122,7 @@ export const annualLeaveDecisionConfig = {
 // Helper function to get fields for a specific step
 export const getStepFields = (stepId) => {
   const fieldsByStep = {
-    1: ['employeeName', 'employeePosition', 'annualLeaveStart', 'annualLeaveEnd', 'annualLeaveYear']
+    1: ['employeeSelect', 'employeeName', 'employeePosition', 'annualLeaveStart', 'annualLeaveEnd', 'annualLeaveYear']
   };
 
   return fieldsByStep[stepId]?.map(fieldName => annualLeaveDecisionConfig.fields[fieldName]) || [];

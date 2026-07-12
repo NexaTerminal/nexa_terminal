@@ -217,6 +217,7 @@ const Header = ({ isTerminal = false }) => {
             { path: '/terminal/documents',    label: 'Автоматизирани документи' },
             { path: '/terminal/my-templates', label: 'Мои шаблони' }
           ]},
+        { key: 'employees',  label: 'Вработени', path: '/terminal/employees' },
         { key: 'contracts',  label: 'Договори', children: [
             { path: '/terminal/contracts',         label: 'Мои договори' },
             { path: '/terminal/contract-analysis', label: 'Анализа на договор' }

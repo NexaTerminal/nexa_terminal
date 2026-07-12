@@ -110,6 +110,9 @@ app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocument
 // Contract Management System — „Договори" (Basic tool, not credit-metered)
 app.use('/api/contracts', subscriptionGuard, require('./routes/contracts'));
 
+// HR module — „Регистар на вработени" (Basic tool, not credit-metered)
+app.use('/api/employees', subscriptionGuard, require('./routes/employees'));
+
 // Dashboard command-center summary (master-plan Phase 3)
 app.use('/api/dashboard', subscriptionGuard, require('./routes/dashboard'));
 
@@ -371,6 +374,27 @@ async function initializeServices(database) {
     console.log('✅ Contract Management System ready');
   } catch (e) {
     console.error('Contract Management System init failed:', e.message);
+  }
+
+  // --- HR module (Регистар на вработени + годишен одмор + потсетници) ---
+  try {
+    const EmployeeService = require('./services/employeeService');
+    const HrReminderService = require('./services/hrReminderService');
+    const HrReminderScheduler = require('./services/hrReminderScheduler');
+
+    const employeeService = new EmployeeService(database);
+    await employeeService.ensureIndexes();
+    app.locals.employeeService = employeeService;
+
+    const hrReminderService = new HrReminderService(database, require('./services/emailService'));
+    app.locals.hrReminderService = hrReminderService;
+
+    const hrReminderScheduler = new HrReminderScheduler(hrReminderService);
+    hrReminderScheduler.start();
+    app.locals.hrReminderScheduler = hrReminderScheduler;
+    console.log('✅ HR module ready (вработени + потсетници)');
+  } catch (e) {
+    console.error('HR module init failed:', e.message);
   }
 
   // --- Credit System (initialized FIRST after userService because it

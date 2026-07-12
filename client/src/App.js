@@ -81,6 +81,9 @@ import DocumentGen from './pages/terminal/DocumentGen';
 import Contracts from './pages/terminal/contracts/Contracts';
 import ContractDetail from './pages/terminal/contracts/ContractDetail';
 import ContractForm from './pages/terminal/contracts/ContractForm';
+import Employees from './pages/terminal/employees/Employees';
+import EmployeeDetail from './pages/terminal/employees/EmployeeDetail';
+import EmployeeForm from './pages/terminal/employees/EmployeeForm';
 import DocumentGeneratorPage from './pages/DocumentGeneratorPage';
 import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTemplateGenerator';
 import LegalScreening from './pages/terminal/LegalScreening';
@@ -268,6 +271,11 @@ function App() {
       <Route path="/terminal/contracts/new" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id" element={<PrivateRoute><VerificationRequired><ContractDetail /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id/edit" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
+      {/* Вработени — HR module (employee registry + leave + reminders) */}
+      <Route path="/terminal/employees" element={<PrivateRoute><VerificationRequired><Employees /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/employees/new" element={<PrivateRoute><VerificationRequired><EmployeeForm /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/employees/:id" element={<PrivateRoute><VerificationRequired><EmployeeDetail /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/employees/:id/edit" element={<PrivateRoute><VerificationRequired><EmployeeForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}

@@ -62,6 +62,7 @@ export default function AllUsers() {
   const [detail, setDetail] = useState(null);
   const [credsReveal, setCredsReveal] = useState(null); // { email, tempPassword }
   const [deleteTarget, setDeleteTarget] = useState(null); // user doc to confirm deletion
+  const [backingUp, setBackingUp] = useState(false);
 
   const fetchList = useCallback(async () => {
     setLoading(true); setError('');
@@ -84,12 +85,45 @@ export default function AllUsers() {
 
   const showFlash = (m) => { setFlash(m); setTimeout(() => setFlash(''), 3500); };
 
+  const downloadBackup = async () => {
+    setBackingUp(true); setError('');
+    try {
+      const res = await axios.get('/api/admin/backup', {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      const cd = res.headers['content-disposition'] || '';
+      const filename = cd.match(/filename="?([^"]+?)"?$/)?.[1] || 'nexa-backup.zip';
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showFlash('Бекапот е преземен.');
+    } catch (err) {
+      setError('Бекапот не успеа. Проверете ги серверските логови.');
+    } finally { setBackingUp(false); }
+  };
+
   return (
     <TerminalShell>
       <div className={styles.page}>
         <div className={styles.header}>
-          <h1>Сите корисници</h1>
-          <p>Управувајте со улоги, лозинки, претплати и под-седишта.</p>
+          <div>
+            <h1>Сите корисници</h1>
+            <p>Управувајте со улоги, лозинки, претплати и под-седишта.</p>
+          </div>
+          <button
+            className={styles.btnGhost}
+            onClick={downloadBackup}
+            disabled={backingUp}
+            title="Преземи ги сите колекции како JSON во .zip"
+          >
+            {backingUp ? 'Се подготвува…' : '⬇ Бекап на базата'}
+          </button>
         </div>
 
         <div className={styles.toolbar}>

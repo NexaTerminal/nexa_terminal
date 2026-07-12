@@ -8,11 +8,15 @@ import styles from '../contracts/Contracts.module.css';
 
 export const STATUS_LABEL = { active: 'Активен', terminated: 'Прекинат' };
 
+// Hardcoded — toLocaleDateString('mk-MK') falls back to English in browsers
+// without the Macedonian locale data.
+const MK_MONTHS_SHORT = ['јан', 'фев', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'ное', 'дек'];
+
 export const fmtDate = (d) => {
   if (!d) return '—';
   const date = new Date(d);
   if (isNaN(date)) return '—';
-  return date.toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' });
+  return `${date.getDate()} ${MK_MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`;
 };
 
 const FILTER_CHIPS = ['', 'active', 'terminated'];

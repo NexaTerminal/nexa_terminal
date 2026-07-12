@@ -16,6 +16,11 @@ const STATUSES = ['active', 'terminated'];
 const EMPLOYMENT_TYPES = ['неопределено', 'определено'];
 const REMINDER_TYPES = ['contract-30d', 'contract-7d', 'probation-7d'];
 
+// Optional HR record tabs — one generic dated-record shape per kind:
+// { _id, date, text, amount|null, createdAt }. Kind key doubles as the
+// employee-doc field name.
+const HR_RECORD_KINDS = ['salaryHistory', 'requests', 'sanctions', 'education'];
+
 const toId = (v) => (v instanceof ObjectId ? v : new ObjectId(v));
 
 const err = (message, code = 'VALIDATION') => {
@@ -112,6 +117,21 @@ class EmployeeService {
       remindersSent: [],
       createdAt: now,
       updatedAt: now
+    };
+  }
+
+  normalizeHrRecord({ date, text, amount }) {
+    const d = asDate(date);
+    if (!d) throw err('Внесете валиден датум.');
+    const cleanText = String(text || '').trim().slice(0, 300);
+    if (!cleanText) throw err('Внесете опис.');
+    return {
+      _id: new ObjectId(),
+      date: d,
+      text: cleanText,
+      amount: Number.isFinite(Number(amount)) && amount !== '' && amount !== null && amount !== undefined
+        ? Number(amount) : null,
+      createdAt: new Date()
     };
   }
 
@@ -243,6 +263,35 @@ class EmployeeService {
     );
     return this.get(userId, id);
   }
+
+  // ── optional HR record tabs (salary / requests / sanctions / education) ──
+
+  async addHrRecord(userId, id, kind, raw) {
+    if (!HR_RECORD_KINDS.includes(kind)) {
+      throw err('Непознат вид на запис.', 'INVALID_KIND');
+    }
+    const existing = await this.get(userId, id);
+    if (!existing) return null;
+    const record = this.normalizeHrRecord(raw);
+    await this.col.updateOne(
+      { _id: toId(id), userId: toId(userId) },
+      { $push: { [kind]: record }, $set: { updatedAt: new Date() } }
+    );
+    return this.get(userId, id);
+  }
+
+  async removeHrRecord(userId, id, kind, recordId) {
+    if (!HR_RECORD_KINDS.includes(kind)) {
+      throw err('Непознат вид на запис.', 'INVALID_KIND');
+    }
+    const existing = await this.get(userId, id);
+    if (!existing || !ObjectId.isValid(recordId)) return null;
+    await this.col.updateOne(
+      { _id: toId(id), userId: toId(userId) },
+      { $pull: { [kind]: { _id: toId(recordId) } }, $set: { updatedAt: new Date() } }
+    );
+    return this.get(userId, id);
+  }
 }
 
 module.exports = EmployeeService;
@@ -250,3 +299,4 @@ module.exports.COLLECTION = COLLECTION;
 module.exports.STATUSES = STATUSES;
 module.exports.EMPLOYMENT_TYPES = EMPLOYMENT_TYPES;
 module.exports.REMINDER_TYPES = REMINDER_TYPES;
+module.exports.HR_RECORD_KINDS = HR_RECORD_KINDS;

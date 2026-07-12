@@ -6,7 +6,7 @@
 const svc = (req) => req.app.locals.employeeService;
 
 const fail = (res, err, fallback) => {
-  if (err?.code === 'VALIDATION') {
+  if (err?.code === 'VALIDATION' || err?.code === 'INVALID_KIND') {
     return res.status(400).json({ success: false, message: err.message });
   }
   console.error('[employees] error:', err);
@@ -76,4 +76,20 @@ async function removeLeaveRecord(req, res) {
   } catch (err) { fail(res, err, 'Грешка при бришење на записот.'); }
 }
 
-module.exports = { list, get, create, update, remove, addLeaveRecord, removeLeaveRecord };
+async function addHrRecord(req, res) {
+  try {
+    const doc = await svc(req).addHrRecord(req.user._id, req.params.id, req.params.kind, req.body || {});
+    if (!doc) return res.status(404).json({ success: false, message: 'Вработениот не е пронајден.' });
+    res.status(201).json({ success: true, data: doc });
+  } catch (err) { fail(res, err, 'Грешка при запишување.'); }
+}
+
+async function removeHrRecord(req, res) {
+  try {
+    const doc = await svc(req).removeHrRecord(req.user._id, req.params.id, req.params.kind, req.params.rid);
+    if (!doc) return res.status(404).json({ success: false, message: 'Записот не е пронајден.' });
+    res.json({ success: true, data: doc });
+  } catch (err) { fail(res, err, 'Грешка при бришење на записот.'); }
+}
+
+module.exports = { list, get, create, update, remove, addLeaveRecord, removeLeaveRecord, addHrRecord, removeHrRecord };

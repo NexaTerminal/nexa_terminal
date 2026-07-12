@@ -30,5 +30,8 @@ router.patch('/:id', c.update);
 router.delete('/:id', c.remove);
 router.post('/:id/leave', c.addLeaveRecord);
 router.delete('/:id/leave/:lid', c.removeLeaveRecord);
+// Optional HR record tabs (kind: salaryHistory | requests | sanctions | education)
+router.post('/:id/records/:kind', c.addHrRecord);
+router.delete('/:id/records/:kind/:rid', c.removeHrRecord);
 
 module.exports = router;

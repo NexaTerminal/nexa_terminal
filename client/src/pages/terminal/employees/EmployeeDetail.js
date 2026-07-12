@@ -20,6 +20,20 @@ const inclusiveDays = (from, to) => {
 };
 
 const EMPTY_LEAVE = { from: '', to: '', days: '', note: '' };
+const EMPTY_RECORD = { date: '', text: '', amount: '' };
+
+/* Optional HR record tabs — one generic dated-record shape per kind.
+   Visible as empty tabs; filled only if the user decides to track them. */
+const RECORD_TABS = [
+  { kind: 'salaryHistory', label: 'Плата', textLabel: 'Промена / основ', amount: true,
+    empty: 'Нема записи за плата. Запишете промена на плата, бонус или регрес — историјата останува тука.' },
+  { kind: 'requests', label: 'Барања', textLabel: 'Барање', amount: false,
+    empty: 'Нема барања. Запишете барање од вработениот (слободни денови, потврди, опрема…).' },
+  { kind: 'sanctions', label: 'Санкции', textLabel: 'Мерка / причина', amount: false,
+    empty: 'Нема санкции. Запишете дисциплинска мерка или опомена — со датум, за евиденција.' },
+  { kind: 'education', label: 'Едукација', textLabel: 'Обука / сертификат', amount: false,
+    empty: 'Нема записи за едукација. Запишете обуки, курсеви и сертификати на вработениот.' }
+];
 
 export default function EmployeeDetail() {
   const { token } = useAuth();
@@ -32,6 +46,8 @@ export default function EmployeeDetail() {
   const [busy, setBusy] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
   const [leave, setLeave] = useState(EMPTY_LEAVE);
+  const [tab, setTab] = useState('overview');
+  const [record, setRecord] = useState(EMPTY_RECORD);
 
   const authHeaders = useCallback(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
@@ -85,6 +101,37 @@ export default function EmployeeDetail() {
     setBusy(true); setError('');
     try {
       await axios.delete(`/api/employees/${id}/leave/${lid}`, { headers: authHeaders() });
+      await load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Грешка при бришење.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const addRecord = async (kind) => {
+    if (!record.date || !record.text.trim()) { setError('Внесете датум и опис.'); return; }
+    setBusy(true); setError('');
+    try {
+      await axios.post(`/api/employees/${id}/records/${kind}`, {
+        date: record.date,
+        text: record.text.trim(),
+        amount: record.amount !== '' ? Number(record.amount) : null
+      }, { headers: authHeaders() });
+      setRecord(EMPTY_RECORD);
+      await load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Грешка при запишување.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteRecord = async (kind, rid) => {
+    if (!window.confirm('Да се избрише овој запис?')) return;
+    setBusy(true); setError('');
+    try {
+      await axios.delete(`/api/employees/${id}/records/${kind}/${rid}`, { headers: authHeaders() });
       await load();
     } catch (err) {
       setError(err.response?.data?.message || 'Грешка при бришење.');
@@ -164,6 +211,22 @@ export default function EmployeeDetail() {
 
         {error && <p className={styles.error}>{error}</p>}
 
+        <div className={styles.filters}>
+          <div className={styles.statusChips}>
+            {[{ kind: 'overview', label: 'Преглед' }, { kind: 'leave', label: 'Одмор' }, ...RECORD_TABS].map((t) => (
+              <button
+                key={t.kind}
+                type="button"
+                className={`${styles.chip} ${tab === t.kind ? styles.chipActive : ''}`}
+                onClick={() => { setTab(t.kind); setRecord(EMPTY_RECORD); setError(''); }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {tab === 'overview' && (
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Податоци</h2>
           <div className={styles.formGrid}>
@@ -187,7 +250,9 @@ export default function EmployeeDetail() {
             )}
           </div>
         </div>
+        )}
 
+        {tab === 'leave' && (
         <div className={styles.card}>
           <div className={styles.headRow}>
             <h2 className={styles.cardTitle}>Годишен одмор</h2>
@@ -256,8 +321,65 @@ export default function EmployeeDetail() {
             </form>
           )}
         </div>
+        )}
 
-        {upcoming.length > 0 && (
+        {RECORD_TABS.filter((t) => t.kind === tab).map((t) => {
+          const records = [...(emp[t.kind] || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+          return (
+            <div key={t.kind} className={styles.card}>
+              <h2 className={styles.cardTitle}>{t.label}</h2>
+              {records.length === 0 ? (
+                <p className={styles.subtitle}>{t.empty}</p>
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr><th>Датум</th><th>{t.textLabel}</th>{t.amount && <th>Износ (МКД)</th>}<th /></tr>
+                  </thead>
+                  <tbody>
+                    {records.map((r) => (
+                      <tr key={r._id}>
+                        <td>{fmtDate(r.date)}</td>
+                        <td>{r.text}</td>
+                        {t.amount && <td>{r.amount != null ? r.amount.toLocaleString('mk-MK') : '—'}</td>}
+                        <td>
+                          <button type="button" className={styles.secondaryBtn} disabled={busy} onClick={() => deleteRecord(t.kind, r._id)}>
+                            Избриши
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <form onSubmit={(e) => { e.preventDefault(); addRecord(t.kind); }}>
+                <div className={styles.formGrid} style={{ marginTop: 14 }}>
+                  <div className={styles.field}>
+                    <label className={styles.label} htmlFor="r-date">Датум</label>
+                    <input id="r-date" type="date" className={styles.input} value={record.date}
+                      onChange={(e) => setRecord((s) => ({ ...s, date: e.target.value }))} />
+                  </div>
+                  <div className={`${styles.field} ${t.amount ? '' : styles.fieldFull}`}>
+                    <label className={styles.label} htmlFor="r-text">{t.textLabel}</label>
+                    <input id="r-text" className={styles.input} value={record.text} maxLength={300}
+                      onChange={(e) => setRecord((s) => ({ ...s, text: e.target.value }))} />
+                  </div>
+                  {t.amount && (
+                    <div className={styles.field}>
+                      <label className={styles.label} htmlFor="r-amount">Износ (МКД)</label>
+                      <input id="r-amount" type="number" min="0" className={styles.input} value={record.amount}
+                        onChange={(e) => setRecord((s) => ({ ...s, amount: e.target.value }))} placeholder="опционално" />
+                    </div>
+                  )}
+                </div>
+                <div className={styles.formActions}>
+                  <button type="submit" className={styles.secondaryBtn} disabled={busy}>Запиши</button>
+                </div>
+              </form>
+            </div>
+          );
+        })}
+
+        {tab === 'overview' && upcoming.length > 0 && (
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Потсетници</h2>
             <ul style={{ margin: 0, paddingLeft: 18 }}>
@@ -275,12 +397,14 @@ export default function EmployeeDetail() {
           </div>
         )}
 
+        {tab === 'overview' && (
         <div className={styles.formActions}>
           {emp.status === 'active'
             ? <button type="button" className={styles.secondaryBtn} disabled={busy} onClick={() => setStatus('terminated')}>Прекини вработување</button>
             : <button type="button" className={styles.secondaryBtn} disabled={busy} onClick={() => setStatus('active')}>Врати како активен</button>}
           <button type="button" className={styles.dangerBtn} disabled={busy} onClick={remove}>Избриши од регистарот</button>
         </div>
+        )}
       </div>
     </TerminalShell>
   );

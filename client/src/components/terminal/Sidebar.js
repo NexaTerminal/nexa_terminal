@@ -30,12 +30,30 @@ const Icon = ({ name }) => {
   }
 };
 
+// Collapsed/expanded state of the task-group sections survives reloads so the
+// sidebar stays the way the user arranged it.
+const SECTIONS_STORAGE_KEY = 'nexa_sidebar_sections_v1';
+
 const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState({});
   const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
+
+  // Sections collapse on CLICK (not hover — stable, touch-friendly). A section
+  // with the active route auto-expands unless the user explicitly closed it.
+  const [openSections, setOpenSections] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(SECTIONS_STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  });
+  const toggleSection = (key, currentlyOpen) => {
+    setOpenSections((s) => {
+      const next = { ...s, [key]: !currentlyOpen };
+      try { localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(next)); } catch (_) { /* private mode */ }
+      return next;
+    });
+  };
 
   // ── Sections — task-based grouping for the SMB owner ────────────────────
   // I. Администрација (handle obligations) · II. Набавки (buy) ·
@@ -257,10 +275,38 @@ const Sidebar = () => {
             (i) => !i.visible || i.visible(currentUser)
           );
           if (!anyVisible) return null;
+
+          // Unlabeled section (Контролна табла) is always visible, no toggle.
+          if (!section.label) {
+            return (
+              <div key={section.key} className={styles['nav-section']}>
+                {section.items.map(renderGroup)}
+              </div>
+            );
+          }
+
+          const sectionActive = section.items.some((i) =>
+            isPathActive(i.path) || (i.children || []).some((c) => isPathActive(c.path))
+          );
+          const open = openSections[section.key] !== undefined
+            ? openSections[section.key]
+            : sectionActive;
+
           return (
             <div key={section.key} className={styles['nav-section']}>
-              {section.label && <div className={styles['nav-section-label']}>{section.label}</div>}
-              {section.items.map(renderGroup)}
+              <button
+                type="button"
+                data-tour={`section-${section.key}`}
+                className={`${styles['section-toggle']} ${sectionActive ? styles['section-toggle-active'] : ''}`}
+                onClick={() => toggleSection(section.key, open)}
+                aria-expanded={open}
+              >
+                <span>{section.label}</span>
+                <span className={`${styles['section-chevron']} ${open ? styles['section-chevron-open'] : ''}`} aria-hidden>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+                </span>
+              </button>
+              {open && section.items.map(renderGroup)}
             </div>
           );
         })}

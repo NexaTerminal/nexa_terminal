@@ -2,50 +2,38 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '../../styles/terminal/FeatureTour.module.css';
 
-// v2: bumped when the sidebar was regrouped into the 4 task groups so
-// existing users see the new tour again (old key left behind is harmless).
-const STORAGE_KEY = 'nexa_tour_views_v2';
+// v3: bumped when the sidebar sections became collapsible — the tour now
+// anchors to the 4 section headers (old keys left behind are harmless).
+const STORAGE_KEY = 'nexa_tour_views_v3';
 const MAX_TOUR_VIEWS = 3;
 
-// Steps anchor to sidebar items via their `data-tour={item.key}` attribute
-// (set in components/terminal/Sidebar.js). Keep keys in sync with the sidebar.
-// The walk follows the 4 task groups: Администрација → Набавки →
-// Маркетинг и раст → Едукација.
+// Steps anchor to the 4 collapsible SECTION HEADERS via their
+// `data-tour="section-{key}"` attribute (set in components/terminal/
+// Sidebar.js). Sections start collapsed, so the tour points at the group
+// headers — the full map of the app: Администрирај → Набави → Расти → Учи.
 const TOUR_STEPS = [
   {
-    target: '[data-tour="documents"]',
-    title: 'Администрација — Документи',
-    text: 'Генерирај правни документи во неколку клика — а во „Мои шаблони“ прикачи свој .docx и автоматизирај го со помош на AI.',
+    target: '[data-tour="section-administration"]',
+    title: 'Администрација',
+    text: 'Сè за обврските: генерирај 45+ правни документи, води ги вработените и договорите, прашај го Правниот AI и провери ја усогласеноста (правна, HR, сајбер). Кликни за да ги видиш алатките.',
     position: 'right'
   },
   {
-    target: '[data-tour="legal-ai"]',
-    title: 'Правен AI',
-    text: 'Постави правно прашање и добиј одговор базиран на македонското законодавство — а во „Договори“ анализирај договор пред да потпишеш.',
-    position: 'right'
-  },
-  {
-    target: '[data-tour="screening"]',
-    title: 'Проверки',
-    text: 'Провери ја правната, HR и сајбер усогласеноста на твојот бизнис и дознај што ти недостасува.',
-    position: 'right'
-  },
-  {
-    target: '[data-tour="sourcing"]',
+    target: '[data-tour="section-procurement"]',
     title: 'Набавки',
-    text: 'Побарај понуди од проверени добавувачи — ние ги собираме и ти ги доставуваме.',
+    text: 'Кога купуваш: побарај понуди од проверени добавувачи — ние ги собираме и ти ги доставуваме.',
     position: 'right'
   },
   {
-    target: '[data-tour="marketing-hub"]',
+    target: '[data-tour="section-growth"]',
     title: 'Маркетинг и раст',
-    text: 'Промовирај го бизнисот: објави статија под твое име на Nexa блогот или резервирај банер во месечниот билтен до 1000+ претплатници. Тука се и Маркетинг AI и маркетинг проверката.',
+    text: 'Кога растеш: објави статија под твое име на Nexa блогот, резервирај банер во билтенот до 1000+ претплатници, користи Маркетинг AI и провери го маркетингот.',
     position: 'right'
   },
   {
-    target: '[data-tour="education"]',
+    target: '[data-tour="section-education-sec"]',
     title: 'Едукација',
-    text: 'Едуцирај се со стручни содржини за бизнис и право.',
+    text: 'Кога учиш: курсеви и стручни содржини за бизнис и право. Добредојде во Nexa!',
     position: 'right'
   }
 ];

@@ -205,12 +205,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Simple health check endpoint (no DB required)
+const SERVER_STARTED_AT = new Date().toISOString();
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'Server is running',
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
+    env: process.env.NODE_ENV || 'development',
+    // Which build is live — Railway injects these at deploy time, so this
+    // answers "is commit X actually deployed?" without opening the dashboard.
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    commitMessage: process.env.RAILWAY_GIT_COMMIT_MESSAGE || null,
+    startedAt: SERVER_STARTED_AT
   });
 });
 

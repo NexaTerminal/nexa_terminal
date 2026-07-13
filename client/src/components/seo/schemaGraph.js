@@ -24,7 +24,8 @@ export const NEXA_ORG = {
     'https://macedoniancitizenship.mk',
     'https://company.nexa.mk',
     'https://iplaw.nexa.mk',
-    'https://topics.nexa.mk'
+    'https://topics.nexa.mk',
+    'https://osiguran.nexa.mk'
   ]
 };
 

@@ -8,7 +8,8 @@ const SATELLITES = [
   { href: 'https://macedoniancitizenship.mk', key: 'citizenship' },
   { href: 'https://company.nexa.mk', key: 'company' },
   { href: 'https://iplaw.nexa.mk', key: 'iplaw' },
-  { href: 'https://topics.nexa.mk', key: 'topics' }
+  { href: 'https://topics.nexa.mk', key: 'topics' },
+  { href: 'https://osiguran.nexa.mk', key: 'osiguran' }
 ];
 
 export default function PublicFooterV2() {

@@ -75,7 +75,28 @@ export default function Home() {
         ? 'Заштитни знаци, патенти, авторски права, лиценцирање. Компаниите кои растат имаат потреба да го заштитат тоа што го градат. Овие клиенти веќе се успешни — можат да си дозволат професионални услуги и плаќаат за квалитет.'
         : 'Trademarks, patents, copyrights, licensing. Growing companies need to protect what they build. These clients are already successful — they can afford professional services and pay for quality.',
       audience: isMk ? 'Целна публика: компании во раст' : 'Audience: growing companies'
+    },
+    {
+      name: 'Осигуран',
+      url: 'https://osiguran.nexa.mk',
+      domain: 'osiguran.nexa.mk',
+      tag: isMk ? 'Права од осигурување' : 'Insurance rights',
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80',
+      title: isMk ? 'Осигурениците бараат да ги остварат своите права.' : 'Policyholders want to exercise their rights.',
+      body: isMk
+        ? 'Неутрален водич за осигурувањето во Македонија — видови осигурување, права на осигурениците, постапки за штети и жалби до регулаторот. Кога спорот со осигурителна компанија бара правна помош, барањето стигнува до правник.'
+        : 'A neutral guide to insurance in Macedonia — insurance types, policyholder rights, claims procedures and regulator complaints. When a dispute with an insurer needs legal help, the request reaches a lawyer.',
+      audience: isMk ? 'Целна публика: осигуреници, граѓани и бизниси' : 'Audience: policyholders, individuals and businesses'
     }
+  ];
+
+  const TERMINAL_FEATURES = [
+    { key: 'feature1', icon: 'documents' },
+    { key: 'feature2', icon: 'ai' },
+    { key: 'feature3', icon: 'shield' },
+    { key: 'feature4', icon: 'network' },
+    { key: 'feature5', icon: 'trending' },
+    { key: 'feature6', icon: 'layers' }
   ];
 
   return (
@@ -116,14 +137,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ PART 1: AUTOMATE (the product, SMB story first) ============ */}
+      {/* ============ PART 1: THE TERMINAL IN FULL (all six modules) ============ */}
+      <section className="nx-section">
+        <div className="nexa-container">
+          <div className={`${styles.chapterMarker} ${styles.chapterMarkerCentered} nx-reveal`}>
+            <span className={styles.chapterNum}>{isMk ? 'Дел 1' : 'Part 1'}</span>
+            <h2 className={styles.chapterTitle}>{t('home.terminalHeading')}</h2>
+            <p className={styles.chapterLead}>{t('home.terminalLead')}</p>
+          </div>
+          <div className={styles.featureGrid}>
+            {TERMINAL_FEATURES.map((f, i) => (
+              <div
+                key={f.key}
+                className={`${styles.feature} nx-card nx-card-hover nx-reveal`}
+                style={{ transitionDelay: `${i * 60}ms` }}
+              >
+                <span className="nx-icon-wrap"><Icon name={f.icon} /></span>
+                <h3>{t(`home.${f.key}Title`)}</h3>
+                <p>{t(`home.${f.key}Desc`)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ AUTOMATE CTA (the product, SMB story first) ============ */}
       <section className={`${styles.ctaFinal} nx-section-ink`}>
         <div className="nexa-container">
           <div className={`${styles.finalGrid} nx-reveal`}>
             <div className={styles.finalContent}>
-              <span className={`${styles.chapterNum} ${styles.chapterNumInk}`}>
-                {isMk ? 'Дел 1' : 'Part 1'}
-              </span>
               <h2 className={styles.finalTitle}>
                 {isMk ? 'Автоматизирајте го Вашето работење' : 'Automate your operations'}
               </h2>
@@ -132,7 +174,9 @@ export default function Home() {
                   isMk ? 'Автоматизирани документи'  : 'Automated documents',
                   isMk ? 'Проверки за усогласеност'  : 'Compliance health checks',
                   isMk ? 'AI правен помошник'        : 'AI legal assistant',
-                  isMk ? 'Анализа на договор'        : 'Contract analysis'
+                  isMk ? 'Анализа на договор'        : 'Contract analysis',
+                  isMk ? 'Вмрежување и можности'     : 'Networking & opportunities',
+                  isMk ? 'Курсеви и едукација'       : 'Courses & education'
                 ].map(f => (
                   <li key={f}>
                     <span className={styles.finalFeatureDot} aria-hidden />
@@ -226,7 +270,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className={`${styles.chapterMarker} nx-reveal`}>
+          <div className={`${styles.chapterMarker} ${styles.chapterMarkerCentered} nx-reveal`}>
             <span className={styles.chapterNum}>{isMk ? 'Дел 2' : 'Part 2'}</span>
             <h3 className={styles.chapterTitle}>
               {isMk ? 'Носиме клиенти кај Вас' : 'We bring clients to you'}

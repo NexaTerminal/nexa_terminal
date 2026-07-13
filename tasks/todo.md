@@ -1,4 +1,52 @@
-# Legal AI quality overhaul (budget-constrained)
+# Homepage content + design pass (nexa.mk, MK-first) — 2026-07-11
+
+## Goal
+1. Explain Nexa Terminal **in full** on the homepage — today it only shows 4 bullets
+   (documents, compliance, AI, contract analysis) and never mentions networking
+   (Виртуелен саем, Барање за понуди, Случаи), content sharing (блог, Topics Q&A,
+   билтен) or education (Курсеви).
+2. Fix alignment/design inconsistencies:
+   - "Дел 1" lives inside the dark CTA band directly after the hero → confusing story order.
+   - "Дел 2" chapter marker is left-aligned with a border-left while "Дел 3" is centered → mixed alignment.
+   - Satellite grid is 3 columns with only 5 cards → unbalanced second row.
+3. Add **osiguran.nexa.mk** (free/neutral insurance-rights guide, routes disputes to lawyers)
+   everywhere the network is listed.
+
+## Todo
+- [x] `Home.js`: new light "Дел 1 — Што прави Терминалот" section after hero with a
+      6-card feature grid (documents / Nexa AI / compliance checks / networking &
+      opportunities / marketing & content / education) using existing `.featureGrid`
+      + `nx-card` + `nx-icon-wrap` primitives.
+- [x] `Home.js`: dark automate band loses its "Дел 1" chapter num (becomes the CTA of
+      Part 1) and its bullet list expands to mirror all 6 pillars.
+- [x] `Home.js`: center the "Дел 2" chapter marker (`chapterMarkerCentered`) for
+      alignment consistency with Дел 3.
+- [x] `Home.js`: add osiguran.nexa.mk to SATELLITES (6 cards → balanced 3×2 grid).
+- [x] `EcosystemMap.js`: add osiguran tile.
+- [x] `PublicFooterV2.js`: add osiguran link.
+- [x] `schemaGraph.js`: add https://osiguran.nexa.mk to NEXA_ORG.sameAs.
+- [x] `mk.json` + `en.json` (website ns): rework feature2/feature4, add feature5/feature6,
+      broaden heroSubtitle, add `ecosystem.osiguran`, bump ecosystemHeading 7→8;
+      also fixed About-page counts (7→8 properties, 5→6 guide sites).
+- [x] Verify: client production build passes (`CI=false npm run build`, +3.4 kB gzip).
+
+## Review
+- Homepage now tells the full Terminal story in six modules keyed to the actual
+  sidebar (Документи / Nexa AI / Проверки / Вмрежување и можности / Маркетинг и
+  содржина / Курсеви); copy sourced from real features, no invented claims.
+- Alignment fixes: Дел 1 moved out of the dark band into a light centered section;
+  Дел 2 marker now centered like Дел 3; satellite grid balanced at 3×2.
+- osiguran.nexa.mk (verified live: neutral insurance-rights guide → routes disputes
+  to lawyers) added in all 4 network listings: Home SATELLITES, EcosystemMap,
+  PublicFooterV2, schemaGraph sameAs. Note: the satellite list is duplicated across
+  those 4 files — future additions must touch all 4.
+- Not committed — parallel agents share this repo (per memory); user pushes when ready.
+- Visual check in browser not done (Chrome extension disconnected) — worth a quick
+  look at / and /about after deploy.
+
+---
+
+# [DONE — shipped July 2026] Legal AI quality overhaul (budget-constrained)
 
 Constraint: token budget is tight. 4 questions/week limit STAYS. Auxiliary LLM
 calls on gpt-4o-mini; embeddings stay -small; eval is retrieval-only by default.

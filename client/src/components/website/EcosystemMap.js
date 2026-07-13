@@ -29,6 +29,10 @@ const PROPERTIES = [
   {
     key: 'topics', href: 'https://topics.nexa.mk', external: true,
     image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    key: 'osiguran', href: 'https://osiguran.nexa.mk', external: true,
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80'
   }
 ];
 

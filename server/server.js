@@ -113,6 +113,9 @@ app.use('/api/contracts', subscriptionGuard, require('./routes/contracts'));
 // HR module — „Регистар на вработени" (Basic tool, not credit-metered)
 app.use('/api/employees', subscriptionGuard, require('./routes/employees'));
 
+// Продажна инка — „Sales Funnel" (Basic tool, not credit-metered)
+app.use('/api/sales', subscriptionGuard, require('./routes/sales'));
+
 // Dashboard command-center summary (master-plan Phase 3)
 app.use('/api/dashboard', subscriptionGuard, require('./routes/dashboard'));
 
@@ -380,6 +383,17 @@ async function initializeServices(database) {
     console.log('✅ Contract Management System ready');
   } catch (e) {
     console.error('Contract Management System init failed:', e.message);
+  }
+
+  // --- Продажна инка (Sales Funnel) ---
+  try {
+    const SalesDealsService = require('./services/salesDealsService');
+    const salesDealsService = new SalesDealsService(database);
+    await salesDealsService.ensureIndexes();
+    app.locals.salesDealsService = salesDealsService;
+    console.log('✅ Sales Funnel ready');
+  } catch (e) {
+    console.error('Sales Funnel init failed:', e.message);
   }
 
   // --- HR module (Регистар на вработени + годишен одмор + потсетници) ---

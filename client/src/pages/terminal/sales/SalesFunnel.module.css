@@ -1,0 +1,505 @@
+/* Продажна инка — funnel visual + deal workboard. Follows the CMS
+   (Contracts.module.css) visual language: white cards, #111827 ink,
+   #1e4db7 primary, 8px radii. */
+
+.page { padding: 8px 4px; }
+
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-neutral-900, #111827);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-neutral-500, #6b7280);
+  max-width: 560px;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-primary, #1e4db7);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.primaryBtn:hover:not(:disabled) {
+  background: var(--color-primary-600, #1a44a3);
+  background-color: var(--color-primary-600, #1a44a3);
+  transform: none;
+  color: #fff;
+}
+.primaryBtn:disabled { opacity: 0.6; cursor: default; }
+
+.loading { padding: 48px 0; color: #6b7280; font-size: 14px; }
+
+.error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #B91C1C;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+
+/* ---------- KPI row ---------- */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.kpi {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kpiValue {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+.kpiLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+.kpiWon .kpiValue { color: #047857; }
+.kpiOverdue { border-color: #FECACA; background: #FFF7F7; }
+.kpiOverdue .kpiValue { color: #B91C1C; }
+
+/* ---------- Layout ---------- */
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(320px, 5fr) minmax(320px, 6fr);
+  gap: 26px;
+  align-items: start;
+}
+
+/* ---------- Funnel ---------- */
+.funnelCol {
+  position: sticky;
+  top: 16px;
+}
+.funnel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.layerRow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.layer {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  color: #fff;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* Trapezoid: each layer narrows 4% per side toward its own bottom edge,
+     so consecutive layers read as one continuous funnel. */
+  clip-path: polygon(0 0, 100% 0, 93% 100%, 7% 100%);
+  border-radius: 6px;
+  min-height: 58px;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+.layer:hover { filter: brightness(1.08); transform: translateY(-1px); background: unset; }
+.layerActive {
+  outline: 3px solid rgba(30, 77, 183, 0.35);
+  outline-offset: 2px;
+  filter: brightness(1.05);
+}
+
+/* Depth palette — light → dark as deals get more serious. */
+.layer0 { background: linear-gradient(120deg, #60A5FA, #3B82F6); }
+.layer1 { background: linear-gradient(120deg, #3B82F6, #2563EB); }
+.layer2 { background: linear-gradient(120deg, #2563EB, #1E4DB7); }
+.layer3 { background: linear-gradient(120deg, #1E4DB7, #173A8A); }
+
+.layerLabel {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+.layerStats {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.layerCount {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.layerValue {
+  font-size: 12.5px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+/* Data bar along the bottom edge — relative volume vs. the fullest layer. */
+.layerBar {
+  position: absolute;
+  left: 7%;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 2px;
+  transition: width 300ms ease;
+  max-width: 86%;
+}
+
+.convChip {
+  margin: 2px 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1E4DB7;
+  background: #EFF4FF;
+  border: 1px solid #DBE5FB;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+/* ---------- Outcome tiles ---------- */
+.outcomes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.outcome {
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+.outcome:hover { transform: translateY(-1px); background: #fff; }
+.outcomeLabel { font-size: 13.5px; font-weight: 700; }
+.outcomeStats { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
+.outcomeWon .outcomeLabel, .outcomeWon .outcomeStats { color: #047857; }
+.outcomeWon { border-color: #A7F3D0; background: #F0FDF9; }
+.outcomeWon:hover { background: #F0FDF9; }
+.outcomeLost .outcomeLabel, .outcomeLost .outcomeStats { color: #6b7280; }
+.outcomeActive { outline: 3px solid rgba(30, 77, 183, 0.25); outline-offset: 1px; }
+
+/* ---------- Deal list ---------- */
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.listTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+}
+.listCount {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E4DB7;
+  background: #EFF4FF;
+  border-radius: 999px;
+  padding: 2px 9px;
+  vertical-align: 2px;
+}
+.listEmpty {
+  border: 1px dashed #D1D5DB;
+  border-radius: 10px;
+  padding: 28px 20px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+.linkBtn {
+  display: inline-block;
+  margin-left: 8px;
+  border: 0;
+  background: none;
+  color: #1E4DB7;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.dealList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.deal {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.dealTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dealName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+.dealValue {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1E4DB7;
+  white-space: nowrap;
+}
+.dealContact {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+.dealAction {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+.action_overdue { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+.action_today   { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+.action_upcoming{ background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+
+.dealNote {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dealActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #F3F4F6;
+}
+.dealActionsRight {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.advanceBtn {
+  border: 0;
+  border-radius: 7px;
+  background: #1E4DB7;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.advanceBtn:hover {
+  background: #173A8A;
+  background-color: #173A8A;
+  color: #fff;
+  transform: none;
+}
+
+.ghostBtn {
+  border: 1px solid #D1D5DB;
+  border-radius: 7px;
+  background: #fff;
+  color: #374151;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.ghostBtn:hover { background: #F7F8FA; background-color: #F7F8FA; color: #111827; transform: none; }
+
+.dangerBtn {
+  border: 1px solid #FECACA;
+  border-radius: 7px;
+  background: #FEF2F2;
+  color: #B91C1C;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.dangerBtn:hover { background: #FEE2E2; background-color: #FEE2E2; color: #991B1B; transform: none; }
+
+.loseForm { display: inline-flex; align-items: center; gap: 6px; }
+.loseInput {
+  border: 1px solid #D1D5DB;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-family: inherit;
+  padding: 6px 10px;
+  width: 190px;
+}
+.loseConfirm {
+  border: 0;
+  border-radius: 7px;
+  background: #6B7280;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.loseConfirm:hover { background: #4B5563; background-color: #4B5563; color: #fff; transform: none; }
+
+/* ---------- Empty state ---------- */
+.emptyState {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 40px 32px;
+  max-width: 620px;
+  margin: 24px auto;
+  text-align: left;
+}
+.emptyState h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+.emptyState ol {
+  margin: 0 0 22px;
+  padding-left: 20px;
+  color: #4B5563;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ---------- Modal ---------- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 24px 64px -24px rgba(15, 23, 42, 0.45);
+}
+.modalTitle {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+  flex: 1;
+}
+.field span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+}
+.field input, .field select, .field textarea {
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 9px 12px;
+  color: #111827;
+  background: #fff;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: 2px solid rgba(30, 77, 183, 0.3);
+  border-color: #1E4DB7;
+}
+.fieldRow { display: flex; gap: 12px; }
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .mainGrid { grid-template-columns: 1fr; }
+  .funnelCol { position: static; }
+  .kpiRow { grid-template-columns: 1fr; }
+  .fieldRow { flex-direction: column; gap: 0; }
+}

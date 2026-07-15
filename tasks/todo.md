@@ -1,3 +1,55 @@
+# Продажна инка (Sales Funnel) — 2026-07-14
+
+## Goal
+User-facing sales pipeline for every Terminal company: a visual funnel
+(Потенцијални → Контактирани → Испратена понуда → Преговори → Добиени/Изгубени)
+with per-stage counts + € value, conversion rates between layers, next-action
+follow-up dates, and quick stage moves. Business-first: the funnel IS the
+navigation — click a layer to work the deals inside it.
+
+## Design decisions
+- Collection `sales_deals`, scoped by userId (same ownership model as contracts).
+- Stages fixed (no custom stages in v1) — simplicity beats configurability for SMBs.
+- `wonAt` stamped on the won transition → "Добиени овој месец" KPI without
+  digging through stageHistory.
+- Mounted at /api/sales behind subscriptionGuard, same as /api/contracts.
+- No credits metering — Basic-tier tool like CMS.
+- Funnel drawn with pure CSS clip-path trapezoids; no chart library.
+
+## Todo
+- [x] server/services/salesDealsService.js — CRUD + setStage(history, wonAt,
+      lostReason) + summary aggregation (per-stage count/value, overdue
+      next-actions, won-this-month). Indexes {userId,stage,updatedAt} and
+      {userId,nextActionAt}.
+- [x] server/controllers/salesDealsController.js — thin handlers, MK errors.
+- [x] server/routes/sales.js — authenticateJWT; GET /summary, GET /, POST /,
+      PATCH /:id/stage, PATCH /:id, DELETE /:id.
+- [x] server.js — mount /api/sales + init service in DB block; settingsManager
+      gets `salesPipeline: true` (prod + defaults).
+- [x] client/src/pages/terminal/sales/SalesFunnel.js + SalesFunnel.module.css —
+      KPI row, funnel visual (clickable layers + conversion %), outcome tiles,
+      stage deal list with next-action badges and one-click stage moves,
+      create/edit modal, empty state.
+- [x] App.js route /terminal/sales; Sidebar item „Продажна инка" placed in the
+      „Маркетинг и раст" section (sidebar was restructured meanwhile) with a
+      funnel icon.
+- [x] Verify: node --check on all server files; DB smoke test of the service
+      (create/setStage/summary/ownership/list — all green, scratch collection
+      dropped); clean client production build.
+
+## Review
+- Funnel is pure CSS (clip-path trapezoids + relative-volume bar), no chart lib.
+- Conversion chips approximate stage-to-stage flow from current counts
+  (reached(i+1)/reached(i)); stageHistory is recorded from day one so a real
+  velocity metric can replace it later without migration.
+- Lost deals keep lostReason and can be returned to the funnel („Врати во инка").
+- Won transition stamps wonAt → "Добиени овој месец" KPI.
+- Deliberately not built in v1: custom stages, kanban drag-drop, multi-user
+  assignment, reminders by email (nextActionAt is UI-only for now — natural
+  follow-up: feed it into the existing reminder engine like contracts do).
+
+---
+
 # Homepage content + design pass (nexa.mk, MK-first) — 2026-07-11
 
 ## Goal

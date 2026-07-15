@@ -25,6 +25,7 @@ class SettingsManager {
           marketplace: true,
           aiChatbot: true,
           contractAnalysis: true,
+          salesPipeline: true,
           // Admin-user / lead-routing machinery (built in slices 0–7). Default off in
           // prod; flip true via env override or once a slice is reviewed and signed off.
           adminUserPlan:    process.env.NEXA_FF_ADMIN_USER_PLAN    === 'true',
@@ -127,6 +128,7 @@ class SettingsManager {
         marketplace: true,
         aiChatbot: true,
         contractAnalysis: true,
+        salesPipeline: true,
         // Admin-user feature machinery. Off by default; gated per-slice.
         adminUserPlan: false,
         subSeats: false,

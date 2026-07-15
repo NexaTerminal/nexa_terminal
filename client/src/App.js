@@ -79,6 +79,7 @@ import AdminTopicsSubmissionDetailPage  from './pages/terminal/admin/AdminTopics
 import Dashboard from './pages/terminal/Dashboard';
 import DocumentGen from './pages/terminal/DocumentGen';
 import Contracts from './pages/terminal/contracts/Contracts';
+import SalesFunnel from './pages/terminal/sales/SalesFunnel';
 import ContractDetail from './pages/terminal/contracts/ContractDetail';
 import ContractForm from './pages/terminal/contracts/ContractForm';
 import Employees from './pages/terminal/employees/Employees';
@@ -268,6 +269,7 @@ function App() {
       <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
       {/* Договори — Contract Management System (master-plan Phase 2) */}
       <Route path="/terminal/contracts" element={<PrivateRoute><VerificationRequired><Contracts /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/sales" element={<PrivateRoute><VerificationRequired><SalesFunnel /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/new" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id" element={<PrivateRoute><VerificationRequired><ContractDetail /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id/edit" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />

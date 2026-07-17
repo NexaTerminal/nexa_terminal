@@ -12,6 +12,7 @@
 
 const Joi = require('joi');
 const subscriptionEmails = require('../emails/subscriptionEmails');
+const { bodyToHtml } = require('../emails/emailBody');
 const { ALL_PLANS, isValidPlan } = require('../constants/roles');
 
 // Pacing for cold-invite sends. Resend's default rate limit is 2 requests/sec;
@@ -68,13 +69,14 @@ const sendInviteSchema = Joi.object({
 });
 
 class SubscriptionController {
-  constructor({ subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService, invitedProspectsService }) {
+  constructor({ subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService, invitedProspectsService, coldEmailTemplateService }) {
     this.subscriptionService = subscriptionService;
     this.emailService = emailService;
     this.auditLoggingService = auditLoggingService;
     this.proInvoicesService = proInvoicesService || null;
     this.promoCodeService = promoCodeService || null;
     this.invitedProspectsService = invitedProspectsService || null;
+    this.coldEmailTemplateService = coldEmailTemplateService || null;
   }
 
   // ----------------- promo codes ----------------- //
@@ -210,6 +212,79 @@ class SubscriptionController {
     }
   }
 
+  /** POST /api/admin/subscriptions/codes/:code/invite-preview
+   * { language, subject?, body? } → { subject, html } — the EXACT email that
+   * would be sent, so the modal preview never drifts from reality. */
+  async previewInvite(req, res) {
+    try {
+      if (!this.promoCodeService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const language = req.body?.language === 'en' ? 'en' : 'mk';
+      const codeDoc = await this.promoCodeService.findByCode(req.params.code);
+      if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
+
+      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, language);
+      if (req.body?.subject && req.body.subject.trim()) parts.subject = req.body.subject.trim();
+      if (req.body?.body && req.body.body.trim()) parts.body = bodyToHtml(req.body.body);
+      // Preview uses the plain redeem link (no per-prospect &p= tag exists yet).
+      const tpl = subscriptionEmails.wrapInvite(parts, language);
+      res.json({ success: true, subject: tpl.subject, html: tpl.html });
+    } catch (err) {
+      console.error('[admin/subscriptions/codes:invite-preview] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  // ----------------- saved cold-email variants ----------------- //
+
+  async listTemplates(req, res) {
+    try {
+      if (!this.coldEmailTemplateService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const items = await this.coldEmailTemplateService.list(req.user._id);
+      res.json({ success: true, items });
+    } catch (err) {
+      console.error('[admin/subscriptions/invite-templates:list] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async saveTemplate(req, res) {
+    try {
+      if (!this.coldEmailTemplateService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      if (!req.body?.name || !String(req.body.name).trim()) {
+        return res.status(400).json({ success: false, message: 'Внесете име за шаблонот.' });
+      }
+      const item = await this.coldEmailTemplateService.create(req.user._id, req.body);
+      res.status(201).json({ success: true, item });
+    } catch (err) {
+      console.error('[admin/subscriptions/invite-templates:save] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async updateTemplate(req, res) {
+    try {
+      if (!this.coldEmailTemplateService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const item = await this.coldEmailTemplateService.update(req.user._id, req.params.id, req.body || {});
+      if (!item) return res.status(404).json({ success: false, message: 'Шаблонот не е пронајден.' });
+      res.json({ success: true, item });
+    } catch (err) {
+      console.error('[admin/subscriptions/invite-templates:update] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async deleteTemplate(req, res) {
+    try {
+      if (!this.coldEmailTemplateService) return res.status(503).json({ success: false, message: 'Unavailable' });
+      const ok = await this.coldEmailTemplateService.remove(req.user._id, req.params.id);
+      if (!ok) return res.status(404).json({ success: false, message: 'Шаблонот не е пронајден.' });
+      res.json({ success: true });
+    } catch (err) {
+      console.error('[admin/subscriptions/invite-templates:delete] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
   /** POST /api/admin/subscriptions/codes/send-invite
    * { code, recipients[], language, subject?, body? }
    *
@@ -244,7 +319,8 @@ class SubscriptionController {
       // the click back to us (invited → clicked funnel).
       const baseParts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, value.language);
       if (value.subject && value.subject.trim()) baseParts.subject = value.subject.trim();
-      if (value.body && value.body.trim()) baseParts.body = value.body;
+      // Admin body may be plain text — convert to HTML (rich HTML passes through).
+      if (value.body && value.body.trim()) baseParts.body = bodyToHtml(value.body);
 
       // Mark everyone 'queued' up front so the ledger reflects intent immediately
       // and a double-click can't enqueue them twice (queued blocks the dedup).

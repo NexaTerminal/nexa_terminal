@@ -37,7 +37,13 @@ function adminRoutes(controller) {
   router.post('/codes',                 (req, res) => controller.createCode(req, res));
   router.post('/codes/send-invite',     (req, res) => controller.sendInvite(req, res));
   router.get('/codes/:code/invite-draft',(req, res) => controller.getInviteDraft(req, res));
+  router.post('/codes/:code/invite-preview',(req, res) => controller.previewInvite(req, res));
   router.post('/codes/:code/deactivate',(req, res) => controller.deactivateCode(req, res));
+  // Saved cold-email copy variants (reusable across codes).
+  router.get('/invite-templates',       (req, res) => controller.listTemplates(req, res));
+  router.post('/invite-templates',      (req, res) => controller.saveTemplate(req, res));
+  router.put('/invite-templates/:id',   (req, res) => controller.updateTemplate(req, res));
+  router.delete('/invite-templates/:id',(req, res) => controller.deleteTemplate(req, res));
   // Cold-contact ledger (invited prospects).
   router.get('/prospects',              (req, res) => controller.listProspects(req, res));
   router.delete('/prospects/:id',       (req, res) => controller.deleteProspect(req, res));

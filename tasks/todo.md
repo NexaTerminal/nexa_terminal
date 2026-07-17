@@ -1,3 +1,47 @@
+# Cold-email saved templates + live preview (admin) — 2026-07-17
+
+## Goal
+In the admin Send-invite modal, let Martin: (1) write the body in NORMAL TEXT
+(not raw HTML), (2) SAVE named text variants and load them back, (3) SEE A
+PREVIEW of the final wrapped email before sending. Multiple A/B copy options,
+each saved and reusable.
+
+## Design decisions
+- Body accepts plain text; server converts to HTML (blank line → paragraph,
+  single newline → <br>, bare URLs auto-linked). If body already contains block
+  HTML (existing rich default), pass through untouched → back-compatible.
+- Preview is SERVER-RENDERED (POST /invite-preview → exact wrapInvite HTML),
+  shown in an <iframe srcDoc> so email CSS can't leak into the admin app. One
+  source of truth = preview always matches what's actually sent.
+- Saved templates in new `cold_email_templates` collection, scoped to admin
+  userId. {name, subject, body, language}. Not per-code — reusable across codes.
+
+## Todo
+- [x] server/emails/emailBody.js — bodyToHtml(text): blank-line→<p>, newline→<br>,
+      URL auto-link, HTML-escape; rich HTML passes through. Verified 5 cases.
+- [x] wire bodyToHtml into sendInvite send path + preview.
+- [x] server/services/coldEmailTemplateService.js — CRUD scoped by createdBy;
+      ensureIndexes. DB smoke test green (create/list/update/ownership/delete).
+- [x] subscriptionController: previewInvite, listTemplates, saveTemplate,
+      updateTemplate, deleteTemplate; service injected via constructor.
+- [x] routes: POST /codes/:code/invite-preview, GET/POST/PUT/DELETE /invite-templates.
+- [x] server.js: construct coldEmailTemplateService, pass into controller.
+- [x] SendInviteModal: saved-text dropdown (load/save-as-new/update/delete),
+      body → normal text, Edit/Preview tabs with debounced server-rendered iframe.
+- [x] Verify: node --check all server files; both service smoke tests; clean build.
+
+## Review
+- Preview is server-rendered via a real wrapInvite call → the iframe shows the
+  EXACT email that sends (same header/footer/CTA), never drifts from reality.
+- Plain-text authoring is back-compatible: the built-in rich default (perk list,
+  links) is detected as HTML and passes through untouched; only admin-typed
+  plain text gets auto-formatted. XSS-escaped before linkify.
+- Templates are admin-owned (createdBy), reusable across every promo code.
+- NOTE: Railway auto-deploy is unreliable — must trigger a deploy + verify
+  /api/admin/subscriptions/invite-templates flips 404→401 after push.
+
+---
+
 # Продажна инка (Sales Funnel) — 2026-07-14
 
 ## Goal

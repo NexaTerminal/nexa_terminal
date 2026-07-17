@@ -574,6 +574,7 @@ function PromoCodes({ token, showFlash, setError }) {
 }
 
 function SendInviteModal({ code, token, onClose, onDone, onError }) {
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
   const [emails, setEmails] = useState('');
   const [language, setLanguage] = useState('mk');
   const [subject, setSubject] = useState('');
@@ -582,13 +583,22 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Saved copy variants
+  const [templates, setTemplates] = useState([]);
+  const [selectedTpl, setSelectedTpl] = useState(''); // template _id currently loaded
+  const [tplBusy, setTplBusy] = useState(false);
+
+  // Preview (server-rendered = exact final email)
+  const [tab, setTab] = useState('edit'); // 'edit' | 'preview'
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewing, setPreviewing] = useState(false);
+
   // Load the default draft for this code + language (unless the admin edited it).
   useEffect(() => {
     let cancelled = false;
     if (edited) return;
     setLoadingDraft(true);
-    axios.get(`/api/admin/subscriptions/codes/${encodeURIComponent(code)}/invite-draft?language=${language}`,
-      { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`/api/admin/subscriptions/codes/${encodeURIComponent(code)}/invite-draft?language=${language}`, auth)
       .then(res => {
         if (cancelled) return;
         setSubject(res.data.subject || '');
@@ -600,6 +610,80 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, language]);
 
+  // Load saved variants once.
+  const loadTemplates = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/admin/subscriptions/invite-templates', auth);
+      setTemplates(res.data.items || []);
+    } catch (err) { onError(err.response?.data?.message || err.message); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { loadTemplates(); }, [loadTemplates]);
+
+  // Debounced server preview whenever the preview tab is open and text changes.
+  useEffect(() => {
+    if (tab !== 'preview') return;
+    let cancelled = false;
+    setPreviewing(true);
+    const t = setTimeout(() => {
+      axios.post(`/api/admin/subscriptions/codes/${encodeURIComponent(code)}/invite-preview`,
+        { language, subject, body }, auth)
+        .then(res => { if (!cancelled) setPreviewHtml(res.data.html || ''); })
+        .catch(err => { if (!cancelled) onError(err.response?.data?.message || err.message); })
+        .finally(() => { if (!cancelled) setPreviewing(false); });
+    }, 350);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, subject, body, language, code]);
+
+  const applyTemplate = (id) => {
+    setSelectedTpl(id);
+    if (!id) return;
+    const tpl = templates.find(t => t._id === id);
+    if (!tpl) return;
+    setSubject(tpl.subject || '');
+    setBody(tpl.body || '');
+    if (tpl.language) setLanguage(tpl.language);
+    setEdited(true); // loaded variant overrides the default draft
+  };
+
+  const saveAsNew = async () => {
+    const name = window.prompt('Име за овој шаблон (пр. „Сметководители — верзија А“):');
+    if (!name || !name.trim()) return;
+    setTplBusy(true);
+    try {
+      const res = await axios.post('/api/admin/subscriptions/invite-templates',
+        { name: name.trim(), subject, body, language }, auth);
+      await loadTemplates();
+      setSelectedTpl(res.data.item._id);
+      onError(''); // clear any stale error
+    } catch (err) { onError(err.response?.data?.message || err.message); }
+    finally { setTplBusy(false); }
+  };
+
+  const updateSelected = async () => {
+    if (!selectedTpl) return;
+    setTplBusy(true);
+    try {
+      await axios.put(`/api/admin/subscriptions/invite-templates/${selectedTpl}`,
+        { subject, body, language }, auth);
+      await loadTemplates();
+    } catch (err) { onError(err.response?.data?.message || err.message); }
+    finally { setTplBusy(false); }
+  };
+
+  const deleteSelected = async () => {
+    if (!selectedTpl) return;
+    if (!window.confirm('Да се избрише овој зачуван шаблон?')) return;
+    setTplBusy(true);
+    try {
+      await axios.delete(`/api/admin/subscriptions/invite-templates/${selectedTpl}`, auth);
+      setSelectedTpl('');
+      await loadTemplates();
+    } catch (err) { onError(err.response?.data?.message || err.message); }
+    finally { setTplBusy(false); }
+  };
+
   const submit = async () => {
     const recipients = emails.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
     if (recipients.length === 0) { onError('Enter at least one email.'); return; }
@@ -607,8 +691,7 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
     try {
       const res = await axios.post(
         '/api/admin/subscriptions/codes/send-invite',
-        { code, recipients, language, subject, body },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { code, recipients, language, subject, body }, auth
       );
       const { queued = 0, skipped = [], estimateSec = 0 } = res.data;
       const eta = estimateSec >= 60 ? `~${Math.ceil(estimateSec / 60)} min` : `~${estimateSec}s`;
@@ -622,39 +705,94 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
     }
   };
 
+  const selectedName = templates.find(t => t._id === selectedTpl)?.name;
+
   return (
     <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720 }}>
         <h2>Send invite — {code}</h2>
         <p className={styles.modalSub}>
-          Edit the draft below, then send. Already-invited addresses are skipped automatically. The CTA button keeps the redeem deep link.
+          Pick a saved text or edit below. Write in normal text — it's formatted into the email automatically.
+          Already-invited addresses are skipped; the CTA keeps the redeem deep link.
         </p>
+
         <label className={styles.field}>
           Recipients (comma / newline separated)
-          <textarea rows={3} value={emails} onChange={(e) => setEmails(e.target.value)}
+          <textarea rows={2} value={emails} onChange={(e) => setEmails(e.target.value)}
             placeholder="alice@firm.mk, bob@firm.mk" />
         </label>
-        <label className={styles.field}>
-          Language
-          <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-            <option value="mk">Macedonian</option>
-            <option value="en">English</option>
+
+        {/* Saved variants row */}
+        <div className={styles.inviteTplRow}>
+          <select
+            className={styles.inviteTplSelect}
+            value={selectedTpl}
+            onChange={(e) => applyTemplate(e.target.value)}
+            disabled={tplBusy}
+          >
+            <option value="">— Load saved text —</option>
+            {templates.map(t => (
+              <option key={t._id} value={t._id}>{t.name} ({t.language.toUpperCase()})</option>
+            ))}
           </select>
-        </label>
+          <button type="button" className={styles.btnGhost} onClick={saveAsNew} disabled={tplBusy}>
+            Save as new
+          </button>
+          <button type="button" className={styles.btnGhost} onClick={updateSelected}
+            disabled={tplBusy || !selectedTpl} title={selectedName ? `Overwrite “${selectedName}”` : 'Select a saved text first'}>
+            Update
+          </button>
+          <button type="button" className={styles.btnDanger} onClick={deleteSelected}
+            disabled={tplBusy || !selectedTpl}>
+            Delete
+          </button>
+        </div>
+
+        <div className={styles.inviteMetaRow}>
+          <label className={styles.field} style={{ flex: 1 }}>
+            Language
+            <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+              <option value="mk">Macedonian</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <div className={styles.inviteTabs}>
+            <button type="button"
+              className={tab === 'edit' ? styles.inviteTabActive : styles.inviteTab}
+              onClick={() => setTab('edit')}>Edit</button>
+            <button type="button"
+              className={tab === 'preview' ? styles.inviteTabActive : styles.inviteTab}
+              onClick={() => setTab('preview')}>Preview</button>
+          </div>
+        </div>
+
         <label className={styles.field}>
           Subject {loadingDraft && <span className={styles.modalSub}>(loading…)</span>}
           <input type="text" value={subject}
             onChange={(e) => { setSubject(e.target.value); setEdited(true); }} />
         </label>
-        <label className={styles.field}>
-          Body (HTML)
-          <textarea rows={8} value={body}
-            onChange={(e) => { setBody(e.target.value); setEdited(true); }} />
-        </label>
+
+        {tab === 'edit' ? (
+          <label className={styles.field}>
+            Body (normal text — blank line starts a new paragraph, links auto-detected)
+            <textarea rows={10} value={body}
+              onChange={(e) => { setBody(e.target.value); setEdited(true); }} />
+          </label>
+        ) : (
+          <div className={styles.field}>
+            Preview {previewing && <span className={styles.modalSub}>(rendering…)</span>}
+            <iframe
+              title="Email preview"
+              className={styles.invitePreview}
+              srcDoc={previewHtml || '<p style="font-family:sans-serif;color:#6b7280;padding:16px;">…</p>'}
+            />
+          </div>
+        )}
+
         <div className={styles.modalActions}>
           <button className={styles.btnGhost} onClick={onClose}>Cancel</button>
           <button className={styles.btnPrimary} onClick={submit} disabled={busy || loadingDraft}>
-            {busy ? 'Sending…' : 'Send'}
+            {busy ? 'Sending…' : `Send${emails.trim() ? ` (${emails.split(/[\s,;]+/).filter(Boolean).length})` : ''}`}
           </button>
         </div>
       </div>

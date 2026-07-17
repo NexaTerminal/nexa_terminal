@@ -490,9 +490,15 @@ async function initializeServices(database) {
     await invitedProspectsService.ensureIndexes();
     app.locals.invitedProspectsService = invitedProspectsService;
 
+    // Saved cold-email copy variants for the admin Send-invite modal.
+    const ColdEmailTemplateService = require('./services/coldEmailTemplateService');
+    const coldEmailTemplateService = new ColdEmailTemplateService(database);
+    await coldEmailTemplateService.ensureIndexes();
+    app.locals.coldEmailTemplateService = coldEmailTemplateService;
+
     const subscriptionController = new SubscriptionController({
       subscriptionService, emailService, auditLoggingService, proInvoicesService, promoCodeService,
-      invitedProspectsService
+      invitedProspectsService, coldEmailTemplateService
     });
 
     app.use('/api/subscription',        subscriptionRoutes.userRoutes(subscriptionController));

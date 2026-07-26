@@ -22,7 +22,7 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.heroSub {
+.heroInner .heroSub {
   font-size: 19px;
   color: var(--nx-text-soft);
   max-width: 720px;

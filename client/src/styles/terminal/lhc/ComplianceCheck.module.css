@@ -957,3 +957,40 @@
     print-color-adjust: exact;
   }
 }
+
+/* Autosave "saved" indicator on questionnaires */
+.autosave-indicator {
+  font-size: 0.8rem;
+  color: #10B981;
+  font-weight: 600;
+}
+
+/* Coverage / provisional guard shown on LHC reports */
+.provisional-banner {
+  margin: 1rem 0;
+  padding: 0.85rem 1.1rem;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.coverage-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Standard "not legal advice" disclaimer shown on every LHC report */
+.report-disclaimer {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: #475569;
+}

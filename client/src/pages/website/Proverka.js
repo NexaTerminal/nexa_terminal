@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import Icon from '../../components/website/Icon';
@@ -95,6 +94,15 @@ export default function Proverka() {
     }
   };
 
+  // Google-first entry: carry the result id through OAuth so the visitor lands
+  // in the app on their report (LockedWelcome reads ?result=).
+  const continueWithGoogle = () => {
+    const redirect = result
+      ? `/terminal/dashboard?welcome=proverka&result=${result.id}`
+      : '/terminal/dashboard';
+    window.location.href = `${API_BASE}/auth/google?state=${encodeURIComponent(redirect)}`;
+  };
+
   const q = questions[step];
   const progressPct = questions.length ? Math.round((step / questions.length) * 100) : 0;
 
@@ -102,7 +110,7 @@ export default function Proverka() {
     <PublicLayout>
       <SEOHelmet
         title="Бесплатна проверка на усогласеност · Nexa"
-        description="Одговорете 10 прашања и дознајте колку вашата фирма е усогласена со работните односи, личните податоци и безбедноста при работа — бесплатно, за 3 минути."
+        description="Одговорете 15 прашања и дознајте колку вашата фирма е усогласена со работните односи, личните податоци, безбедноста при работа и повеќе — бесплатно, за 3 минути."
         canonical="/proverka"
         locale="mk_MK"
       />
@@ -118,9 +126,10 @@ export default function Proverka() {
               </span>
               <h1 className={styles.title}>Колку е усогласен вашиот бизнис?</h1>
               <p className={styles.lead}>
-                10 прашања за работните односи, личните податоци и безбедноста при
-                работа — областите што трудовата инспекција и АЗЛП најчесто ги
-                проверуваат. Веднаш добивате резултат и листа што ви недостасува.
+                15 прашања за работните односи, личните податоци, безбедноста при
+                работа, заштитата од пожари и архивското работење — областите што
+                инспекциите најчесто ги проверуваат. Веднаш добивате резултат и
+                листа што ви недостасува.
               </p>
               <ul className={styles.introList}>
                 <li>Прашањата се засновани на конкретни членови од македонските закони</li>
@@ -205,19 +214,19 @@ export default function Proverka() {
               <div className={styles.ctaBlock}>
                 <h2 className={styles.ctaTitle}>Решете ги недостатоците уште оваа недела</h2>
                 <p className={styles.ctaLead}>
-                  Nexa Терминал ги генерира документите што ви недостасуваат за 30
-                  секунди и ве води низ целосни проверки — на македонски, според
-                  македонското право. Регистрацијата е бесплатна.
+                  Продолжете со Google за да го отворите целосниот извештај и
+                  документите што ви недостасуваат — Nexa ги генерира за 30 секунди,
+                  на македонски, според македонското право. Бесплатно.
                 </p>
-                <Link to="/login" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-                  Отворете сметка
+                <button type="button" className="nexa-btn nexa-btn-accent nexa-btn-lg" onClick={continueWithGoogle}>
+                  Продолжи со Google
                   <Icon name="arrowRight" size={18} />
-                </Link>
+                </button>
               </div>
 
               <form className={styles.emailForm} onSubmit={captureEmail}>
                 <label className={styles.emailLabel} htmlFor="proverka-email">
-                  Испратете ми го целиот извештај на е-пошта:
+                  Или добијте го извештајот на е-пошта (опционално):
                 </label>
                 <div className={styles.emailRow}>
                   <input

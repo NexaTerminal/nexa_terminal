@@ -88,8 +88,6 @@ import EmployeeForm from './pages/terminal/employees/EmployeeForm';
 import DocumentGeneratorPage from './pages/DocumentGeneratorPage';
 import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTemplateGenerator';
 import LegalScreening from './pages/terminal/LegalScreening';
-import EmploymentQuestionnaire from './pages/terminal/lhc/EmploymentQuestionnaire';
-import EmploymentReport from './pages/terminal/lhc/EmploymentReport';
 import EmploymentPart1Questionnaire from './pages/terminal/lhc/EmploymentPart1Questionnaire';
 import EmploymentPart1Report from './pages/terminal/lhc/EmploymentPart1Report';
 import EmploymentPart2Questionnaire from './pages/terminal/lhc/EmploymentPart2Questionnaire';
@@ -104,6 +102,18 @@ import GDPRQuestionnaire from './pages/terminal/lhc/GDPRQuestionnaire';
 import GDPRReport from './pages/terminal/lhc/GDPRReport';
 import ArchivesQuestionnaire from './pages/terminal/lhc/ArchivesQuestionnaire';
 import ArchivesReport from './pages/terminal/lhc/ArchivesReport';
+import ProtectionRescueQuestionnaire from './pages/terminal/lhc/ProtectionRescueQuestionnaire';
+import ProtectionRescueReport from './pages/terminal/lhc/ProtectionRescueReport';
+import WasteManagementQuestionnaire from './pages/terminal/lhc/WasteManagementQuestionnaire';
+import WasteManagementReport from './pages/terminal/lhc/WasteManagementReport';
+import TaxProfitQuestionnaire from './pages/terminal/lhc/TaxProfitQuestionnaire';
+import TaxProfitReport from './pages/terminal/lhc/TaxProfitReport';
+import TaxVatQuestionnaire from './pages/terminal/lhc/TaxVatQuestionnaire';
+import TaxVatReport from './pages/terminal/lhc/TaxVatReport';
+import TaxPayrollQuestionnaire from './pages/terminal/lhc/TaxPayrollQuestionnaire';
+import TaxPayrollReport from './pages/terminal/lhc/TaxPayrollReport';
+import TaxGeneralQuestionnaire from './pages/terminal/lhc/TaxGeneralQuestionnaire';
+import TaxGeneralReport from './pages/terminal/lhc/TaxGeneralReport';
 import AdminProInvoices from './pages/terminal/admin/AdminProInvoices';
 import GeneralQuestionnaire from './pages/terminal/lhc/GeneralQuestionnaire';
 import GeneralReport from './pages/terminal/lhc/GeneralReport';
@@ -293,8 +303,6 @@ function App() {
       {/* <Route path="/terminal/documents/personal-data-protection/gdpr-company-politics" element={<PrivateRoute><GdprCompanyPoliticsPage /></PrivateRoute>} /> */}
       {/* <Route path="/terminal/documents/personal-data-protection/privacy-policy" element={<PrivateRoute><PrivacyPolicyPage /></PrivateRoute>} /> */}
       <Route path="/terminal/legal-screening" element={<PrivateRoute><VerificationRequired><LegalScreening /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/employment" element={<PrivateRoute><VerificationRequired><EmploymentQuestionnaire /></VerificationRequired></PrivateRoute>} />
-      <Route path="/terminal/legal-screening/employment/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/employment-part1" element={<PrivateRoute><VerificationRequired><EmploymentPart1Questionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/employment-part1/report/:id" element={<PrivateRoute><VerificationRequired><EmploymentPart1Report /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/employment-part2" element={<PrivateRoute><VerificationRequired><EmploymentPart2Questionnaire /></VerificationRequired></PrivateRoute>} />
@@ -309,6 +317,18 @@ function App() {
       <Route path="/terminal/legal-screening/gdpr/report/:id" element={<PrivateRoute><VerificationRequired><GDPRReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/archives" element={<PrivateRoute><VerificationRequired><ArchivesQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/archives/report/:id" element={<PrivateRoute><VerificationRequired><ArchivesReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/protection-rescue" element={<PrivateRoute><VerificationRequired><ProtectionRescueQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/protection-rescue/report/:id" element={<PrivateRoute><VerificationRequired><ProtectionRescueReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/waste-management" element={<PrivateRoute><VerificationRequired><WasteManagementQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/waste-management/report/:id" element={<PrivateRoute><VerificationRequired><WasteManagementReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-profit" element={<PrivateRoute><VerificationRequired><TaxProfitQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-profit/report/:id" element={<PrivateRoute><VerificationRequired><TaxProfitReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-vat" element={<PrivateRoute><VerificationRequired><TaxVatQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-vat/report/:id" element={<PrivateRoute><VerificationRequired><TaxVatReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-payroll" element={<PrivateRoute><VerificationRequired><TaxPayrollQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-payroll/report/:id" element={<PrivateRoute><VerificationRequired><TaxPayrollReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-general" element={<PrivateRoute><VerificationRequired><TaxGeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/legal-screening/tax-general/report/:id" element={<PrivateRoute><VerificationRequired><TaxGeneralReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general" element={<PrivateRoute><VerificationRequired><GeneralQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/legal-screening/general/report/:id" element={<PrivateRoute><VerificationRequired><GeneralReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-screening" element={<PrivateRoute><VerificationRequired><MarketingQuestionnaire /></VerificationRequired></PrivateRoute>} />

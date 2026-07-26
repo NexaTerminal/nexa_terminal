@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { hasFeatureAccess, isAccountSuspended, hasFreeDocPass } from '../../lib/tier';
+import { hasFeatureAccess, isAccountSuspended, hasFreeDocPass, hasFreeCheckPass, isFunnelLockedAccount } from '../../lib/tier';
 import styles from '../../styles/VerificationRequired.module.css';
 
 /**
@@ -30,6 +30,17 @@ const VerificationRequired = ({ children }) => {
   // (subscriptionGuard → creditMiddleware) enforces the single use.
   if (hasFreeDocPass(currentUser) && location.pathname.startsWith('/terminal/documents')) {
     return <>{children}</>;
+  }
+
+  // One-free-full-check pass: a locked funnel account may open the compliance
+  // screening to run its single free full check, and may always VIEW the
+  // resulting report afterwards. The server (subscriptionGuard) enforces the
+  // single evaluate.
+  if (isFunnelLockedAccount(currentUser) && location.pathname.startsWith('/terminal/legal-screening')) {
+    const viewingReport = location.pathname.includes('/report/');
+    if (viewingReport || hasFreeCheckPass(currentUser)) {
+      return <>{children}</>;
+    }
   }
 
   const suspended = isAccountSuspended(currentUser);

@@ -73,10 +73,20 @@ function publicResult(doc) {
   };
 }
 
+// Fisher–Yates shuffle so questions are mixed across topics from question one.
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 router.get('/questions', (req, res) => {
   res.json({
     success: true,
-    data: questions.map(({ id, text, article }) => ({ id, text, article }))
+    data: shuffled(questions).map(({ id, text, article }) => ({ id, text, article }))
   });
 });
 
@@ -138,6 +148,7 @@ router.post('/result/:id/email', async (req, res) => {
       { _id },
       { $set: { email, emailCapturedAt: new Date() } }
     );
+    const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login`;
 
     // Best-effort report email — capture succeeds even if sending fails.
     try {
@@ -159,9 +170,11 @@ router.post('/result/:id/email', async (req, res) => {
             ${gapsHtml}
             <p style="margin-top:18px;">Nexa Терминал ги решава овие празнини — автоматизирани документи,
                целосни проверки и правен AI помошник, на македонски, според македонското право.</p>
-            <p><a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/login" style="display:inline-block;background:#1e4db7;color:#fff;
-               padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:600;">
-               Отворете сметка</a></p>
+            <p><a href="${loginUrl}" style="display:inline-block;background:#1e4db7;color:#fff;
+               padding:12px 26px;border-radius:8px;text-decoration:none;font-weight:600;">
+               Продолжи со Google →</a></p>
+            <p style="font-size:12px;color:#9ca3af;margin-top:6px;">
+               Најавата е со еден клик преку Google — без лозинка.</p>
           </div>`;
         await emailService.sendEmail(email, `Вашиот резултат: ${r.percentage}% усогласеност — Nexa проверка`, html);
       }
@@ -187,6 +200,25 @@ router.get('/result/:id', async (req, res) => {
     res.json({ success: true, data: publicResult(doc) });
   } catch (err) {
     console.error('Teaser screening fetch error:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// ── Claim: link an anonymous teaser result to the signed-in account ──────
+// Called by LockedWelcome after the visitor signs in with Google, so the funnel
+// attributes the completion to the registered user even without email capture.
+router.post('/result/:id/claim', authenticateJWT, async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) return res.status(404).json({ success: false });
+    const db = req.app.locals.db;
+    const email = (req.user.email || '').toString().trim().toLowerCase() || null;
+    await db.collection(COLLECTION).updateOne(
+      { _id: new ObjectId(req.params.id), registeredUserId: { $in: [null, undefined] } },
+      { $set: { registeredUserId: req.user._id || req.user.id, email, claimedAt: new Date() } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Teaser claim error:', err);
     res.status(500).json({ success: false });
   }
 });

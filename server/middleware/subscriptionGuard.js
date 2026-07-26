@@ -132,6 +132,27 @@ async function check(req, res, next, subscriptionService) {
       return next();
     }
 
+    // ── One free full compliance check ──────────────────────────────────
+    // A never-activated account may run exactly ONE full LHC check. GET is
+    // always allowed for a 'none' account (browse the modules + view its own
+    // report); POST /evaluate is allowed once (freeCheckPass) — creditMiddleware
+    // skips the balance and marks users.freeCheckUsed on the first success.
+    if (
+      req.baseUrl === '/api/lhc' &&
+      eff.status === SUBSCRIPTION_STATUSES.NONE &&
+      user.role !== ROLES.SUB_SEAT
+    ) {
+      if (req.method === 'GET') {
+        req.subscription = eff;
+        return next();
+      }
+      if (req.method === 'POST' && user.freeCheckUsed !== true) {
+        req.freeCheckPass = true;
+        req.subscription = eff;
+        return next();
+      }
+    }
+
     let code = 'SUBSCRIPTION_REQUIRED';
     let message = 'Потребна е активна претплата за оваа функција.';
     if (eff.status === SUBSCRIPTION_STATUSES.PENDING_APPROVAL) {

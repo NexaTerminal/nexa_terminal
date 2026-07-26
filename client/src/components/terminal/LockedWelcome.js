@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { openSubscriptionGate, hasFreeDocPass } from '../../lib/tier';
+import { openSubscriptionGate, hasFreeDocPass, hasFreeCheckPass } from '../../lib/tier';
 import { PROVERKA_RESULT_KEY } from '../../pages/website/Proverka';
 import styles from './LockedWelcome.module.css';
 
@@ -70,12 +70,20 @@ export default function LockedWelcome() {
   const [teaser, setTeaser] = useState(null);
   useEffect(() => {
     let id = null;
-    try { id = localStorage.getItem(PROVERKA_RESULT_KEY); } catch (_) { /* ignore */ }
+    try {
+      // Magic-link arrivals carry ?result=<id> (works cross-device); fall back
+      // to the localStorage id set on the public /proverka page (same browser).
+      id = new URLSearchParams(window.location.search).get('result')
+        || localStorage.getItem(PROVERKA_RESULT_KEY);
+    } catch (_) { /* ignore */ }
     if (!id) return;
     fetch(`${API_BASE}/public/screening/result/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d?.success) setTeaser(d.data); })
       .catch(() => { /* best-effort */ });
+    // Link this teaser completion to the now-signed-in account (funnel
+    // attribution for Google arrivals). Best-effort, fire-and-forget.
+    ApiService.request(`/public/screening/result/${id}/claim`, { method: 'POST' }).catch(() => {});
   }, []);
 
   const onRedeem = async (e) => {
@@ -98,11 +106,25 @@ export default function LockedWelcome() {
   return (
     <section className={styles.panel}>
       <div className={styles.head}>
-        <h1 className={styles.title}>Добредојдовте во Nexa Терминал</h1>
-        <p className={styles.lead}>
-          Вашата сметка е креирана. За да ги отклучите алатките, внесете код за
-          активација или изберете план — активирањето е веднашно.
-        </p>
+        {teaser ? (
+          <>
+            <h1 className={styles.title}>Продолжете ја вашата проверка на усогласеност</h1>
+            <p className={styles.lead}>
+              Сметката е креирана. Подолу е резултатот од вашата бесплатна проверка.
+              Следен чекор: решете ги пропустите со автоматизирани документи и направете
+              целосни проверки за секоја област — работни односи, лични податоци,
+              безбедност, отпад и повеќе.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className={styles.title}>Добредојдовте во Nexa Терминал</h1>
+            <p className={styles.lead}>
+              Вашата сметка е креирана. За да ги отклучите алатките, внесете код за
+              активација или изберете план — активирањето е веднашно.
+            </p>
+          </>
+        )}
       </div>
 
       {teaser && (
@@ -122,10 +144,24 @@ export default function LockedWelcome() {
               ))}
             </ul>
             <div className={styles.teaserNote}>
-              Активирајте го пристапот за да ги решите — документите и целосните
-              проверки се веднаш достапни.
+              Отклучете го пристапот за да ги решите овие пропусти — целосните проверки
+              на усогласеност и документите за нивно решавање се веднаш достапни.
             </div>
           </div>
+        </div>
+      )}
+
+      {hasFreeCheckPass(currentUser) && (
+        <div className={styles.freeDoc}>
+          <span className={styles.freeDocBadge}>Бесплатно</span>
+          <span className={styles.freeDocText}>
+            Направете <strong>една целосна проверка на усогласеност</strong> бесплатно —
+            изберете област (работни односи, лични податоци, безбедност, отпад…) и добијте
+            детален извештај со приоритетни ризици и чекори за усогласување.
+          </span>
+          <Link to="/terminal/legal-screening" className={styles.freeDocLink}>
+            Започни целосна проверка →
+          </Link>
         </div>
       )}
 

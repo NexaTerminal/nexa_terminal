@@ -7,20 +7,26 @@ import Sidebar from '../../../components/terminal/Sidebar';
 import InsufficientCreditsModal from '../../../components/common/InsufficientCreditsModal';
 import useCreditHandler from '../../../hooks/useCreditHandler';
 import api from '../../../services/api';
+import useLhcDraft from '../../../hooks/useLhcDraft';
 
 const EmploymentQuestionnaire = () => {
   const navigate = useNavigate();
   const { refreshCredits } = useCredit();
   const { handleCreditOperation, showInsufficientModal, modalConfig, closeModal } = useCreditHandler();
 
+  const { initialDraft, saveDraft, clearDraft, savedAt } = useLhcDraft('employment');
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
+  const [answers, setAnswers] = useState(initialDraft?.answers || {});
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(initialDraft?.currentCategoryIndex || 0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [companySize, setCompanySize] = useState('micro');
+  const [companySize, setCompanySize] = useState(initialDraft?.companySize || 'micro');
+
+  useEffect(() => {
+    if (!loading) saveDraft({ answers, currentCategoryIndex, companySize });
+  }, [answers, currentCategoryIndex, companySize, loading, saveDraft]);
 
   useEffect(() => {
     fetchQuestions();
@@ -116,6 +122,7 @@ const EmploymentQuestionnaire = () => {
         await refreshCredits();
 
         // Navigate to report page with assessment ID
+        clearDraft();
         navigate(`/terminal/legal-screening/employment/report/${response.data._id}`);
       }
     } catch (err) {
@@ -223,6 +230,9 @@ const EmploymentQuestionnaire = () => {
             <div className={styles["progress-section"]}>
               <div className={styles["progress-info"]}>
                 <span>Прогрес на пополнување</span>
+                {savedAt && (
+                  <span className={styles["autosave-indicator"]}>💾 Зачувано</span>
+                )}
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className={styles["progress-bar"]}>

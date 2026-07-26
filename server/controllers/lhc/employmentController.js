@@ -1,163 +1,44 @@
-const { questions, sanctions, gradeConfig, categoryNames, ANSWER_TYPES, SANCTION_LEVELS } = require('../../data/lhc/employmentQuestionsComplete');
+const { questions, sanctions, categoryNames } = require('../../data/lhc/employmentQuestionsComplete');
+const { scoreModule } = require('./lhcScoring');
+
+// Employment sanction level → canonical severity (§5)
+const EMPLOYMENT_SEVERITY = { sanction1: 'high', sanction2: 'medium', none: 'none' };
+
+function employmentBandDescription(band, companyName, criticalCount) {
+  const map = {
+    4: `Кај ${companyName} постои висока усогласеност со Законот за работните односи.`,
+    3: `Кај ${companyName} постои задоволителна усогласеност со Законот за работните односи, но има простор за подобрување.`,
+    2: `Кај ${companyName} постои делумна усогласеност со Законот за работните односи. Постојат значителни пропусти што треба да се отстранат.`,
+    1: `Кај ${companyName} постои ниска усогласеност. При евентуална инспекција може да има сериозни последици.`
+  };
+  let base = map[band] || map[1];
+  if (criticalCount > 0) base += ` Забележани се ${criticalCount} приоритетни ризици што бараат итно постапување.`;
+  return base;
+}
 
 /**
- * Smart evaluation engine - handles all question types
+ * Score the Employment module through the shared engine (§4–§6).
  */
-class ComplianceEvaluator {
-  constructor(companySize, companyName) {
-    this.companySize = companySize || 'micro';
-    this.companyName = companyName;
-    this.sanctions = sanctions[this.companySize];
-    this.results = {
-      score: 0,
-      maxScore: 0,
-      violations: [],
-      recommendations: []
-    };
-  }
-
-  evaluate(answers) {
-    questions.forEach(question => {
-      const answer = answers[question.id];
-      if (!answer || answer === 'not_applicable') return;
-
-      this.results.maxScore += question.weight;
-      const finding = this.evaluateQuestion(question, answer);
-
-      if (!finding.isCompliant) {
-        this.results.violations.push({
-          question: question.text,
-          article: question.article,
-          category: categoryNames[question.category],
-          finding: finding.message,
-          severity: question.sanctionLevel
-        });
-
-        if (question.recommendation) {
-          this.results.recommendations.push(question.recommendation);
-        }
-      }
-
-      this.results.score += finding.score;
-    });
-
-    return this.generateReport();
-  }
-
-  evaluateQuestion(question, answer) {
-    if (question.type === ANSWER_TYPES.CHOICE) {
-      return this.evaluateChoiceQuestion(question, answer);
+function evaluateEmployment(answers, companySize, companyName) {
+  const sizeSanctions = sanctions[companySize] || sanctions.micro;
+  return scoreModule({
+    moduleId: 'employment',
+    questions,
+    answers,
+    companyName,
+    config: {
+      severityOf: q => EMPLOYMENT_SEVERITY[q.sanctionLevel] || 'medium',
+      categoryTitleOf: q => categoryNames[q.category] || q.category,
+      legalRefOf: q => q.article,
+      remediationOf: q => q.recommendation,
+      sanctionHintOf: q => {
+        if (!q.sanctionLevel || q.sanctionLevel === 'none') return '';
+        const s = sizeSanctions && sizeSanctions[q.sanctionLevel];
+        return s ? `Можна санкција: ${s.employer} за работодавачот и ${s.responsible} за одговорното лице.` : '';
+      },
+      describeBand: employmentBandDescription
     }
-    return this.evaluateYesNoQuestion(question, answer);
-  }
-
-  evaluateYesNoQuestion(question, answer) {
-    const { correctAnswer, weight, article, sanctionLevel } = question;
-    let score = 0;
-    let isCompliant = false;
-    let message = '';
-
-    const answerMatchesCorrect = answer === correctAnswer;
-
-    switch (answer) {
-      case 'yes':
-        if (correctAnswer === 'yes') {
-          score = weight;
-          isCompliant = true;
-          message = `✓ Постапувате во согласност со ${article}.`;
-        } else {
-          score = -weight;
-          message = `✗ Постапувањето е спротивно на ${article}.${this.getSanctionText(sanctionLevel)}`;
-        }
-        break;
-
-      case 'no':
-        if (correctAnswer === 'no') {
-          score = weight;
-          isCompliant = true;
-          message = `✓ Постапувате во согласност со ${article}.`;
-        } else {
-          score = -weight;
-          message = `✗ Постапувањето не е во согласност со ${article}.${this.getSanctionText(sanctionLevel)}`;
-        }
-        break;
-
-      case 'partially':
-        score = -(weight * 0.5);
-        message = `⚠ Делумно постапување спротивно на ${article}.${this.getSanctionText(sanctionLevel)}`;
-        break;
-    }
-
-    return { score, isCompliant, message };
-  }
-
-  evaluateChoiceQuestion(question, answer) {
-    const selectedOption = question.options.find(opt => opt.value === answer);
-    if (!selectedOption) {
-      return { score: 0, isCompliant: false, message: 'Невалиден одговор' };
-    }
-
-    const isCorrect = selectedOption.isCorrect;
-    const score = isCorrect ? question.weight : -question.weight;
-    const message = isCorrect
-      ? `✓ Постапувате во согласност со ${question.article}.`
-      : `✗ Постапувањето не е во согласност со ${question.article}.${this.getSanctionText(question.sanctionLevel)}`;
-
-    return { score, isCompliant: isCorrect, message };
-  }
-
-  getSanctionText(sanctionLevel) {
-    if (sanctionLevel === SANCTION_LEVELS.NONE) {
-      return ' Иако не се предвидени прекршочни одредби, ваквото постапување може да има штетни последици.';
-    }
-
-    const sanction = this.sanctions[sanctionLevel];
-    if (!sanction) return '';
-
-    return ` Можна санкција: ${sanction.employer} за работодавачот и ${sanction.responsible} за одговорното лице.`;
-  }
-
-  generateReport() {
-    const percentage = this.results.maxScore > 0
-      ? Math.round((this.results.score / this.results.maxScore) * 100)
-      : 0;
-
-    const gradeInfo = this.determineGrade(percentage);
-
-    return {
-      score: this.results.score,
-      maxScore: this.results.maxScore,
-      percentage: Math.max(0, Math.min(100, percentage)),
-      grade: gradeInfo.label,
-      gradeClass: gradeInfo.class,
-      gradeDescription: this.getGradeDescription(gradeInfo.label),
-      violations: this.results.violations,
-      recommendations: [...new Set(this.results.recommendations)] // Remove duplicates
-    };
-  }
-
-  determineGrade(percentage) {
-    for (const grade of Object.values(gradeConfig)) {
-      if (percentage >= grade.min) {
-        return grade;
-      }
-    }
-    return gradeConfig.veryLow;
-  }
-
-  getGradeDescription(grade) {
-    const descriptions = {
-      'Перфектна усогласеност': `Кај ${this.companyName} постои перфектна и целосна усогласеност со Законот за работните односи.`,
-      'Одлична усогласеност': `Кај ${this.companyName} постои одлична усогласеност. Меѓутоа, идентификувани се одредени пропусти.`,
-      'Задоволителна усогласеност': `Кај ${this.companyName} постои задоволителна усогласеност, но има простор за подобрување.`,
-      'Определена усогласеност': `Кај ${this.companyName} постои определена усогласеност, меѓутоа неколку практики треба да се подобрат.`,
-      'Делумна усогласеност': `Кај ${this.companyName} постои делумна усогласеност. Постојат многу пропусти кои треба да се отстранат.`,
-      'Ниска усогласеност': `Кај ${this.companyName} постои ниска усогласеност. Пропустите се значителни и лесно воочливи.`,
-      'Исклучително ниска усогласеност': `Кај ${this.companyName} постои исклучително ниска усогласеност. При евентуална инспекција може да има сериозни последици.`
-    };
-
-    return descriptions[grade] || 'Не може да се одреди оценка.';
-  }
+  });
 }
 
 /**
@@ -212,9 +93,7 @@ async function evaluateCompliance(req, res) {
       });
     }
 
-    // Evaluate using smart engine
-    const evaluator = new ComplianceEvaluator(companySize, companyName);
-    const report = evaluator.evaluate(answers);
+    const report = evaluateEmployment(answers, companySize || 'micro', companyName);
 
     // Save to database
     const db = req.app.locals.db;
@@ -295,5 +174,7 @@ module.exports = {
   getQuestions,
   evaluateCompliance,
   getAssessmentHistory,
-  getAssessmentById
+  getAssessmentById,
+  // Exported for tests
+  evaluateEmployment
 };

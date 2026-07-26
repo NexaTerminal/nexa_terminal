@@ -1,8 +1,10 @@
 // General LHC Controller - Hybrid evaluator for mixed categories
+const { LHC_DISCLAIMER, coverageFromAnswers } = require('./lhcShared');
 // Општ Правен Здравствен Преглед - 20 случајни прашања од сите области
 
 const { getRandomQuestions, SOURCE_CATEGORIES, poolStats, normalizeSanctionLevel } = require('../../data/lhc/generalQuestionsPool');
 const { sanctions: employmentSanctions, gradeConfig, categoryNames: employmentCategoryNames } = require('../../data/lhc/employmentQuestionsComplete');
+const { answerFraction, BANDS } = require('./lhcScoring');
 
 /**
  * Hybrid evaluation engine - handles all question types from all categories
@@ -122,131 +124,25 @@ class GeneralComplianceEvaluator {
     return this.generateReport();
   }
 
+  // Schema-aware scoring: one normalized complianceFraction per answer (§4),
+  // shared with the module engine. No negative scoring; handles every answer type.
   evaluateQuestion(question, answer) {
-    const questionType = question.type;
-
-    // Handle multi_check questions (Health & Safety)
-    if (questionType === 'multi_check') {
-      return this.evaluateMultiCheckQuestion(question, answer);
+    const fraction = answerFraction(question, answer);
+    const weight = question.weight || 1;
+    if (fraction === null) {
+      return { score: 0, isCompliant: true, message: 'Не е применливо' };
     }
-
-    // Handle choice questions
-    if (questionType === 'choice') {
-      return this.evaluateChoiceQuestion(question, answer);
-    }
-
-    // Handle yes/no and variants (yes_no, yes_no_na, yes_partial_no, true_false)
-    return this.evaluateYesNoQuestion(question, answer);
-  }
-
-  evaluateYesNoQuestion(question, answer) {
-    const { correctAnswer, weight, article, sanctionLevel, type } = question;
-    let score = 0;
-    let isCompliant = false;
-    let message = '';
-
-    // Normalize answer for true/false type
-    let normalizedAnswer = answer;
-    if (type === 'true_false') {
-      normalizedAnswer = answer === 'true' ? 'yes' : (answer === 'false' ? 'no' : answer);
-    }
-
-    // Normalize correct answer
-    let normalizedCorrect = correctAnswer;
-    if (correctAnswer === 'true') normalizedCorrect = 'yes';
-    if (correctAnswer === 'false') normalizedCorrect = 'no';
-
-    const answerMatchesCorrect = normalizedAnswer === normalizedCorrect;
-
-    switch (normalizedAnswer) {
-      case 'yes':
-        if (normalizedCorrect === 'yes') {
-          score = weight;
-          isCompliant = true;
-          message = `✓ Постапувате во согласност со ${article}.`;
-        } else {
-          score = -weight;
-          message = `✗ Постапувањето е спротивно на ${article}.${this.getSanctionText(question)}`;
-        }
-        break;
-
-      case 'no':
-        if (normalizedCorrect === 'no') {
-          score = weight;
-          isCompliant = true;
-          message = `✓ Постапувате во согласност со ${article}.`;
-        } else {
-          score = -weight;
-          message = `✗ Постапувањето не е во согласност со ${article}.${this.getSanctionText(question)}`;
-        }
-        break;
-
-      case 'partial':
-      case 'partially':
-        score = -(weight * 0.5);
-        message = `⚠ Делумно постапување спротивно на ${article}.${this.getSanctionText(question)}`;
-        break;
-
-      default:
-        // Handle any other values as non-compliant
-        score = -(weight * 0.25);
-        isCompliant = false;
-        message = `⚠ Неодредено постапување во однос на ${article}.`;
-    }
-
-    return { score, isCompliant, message };
-  }
-
-  evaluateChoiceQuestion(question, answer) {
-    const selectedOption = question.options.find(opt => opt.value === answer);
-    if (!selectedOption) {
-      return { score: 0, isCompliant: false, message: 'Невалиден одговор' };
-    }
-
-    const isCorrect = selectedOption.isCorrect;
-    const score = isCorrect ? question.weight : -question.weight;
-    const message = isCorrect
-      ? `✓ Постапувате во согласност со ${question.article}.`
-      : `✗ Постапувањето не е во согласност со ${question.article}.${this.getSanctionText(question)}`;
-
-    return { score, isCompliant: isCorrect, message };
-  }
-
-  evaluateMultiCheckQuestion(question, answer) {
-    // Multi-check answers come as an object { q25a: true, q25b: false, ... }
-    if (typeof answer !== 'object') {
-      return { score: 0, isCompliant: false, message: 'Невалиден формат на одговор' };
-    }
-
-    let totalWeight = 0;
-    let earnedWeight = 0;
-    const checkedItems = [];
-    const uncheckedItems = [];
-
-    question.options.forEach(opt => {
-      totalWeight += opt.weight;
-      if (answer[opt.id]) {
-        earnedWeight += opt.weight;
-        checkedItems.push(opt.label);
-      } else {
-        uncheckedItems.push(opt.label);
-      }
-    });
-
-    const isFullyCompliant = uncheckedItems.length === 0;
-    const score = earnedWeight - (totalWeight - earnedWeight) * 0.5;
-    const complianceRatio = totalWeight > 0 ? earnedWeight / totalWeight : 0;
-
+    const isCompliant = fraction >= 1;
+    const ref = question.article;
     let message;
-    if (isFullyCompliant) {
-      message = `✓ Сите мерки се превземени во согласност со ${question.article}.`;
-    } else if (complianceRatio >= 0.5) {
-      message = `⚠ Делумно превземени мерки. Недостасуваат: ${uncheckedItems.length} мерки.`;
+    if (isCompliant) {
+      message = `✓ Постапувате во согласност со ${ref}.`;
+    } else if (fraction > 0) {
+      message = `⚠ Делумно постапување во однос на ${ref}.${this.getSanctionText(question)}`;
     } else {
-      message = `✗ Повеќето мерки не се превземени. ${this.getSanctionText(question)}`;
+      message = `✗ Постапувањето не е во согласност со ${ref}.${this.getSanctionText(question)}`;
     }
-
-    return { score, isCompliant: isFullyCompliant, message };
+    return { score: fraction * weight, isCompliant, message };
   }
 
   getSanctionText(question) {
@@ -302,28 +198,22 @@ class GeneralComplianceEvaluator {
       violations: this.results.violations,
       allFindings: this.results.allFindings,
       recommendations: uniqueRecommendations,
-      categoryBreakdown: this.results.categoryBreakdown
+      categoryBreakdown: this.results.categoryBreakdown,
+      disclaimer: LHC_DISCLAIMER
     };
   }
 
   determineGrade(percentage) {
-    for (const grade of Object.values(gradeConfig)) {
-      if (percentage >= grade.min) {
-        return grade;
-      }
-    }
-    return gradeConfig.veryLow;
+    return BANDS.find(b => percentage >= b.min) || BANDS[BANDS.length - 1];
   }
 
   getGradeDescription(grade) {
+    const c = this.companyName;
     const descriptions = {
-      'Перфектна усогласеност': `Кај ${this.companyName} постои перфектна и целосна усогласеност со сите проверени области.`,
-      'Одлична усогласеност': `Кај ${this.companyName} постои одлична усогласеност. Идентификувани се само мали пропусти.`,
-      'Задоволителна усогласеност': `Кај ${this.companyName} постои задоволителна усогласеност, но има простор за подобрување.`,
-      'Определена усогласеност': `Кај ${this.companyName} постои определена усогласеност, меѓутоа неколку практики треба да се подобрат.`,
-      'Делумна усогласеност': `Кај ${this.companyName} постои делумна усогласеност. Постојат многу пропусти кои треба да се отстранат.`,
-      'Ниска усогласеност': `Кај ${this.companyName} постои ниска усогласеност. Пропустите се значителни и лесно воочливи.`,
-      'Исклучително ниска усогласеност': `Кај ${this.companyName} постои исклучително ниска усогласеност. При евентуална инспекција може да има сериозни последици.`
+      'Висока усогласеност': `Кај ${c} постои висока усогласеност во проверените области. Идентификувани се само мали пропусти.`,
+      'Задоволителна усогласеност': `Кај ${c} постои задоволителна усогласеност, но има простор за подобрување.`,
+      'Делумна усогласеност': `Кај ${c} постои делумна усогласеност. Постојат значителни пропусти кои треба да се отстранат.`,
+      'Ниска усогласеност': `Кај ${c} постои ниска усогласеност. При евентуална инспекција може да има сериозни последици.`
     };
 
     return descriptions[grade] || 'Не може да се одреди оценка.';
@@ -408,6 +298,7 @@ async function evaluateCompliance(req, res) {
     // Evaluate using hybrid engine
     const evaluator = new GeneralComplianceEvaluator(companySize, companyName);
     const report = evaluator.evaluate(answers, questions);
+    Object.assign(report, coverageFromAnswers(answers, questions.length));
 
     // Save to database
     const db = req.app.locals.db;
@@ -489,5 +380,7 @@ module.exports = {
   getQuestions,
   evaluateCompliance,
   getAssessmentHistory,
-  getAssessmentById
+  getAssessmentById,
+  // Exported for tests
+  GeneralComplianceEvaluator
 };

@@ -1,213 +1,203 @@
 // Employment Part 4: Посебна заштита (Special Protection)
-// Categories: special_protection
-// 12 questions total
+// Category: special_protection. Graduated a/b/c/d maturity model.
+// Legal source: outputs/IZVORI_pravna_ramka_ZRO_Rabotni_odnosi.md (Закон за работните односи).
+// Ids + article кодовите се задржани од оригиналот.
 
-const ANSWER_TYPES = {
-  YES_NO: 'yes_no',
-  CHOICE: 'choice',
-  MULTI_CHECK: 'multi_check'
+const NA = { key: 'na', label: 'Не е применливо за мојот бизнис', points: null };
+const ABCD = (a, b, c, d, withNa) => {
+  const arr = [
+    { key: 'a', label: a, points: 3 },
+    { key: 'b', label: b, points: 2 },
+    { key: 'c', label: c, points: 1 },
+    { key: 'd', label: d, points: 0 }
+  ];
+  if (withNa) arr.push(NA);
+  return arr;
 };
-
-const SANCTION_LEVELS = {
-  HIGH: 'sanction1',
-  MEDIUM: 'sanction2',
-  NONE: 'none'
-};
+const PARENTAL = { flag: 'hasParentalProtection', appliesWhen: true };
 
 const questions = [
-  // ===== ПОСЕБНА ЗАШТИТА (q78-q84) =====
   {
-    id: 'q78',
-    category: 'special_protection',
-    text: 'Дали на бремена работничка и се доделува работа која е полесна или соодветна на нејзината состојба?',
+    id: 'EPROF-01', type: 'profiling', profilingType: 'single', flag: 'companySize',
+    text: 'Колку работници вработувате?',
+    helpText: 'Големината влијае на висината на можните прекршочни казни.',
+    options: [
+      { key: 'micro', label: '1–9 вработени' },
+      { key: 'small', label: '10–49 вработени' },
+      { key: 'medium', label: '50–249 вработени' },
+      { key: 'large', label: '250+ вработени' }
+    ]
+  },
+  {
+    id: 'EPROF-07', type: 'profiling', profilingType: 'boolean', flag: 'hasParentalProtection',
+    text: 'Дали имате вработени кои се бремени, доилки или родители на мали деца (до 7 години)?',
+    options: [{ key: 'yes', label: 'Да' }, { key: 'no', label: 'Не' }]
+  },
+
+  {
+    id: 'q78', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    applicability: PARENTAL,
+    text: 'Дали на бремена работничка ѝ доделувате полесна работа соодветна на нејзината состојба?',
     article: 'Член 163 од Законот за работните односи',
-    type: ANSWER_TYPES.YES_NO,
-    correctAnswer: 'yes',
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
+    options: ABCD(
+      'Да — секогаш, проактивно и со задржување на платата.',
+      'Претежно — но само на барање од работничката.',
+      'Само ако таа настојува.',
+      'Не — останува на истата работа.', true
+    ),
     recommendation: 'На бремена работничка мора да и се обезбеди полесна работа или работа соодветна на нејзината состојба.'
   },
   {
-    id: 'q79',
-    category: 'special_protection',
-    text: 'Дали на работничката која дои дете се дозволува платена пауза од еден и пол час дневно?',
+    id: 'q79', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    applicability: PARENTAL,
+    text: 'Дали на работничка што дои дете ѝ овозможувате платена пауза од 1,5 час дневно?',
     article: 'Член 164 став 4 од Законот за работните односи',
-    type: ANSWER_TYPES.YES_NO,
-    correctAnswer: 'yes',
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
+    options: ABCD(
+      'Да — секогаш, целосно платена.',
+      'Претежно — но пократко или нередовно.',
+      'Само на изречно барање.',
+      'Не — не даваме таква пауза.', true
+    ),
     recommendation: 'На работничката која дои дете мора да и се даде платена пауза од еден и пол час дневно.'
   },
   {
-    id: 'q80',
-    category: 'special_protection',
-    text: 'Дали бремена работничка може да работи ноќе?',
+    id: 'q80', category: 'special_protection', type: 'abcd', weight: 5, severity: 'high', critical: true,
+    applicability: PARENTAL,
+    text: 'Дали обезбедувате дека бремени работнички не работат ноќна смена?',
     article: 'Член 162 од Законот за работните односи',
-    type: ANSWER_TYPES.YES_NO,
-    correctAnswer: 'no',
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
+    options: ABCD(
+      'Да — бремените никогаш не се распоредуваат на ноќна работа.',
+      'Претежно — но има исклучоци.',
+      'Не следиме доследно.',
+      'Не — бремени работат и ноќе.', true
+    ),
     recommendation: 'Бремена работничка не смее да работи ноќе.'
   },
   {
-    id: 'q81',
-    category: 'special_protection',
-    text: 'Дали бремена работничка може да работи прекувремено?',
+    id: 'q81', category: 'special_protection', type: 'abcd', weight: 5, severity: 'high', critical: true,
+    applicability: PARENTAL,
+    text: 'Дали обезбедувате дека бремени работнички не работат прекувремено?',
     article: 'Член 162 од Законот за работните односи',
-    type: ANSWER_TYPES.YES_NO,
-    correctAnswer: 'no',
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
+    options: ABCD(
+      'Да — бремените никогаш не работат прекувремено.',
+      'Претежно — но има исклучоци.',
+      'Не следиме доследно.',
+      'Не — бремени работат прекувремено.', true
+    ),
     recommendation: 'Бремена работничка не смее да работи прекувремено.'
   },
   {
-    id: 'q82',
-    category: 'special_protection',
-    text: 'Вработена ви соопшти дека е бремена и побара породилно отсуство. Колку месеци отсуство и одобрувате?',
+    id: 'q82', category: 'special_protection', type: 'abcd', weight: 5, severity: 'high', critical: true,
+    applicability: PARENTAL,
+    text: 'Дали на работничките им овозможувате целосно породилно отсуство (9 месеци непрекинато, 15 за близнаци)?',
+    helpText: 'Породилното е апсолутно право — не смеете да барате скратување или предвремено враќање.',
     article: 'Член 165 став 1 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'nine_months', text: '9 месеци непрекинато (или 15 за близнаци/повеќе деца)', isCorrect: true },
-      { value: 'six_months', text: '6 месеци', isCorrect: false },
-      { value: 'three_months', text: '3 месеци', isCorrect: false },
-      { value: 'negotiate', text: 'Се договараме колку може да отсуствува според деловните потреби', isCorrect: false }
-    ],
+    options: ABCD(
+      'Да — целосни 9 (односно 15) месеци, без притисок за враќање.',
+      'Претежно — но со извесен притисок за побрзо враќање.',
+      'Одобруваме пократко отсуство.',
+      'Не — не го почитуваме законското траење.', true
+    ),
     recommendation: 'Породилното отсуство е 9 месеци непрекинато (15 за близнаци). Ова е апсолутно право - работодавачот не смее да бара скратување, ниту да инсистира на предвремено враќање. Барање работничката да се врати порано е тежок прекршок.'
   },
   {
-    id: 'q83',
-    category: 'special_protection',
-    text: 'Дали за евентуалното прекувремено или ноќно работење на работник/работничка која има дете до седум години, задолжително се прибавува писмена согласност?',
+    id: 'q83', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    applicability: PARENTAL,
+    text: 'За прекувремена или ноќна работа на работник со дете до 7 години, дали прибавувате писмена согласност?',
     article: 'Член 164 став 4 од Законот за работните односи',
-    type: ANSWER_TYPES.YES_NO,
-    correctAnswer: 'yes',
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
+    options: ABCD(
+      'Да — секогаш со претходна писмена согласност.',
+      'Претежно — но не секогаш документирано.',
+      'Само усно се договараме.',
+      'Не — распоредуваме без согласност.', true
+    ),
     recommendation: 'Не смее да се задава прекувремена работа или работа ноќе на работник кој има дете помладо од седум години без негова/нејзина писмена согласност.'
   },
   {
-    id: 'q84',
-    category: 'special_protection',
-    text: 'Вработен доставил решение дека има намалена работна способност и не може да ги извршува тековните задачи. Како постапувате?',
+    id: 'q84', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    text: 'Кога работник има намалена работна способност, дали му нудите друго соодветно/приспособено работно место пред да размислувате за отказ?',
     article: 'Член 175 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'reassign', text: 'Му нудиме друго соодветно работно место или приспособени задачи', isCorrect: true },
-      { value: 'no_such', text: 'Немаме вработени со намалена работна способност', isCorrect: true },
-      { value: 'dismiss', text: 'Му даваме отказ бидејќи не може да ја врши работата', isCorrect: false },
-      { value: 'same_position', text: 'Останува на истото место - тој треба да се снајде', isCorrect: false }
-    ],
+    options: ABCD(
+      'Да — прво нудиме соодветно или приспособено работно место (или немаме такви случаи).',
+      'Претежно — но постапката не е доследна.',
+      'Ретко нудиме алтернатива.',
+      'Не — директно даваме отказ.'
+    ),
     recommendation: 'Работодавачот е должен прво да понуди соодветно работно место или приспособена работа. Отказ е дозволен САМО ако не постои никакво друго работно место кај работодавачот. Директен отказ без понуда за алтернатива е незаконит.'
   },
-
-  // ===== НОВИ ПРАШАЊА - ПОСЕБНА ЗАШТИТА (q102-q106) =====
   {
-    id: 'q102',
-    category: 'special_protection',
-    text: 'Вработена се врати од породилно отсуство. Дали и го враќате истото работно место или еквивалентно?',
+    id: 'q102', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    applicability: PARENTAL,
+    text: 'По враќање од породилно отсуство, дали работничката се враќа на истото или еквивалентно работно место со исти услови?',
     article: 'Член 166 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'same_position', text: 'Да, се враќа на истото или еквивалентно работно место со исти услови', isCorrect: true },
-      { value: 'different', text: 'Ја ставаме каде што има место во моментот', isCorrect: false },
-      { value: 'lower_position', text: 'Бидејќи долго отсуствувала, и нудиме пониска позиција', isCorrect: false },
-      { value: 'no_maternity', text: 'Немале сме работнички на породилно отсуство', isCorrect: true }
-    ],
+    options: ABCD(
+      'Да — исто или еквивалентно место со исти услови.',
+      'Претежно — но понекогаш со послаби услови.',
+      'Ја распоредуваме каде има место.',
+      'Не — нудиме пониска позиција или послаби услови.', true
+    ),
     recommendation: 'По завршување на породилното отсуство, работничката има право да се врати на истото работно место со исти услови. Ако местото е укинато, мора да и се понуди еквивалентно. Понижување или влошување на условите е забрането.'
   },
   {
-    id: 'q103',
-    category: 'special_protection',
-    text: 'Вработена е во 7-ми месец од бременоста и работи на позиција која вклучува кревање тешки предмети. Дали сте преземале нешто?',
+    id: 'q103', category: 'special_protection', type: 'abcd', weight: 4, severity: 'high',
+    applicability: PARENTAL,
+    text: 'Кога бремена работничка е на ризична позиција (пр. кревање тежок товар), дали проактивно ја преместувате на безбедна работа со иста плата?',
     article: 'Член 163 став 1 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'reassigned', text: 'Да, ја преместивме на полесна работа со задржување на истата плата', isCorrect: true },
-      { value: 'sick_leave', text: 'И кажавме да земе боледување ако не може да работи', isCorrect: false },
-      { value: 'same_work', text: 'Продолжува на истото место - таа не се жалела', isCorrect: false },
-      { value: 'no_pregnant', text: 'Немаме бремени работнички на такви позиции', isCorrect: true }
-    ],
+    options: ABCD(
+      'Да — проактивно, со задржување на платата.',
+      'Претежно — но само на барање.',
+      'Ја упатуваме на боледување наместо преместување.',
+      'Не — останува на ризичната работа.', true
+    ),
     recommendation: 'Бремена работничка МОРА да биде преместена на полесна или безопасна работа, со задржување на платата од претходното работно место. Ова е обврска на работодавачот, не избор. Не смеете да чекате работничката да побара - вие мора проактивно да реагирате.'
   },
   {
-    id: 'q104',
-    category: 'special_protection',
-    text: 'Вработена со дете од 3 години ви кажува дека не сака да работи ноќна смена. Дали мора да ја ослободите?',
+    id: 'q104', category: 'special_protection', type: 'abcd', weight: 3, severity: 'high',
+    applicability: PARENTAL,
+    text: 'Дали почитувате дека работник со дете до 7 години не може да биде распореден на ноќна/прекувремена работа без писмена согласност?',
     article: 'Член 164 став 4 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 1,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'yes_must', text: 'Да, работник со дете под 7 години не може да работи ноќе без негова/нејзина писмена согласност', isCorrect: true },
-      { value: 'no_obligation', text: 'Не, обврска на работникот е да ги прифати сите смени', isCorrect: false },
-      { value: 'only_infant', text: 'Ова важи само за деца под 1 година', isCorrect: false },
-      { value: 'no_night_work', text: 'Немаме ноќна работа', isCorrect: true }
-    ],
+    options: ABCD(
+      'Да — секогаш, без исклучок.',
+      'Претежно — но со притисок за прифаќање смени.',
+      'Не сме сигурни за правилото.',
+      'Не — сметаме дека мора да ги прифатат сите смени.', true
+    ),
     recommendation: 'Работник/работничка со дете до 7 години не може да биде распореден/а на ноќна или прекувремена работа без негова/нејзина претходна писмена согласност. Ова правило е апсолутно и не може да се заобиколи со внатрешни правилници.'
   },
   {
-    id: 'q105',
-    category: 'special_protection',
-    text: 'Татко на новороденче бара да го искористи правото на породилно отсуство наместо мајката, по првите 45 дена. Дали му го одобрувате?',
+    id: 'q105', category: 'special_protection', type: 'abcd', weight: 2, severity: 'high',
+    applicability: PARENTAL,
+    text: 'Дали му овозможувате на таткото да го преземе породилното отсуство по првите 45 дена, кога тоа го бара?',
     article: 'Член 165 став 2 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 0.5,
-    sanctionLevel: SANCTION_LEVELS.HIGH,
-    options: [
-      { value: 'yes_legal_right', text: 'Да, таткото може да го преземе породилното отсуство по првите 45 дена', isCorrect: true },
-      { value: 'no_only_mother', text: 'Не, породилното отсуство е само за мајката', isCorrect: false },
-      { value: 'only_if_mother_works', text: 'Само ако мајката е вработена и се согласи', isCorrect: false },
-      { value: 'no_such_request', text: 'Немаме имале вакво барање', isCorrect: true }
-    ],
+    options: ABCD(
+      'Да — го признаваме законското право на таткото.',
+      'Претежно — но со отпор.',
+      'Не сме сигурни за правото.',
+      'Не — сметаме дека е само за мајката.', true
+    ),
     recommendation: 'По истекот на првите 45 дена од породилното отсуство, таткото има право да го преземе остатокот од отсуството. Ова е законско право кое не може да се одбие. Работодавачот на таткото мора да го одобри отсуството.'
   },
   {
-    id: 'q106',
-    category: 'special_protection',
-    text: 'Вработен со утврден инвалидитет (60% телесно оштетување) бара зголемен годишен одмор. Дали му следува?',
+    id: 'q106', category: 'special_protection', type: 'abcd', weight: 2, severity: 'medium',
+    text: 'Дали на работниците со утврден инвалидитет (телесно оштетување ≥60%) автоматски им доделувате зголемен годишен одмор (+3 дена)?',
     article: 'Член 137 став 3 од Законот за работните односи',
-    type: ANSWER_TYPES.CHOICE,
-    weight: 0.5,
-    sanctionLevel: SANCTION_LEVELS.MEDIUM,
-    options: [
-      { value: 'yes_additional', text: 'Да, му следуваат дополнителни 3 работни дена годишен одмор над минималните 20', isCorrect: true },
-      { value: 'same_as_others', text: 'Не, сите добиваат ист одмор без разлика', isCorrect: false },
-      { value: 'only_if_requested', text: 'Само ако достави барање со документација', isCorrect: false },
-      { value: 'no_disabled', text: 'Немаме вработени со утврден инвалидитет', isCorrect: true }
-    ],
+    options: ABCD(
+      'Да — автоматски го пресметуваме дополнителниот одмор (или немаме такви вработени).',
+      'Претежно — но само на барање со документација.',
+      'Не сме сигурни за правото.',
+      'Не — сите добиваат ист одмор.'
+    ),
     recommendation: 'Работници со телесно оштетување од 60% или повеќе имаат законско право на зголемен годишен одмор (дополнителни 3 работни дена). Ова право не зависи од барање - работодавачот е должен автоматски да го пресмета при доделувањето на одморот.'
   }
 ];
 
-// Company size-based sanctions
 const sanctions = {
-  micro: {
-    sanction1: { employer: '500-1.000 евра', responsible: '250 евра' },
-    sanction2: { employer: '200-400 евра', responsible: '100 евра' }
-  },
-  small: {
-    sanction1: { employer: '500-1.000 евра', responsible: '250 евра' },
-    sanction2: { employer: '200-400 евра', responsible: '100 евра' }
-  },
-  medium: {
-    sanction1: { employer: '1.000-2.000 евра', responsible: '400 евра' },
-    sanction2: { employer: '300-600 евра', responsible: '250 евра' }
-  },
-  large: {
-    sanction1: { employer: '2.000-3.000 евра', responsible: '500 евра' },
-    sanction2: { employer: '600-1.000 евра', responsible: '350 евра' }
-  }
+  micro: { sanction1: { employer: '500-1.000 евра', responsible: '250 евра' }, sanction2: { employer: '200-400 евра', responsible: '100 евра' } },
+  small: { sanction1: { employer: '500-1.000 евра', responsible: '250 евра' }, sanction2: { employer: '200-400 евра', responsible: '100 евра' } },
+  medium: { sanction1: { employer: '1.000-2.000 евра', responsible: '400 евра' }, sanction2: { employer: '300-600 евра', responsible: '250 евра' } },
+  large: { sanction1: { employer: '2.000-3.000 евра', responsible: '500 евра' }, sanction2: { employer: '600-1.000 евра', responsible: '350 евра' } }
 };
 
-// Grade thresholds
 const gradeConfig = {
   perfect: { min: 100, label: 'Перфектна усогласеност', class: 'perfect' },
   excellent: { min: 80, label: 'Одлична усогласеност', class: 'excellent' },
@@ -218,7 +208,6 @@ const gradeConfig = {
   veryLow: { min: 0, label: 'Исклучително ниска усогласеност', class: 'verylow' }
 };
 
-// Category display names
 const categoryNames = {
   special_protection: 'Посебна заштита (бременост, родителство и инвалидитет)'
 };
@@ -228,6 +217,5 @@ module.exports = {
   sanctions,
   gradeConfig,
   categoryNames,
-  ANSWER_TYPES,
-  SANCTION_LEVELS
+  SANCTION_LEVELS: { HIGH: 'sanction1', MEDIUM: 'sanction2', NONE: 'none' }
 };

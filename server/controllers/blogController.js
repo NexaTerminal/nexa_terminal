@@ -47,6 +47,15 @@ class BlogController {
   formatContentToParagraphs(content) {
     if (!content) return '';
 
+    // Normalize non-breaking spaces to regular spaces. Some editors/AI output
+    // join every word with &nbsp; (U+00A0), which forbids line breaks between
+    // words — the browser then has no legal break point and is forced to split
+    // words mid-word at the margin (looks justified, cuts words). Regular spaces
+    // let text wrap naturally.
+    content = content
+      .replace(/&nbsp;|&#160;|&#xA0;/gi, ' ')
+      .replace(/\u00A0/g, ' ');
+
     // If already has HTML tags, return as is
     if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>') || content.includes('<h')) {
       return content;

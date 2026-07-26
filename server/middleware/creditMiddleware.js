@@ -51,10 +51,10 @@ const checkCredits = (cost = 1) => {
         });
       }
 
-      // One-free-document pass (subscriptionGuard sets req.freeDocPass for a
-      // locked account's first generation) — no credit balance involved;
-      // deductCredits marks users.freeDocUsed instead of deducting.
-      if (req.freeDocPass) return next();
+      // One-free-document / one-free-check pass (subscriptionGuard sets these for
+      // a locked account) — no credit balance involved; deductCredits marks the
+      // corresponding one-time flag instead of deducting.
+      if (req.freeDocPass || req.freeCheckPass) return next();
 
       const creditService = req.app.locals.creditService;
 
@@ -137,9 +137,28 @@ const deductCredits = (type) => {
       }
     };
 
+    // One-free-check pass: burn the one-time freeCheckUsed flag on the first
+    // successful compliance evaluate (subscriptionGuard set req.freeCheckPass).
+    let freeCheckMarked = false;
+    const markFreeCheckUsed = async () => {
+      if (freeCheckMarked || !req.freeCheckPass || res.statusCode >= 400) return;
+      freeCheckMarked = true;
+      try {
+        const db = req.app.locals.database || req.app.locals.db;
+        await db.collection('users').updateOne(
+          { _id: req.user._id },
+          { $set: { freeCheckUsed: true, freeCheckUsedAt: new Date() } }
+        );
+        console.log('[creditMiddleware] ✅ Free check consumed:', req.user._id.toString());
+      } catch (err) {
+        console.error('[creditMiddleware] Failed to mark free check used:', err);
+      }
+    };
+
     // Wrap send function to deduct credits on successful response
     const deductAndSend = async (body) => {
       await markFreeDocUsed();
+      await markFreeCheckUsed();
       if (!creditsDeducted && req.creditsChecked && res.statusCode < 400) {
         try {
           // Honor the credit-bearer resolution from checkCredits (sub-seats → parent's pool).

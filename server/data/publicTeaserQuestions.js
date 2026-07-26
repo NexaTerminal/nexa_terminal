@@ -1,8 +1,10 @@
 // Public teaser screening — „Бесплатна проверка" (master-plan Phase 1.1).
 //
-// 10 curated yes/no questions distilled from the full LHC screenings
-// (employment, GDPR, health & safety). Evaluated ONLY server-side — the
-// public endpoint must never leak correctAnswer to the browser.
+// 15 curated yes/no questions distilled from the full LHC screenings
+// (employment, GDPR, health & safety, fire safety, archives). Served in a
+// RANDOM order (mixed across topics) so the check doesn't feel grouped.
+// Evaluated ONLY server-side — the public endpoint must never leak
+// correctAnswer to the browser.
 //
 // Each question carries the gap presentation for the results page:
 //   gapTitle — short name of what's missing
@@ -122,6 +124,61 @@ const questions = [
     gapTitle: 'Деловните тајни не се договорно заштитени',
     risk: 'Без NDA, заштитата на know-how и клиентски листи во спор е значително послаба.',
     fix: 'Договор за доверливост (NDA) — автоматизиран шаблон во Nexa'
+  },
+  {
+    id: 't11',
+    text: 'Дали имате назначено стручно лице за безбедност при работа (внатрешно или преку овластена фирма)?',
+    article: 'Член 17 од Законот за безбедност и здравје при работа',
+    correctAnswer: 'yes',
+    severity: SEVERITY.HIGH,
+    weight: 2,
+    gapTitle: 'Нема назначено стручно лице за безбедност при работа',
+    risk: 'Задолжителна обврска за секој работодавач — прекршочна санкција при надзор на трудовата инспекција.',
+    fix: 'Проверка за безбедност и здравје при работа во Nexa'
+  },
+  {
+    id: 't12',
+    text: 'Дали на вашата веб-страница имате објавено политика за приватност и барате согласност за колачиња?',
+    article: 'Закон за заштита на личните податоци',
+    correctAnswer: 'yes',
+    severity: SEVERITY.MEDIUM,
+    weight: 1,
+    gapTitle: 'Нема политика за приватност/согласност за колачиња на веб',
+    risk: 'Собирање податоци преку веб без информирање и согласност е повреда на ЗЗЛП.',
+    fix: 'GDPR пакет во Nexa — политика за приватност и колачиња'
+  },
+  {
+    id: 't13',
+    text: 'Дали имате противпожарни апарати сервисирани од овластено лице и истакнат план за евакуација?',
+    article: 'Закон за заштита и спасување; Закон за пожарникарството',
+    correctAnswer: 'yes',
+    severity: SEVERITY.HIGH,
+    weight: 2,
+    gapTitle: 'Недостасува противпожарна опрема или план за евакуација',
+    risk: 'Несервисирана ПП опрема и непостоечка евакуација носат глоба и висок безбедносен ризик.',
+    fix: 'Проверка „Заштита, спасување и превенција на пожари" во Nexa'
+  },
+  {
+    id: 't14',
+    text: 'Дали имате план на архивски знаци и листи со рокови на чување на документацијата?',
+    article: 'Закон за архивски материјал и архивска дејност (135/2025)',
+    correctAnswer: 'yes',
+    severity: SEVERITY.MEDIUM,
+    weight: 1,
+    gapTitle: 'Нема архивски план и рокови на чување',
+    risk: 'Од 1 јуни 2026 инспекторот издава решение со рок за исправка; недостатокот е чест наод.',
+    fix: 'Проверка за архивско и канцелариско работење во Nexa'
+  },
+  {
+    id: 't15',
+    text: 'Дали водите евиденција на работното време на вработените (вклучително прекувремена работа)?',
+    article: 'Член 116 од Законот за работните односи',
+    correctAnswer: 'yes',
+    severity: SEVERITY.MEDIUM,
+    weight: 1,
+    gapTitle: 'Не се води евиденција на работното време',
+    risk: 'Задолжителна евиденција; недостатокот е прекршок и го отежнува докажувањето при спор за прекувремена работа.',
+    fix: 'Проверка на работните односи во Nexa'
   }
 ];
 

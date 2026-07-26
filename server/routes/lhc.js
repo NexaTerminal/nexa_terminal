@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const employmentController = require('../controllers/lhc/employmentController');
 const employmentPart1Controller = require('../controllers/lhc/employmentPart1Controller');
 const employmentPart2Controller = require('../controllers/lhc/employmentPart2Controller');
 const employmentPart3Controller = require('../controllers/lhc/employmentPart3Controller');
@@ -9,6 +8,12 @@ const healthAndSafetyController = require('../controllers/lhc/healthAndSafetyCon
 const gdprController = require('../controllers/lhc/gdprController');
 const generalController = require('../controllers/lhc/generalController');
 const archivesController = require('../controllers/lhc/archivesController');
+const protectionRescueController = require('../controllers/lhc/protectionRescueController');
+const wasteManagementController = require('../controllers/lhc/wasteManagementController');
+const taxProfitController = require('../controllers/lhc/taxProfitController');
+const taxVatController = require('../controllers/lhc/taxVatController');
+const taxPayrollController = require('../controllers/lhc/taxPayrollController');
+const taxGeneralController = require('../controllers/lhc/taxGeneralController');
 const { authenticateJWT } = require('../middleware/auth');
 const { requireVerification } = require('../middleware/verification');
 const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
@@ -17,11 +22,8 @@ const { checkCredits, deductCredits } = require('../middleware/creditMiddleware'
 router.use(authenticateJWT);
 router.use(requireVerification);
 
-// Employment Relations Routes (Legacy - all 84 questions)
-router.get('/employment/questions', employmentController.getQuestions);
-router.post('/employment/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), employmentController.evaluateCompliance);
-router.get('/employment/history', employmentController.getAssessmentHistory);
-router.get('/employment/assessment/:id', employmentController.getAssessmentById);
+// (Legacy 84-question /employment module retired — replaced by Part 1–4 below.
+//  Its data file is still used by the General pool.)
 
 // Employment Part 1: Вработување и договори (30 questions)
 router.get('/employment-part1/questions', employmentPart1Controller.getQuestions);
@@ -70,6 +72,42 @@ router.get('/archives/questions', archivesController.getQuestions);
 router.post('/archives/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), archivesController.evaluateCompliance);
 router.get('/archives/history', archivesController.getAssessmentHistory);
 router.get('/archives/assessment/:id', archivesController.getAssessmentById);
+
+// Protection, Rescue & Fire Prevention Routes (Заштита, спасување и превенција на пожари)
+router.get('/protection-rescue/questions', protectionRescueController.getQuestions);
+router.post('/protection-rescue/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), protectionRescueController.evaluateCompliance);
+router.get('/protection-rescue/history', protectionRescueController.getAssessmentHistory);
+router.get('/protection-rescue/assessment/:id', protectionRescueController.getAssessmentById);
+
+// Waste, Packaging & Batteries Routes (Управување со отпад, пакување и батерии)
+router.get('/waste-management/questions', wasteManagementController.getQuestions);
+router.post('/waste-management/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), wasteManagementController.evaluateCompliance);
+router.get('/waste-management/history', wasteManagementController.getAssessmentHistory);
+router.get('/waste-management/assessment/:id', wasteManagementController.getAssessmentById);
+
+// Даночна усогласеност — Под-модул 1: Данок на добивка (tax_profit)
+router.get('/tax-profit/questions', taxProfitController.getQuestions);
+router.post('/tax-profit/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), taxProfitController.evaluateCompliance);
+router.get('/tax-profit/history', taxProfitController.getAssessmentHistory);
+router.get('/tax-profit/assessment/:id', taxProfitController.getAssessmentById);
+
+// Даночна усогласеност — Под-модул 2: ДДВ (tax_vat)
+router.get('/tax-vat/questions', taxVatController.getQuestions);
+router.post('/tax-vat/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), taxVatController.evaluateCompliance);
+router.get('/tax-vat/history', taxVatController.getAssessmentHistory);
+router.get('/tax-vat/assessment/:id', taxVatController.getAssessmentById);
+
+// Даночна усогласеност — Под-модул 3: Плати, придонеси и персонален данок (tax_payroll)
+router.get('/tax-payroll/questions', taxPayrollController.getQuestions);
+router.post('/tax-payroll/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), taxPayrollController.evaluateCompliance);
+router.get('/tax-payroll/history', taxPayrollController.getAssessmentHistory);
+router.get('/tax-payroll/assessment/:id', taxPayrollController.getAssessmentById);
+
+// Даночна усогласеност — Под-модул 4: Општа даночна дисциплина (tax_general)
+router.get('/tax-general/questions', taxGeneralController.getQuestions);
+router.post('/tax-general/evaluate', checkCredits(1), deductCredits('LHC_REPORT'), taxGeneralController.evaluateCompliance);
+router.get('/tax-general/history', taxGeneralController.getAssessmentHistory);
+router.get('/tax-general/assessment/:id', taxGeneralController.getAssessmentById);
 
 // Future routes for other categories
 // router.get('/trade/questions', tradeController.getQuestions);

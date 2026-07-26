@@ -107,6 +107,7 @@
   border-radius: 10px;
   border: 1px solid var(--color-neutral-300, #d1d5db);
   background: #fff;
+  color: var(--color-neutral-800, #1f2937);
   font-size: 15px;
   font-weight: 600;
   font-family: inherit;
@@ -246,6 +247,7 @@
   font-size: 14.5px;
   line-height: 1.6;
   color: var(--color-neutral-600, #4b5563);
+  text-align: center;
 }
 
 .emailForm { margin: 0 0 18px; }

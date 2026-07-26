@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
+import LhcDisclaimer from '../../../components/terminal/lhc/LhcDisclaimer';
+import LhcCoverageNote from '../../../components/terminal/lhc/LhcCoverageNote';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
@@ -313,6 +315,10 @@ const GeneralReport = () => {
             </div>
 
             {/* Actions */}
+            <LhcCoverageNote coveragePct={assessment?.coveragePct} provisional={assessment?.provisional} />
+
+            <LhcDisclaimer text={assessment?.disclaimer} />
+
             <div className={styles["report-actions"]}>
               <button
                 onClick={() => navigate('/terminal/legal-screening')}

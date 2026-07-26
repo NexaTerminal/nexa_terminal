@@ -7,24 +7,33 @@ import Sidebar from '../../../components/terminal/Sidebar';
 import InsufficientCreditsModal from '../../../components/common/InsufficientCreditsModal';
 import useCreditHandler from '../../../hooks/useCreditHandler';
 import api from '../../../services/api';
+import useLhcDraft from '../../../hooks/useLhcDraft';
 
 const GeneralQuestionnaire = () => {
   const navigate = useNavigate();
   const { refreshCredits } = useCredit();
   const { handleCreditOperation, showInsufficientModal, modalConfig, closeModal } = useCreditHandler();
 
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { initialDraft, saveDraft, clearDraft, savedAt } = useLhcDraft('general');
+  const hasDraftQuestions = !!(initialDraft && initialDraft.questions && initialDraft.questions.length);
+  const [questions, setQuestions] = useState(initialDraft?.questions || []);
+  const [answers, setAnswers] = useState(initialDraft?.answers || {});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(initialDraft?.currentQuestionIndex || 0);
+  const [loading, setLoading] = useState(!hasDraftQuestions);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [companySize, setCompanySize] = useState('micro');
-  const [poolStats, setPoolStats] = useState(null);
+  const [companySize, setCompanySize] = useState(initialDraft?.companySize || 'micro');
+  const [poolStats, setPoolStats] = useState(initialDraft?.poolStats || null);
 
   useEffect(() => {
-    fetchQuestions();
+    // Resume keeps the SAME random questions; only fetch a fresh set with no draft.
+    if (!hasDraftQuestions) fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!loading) saveDraft({ answers, currentQuestionIndex, companySize, questions, poolStats });
+  }, [answers, currentQuestionIndex, companySize, questions, poolStats, loading, saveDraft]);
 
   const fetchQuestions = async () => {
     try {
@@ -116,6 +125,7 @@ const GeneralQuestionnaire = () => {
 
       if (response && response.success) {
         await refreshCredits();
+        clearDraft();
         navigate(`/terminal/legal-screening/general/report/${response.data._id}`);
       }
     } catch (err) {
@@ -344,6 +354,9 @@ const GeneralQuestionnaire = () => {
             <div className={styles["progress-section"]}>
               <div className={styles["progress-info"]}>
                 <span>Прогрес на пополнување</span>
+                {savedAt && (
+                  <span className={styles["autosave-indicator"]}>💾 Зачувано</span>
+                )}
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className={styles["progress-bar"]}>

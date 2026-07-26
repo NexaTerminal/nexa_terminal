@@ -203,6 +203,29 @@ export function hasFreeDocPass(user) {
   return !status || status === 'none';
 }
 
+/**
+ * One-free-full-check pass: a LOCKED account (status 'none') that hasn't yet
+ * run its single free complete compliance check. Mirrors the server pass in
+ * subscriptionGuard.js; the server enforces the single evaluate. Locked accounts
+ * can still VIEW their check report afterwards (see VerificationRequired).
+ */
+export function hasFreeCheckPass(user) {
+  if (!user) return false;
+  if (user.role === 'admin' || user.role === 'sub_seat') return false;
+  if (user.freeCheckUsed === true) return false;
+  const status = user.subscription?.status;
+  return !status || status === 'none';
+}
+
+/** True for a fresh, never-activated (status 'none') non-suspended account. */
+export function isFunnelLockedAccount(user) {
+  if (!user || user.role === 'sub_seat') return false;
+  if (isAccountSuspended(user)) return false;
+  if (hasFeatureAccess(user)) return false;
+  const status = user.subscription?.status;
+  return !status || status === 'none';
+}
+
 // Sidebar visibility helpers — convenience wrappers around visibleTier().
 // previewMode (trial / suspended / no-access) keeps the B surfaces visible
 // so the user can re-engage; actions still gate behind the order modal.

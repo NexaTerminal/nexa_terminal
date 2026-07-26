@@ -98,8 +98,8 @@ export default function Proverka() {
   // in the app on their report (LockedWelcome reads ?result=).
   const continueWithGoogle = () => {
     const redirect = result
-      ? `/terminal/dashboard?welcome=proverka&result=${result.id}`
-      : '/terminal/dashboard';
+      ? `/terminal?welcome=proverka&result=${result.id}`
+      : '/terminal';
     window.location.href = `${API_BASE}/auth/google?state=${encodeURIComponent(redirect)}`;
   };
 

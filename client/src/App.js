@@ -275,6 +275,8 @@ function App() {
 
       {/* Private Terminal Routes */}
       <Route path="/terminal" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      {/* Legacy/stale link safety net — the dashboard lives at /terminal, not /terminal/dashboard. */}
+      <Route path="/terminal/dashboard" element={<Navigate to="/terminal" replace />} />
       <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
       <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
       {/* Договори — Contract Management System (master-plan Phase 2) */}

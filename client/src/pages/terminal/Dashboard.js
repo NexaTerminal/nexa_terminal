@@ -8,10 +8,16 @@ import RightSidebar from "../../components/terminal/RightSidebar";
 import UpdatesFeed from "../../components/terminal/UpdatesFeed";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
+import LockedWelcome from "../../components/terminal/LockedWelcome";
+import { isFunnelLockedAccount } from "../../lib/tier";
 import { PROMO_FLASH_KEY } from "../../components/PromoRedeemWatcher";
 
 const Dashboard = () => {
   const { currentUser, token } = useAuth();
+  // Fresh, never-activated accounts (proverka funnel / code-first onboarding)
+  // get the full onboarding panel instead of the empty updates feed. It also
+  // surfaces their public compliance-check result via ?result= / localStorage.
+  const locked = isFunnelLockedAccount(currentUser);
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,17 +82,24 @@ const Dashboard = () => {
             </div>
           )}
 
-          <SubscriptionStatusBanner />
-
           {/* Removed dashboard-header section - profile info now in header dropdown */}
 
-          {loading ? (
-            <div className="text-center">
-              <p>Се вчитува...</p>
-            </div>
-          ) : null}
+          {locked ? (
+            /* Locked (never-activated) account: full onboarding + funnel result. */
+            <LockedWelcome />
+          ) : (
+            <>
+              <SubscriptionStatusBanner />
 
-          <UpdatesFeed />
+              {loading ? (
+                <div className="text-center">
+                  <p>Се вчитува...</p>
+                </div>
+              ) : null}
+
+              <UpdatesFeed />
+            </>
+          )}
         </main>
 
         <RightSidebar />

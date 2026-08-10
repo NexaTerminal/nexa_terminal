@@ -775,6 +775,7 @@ function registerRoutes() {
     '/blogs',                   // Blog posts (JWT protected)
     /^\/blogs\/[^\/]+\/like$/,  // Like/unlike blog posts (JWT protected)
     /^\/blogs\/[^\/]+\/dislike$/, // Dislike/un-dislike blog posts (JWT protected)
+    /^\/blogs\/[^\/]+$/,        // Update/delete/upload individual blog (JWT + admin protected)
     '/verification',            // Company verification (JWT protected)
     '/verification/status',     // Verification status (JWT protected)
     '/verification/upload',     // Document upload (JWT protected)

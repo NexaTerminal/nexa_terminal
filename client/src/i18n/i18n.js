@@ -7,7 +7,7 @@ import mkWebsite from './locales/website/mk.json';
 import enWebsite from './locales/website/en.json';
 
 const STORAGE_KEY = 'nexa.lang';
-const PUBLIC_PATHS = ['/', '/about', '/pricing', '/contact', '/blog', '/terms-conditions', '/privacy-policy', '/ecosystem'];
+const PUBLIC_PATHS = ['/', '/contact', '/blog', '/terms-conditions', '/privacy-policy'];
 
 const isPublicPath = (path) => {
   if (!path) return false;

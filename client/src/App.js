@@ -5,7 +5,8 @@ import { trackPageView } from './utils/analytics';
 // Public pages
 import Login from './pages/website/Login';
 import Home from './pages/website/Home';
-import Pricing from './pages/website/Pricing';
+import LeadsHome from './pages/website/LeadsHome';
+import { getStorefront } from './lib/storefront';
 import Proverka from './pages/website/Proverka';
 import Accountants from './pages/website/Accountants';
 import ContactPublic from './pages/website/Contact';
@@ -23,7 +24,6 @@ import TrademarkPage from './pages/website/TrademarkPage';
 import CorporatePage from './pages/website/CorporatePage';
 import PrivacyPolicy from './pages/website/PrivacyPolicy';
 import TermsAndConditions from './pages/website/TermsAndConditions';
-import About from './pages/website/About';
 
 // Admin Pages
 import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
@@ -32,6 +32,7 @@ import AllUsers from './pages/terminal/admin/AllUsers';
 import InvitedProspects from './pages/terminal/admin/InvitedProspects';
 import ProverkaFunnel from './pages/terminal/admin/ProverkaFunnel';
 import Team from './pages/terminal/admin-user/Team';
+import ProviderProfile from './pages/terminal/ProviderProfile';
 import AdminUserDashboard from './pages/terminal/admin-user/Dashboard';
 import LeadsInbox from './pages/terminal/admin-user/LeadsInbox';
 import ChangePassword from './pages/terminal/ChangePassword';
@@ -233,15 +234,13 @@ function App() {
     <>
     <PromoRedeemWatcher />
     <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Home />} />
+      {/* Public Routes — de-merge Phase 3: '/' resolves per storefront host. */}
+      <Route path="/" element={getStorefront() === 'leads' ? <LeadsHome /> : <Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/redeem" element={<Redeem />} />
-      <Route path="/pricing" element={<Pricing />} />
       <Route path="/proverka" element={<Proverka />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
       <Route path="/contact" element={<ContactPublic />} />
-      <Route path="/ecosystem" element={<About />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       {/* <Route path="/complete-profile" element={<CompleteProfile />} /> */}
@@ -262,7 +261,6 @@ function App() {
       {/* Public Legal Pages */}
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-conditions" element={<TermsAndConditions />} />
-      <Route path="/about" element={<About />} />
 
       {/* Provider Response - Public (no auth required) */}
       <Route path="/provider-response/:token" element={<ProviderResponse />} />
@@ -438,6 +436,7 @@ function App() {
       <Route path="/terminal/admin/proverka-funnel" element={<PrivateRoute><ProverkaFunnel /></PrivateRoute>} />
       <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
+      <Route path="/terminal/provider-profile" element={<PrivateRoute><ProviderProfile /></PrivateRoute>} />
       <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />
       <Route path="/terminal/admin-user/leads" element={<PrivateRoute><LeadsInbox /></PrivateRoute>} />
       <Route path="/terminal/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />

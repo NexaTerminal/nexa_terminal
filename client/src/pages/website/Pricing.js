@@ -4,27 +4,20 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
-import Icon from '../../components/website/Icon';
 import useScrollReveal from '../../hooks/useScrollReveal';
+import { getStorefront } from '../../lib/storefront';
 import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct } from '../../components/seo/schemaGraph';
 import styles from './Pricing.module.css';
 
-// Nexa — two-tier public chooser (Basic + Pro) with EUR/MKD currency toggle.
-// EUR is the source of truth (set per the public pricing spec). MKD is
-// derived at the documented National Bank parity 1 EUR = 61.5 MKD.
+// De-merge Phase 2+3 — the pricing page is a SINGLE-offer page per storefront:
+//   main  (nexa.mk)       → Product A (Basic), €49 / year, annual-only.
+//   leads (leads.nexa.mk) → Product B (Pro),  founding €59 / quarter (list €99).
+// EUR is the source of truth; MKD derived at 1 EUR = 61.5 MKD.
 const EUR_TO_MKD = 61.5;
-// Prices mirror server/constants/roles.js PLAN_PRICES (single source of truth).
-const PLANS_EUR = [
-  { key: 'basic', intent: null,  accent: false, prices: { monthly: 19, quarterly: 49, annual: 179 } },
-  { key: 'pro',   intent: 'pro', accent: true,  prices: { monthly: 39, quarterly: 99, annual: 359 } }
-];
-
-const CYCLE_MONTHS = { monthly: 1, quarterly: 3, annual: 12 };
-const savingsPct = (prices, cycle) => {
-  if (cycle === 'monthly') return 0;
-  const baseline = prices.monthly * CYCLE_MONTHS[cycle];
-  return Math.round((1 - prices[cycle] / baseline) * 100);
-};
+// Pro founding-cohort rate (advertised on leads.nexa.mk; granted via promo code).
+const PRO_LIST_QUARTERLY = 99;
+const PRO_FOUNDING_QUARTERLY = 59;
+const BASIC_ANNUAL = 49; // mirrors server/constants/roles.js PLAN_PRICES.basic.annual
 
 const fmtPrice = (eur, currency) => {
   if (currency === 'mkd') {
@@ -43,17 +36,15 @@ export default function Pricing() {
   const url = 'https://nexa.mk/pricing';
 
   const [currency, setCurrency] = useState('eur');     // 'eur' | 'mkd'
-  const [cycle, setCycle]       = useState('monthly'); // 'monthly' | 'quarterly' | 'annual'
+  const store = getStorefront();
+  const isLeads = store === 'leads';
 
-  const CYCLE_LABEL = isMk
-    ? { monthly: 'Месечно', quarterly: 'Квартално', annual: 'Годишно' }
-    : { monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
-  const CYCLE_SUFFIX = isMk
-    ? { monthly: '/ месец', quarterly: '/ квартал', annual: '/ година' }
-    : { monthly: '/ month',  quarterly: '/ quarter', annual: '/ year' };
-  const CYCLE_SUFFIX_MKD = isMk
-    ? { monthly: 'ден / месец', quarterly: 'ден / квартал', annual: 'ден / година' }
-    : { monthly: 'MKD / month', quarterly: 'MKD / quarter', annual: 'MKD / year' };
+  // Single offer per storefront (no cycle toggle — one price each).
+  const offer = isLeads
+    ? { key: 'pro',   intent: 'pro', eur: PRO_FOUNDING_QUARTERLY, listEur: PRO_LIST_QUARTERLY,
+        suffix: isMk ? '/ квартал' : '/ quarter', suffixMkd: isMk ? 'ден / квартал' : 'MKD / quarter' }
+    : { key: 'basic', intent: null, eur: BASIC_ANNUAL, listEur: null,
+        suffix: isMk ? '/ година' : '/ year',    suffixMkd: isMk ? 'ден / година' : 'MKD / year' };
 
   const PLAN_COPY = {
     basic: {
@@ -94,31 +85,34 @@ export default function Pricing() {
       ]
     },
     pro: {
-      tag:   isMk ? 'За провајдери на услуги' : 'For service providers',
-      title: isMk ? 'Про'                      : 'Pro',
+      tag:   isMk ? 'За правници и сметководители' : 'For lawyers & accountants',
+      title: isMk ? 'Про'                          : 'Pro',
       body:  isMk
-        ? 'Сè во Основен + членство во Nexa мрежата и до 25 клиентски сметки.'
-        : 'Everything in Basic + Nexa Network membership and up to 25 client accounts.',
-      featuresHead: isMk ? 'Сè во Основен, плус:' : 'Everything in Basic, plus:',
+        ? 'Нови клиенти од нашата мрежа од специјализирани сајти — плус видливост како експерт.'
+        : 'New clients from our network of specialized sites — plus visibility as an expert.',
+      featuresHead: isMk ? 'Што добивате' : 'What you get',
       features: isMk ? [
+        'Случаи (leads) од нашите сателит сајти — насочени по област и град',
+        'Прв кој ќе прифати го добива случајот — без наддавање',
+        'Topics Q&A — експертски одговори на јавни прашања што Google и AI ги цитираат',
+        '2 блог статии месечно, објавени под Ваше име',
+        'Место во месечниот билтен до 1000+ претплатници',
+        'Присуство во нашата мрежа и во именикот по област',
         'До 25 клиентски под-сметки — водете ги Вашите клиенти под Вашата претплата',
-        'Случаи (leads) добиени преку нашите сателит страни',
-        'Виртуелен саем — штанд со Вашите производи или услуги',
-        '2 блог статии месечно (наместо 1)',
-        'Topics Q&A — експертски одговори на јавни прашања',
-        'Барање за понуди (тендер) — давајте понуди на клиентски барања',
-        'Уредничко место во месечниот билтен за прифатените блог статии'
+        'Сите алатки на Терминалот (документи, AI, проверки) вклучени'
       ] : [
+        'Cases (leads) from our satellite sites — routed by practice area and city',
+        'First to claim wins the case — no bidding',
+        'Topics Q&A — expert answers Google and AI assistants cite',
+        '2 blog posts per month, published under your name',
+        'A spot in the monthly newsletter to 1000+ subscribers',
+        'Presence in our network and the practice-area directory',
         'Up to 25 client sub-accounts — manage your clients under your subscription',
-        'Cases (leads) sourced via our satellite sites',
-        'Virtual Fair — a booth with your products or services',
-        '2 blog posts per month (instead of 1)',
-        'Topics Q&A — expert answers to public questions',
-        'Request for offers (tender) — respond to client requests',
-        'Editorial spot in the monthly newsletter for accepted blog posts'
+        'All Terminal tools (documents, AI, checks) included'
       ]
     }
   };
+  const copy = PLAN_COPY[offer.key];
 
   return (
     <PublicLayout>
@@ -139,27 +133,22 @@ export default function Pricing() {
               {isMk ? 'Цени' : 'Pricing'}
             </span>
             <h1 className={styles.pageIntroTitle}>
-              {isMk ? 'Изберете што Ви треба од Nexa.' : 'Pick what you need from Nexa.'}
+              {isLeads
+                ? (isMk ? 'Повеќе клиенти. Една претплата.' : 'More clients. One subscription.')
+                : (isMk ? 'Сите алатки за Вашиот бизнис — една цена.' : 'Every tool for your business — one price.')}
             </h1>
             <p className={styles.pageIntroLead}>
-              {isMk
-                ? 'Две патеки: алатки за Вашиот бизнис, или членство во професионалната мрежа на Nexa. Започнете кога ќе бидете спремни — можете да го смените изборот во секое време.'
-                : 'Two paths: tools for your business, or membership in the Nexa professional network. Start when you are ready — you can switch later any time.'}
+              {isLeads
+                ? (isMk
+                    ? 'Насочени случаи од нашата мрежа од специјализирани сајти, плус видливост како експерт. Основачка цена за првите правници и сметководители.'
+                    : 'Routed cases from our network of specialized sites, plus visibility as an expert. A founding rate for the first lawyers and accountants.')
+                : (isMk
+                    ? 'Документи, AI помош, проверки на усогласеност и алатки за секојдневното работење. Една годишна претплата, без обврска.'
+                    : 'Documents, AI help, compliance checks and everyday operations tools. One annual subscription, no commitment.')}
             </p>
           </header>
 
           <div className={styles.toggleStack}>
-            <div className={styles.currencyToggle} role="group" aria-label={isMk ? 'Циклус' : 'Billing cycle'}>
-              {['monthly', 'quarterly', 'annual'].map(c => (
-                <button key={c} type="button"
-                  className={`${styles.currencyToggleBtn} ${cycle === c ? styles.currencyToggleBtnActive : ''}`}
-                  onClick={() => setCycle(c)}
-                  aria-pressed={cycle === c}>
-                  {CYCLE_LABEL[c]}
-                </button>
-              ))}
-            </div>
-
             <div className={styles.currencyToggleWrap} role="group" aria-label={isMk ? 'Валута' : 'Currency'}>
               <div className={styles.currencyToggle}>
                 <button type="button"
@@ -182,57 +171,52 @@ export default function Pricing() {
           </div>
 
           <div className={styles.chooserCards}>
-            {PLANS_EUR.map(plan => {
-              const copy   = PLAN_COPY[plan.key];
-              const to     = plan.intent ? `/login?intent=${plan.intent}` : '/login';
-              const priceE = plan.prices[cycle];
-              const saving = savingsPct(plan.prices, cycle);
-              return (
-                <Link key={plan.key}
-                      to={to}
-                      className={`${styles.chooserCard} ${plan.accent ? styles.chooserCardAccent : ''} nx-reveal`}>
-                  <span className={styles.chooserTag}>{copy.tag}</span>
-                  <h2 className={styles.chooserCardTitle}>{copy.title}</h2>
-                  <p className={styles.chooserCardBody}>{copy.body}</p>
+            <Link to={offer.intent ? `/login?intent=${offer.intent}` : '/login'}
+                  className={`${styles.chooserCard} ${isLeads ? styles.chooserCardAccent : ''} nx-reveal`}>
+              <span className={styles.chooserTag}>{copy.tag}</span>
+              <h2 className={styles.chooserCardTitle}>{copy.title}</h2>
+              <p className={styles.chooserCardBody}>{copy.body}</p>
 
-                  <div className={styles.chooserPriceLine}>
-                    {currency === 'eur' && <span className={styles.chooserCurrency}>€</span>}
-                    <span className={styles.chooserPriceNum}>{fmtPrice(priceE, currency)}</span>
-                    <span className={styles.chooserPriceSuffix}>
-                      {currency === 'mkd' ? CYCLE_SUFFIX_MKD[cycle] : CYCLE_SUFFIX[cycle]}
-                    </span>
-                    {saving > 0 && (
-                      <span className={styles.chooserSaveBadge}>
-                        {isMk ? `−${saving}%` : `Save ${saving}%`}
-                      </span>
-                    )}
-                  </div>
-                  <div className={styles.chooserSubline}>
-                    {isMk ? 'Без обврска · сменете или откажете во секое време' : 'No commitment · switch or cancel anytime'}
-                  </div>
-
-                  {copy.features && copy.features.length > 0 && (
-                    <div className={styles.chooserFeatures}>
-                      <div className={styles.chooserFeaturesHead}>{copy.featuresHead}</div>
-                      <ul className={styles.chooserFeaturesList}>
-                        {copy.features.map((f, i) => (
-                          <li key={i} className={styles.chooserFeatureItem}>
-                            <svg className={styles.chooserFeatureIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <polyline points="5 12 10 17 19 7"/>
-                            </svg>
-                            <span>{f}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <span className={styles.chooserCta}>
-                    {isMk ? 'Започни' : 'Get started'} <span aria-hidden>→</span>
+              <div className={styles.chooserPriceLine}>
+                {currency === 'eur' && <span className={styles.chooserCurrency}>€</span>}
+                <span className={styles.chooserPriceNum}>{fmtPrice(offer.eur, currency)}</span>
+                <span className={styles.chooserPriceSuffix}>
+                  {currency === 'mkd' ? offer.suffixMkd : offer.suffix}
+                </span>
+                {offer.listEur && (
+                  <span className={styles.chooserSaveBadge}>
+                    {isMk ? 'Основачка цена' : 'Founding rate'}
                   </span>
-                </Link>
-              );
-            })}
+                )}
+              </div>
+              <div className={styles.chooserSubline}>
+                {offer.listEur
+                  ? (isMk
+                      ? `Редовна цена €${offer.listEur} / квартал · ограничен број места по област`
+                      : `List price €${offer.listEur} / quarter · limited seats per practice area`)
+                  : (isMk ? 'Без обврска · откажете во секое време' : 'No commitment · cancel anytime')}
+              </div>
+
+              {copy.features && copy.features.length > 0 && (
+                <div className={styles.chooserFeatures}>
+                  <div className={styles.chooserFeaturesHead}>{copy.featuresHead}</div>
+                  <ul className={styles.chooserFeaturesList}>
+                    {copy.features.map((f, i) => (
+                      <li key={i} className={styles.chooserFeatureItem}>
+                        <svg className={styles.chooserFeatureIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <polyline points="5 12 10 17 19 7"/>
+                        </svg>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <span className={styles.chooserCta}>
+                {isMk ? 'Започни' : 'Get started'} <span aria-hidden>→</span>
+              </span>
+            </Link>
           </div>
 
           <p className={styles.footnote}>{t('pricing.footnote')}</p>
@@ -252,7 +236,7 @@ export default function Pricing() {
             <ol className={styles.flowSteps}>
               {[
                 { n: '1', t: isMk ? 'Регистрирајте се' : 'Register',        d: isMk ? 'Бесплатно, за неколку минути' : 'Free, in a few minutes' },
-                { n: '2', t: isMk ? 'Изберете план'    : 'Pick a plan',     d: isMk ? 'Основен или Про'             : 'Basic or Pro' },
+                { n: '2', t: isMk ? 'Изберете план'    : 'Pick a plan',     d: isLeads ? (isMk ? 'Про членство' : 'Pro membership') : (isMk ? 'Основен — годишна претплата' : 'Basic — annual') },
                 { n: '3', t: isMk ? 'Прими профактура' : 'Receive invoice', d: isMk ? 'На е-пошта, за Вашето сметководство' : 'By email, for your books' },
                 { n: '4', t: isMk ? 'Уплати и користи' : 'Pay and use',     d: isMk ? 'Активирањето е веднашно'      : 'Activation is immediate' }
               ].map((s) => (

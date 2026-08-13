@@ -90,11 +90,19 @@ const DURATION_DAYS = Object.freeze({
 // (clicks Subscribe / Email-Invoice) but hasn't paid yet.
 const GRACE_DAYS = 3;
 
+// Self-serve free trial (days) granted to every brand-new account at signup —
+// full access to the product for their plan; auto-suspends when it lapses.
+// One per email (enforced by the email-eligibility guard at registration).
+const TRIAL_DAYS = 8;
+
 // EUR prices per the public pricing page (Nexa 3.0).
 // Quarterly ≈ 14–16% off three months of monthly.
 // Annual    ≈ 22–24% off twelve months of monthly.
+// Product A (Basic) is sold as a single annual offer (€49/yr) on the SMB
+// storefront; monthly/quarterly keys are retained for existing subscriptions'
+// back-compat but are no longer offered at checkout.
 const PLAN_PRICES = Object.freeze({
-  basic: { monthly: 19, quarterly: 49,  annual: 179 },
+  basic: { monthly: 19, quarterly: 49,  annual: 49 },
   pro:   { monthly: 39, quarterly: 99,  annual: 359 },
   // legacy
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
@@ -126,6 +134,22 @@ const REMINDER_SCHEDULE = Object.freeze({
   PAID_EXPIRED:   { type: 'paid-expired',   daysBefore: 0  },
   GRACE_EXPIRED:  { type: 'grace-expired',  daysBefore: 0  }
 });
+
+// De-merge Phase 4 — founding-cohort lawyer cap. Limits the number of ACTIVE
+// Pro (admin_user) providers per practice area so routed leads stay dense
+// enough to be worth paying for. `default` applies to any area without an
+// explicit entry. Raise per-area as demand grows. Override the global default
+// with env PROVIDER_AREA_CAP_DEFAULT (integer) without a code change.
+const PROVIDER_AREA_CAP_DEFAULT = Number.parseInt(process.env.PROVIDER_AREA_CAP_DEFAULT, 10) || 3;
+const PRACTICE_AREA_CAPS = Object.freeze({
+  default: PROVIDER_AREA_CAP_DEFAULT
+  // e.g. 'immigration': 5, 'ip-law': 2
+});
+// Seats allowed for an area. 0 or negative is treated as "no cap".
+const capForArea = (area) => {
+  const c = PRACTICE_AREA_CAPS[area];
+  return Number.isFinite(c) ? c : PRACTICE_AREA_CAPS.default;
+};
 
 // Practice areas enum — must match satellite-site contract (NEXA_2.0_CONTEXT.md §11).
 const PRACTICE_AREAS = Object.freeze([
@@ -164,12 +188,15 @@ module.exports = {
   CYCLES,
   DURATION_DAYS,
   GRACE_DAYS,
+  TRIAL_DAYS,
   PLAN_PRICES,
   PLAN_CURRENCY,
   PLAN_LABELS,
   labelForPlan,
   REMINDER_SCHEDULE,
   PRACTICE_AREAS,
+  PRACTICE_AREA_CAPS,
+  capForArea,
   isPlatformAdmin,
   isAdminUser,
   isStandardUser,

@@ -5,6 +5,7 @@ const ProInvoicesService = require('./proInvoicesService');
 const { renderSubscriptionOfferPdf } = require('./subscriptionOfferPdf');
 const { trialReminderEmail } = require('../emails/trialReminderEmail');
 const trialReminderConfig = require('../config/trialReminderConfig');
+const tierService = require('./tierService');
 
 const EUR_TO_MKD = Number(process.env.INVOICE_EUR_TO_MKD || 61.5);
 const CYCLE_LABEL = { monthly: 'Месечно', quarterly: 'Квартално', annual: 'Годишно' };
@@ -100,14 +101,18 @@ class TrialReminderService {
 
     const pdfBuffer = await renderSubscriptionOfferPdf(offer);
     const daysLeft = Math.max(0, TrialReminderService.daysLeft(sub.endsAt));
+    // Product-aware branding: Pro (B) members get the lawyer brand + leads host.
+    const product = tierService.planProduct(user);
+    const appBase = product === 'B' ? 'https://leads.nexa.mk' : this.frontendUrl;
     const { subject, html } = trialReminderEmail({
       name: user.fullName || user.username || '',
       planLabel,
       daysLeft,
       trialEndsAt: sub.endsAt,
       options,
-      appUrl: `${this.frontendUrl}/terminal/subscription`,
-      final: stage.key === 'offer_d2'
+      appUrl: `${appBase}/terminal/subscription`,
+      final: stage.key === 'offer_d2',
+      product
     });
 
     const result = await this.emailService.sendEmail(user.email, subject, html, {

@@ -8,6 +8,7 @@ import ConsentCheckbox from '../../components/website/ConsentCheckbox';
 import Icon from '../../components/website/Icon';
 import useScrollReveal from '../../hooks/useScrollReveal';
 import { NEXA_ORG, NEXA_WEBSITE, contactPage } from '../../components/seo/schemaGraph';
+import { getStorefront } from '../../lib/storefront';
 import styles from './Contact.module.css';
 
 export default function Contact() {
@@ -36,7 +37,9 @@ export default function Contact() {
           practiceArea: form.type === 'B' ? 'super-user-application' : 'general-legal',
           city: '',
           language: lang,
-          payload: { name: form.name, email: form.email, phone: form.phone, message: form.message, inquiryType: form.type, consent: true }
+          // Stamp the origin product (nexa.mk → 'main', leads.nexa.mk → 'leads')
+          // so admin/routing can tell which storefront generated the inquiry.
+          payload: { name: form.name, email: form.email, phone: form.phone, message: form.message, inquiryType: form.type, storefront: getStorefront(), consent: true }
         })
       });
       setStatus(res.ok ? 'ok' : 'error');

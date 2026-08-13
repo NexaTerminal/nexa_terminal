@@ -8,12 +8,11 @@ export default function PublicNavbarV2() {
   const { t } = useTranslation('website');
   const [open, setOpen] = useState(false);
   const lang = i18n.language || 'mk';
-
   const switchLang = (lng) => i18n.changeLanguage(lng);
 
+  // Both storefronts are intentionally minimal: Landing (logo) · Blog · Contact.
+  // Pricing/About live inside the flow (contact + login), not the marketing nav.
   const links = [
-    { to: '/about', label: t('nav.ecosystem') },
-    { to: '/pricing', label: t('nav.pricing') },
     { to: '/blog', label: t('nav.blog') },
     { to: '/contact', label: t('nav.contact') }
   ];

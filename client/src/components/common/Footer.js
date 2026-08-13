@@ -18,7 +18,7 @@ const Footer = ({ isTerminal = false }) => {
           <div className={styles.footerSection}>
             <h3>{t('footer.links', 'Links')}</h3>
             <Link to="/" className={styles.footerLink}>{t('common.home')}</Link>
-            <Link to="/about" className={styles.footerLink}>{t('common.about')}</Link>
+            <Link to="/" className={styles.footerLink}>{t('common.about')}</Link>
             <Link to="/blog" className={styles.footerLink}>Блог</Link>
             <Link to="/login" className={styles.footerLink}>{t('common.login')}</Link>
           </div>

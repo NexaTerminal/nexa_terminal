@@ -4,11 +4,12 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
-import RequestTopicModal from '../../components/terminal/RequestTopicModal';
-import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
-import useTermsGate from '../../hooks/useTermsGate';
 import { isTrial, canRequestQATopic, visibleTier, openSubscriptionGate } from '../../lib/tier';
+import { TOPIC_CATEGORIES, topicInCategory } from '../../config/topicCategories';
 import styles from './Topics.module.css';
+
+// How many published answers we suggest for a solid expert presence.
+const PRESENCE_TARGET = 15;
 
 const STATUS_LABEL = {
   requested:   'Барање за одобрување',
@@ -46,7 +47,6 @@ const FlowStep = ({ n, icon, title, desc }) => (
 
 export default function TopicsQAPage() {
   const { token, currentUser } = useAuth();
-  const { requireTerms, termsModal } = useTermsGate();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const tab = params.get('tab') || 'open';
@@ -59,9 +59,10 @@ export default function TopicsQAPage() {
   const [worklist, setWorklist] = useState([]);
   const [mine, setMine] = useState([]);
   const [published, setPublished] = useState([]);
+  const [publishedCount, setPublishedCount] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modalFor, setModalFor] = useState(null);
   const [toast, setToast] = useState(null);
+  const [category, setCategory] = useState('all');
 
   useEffect(() => {
     if (!visible) { setLoading(false); return; }
@@ -82,21 +83,38 @@ export default function TopicsQAPage() {
     return () => { cancelled = true; };
   }, [tab, visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onRequest = (topic) => {
+  // Published count powers the presence meter — fetched once, independent of tab.
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    axios.get('/api/topics/published-mine', auth)
+      .then(res => { if (!cancelled) setPublishedCount((res.data?.items || []).length); })
+      .catch(() => { if (!cancelled) setPublishedCount(0); });
+    return () => { cancelled = true; };
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Click "Одговори" → claim the topic and go straight to the answer page. No
+  // reason, no upfront terms gate — the editorial terms are confirmed at submit.
+  const onAnswer = async (topic) => {
     const check = canRequestQATopic(currentUser);
     if (!check.allowed) {
-      // Trial or non-C → open the order modal so the user can subscribe.
       openSubscriptionGate({ source: 'topics-qa', reason: check.reason });
       return;
     }
-    requireTerms('topic', () => setModalFor(topic));
-  };
-
-  const submitRequest = async ({ requestReason }) => {
-    const res = await axios.post(`/api/topics/worklist/${modalFor._id}/request`, { requestReason }, auth);
-    setModalFor(null);
-    setToast({ type: 'ok', text: 'Барањето е поднесено. Ќе бидете известени по одобрување.' });
-    navigate(`/terminal/topics-qa/answer/${res.data?.submission?._id}`);
+    try {
+      const res = await axios.post(`/api/topics/worklist/${topic._id}/request`, {}, auth);
+      navigate(`/terminal/topics-qa/answer/${res.data?.submission?._id}`);
+    } catch (e) {
+      const code = e.response?.data?.code;
+      setToast({
+        type: 'error',
+        text: code === 'ALREADY_ACTIVE'
+          ? 'Имате веќе една активна тема. Завршете ја или ослободете ја пред да започнете нова.'
+          : code === 'NOT_OPEN'
+            ? 'Оваа тема штотуку беше земена од друг член.'
+            : (e.response?.data?.message || e.message)
+      });
+    }
   };
 
   if (!visible && !trial) {
@@ -115,31 +133,63 @@ export default function TopicsQAPage() {
     <TerminalShell>
       <div className={styles.page}>
         <header className={styles.header}>
-          <span className={styles.eyebrow}>Topics Q&A</span>
-          <h1 className={styles.title}>Авторска работна табла</h1>
+          <span className={styles.eyebrow}>Topics Q&A · видливост за експерти</span>
+          <h1 className={styles.title}>Одговарајте на прашања. Ве наоѓаат клиенти.</h1>
           <p className={styles.lead}>
-            Пишувате експертски одговори на структурирани, SEO-таргетирани прашања и
-            ги објавувате на topics.nexa.mk под Ваше име. Вие го носите стручното знаење,
-            а уредничкиот тим се грижи за структурата и видливоста — така градите
-            авторитет и Ве пронаоѓаат клиенти кои бараат специјалист.
+            Изберете прашање, напишете одговор со Вашето знаење и поднесете го. Штом
+            уредникот ќе го одобри, се објавува <strong>под Ваше име</strong> на
+            topics.nexa.mk — Google го индексира, а клиентите Ве наоѓаат Вас.
           </p>
 
-          <div className={styles.howBand}>
-            <div className={styles.flow}>
-              <FlowStep n={1} icon={<IconTarget />} title="Изберете тема"
-                desc="Структурирани, SEO-таргетирани теми од Вашата област." />
-              <FlowStep n={2} icon={<IconWrite />} title="Напишете одговор"
-                desc="Одговарате на зададените прашања со Вашето знаење." />
-              <FlowStep n={3} icon={<IconReview />} title="Уреднички преглед"
-                desc="Уредникот прегледува; ако треба, бара доработка." />
-              <FlowStep n={4} icon={<IconPublish />} title="Објавено под Ваше име"
-                desc="Прилогот излегува на topics.nexa.mk со Вашиот потпис." />
+          {/* Why answer 10–15 — the brand-awareness case, in one glance. */}
+          <div className={styles.whyBand}>
+            <div className={styles.whyItem}>
+              <span className={styles.whyIcon} aria-hidden><IconTarget /></span>
+              <div>
+                <div className={styles.whyTitle}>SEO видливост</div>
+                <div className={styles.whyDesc}>Секое прашање таргетира она што клиентите веќе го пребаруваат на Google.</div>
+              </div>
+            </div>
+            <div className={styles.whyItem}>
+              <span className={styles.whyIcon} aria-hidden><IconWrite /></span>
+              <div>
+                <div className={styles.whyTitle}>Под Ваше име</div>
+                <div className={styles.whyDesc}>Секој одговор носи Ваш потпис и авторство — градите личен бренд.</div>
+              </div>
+            </div>
+            <div className={styles.whyItem}>
+              <span className={styles.whyIcon} aria-hidden><IconPublish /></span>
+              <div>
+                <div className={styles.whyTitle}>Присуство</div>
+                <div className={styles.whyDesc}>Одговорете 10–15 прашања за да се етаблирате како оди во областа.</div>
+              </div>
             </div>
           </div>
+
+          {/* Presence meter — motivating progress toward ~15 published answers. */}
+          {publishedCount != null && (
+            <div className={styles.meter}>
+              <div className={styles.meterHead}>
+                <span>Ваше присуство</span>
+                <span className={styles.meterCount}>{publishedCount} / {PRESENCE_TARGET} објавени</span>
+              </div>
+              <div className={styles.meterTrack}>
+                <div
+                  className={styles.meterFill}
+                  style={{ width: `${Math.min(100, Math.round((publishedCount / PRESENCE_TARGET) * 100))}%` }}
+                />
+              </div>
+              <div className={styles.meterHint}>
+                {publishedCount >= PRESENCE_TARGET
+                  ? 'Одлично — имате силно присуство. Продолжете да одговарате за да го задржите.'
+                  : `Уште ${PRESENCE_TARGET - publishedCount} за препорачаното присуство.`}
+              </div>
+            </div>
+          )}
         </header>
 
         <nav className={styles.tabs}>
-          <Link to="/terminal/topics-qa"                 className={`${styles.tab} ${tab === 'open'      ? styles.tabActive : ''}`}>Отворени прашања</Link>
+          <Link to="/terminal/topics-qa"                 className={`${styles.tab} ${tab === 'open'      ? styles.tabActive : ''}`}>Прашања</Link>
           <Link to="/terminal/topics-qa?tab=mine"        className={`${styles.tab} ${tab === 'mine'      ? styles.tabActive : ''}`}>Мои одговори</Link>
           <Link to="/terminal/topics-qa?tab=published"   className={`${styles.tab} ${tab === 'published' ? styles.tabActive : ''}`}>Објавени</Link>
         </nav>
@@ -150,35 +200,62 @@ export default function TopicsQAPage() {
         {loading ? (
           <div className={styles.spinner}>Се вчитува…</div>
         ) : tab === 'open' ? (
-          worklist.length === 0 ? (
-            <div className={styles.emptyState}>Во моментов нема отворени теми во Вашата област.</div>
-          ) : (
-            <div className={styles.list}>
-              {worklist.map(t => (
-                <div key={t._id} className={styles.card}>
-                  <div className={styles.cardHead}>
-                    <div className={styles.cardTitle}>{t.title}</div>
-                    <span className={styles.chip}>{t.practiceArea}</span>
-                    {t.category && <span className={styles.chip}>{t.category}</span>}
-                  </div>
-                  <div className={styles.cardScope}>{t.scope}</div>
-                  <div className={styles.cardMeta}>
-                    <span className={styles.metaItem}><MetaTag /> {t.targetKeyword || '—'}</span>
-                    <span className={styles.metaItem}><MetaLen /> ~{t.targetLengthWords} зборови</span>
-                    <span className={styles.metaItem}><MetaClock /> Мек рок: {t.softDeadlineDays} дена</span>
-                    <span className={styles.metaItem}><MetaList /> {(t.questions || []).length} прашања</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span style={{ flex: 1 }} />
-                    <button type="button" className={styles.btnPrimary}
-                            onClick={() => onRequest(t)}>
-                      Побарајте отворање
+          (() => {
+            const shown = worklist.filter(t => topicInCategory(t, category));
+            return (
+              <>
+                <div className={styles.catBar}>
+                  <button type="button"
+                          className={`${styles.catChip} ${category === 'all' ? styles.catChipActive : ''}`}
+                          onClick={() => setCategory('all')}>
+                    Сите
+                  </button>
+                  {TOPIC_CATEGORIES.map(c => (
+                    <button key={c} type="button"
+                            className={`${styles.catChip} ${category === c ? styles.catChipActive : ''}`}
+                            onClick={() => setCategory(c)}>
+                      {c}
                     </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )
+
+                {shown.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    {category === 'all'
+                      ? 'Во моментов нема отворени прашања.'
+                      : `Нема отворени прашања во „${category}“.`}
+                  </div>
+                ) : (
+                  <div className={styles.grid}>
+                    {shown.map(t => {
+                      const taken = t.status !== 'open' || !!t.activeSubmissionId;
+                      return (
+                        <div key={t._id} className={`${styles.qCard} ${taken ? styles.qCardTaken : ''}`}>
+                          <div className={styles.qCardTop}>
+                            {t.category && <span className={styles.chip}>{t.category}</span>}
+                            {taken && <span className={styles.takenBadge}>Земено</span>}
+                          </div>
+                          <div className={styles.qCardTitle}>{t.title}</div>
+                          {t.scope && <div className={styles.qCardScope}>{t.scope}</div>}
+                          <div className={styles.qCardFoot}>
+                            <span className={styles.metaItem}><MetaList /> {(t.questions || []).length} прашања</span>
+                            {taken ? (
+                              <span className={styles.takenNote}>Друг член одговара</span>
+                            ) : (
+                              <button type="button" className={styles.qCardBtn}
+                                      onClick={() => onAnswer(t)}>
+                                Одговори →
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()
         ) : tab === 'mine' ? (
           mine.length === 0 ? (
             <div className={styles.emptyState}>Сè уште нема Ваши одговори.</div>
@@ -219,16 +296,6 @@ export default function TopicsQAPage() {
             ))}
           </div>
         )}
-
-        {modalFor && (
-          <RequestTopicModal
-            topic={modalFor}
-            onClose={() => setModalFor(null)}
-            onSubmit={submitRequest}
-          />
-        )}
-
-        {termsModal && <FeatureTermsModal {...termsModal} />}
       </div>
     </TerminalShell>
   );

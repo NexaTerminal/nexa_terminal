@@ -84,7 +84,7 @@ export default function AdminUserDashboard() {
               label="Претплата"
               value={PLAN_LABEL[sub.plan] || (sub.plan || '—')}
               hint={dr !== null ? `Уште ${daysLabel(Math.max(0, dr))} · ${fmtDate(sub.endsAt)}` : sub.status || ''}
-              to="/pricing"
+              to="/contact"
               accent={dr !== null && dr <= 14 ? 'warn' : 'ok'}
             />
             <Tile

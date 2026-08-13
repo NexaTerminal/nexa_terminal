@@ -71,18 +71,56 @@ router.get('/google', (req, res, next) => {
 // Google OAuth callback
 router.get('/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      // Generate JWT token
-      const token = authController.generateToken(req.user);
+      // State carries the post-login redirect + the storefront the user signed
+      // up from. New format: `sf=leads&redirect=/x`. Legacy: a bare redirect URL.
+      const rawState = req.query.state || '';
+      let redirect = '';
+      let sf = 'main';
+      let origin = '';
+      if (rawState.includes('sf=') || rawState.includes('redirect=') || rawState.includes('origin=')) {
+        const sp = new URLSearchParams(rawState);
+        redirect = sp.get('redirect') || '';
+        sf = sp.get('sf') || 'main';
+        origin = sp.get('origin') || '';
+      } else {
+        redirect = rawState;
+      }
 
-      // Extract state parameter (redirect URL) from query
-      const state = req.query.state;
+      // Return to the storefront host the user started from (so the Pro shell
+      // shows on leads.*). Validated against an allowlist to avoid open redirects;
+      // otherwise fall back to the configured CLIENT_URL.
+      const ALLOWED_HOSTS = new Set(['localhost', 'leads.localhost', 'nexa.mk', 'www.nexa.mk', 'leads.nexa.mk']);
+      let clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+      if (origin) {
+        try {
+          const u = new URL(origin);
+          if (ALLOWED_HOSTS.has(u.hostname)) clientURL = u.origin;
+        } catch (_) { /* keep fallback */ }
+      }
 
-      // Redirect to client with token and optional state
-      const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
-      const redirectUrl = state
-        ? `${clientURL}/auth/callback?token=${token}&redirect=${encodeURIComponent(state)}`
+      // Brand-new Google account (no subscription, or 'none') → start the 8-day
+      // free trial for the plan matching the storefront. initTrial is idempotent
+      // and reloads role, so we re-issue the token from the fresh user doc.
+      let user = req.user;
+      try {
+        const sub = req.app.locals.subscriptionService;
+        const st = user.subscription?.status;
+        if (sub && (!st || st === 'none')) {
+          const plan = sf === 'leads' ? 'pro' : 'basic';
+          await sub.initTrial(user._id, { plan });
+          const UserService = require('../services/userService');
+          const fresh = await new UserService(req.app.locals.db).findById(user._id);
+          if (fresh) user = fresh;
+        }
+      } catch (e) {
+        console.error('initTrial after Google signup warning:', e.message);
+      }
+
+      const token = authController.generateToken(user);
+      const redirectUrl = redirect
+        ? `${clientURL}/auth/callback?token=${token}&redirect=${encodeURIComponent(redirect)}`
         : `${clientURL}/auth/callback?token=${token}`;
 
       res.redirect(redirectUrl);

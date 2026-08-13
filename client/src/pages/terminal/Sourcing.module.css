@@ -45,7 +45,7 @@
 .actions { display: flex; align-items: center; gap: 10px; }
 .btnGhost { font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: #0B1220; border: 1px solid #d8dde6; border-radius: 9px; padding: 8px 16px; }
 .btnGhost:disabled { opacity: 0.5; cursor: default; }
-.toastOk { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #0B1220; color: #fff; font-size: 13.5px; font-weight: 600; padding: 11px 18px; border-radius: 10px; cursor: pointer; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.toastOk { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #fff; color: var(--color-text-dark, #262626); border: 1px solid var(--color-border, #e5e7eb); border-left: 3px solid #22c55e; font-size: 13.5px; font-weight: 600; padding: 11px 18px; border-radius: 10px; cursor: pointer; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
 
 /* Form */
 .form { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
@@ -66,7 +66,7 @@
   font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
   padding: 8px 16px; border-radius: 999px; border: 1px solid #d8dde6; background: #fff; color: #475569;
 }
-.segOn { background: #1e4db7; border-color: #1e4db7; color: #fff; }
+.segOn { background: var(--color-primary-50, #f0f7ff); border-color: var(--color-primary, #1e4db7); color: var(--color-primary, #1e4db7); }
 
 .radioCol { display: flex; flex-direction: column; gap: 8px; }
 .radioOption {
@@ -86,9 +86,9 @@
 
 .btnPrimary {
   align-self: flex-start; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
-  background: #0B1220; color: #fff; border: 1px solid #0B1220; border-radius: 10px; padding: 11px 22px;
+  background: var(--color-primary-50, #f0f7ff); color: var(--color-primary, #1E4DB7); border: 1px solid var(--color-primary-200, #c7e2ff); border-radius: 10px; padding: 11px 22px;
 }
-.btnPrimary:hover:not(:disabled) { background: #1e293b; }
+.btnPrimary:hover:not(:disabled) { background: var(--color-primary-100, #e0eeff); border-color: var(--color-primary-300, #a5d2ff); }
 .btnPrimary:disabled { opacity: 0.6; cursor: default; }
 
 /* Confirmation */

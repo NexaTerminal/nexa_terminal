@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
@@ -14,6 +14,13 @@ const STATUS_LABEL = {
   lost:      'Изгубени',
   expired:   'Истечени'
 };
+const AREA_LABEL = {
+  'consumer-legal': 'Потрошувачко', 'immigration': 'Имиграција', 'citizenship': 'Државјанство',
+  'company-registration': 'Регистрација', 'ip-law': 'Инт. сопственост', 'tax-accounting': 'Данок/сметк.',
+  'labor-law': 'Работно', 'general-legal': 'Општо'
+};
+const areaLabel = (a) => AREA_LABEL[a] || a || '—';
+const leadTime = (l) => new Date(l.assignedAt || l.receivedAt || 0).getTime();
 const fmtDateTime = (d) => {
   if (!d) return '—';
   const date = new Date(d);
@@ -30,6 +37,36 @@ export default function LeadsInbox() {
   const [error, setError] = useState('');
   const [flash, setFlash] = useState('');
   const [detail, setDetail] = useState(null);
+  // Sorting + filtering (client-side over the fetched tab).
+  const [search, setSearch] = useState('');
+  const [areaF, setAreaF] = useState('');
+  const [cityF, setCityF] = useState('');
+  const [sourceF, setSourceF] = useState('');
+  const [sort, setSort] = useState('newest'); // 'newest' | 'oldest'
+
+  // Filter option lists derived from the current tab's leads.
+  const areaOptions   = useMemo(() => [...new Set(items.map(l => l.practiceArea).filter(Boolean))], [items]);
+  const cityOptions   = useMemo(() => [...new Set(items.map(l => l.city).filter(Boolean))], [items]);
+  const sourceOptions = useMemo(() => [...new Set(items.map(l => l.sourceSite).filter(Boolean))], [items]);
+
+  const visibleItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const out = items.filter(l => {
+      if (areaF && l.practiceArea !== areaF) return false;
+      if (cityF && l.city !== cityF) return false;
+      if (sourceF && l.sourceSite !== sourceF) return false;
+      if (q) {
+        const hay = `${l.payload?.name || ''} ${l.payload?.email || ''} ${l.payload?.message || ''} ${l.city || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    out.sort((a, b) => sort === 'newest' ? leadTime(b) - leadTime(a) : leadTime(a) - leadTime(b));
+    return out;
+  }, [items, search, areaF, cityF, sourceF, sort]);
+
+  const clearFilters = () => { setSearch(''); setAreaF(''); setCityF(''); setSourceF(''); };
+  const hasFilters = search || areaF || cityF || sourceF;
 
   const fetchItems = useCallback(async () => {
     setLoading(true); setError('');
@@ -100,11 +137,41 @@ export default function LeadsInbox() {
           {flash && <div className={styles.flash}>{flash}</div>}
           {error && <div className={styles.error}>{error}</div>}
 
+          <div className={styles.toolbar}>
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Пребарај по име, е-пошта, порака…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <select className={styles.select} value={areaF} onChange={e => setAreaF(e.target.value)} aria-label="Област">
+              <option value="">Сите области</option>
+              {areaOptions.map(a => <option key={a} value={a}>{areaLabel(a)}</option>)}
+            </select>
+            <select className={styles.select} value={cityF} onChange={e => setCityF(e.target.value)} aria-label="Град">
+              <option value="">Сите градови</option>
+              {cityOptions.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select className={styles.select} value={sourceF} onChange={e => setSourceF(e.target.value)} aria-label="Извор">
+              <option value="">Сите извори</option>
+              {sourceOptions.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select className={styles.select} value={sort} onChange={e => setSort(e.target.value)} aria-label="Подредување">
+              <option value="newest">Најнови прво</option>
+              <option value="oldest">Најстари прво</option>
+            </select>
+            {hasFilters && (
+              <button type="button" className={styles.clearBtn} onClick={clearFilters}>Исчисти</button>
+            )}
+            <span className={styles.count}>{visibleItems.length} лиди</span>
+          </div>
+
           <div className={styles.layoutTwo}>
             <div className={styles.list}>
               {loading ? <div className={styles.loading}>Се вчитува…</div> :
-               items.length === 0 ? <div className={styles.empty}>Нема лиди во оваа состојба.</div> :
-               items.map(l => (
+               visibleItems.length === 0 ? <div className={styles.empty}>{hasFilters ? 'Нема лиди за овие филтри.' : 'Нема лиди во оваа состојба.'}</div> :
+               visibleItems.map(l => (
                 <button
                   key={l._id}
                   className={`${styles.row} ${detail?._id === l._id ? styles.rowActive : ''}`}
@@ -115,7 +182,7 @@ export default function LeadsInbox() {
                     <span className={styles.rowDate}>{fmtDateTime(l.assignedAt || l.receivedAt)}</span>
                   </div>
                   <div className={styles.rowMeta}>
-                    <span className={styles.tag}>{l.practiceArea}</span>
+                    <span className={styles.tag}>{areaLabel(l.practiceArea)}</span>
                     {l.city && <span className={styles.dim}> · {l.city}</span>}
                     <span className={styles.dim}> · од {l.sourceSite}</span>
                   </div>
@@ -169,8 +236,8 @@ function Detail({ lead, onUpdate, canClaim, onClaim }) {
             type="button"
             onClick={onClaim}
             style={{
-              background: '#B45309', color: '#fff', border: 0, borderRadius: 6,
-              padding: '9px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
+              background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D', borderRadius: 6,
+              padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
             Преземи го лидот

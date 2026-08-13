@@ -27,7 +27,7 @@ const daysLabel = (n) => {
  * the in-terminal modal — same pre-invoice / 3-day grace flow. The user is
  * never navigated back to the public `/pricing` page.
  */
-export default function SubscriptionStatusBanner() {
+export default function SubscriptionStatusBanner({ flush = false }) {
   const { token } = useAuth();
   const [sub, setSub] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -115,7 +115,7 @@ export default function SubscriptionStatusBanner() {
   };
 
   return (
-    <div className={`${styles.strip} ${styles[variant]}`} role="status">
+    <div className={`${styles.strip} ${styles[variant]} ${flush ? styles.flush : ''}`} role="status">
       <span className={styles.icon} aria-hidden>
         {variant === 'danger' ? '⚠' : variant === 'warn' ? '⏱' : 'ⓘ'}
       </span>

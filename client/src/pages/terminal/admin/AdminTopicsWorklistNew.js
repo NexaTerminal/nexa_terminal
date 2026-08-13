@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import { TOPIC_CATEGORIES } from '../../../config/topicCategories';
 import styles from '../Topics.module.css';
 
 const STARTER_QUESTIONS = [
@@ -82,8 +83,11 @@ export default function AdminTopicsWorklistNewPage() {
 
           <div className={styles.field}>
             <label className={styles.label}>Категорија (за topics.nexa.mk)</label>
-            <input className={styles.input} value={category} onChange={(e) => setCategory(e.target.value)}
-                   placeholder="Трудово право, Даноци..." />
+            <select className={styles.input} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">— Изберете категорија —</option>
+              {TOPIC_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <span className={styles.help}>Членовите ги филтрираат прашањата по овие категории.</span>
           </div>
 
           <div className={styles.field}>

@@ -8,21 +8,19 @@ import AuthMessage from '../../components/common/AuthMessage';
 import ApiService from '../../services/api';
 import { PENDING_PROMO_KEY } from '../../components/PromoRedeemWatcher';
 import { validatePassword, validatePasswordMatch, validateUsername } from '../../utils/passwordValidation';
+import { isLeadsStorefront, getStorefront } from '../../lib/storefront';
 
-// Onboarding is invite-only: a new account can be created only when the user
-// arrives via a campaign link (`/redeem?code=…`) that stashes a promo code.
-// Code-less visitors get the "Побарај пристап" panel instead of an open signup
-// form (which would land them in a locked, unusable terminal).
-//
-// To re-open public self-registration later, flip this flag to `true`. The full
-// signup form is preserved below — nothing was deleted.
-const OPEN_REGISTRATION = false;
+// Self-serve signup is OPEN: every new account gets an 8-day free trial (Basic on
+// nexa.mk, Pro on leads.nexa.mk), one per email. Set to `false` to fall back to
+// the invite-only "Побарај пристап" panel (preserved below).
+const OPEN_REGISTRATION = true;
 
 const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
-  // Plan is always Basic at signup; Pro upgrade happens post-signup via the gate modal.
-  const intendedPlan = 'basic';
+  const isLeadsStore = isLeadsStorefront(); // leads.nexa.mk → lawyer-facing copy
+  // Trial plan is chosen by the storefront: Pro on leads.nexa.mk, Basic on nexa.mk.
+  const intendedPlan = isLeadsStore ? 'pro' : 'basic';
 
   // A campaign link stashes a promo code before bouncing here. Its presence is
   // what unlocks the signup form (the user was invited). Read once on mount.
@@ -171,10 +169,16 @@ const Login = () => {
     const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
-    const googleAuthUrl = redirect
-      ? `${apiURL}/auth/google?state=${encodeURIComponent(redirect)}`
-      : `${apiURL}/auth/google`;
-    window.location.href = googleAuthUrl;
+    // Carry the storefront + redirect through OAuth so a new Google account gets
+    // the 8-day trial for the right plan (Pro on leads.nexa.mk, Basic on nexa.mk).
+    const state = new URLSearchParams();
+    state.set('sf', getStorefront());
+    // Return to the SAME host we started from (e.g. leads.localhost:3000) so the
+    // OAuth round-trip doesn't drop the storefront subdomain and land the user
+    // on the wrong product shell.
+    state.set('origin', window.location.origin);
+    if (redirect) state.set('redirect', redirect);
+    window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
   };
 
   return (
@@ -194,9 +198,13 @@ const Login = () => {
           </h1>
           <p className={styles.subtitle}>
             {isLogin
-              ? 'Најавете се за да продолжите во Nexa Terminal'
+              ? (isLeadsStore
+                  ? 'Најавете се за да ги видите Вашите случаи и профил во мрежата'
+                  : 'Најавете се за да продолжите во Nexa Terminal')
               : (canRegister
-                  ? 'Започнете со Nexa Terminal за неколку минути'
+                  ? (isLeadsStore
+                      ? 'Започнете со 8 дена бесплатен Pro пристап и почнете да добивате случаи'
+                      : 'Започнете со 8 дена бесплатно — без картичка, без обврска')
                   : 'Пристапот до Nexa е со покана. Оставете ги вашите податоци и ќе ве контактираме со линк за активација (30 дена Pro).')}
           </p>
 

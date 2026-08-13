@@ -61,8 +61,10 @@ app.use(securityLogger); // Log suspicious activities
 app.use(requestSizeLimiter('10mb')); // Limit request size
 
 // CORS Configuration
+// NOTE: CORS_ORIGINS (env) is comma-separated, no spaces. Includes the leads.*
+// storefront host for the de-merge. nodemon must restart to reload .env changes.
 const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',')
+  ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim())
   : [
       'http://localhost:3000',
       'http://localhost:3003',
@@ -70,8 +72,14 @@ const corsOrigins = process.env.CORS_ORIGINS
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
       'http://127.0.0.1:3004',
+      // Product B storefront host (de-merge) — dev + prod.
+      'http://leads.localhost:3000',
+      'http://leads.localhost:3003',
+      'http://leads.localhost:3004',
       'https://www.nexa.mk',
       'https://nexa.mk',
+      'https://leads.nexa.mk',
+      'https://nexa-terminal-api-production-74cc.up.railway.app',
       'https://nexa-v1.vercel.app',
       'https://nexa-v1-git-main-martinboshkoskis-projects.vercel.app'
     ];
@@ -1198,7 +1206,8 @@ async function startServer() {
     const server = http.createServer(app);
     const io = new Server(server, {
       cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        // Same allowlist as the REST layer so both storefront hosts can connect.
+        origin: corsOrigins,
         methods: ["GET", "POST"]
       }
     });

@@ -5,8 +5,14 @@ import styles from './SubscriptionGate.module.css';
 
 // EUR prices (two-tier model). Match server/constants/roles.js PLAN_PRICES.
 const PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 179 },
+  basic: { monthly: 19, quarterly: 49, annual: 49 },
   pro:   { monthly: 39, quarterly: 99, annual: 359 }
+};
+// Cycles offered at checkout per plan. Basic (Product A) is annual-only
+// (single €49/yr offer); Pro keeps the full cycle ladder.
+const PLAN_CYCLES = {
+  basic: ['annual'],
+  pro:   ['monthly', 'quarterly', 'annual']
 };
 // Public-facing tier labels.
 const PLAN_LABEL = {
@@ -71,11 +77,13 @@ export default function SubscriptionGate() {
   useEffect(() => {
     if (!open) return;
     const sub = blockedInfo?.subscription || {};
-    setCycle(sub.cycle && sub.cycle !== 'trial' ? sub.cycle : 'monthly');
     const defaultPlan =
       sub.plan && ALL_PLANS.includes(sub.plan)        ? sub.plan
     : currentUser?.role === 'admin_user'              ? 'pro'
     :                                                   'basic';
+    const allowed = PLAN_CYCLES[defaultPlan] || ['monthly'];
+    const seedCycle = sub.cycle && allowed.includes(sub.cycle) ? sub.cycle : allowed[0];
+    setCycle(seedCycle);
     setPlan(defaultPlan);
     setEmail(currentUser?.email || '');
     // Seed company-info fields from whatever is already on the user.
@@ -294,14 +302,18 @@ export default function SubscriptionGate() {
                   key={p}
                   type="button"
                   className={`${styles.planTile} ${plan === p ? styles.planTileActive : ''}`}
-                  onClick={() => setPlan(p)}
+                  onClick={() => { setPlan(p); const a = PLAN_CYCLES[p] || ['monthly']; if (!a.includes(cycle)) setCycle(a[0]); }}
                   aria-pressed={plan === p}
                 >
                   <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
                   <div className={styles.planTileShort}>{PLAN_SHORT[p]}</div>
                   <div className={styles.planTilePriceLine}>
-                    <span className={styles.planTilePriceNum}>€{PRICES[p].monthly}</span>
-                    <span className={styles.planTilePriceUnit}>/ мес</span>
+                    {(() => { const c0 = (PLAN_CYCLES[p] || ['monthly'])[0];
+                      const unit = c0 === 'annual' ? '/ год' : c0 === 'quarterly' ? '/ кв' : '/ мес';
+                      return (<>
+                        <span className={styles.planTilePriceNum}>€{PRICES[p][c0]}</span>
+                        <span className={styles.planTilePriceUnit}>{unit}</span>
+                      </>); })()}
                   </div>
                 </button>
               ))}
@@ -311,7 +323,7 @@ export default function SubscriptionGate() {
             {/* ============ CYCLE TILES ============ */}
             <div className={styles.sectionLabel}>Циклус на наплата</div>
             <div className={styles.cycleRow}>
-              {['monthly', 'quarterly', 'annual'].map(c => (
+              {(PLAN_CYCLES[plan] || ['monthly']).map(c => (
                 <button
                   key={c}
                   type="button"

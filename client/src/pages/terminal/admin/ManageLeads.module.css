@@ -45,7 +45,7 @@
 .actions { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
 .btnPrimary, .btnGhost { font-family: inherit; font-size: 12.5px; font-weight: 600;
   padding: 7px 12px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
-.btnPrimary { background: #0B1220; color: #FFFFFF; border-color: #0B1220; }
+.btnPrimary { background: var(--color-primary-50, #f0f7ff); color: var(--color-primary, #1E4DB7); border-color: var(--color-primary-200, #c7e2ff); font-weight: 700; }
 .btnPrimary:hover { background: #1a2438; }
 .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btnGhost { background: #FFFFFF; color: #0B1220; border-color: #D1D5DB; }

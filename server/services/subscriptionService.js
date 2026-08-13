@@ -21,7 +21,9 @@ const {
   PLAN_TO_ROLE,
   DURATION_DAYS,
   GRACE_DAYS,
+  TRIAL_DAYS,
   PLAN_PRICES,
+  canonicalPlan,
   isValidPlan,
   isValidCycle
 } = require('../constants/roles');
@@ -166,6 +168,40 @@ class SubscriptionService {
   }
 
   /**
+   * Initialize a brand-new account on an 8-day free trial (full access to the
+   * plan's product). Reuses the promo activation path so the existing scheduler
+   * handles it: promo-tone nudge at ≤3 days and auto-suspend at expiry. The
+   * period is a fixed TRIAL_DAYS window (not the plan's billing cycle), tagged
+   * `trial:self-serve` + `subscription.trial=true` to distinguish it from a
+   * code-redeemed promo. One per email is enforced upstream at registration.
+   *
+   * Idempotent: only runs on a fresh account (no status, or 'none'); never
+   * overwrites an active / pending / paid subscription.
+   */
+  async initTrial(userId, { plan = 'basic', days = TRIAL_DAYS } = {}) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    const existing = user.subscription?.status;
+    if (existing && existing !== SUBSCRIPTION_STATUSES.NONE) return user;
+
+    const planKey = canonicalPlan(plan) || 'basic';
+    // _activate requires a valid cycle; endsAt is overridden below, so any valid
+    // cycle for the plan works. (Basic is sold annually; Pro quarterly.)
+    const cycle = planKey === 'pro' ? 'quarterly' : 'annual';
+    await this._activate(userId, {
+      plan: planKey, cycle, amountEur: 0, paidVia: 'promo',
+      notes: 'trial:self-serve', durationDaysOverride: days
+    });
+
+    // Tag it a trial so it's distinguishable from a code-redeemed promo.
+    await this.users.updateOne(
+      { _id: toObjectId(userId) },
+      { $set: { 'subscription.trial': true, updatedAt: new Date() } }
+    );
+    return this.getUser(userId);
+  }
+
+  /**
    * Atomically grant the one-time grace period. Returns true only if grace
    * was actually granted on THIS call (race-safe via $eq: false guard).
    */
@@ -276,7 +312,7 @@ class SubscriptionService {
    */
   async _activate(userId, {
     plan, cycle, invoiceNumber, approvedBy, practiceAreas, cities, notes,
-    paidVia = 'bank_transfer', amountEur
+    paidVia = 'bank_transfer', amountEur, durationDaysOverride
   }) {
     if (!isValidPlan(plan))   throw new Error(`Invalid plan: ${plan}`);
     if (!isValidCycle(cycle)) throw new Error(`Invalid cycle: ${cycle}`);
@@ -285,7 +321,8 @@ class SubscriptionService {
     if (!user) throw new Error('User not found');
 
     const now = new Date();
-    const durationDays = DURATION_DAYS[cycle];
+    // Trials pass a fixed window (durationDaysOverride); paid plans use the cycle.
+    const durationDays = durationDaysOverride || DURATION_DAYS[cycle];
     const newRole      = PLAN_TO_ROLE[plan];
     const newSeatLimit = PLAN_SEATS[plan];
     const resolvedAmount = (typeof amountEur === 'number') ? amountEur : (PLAN_PRICES[plan]?.[cycle] ?? 0);

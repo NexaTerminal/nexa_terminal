@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { visibleTier, showsMarketing, showsLeads, showsTopicsQA, showsSubUsers, showsFair, showsSourcing } from '../../lib/tier';
+import { buildSidebarSections } from '../../config/nav';
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
@@ -56,85 +56,11 @@ const Sidebar = () => {
     });
   };
 
-  // ── Sections — task-based grouping for the SMB owner ────────────────────
-  // I. Администрација (handle obligations) · II. Набавки (buy) ·
-  // III. Маркетинг и раст (sell/promote) · IV. Едукација (learn).
-  // AI tools are distributed by job, not kept in an "AI" bucket.
-  const userSections = [
-    {
-      key: 'top',
-      label: null, // dashboard sits above the groups
-      items: [
-        { key: 'dashboard', icon: 'home', label: 'Контролна табла', path: '/terminal' }
-      ]
-    },
-    {
-      key: 'administration',
-      label: 'Администрација',
-      items: [
-        {
-          key: 'documents', icon: 'doc', label: 'Документи',
-          children: [
-            { path: '/terminal/documents',    label: 'Автоматизирани документи' },
-            { path: '/terminal/my-templates', label: 'Мои шаблони' }
-          ]
-        },
-        { key: 'employees', icon: 'people', label: 'Вработени', path: '/terminal/employees' },
-        {
-          key: 'contracts', icon: 'inbox', label: 'Договори',
-          children: [
-            { path: '/terminal/contracts',         label: 'Мои договори' },
-            { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
-          ]
-        },
-        { key: 'legal-ai', icon: 'ai', label: 'Правен AI', path: '/terminal/ai-chat' },
-        {
-          key: 'screening', icon: 'check', label: 'Проверки',
-          children: [
-            { path: '/terminal/legal-screening', label: 'Правна' },
-            { path: '/terminal/hr-screening',    label: 'HR и Оперативна' },
-            { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
-          ]
-        }
-      ]
-    },
-    {
-      key: 'procurement',
-      label: 'Набавки',
-      items: [
-        { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing }
-      ]
-    },
-    {
-      key: 'growth',
-      label: 'Маркетинг и раст',
-      items: [
-        { key: 'sales', icon: 'funnel', label: 'Продажна инка', path: '/terminal/sales' },
-        { key: 'marketing-hub', icon: 'pencil', label: 'Маркетинг', path: '/terminal/marketing-hub', visible: showsMarketing },
-        { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' },
-        { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' },
-        { key: 'fair',  icon: 'store', label: 'Виртуелен саем', path: '/terminal/fair', visible: showsFair },
-        { key: 'leads', icon: 'inbox', label: 'Случаи', path: '/terminal/leads', visible: showsLeads },
-        {
-          key: 'topicsqa', icon: 'qa', label: 'Topics Q&A', visible: showsTopicsQA,
-          children: [
-            { path: '/terminal/topics-qa',               label: 'Отворени прашања' },
-            { path: '/terminal/topics-qa?tab=mine',      label: 'Мои одговори' },
-            { path: '/terminal/topics-qa?tab=published', label: 'Објавени' }
-          ]
-        }
-      ]
-    },
-    {
-      key: 'education-sec',
-      label: 'Едукација',
-      items: [
-        { key: 'education', icon: 'book', label: 'Курсеви', path: '/terminal/education' }
-      ]
-    }
-    // Account, Billing, Password, Под-сметки and AI преференци live in the
-    // Header profile dropdown — see client/src/components/common/Header.js
-  ];
+  // ── Sections — product-aware, config-driven (client/src/config/nav.js) ──
+  // A (Basic/SMB) & ADMIN get the task-based layout; B (Pro/lawyers) get a
+  // client-acquisition-first layout. Account, Billing, Password, Под-сметки and
+  // AI преференци live in the Header profile dropdown (common/Header.js).
+  const userSections = buildSidebarSections(currentUser);
 
   // ── Admin section (Martin) — kept flat, simple, no icons (utility role) ─
   const adminMenuItems = [

@@ -145,7 +145,7 @@ export default function Accountants() {
                 {isMk ? 'Отворете Pro сметка' : 'Open a Pro account'}
                 <Icon name="arrowRight" size={18} />
               </Link>
-              <Link to="/pricing" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
+              <Link to="/contact" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
                 {isMk ? 'Погледни ги цените' : 'See pricing'}
               </Link>
             </div>

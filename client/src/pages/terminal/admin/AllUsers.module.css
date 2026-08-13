@@ -108,7 +108,7 @@
 .role_sub_seat      { background: rgba(43,179,192,0.12); color: #0E7490; }
 .role_standard_user { background: rgba(30,77,183,0.12); color: #1E4DB7; }
 .role_regular       { background: rgba(107,114,128,0.10); color: #6B7280; }
-.role_admin         { background: #0B1220; color: #FFFFFF; }
+.role_admin         { background: #F1F5F9; color: #0B1220; border: 1px solid #cbd5e1; }
 
 .statusTag {
   display: inline-block;
@@ -131,7 +131,7 @@
   font-family: inherit; font-weight: 600; border-radius: 6px; cursor: pointer; border: 1px solid transparent;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
-.btnPrimary { background: #0B1220; color: #FFFFFF; border-color: #0B1220; padding: 8px 14px; font-size: 13.5px; }
+.btnPrimary { background: var(--color-primary-50, #f0f7ff); color: var(--color-primary, #1E4DB7); border-color: var(--color-primary-200, #c7e2ff); padding: 8px 14px; font-size: 13.5px; font-weight: 700; }
 .btnPrimary:hover { background: #1a2438; }
 .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btnGhost   { background: #FFFFFF; color: #0B1220; border-color: #D1D5DB; padding: 7px 12px; font-size: 12.5px; }

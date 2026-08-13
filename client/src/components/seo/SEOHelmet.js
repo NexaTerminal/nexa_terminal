@@ -1,6 +1,19 @@
 import { Helmet } from 'react-helmet-async';
+import { getStorefront } from '../../lib/storefront';
 
 const SITE_URL = 'https://nexa.mk';
+const LEADS_URL = 'https://leads.nexa.mk';
+// Canonical/OG host follows the active storefront so the two products don't
+// cannibalize each other in search (de-merge Phase 3).
+const isLeads = () => getStorefront() === 'leads';
+const activeSiteUrl = () => (isLeads() ? LEADS_URL : SITE_URL);
+// Per-product brand defaults so leads.nexa.mk sub-pages (contact, blog, login)
+// that don't pass explicit meta don't render the SMB brand. Explicit props win.
+const DEFAULT_TITLE = {
+  main:  'Nexa — Деловниот екосистем за Северна Македонија',
+  leads: 'Nexa за правници — нови клиенти од нашата мрежа'
+};
+const DEFAULT_SITE_NAME = { main: 'Nexa', leads: 'Nexa за правници' };
 
 export default function SEOHelmet({
   title,
@@ -15,9 +28,11 @@ export default function SEOHelmet({
   noIndex = false,
   hreflangPath
 }) {
-  const fullTitle = title || 'Nexa — Деловниот екосистем за Северна Македонија';
-  const fullUrl = `${SITE_URL}${canonical}`;
-  const fullImageUrl = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;
+  const leads = isLeads();
+  const baseUrl = activeSiteUrl();
+  const fullTitle = title || (leads ? DEFAULT_TITLE.leads : DEFAULT_TITLE.main);
+  const fullUrl = `${baseUrl}${canonical}`;
+  const fullImageUrl = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`;
   const hreflangBase = hreflangPath || canonical;
   const blocks = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
 
@@ -32,7 +47,7 @@ export default function SEOHelmet({
       <meta name="geo.region" content="MK" />
       <meta name="geo.placename" content="Skopje" />
 
-      <meta property="og:site_name" content="Nexa" />
+      <meta property="og:site_name" content={leads ? DEFAULT_SITE_NAME.leads : DEFAULT_SITE_NAME.main} />
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
@@ -48,9 +63,9 @@ export default function SEOHelmet({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullImageUrl} />
 
-      <link rel="alternate" hrefLang="mk" href={`${SITE_URL}${hreflangBase}`} />
-      <link rel="alternate" hrefLang="en" href={`${SITE_URL}${hreflangBase}?lang=en`} />
-      <link rel="alternate" hrefLang="x-default" href={`${SITE_URL}${hreflangBase}`} />
+      <link rel="alternate" hrefLang="mk" href={`${baseUrl}${hreflangBase}`} />
+      <link rel="alternate" hrefLang="en" href={`${baseUrl}${hreflangBase}?lang=en`} />
+      <link rel="alternate" hrefLang="x-default" href={`${baseUrl}${hreflangBase}`} />
 
       {blocks.filter(Boolean).map((block, i) => (
         <script key={i} type="application/ld+json">

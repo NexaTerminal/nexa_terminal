@@ -95,6 +95,17 @@ export function visibleTier(user) {
   return effectiveTier(user);
 }
 
+/**
+ * The product a user is ENTITLED to (what they bought) — 'A' | 'B' | 'ADMIN'.
+ * The domain drives the terminal SHELL (see lib/storefront.js activeProduct);
+ * this drives the login-time canonical redirect + feature entitlement, so the
+ * two never contradict. Trial/locked accounts resolve to their intended product.
+ */
+export function planProduct(user) {
+  const v = visibleTier(user);
+  return v === 'B' || v === 'ADMIN' ? v : 'A';
+}
+
 // ─── action predicates ─────────────────────────────────────────────────────
 // Each returns { allowed: boolean, reason?: 'trial' | 'plan' }.
 
@@ -255,3 +266,6 @@ export function showsFair(user)     { return user?.role === 'admin'; }
 // Sourcing (Барање за понуди) stays visible to everyone — it is the demand-side
 // "get offers" surface and works concierge-style regardless of visible supply.
 export function showsSourcing(user) { return !!user; }
+// Продажна инка (sales funnel) is a supply-side / provider growth tool — Pro
+// (B) and admin only. Hidden for Basic (A), whose owners don't run a pipeline.
+export function showsSalesFunnel(user) { const v = visibleTier(user); return v === 'B' || v === 'ADMIN'; }

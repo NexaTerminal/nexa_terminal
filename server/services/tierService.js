@@ -42,6 +42,16 @@ function visibleTier(user) {
   return effectiveTier(user);
 }
 
+/**
+ * The product a user is entitled to — 'A' (SMB) | 'B' (lawyers/Pro) | 'ADMIN'.
+ * Mirrors client lib/tier.js planProduct. Used to brand transactional emails so
+ * a lawyer never receives SMB copy and vice versa.
+ */
+function planProduct(user) {
+  const v = visibleTier(user);
+  return v === 'B' || v === 'ADMIN' ? v : 'A';
+}
+
 function canSubmitBlog(user) {
   const eff = effectiveTier(user);
   if (eff === 'ADMIN') return { allowed: true };
@@ -90,6 +100,7 @@ module.exports = {
   isTrial,
   intendedTier,
   visibleTier,
+  planProduct,
   canSubmitBlog,
   canExpressInterest,
   canRequestQATopic,

@@ -40,26 +40,25 @@
 
 /* Modal Header */
 .modalHeader {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 2px solid #e5e7eb;
-  background: linear-gradient(135deg, #1E4DB7 0%, #3B82F6 100%);
+  padding: 1.75rem 2rem 1.25rem 2rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface, #fff);
   border-radius: 16px 16px 0 0;
-  color: white;
+  color: var(--color-text-dark, #171717);
 }
 
 .modalHeader h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: white;
+  margin: 0 0 0.6rem 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text-dark, #171717);
 }
 
 .scrollInstruction {
   margin: 0;
   font-size: 0.9rem;
-  opacity: 0.95;
-  font-weight: 500;
-  color: white;
+  font-weight: 600;
+  color: var(--color-primary, #1E4DB7);
 }
 
 /* Modal Content - Scrollable */
@@ -283,19 +282,21 @@
 }
 
 .acceptButton {
-  background: linear-gradient(135deg, #1E4DB7 0%, #3B82F6 100%);
-  color: white;
+  background: var(--color-primary-50, #f0f7ff);
+  color: var(--color-primary, #1E4DB7);
+  border: 1px solid var(--color-primary-200, #c7e2ff);
 }
 
 .acceptButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1a42a0 0%, #2563eb 100%);
+  background: var(--color-primary-100, #e0eeff);
+  border-color: var(--color-primary-300, #a5d2ff);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .acceptButton:disabled {
-  background: #d1d5db;
-  color: #9ca3af;
+  background: #f3f4f6;
+  color: #a3a3a3;
+  border: 1px solid #e5e7eb;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

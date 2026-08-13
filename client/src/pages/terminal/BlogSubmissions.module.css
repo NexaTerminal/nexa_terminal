@@ -116,11 +116,11 @@
   transition: background-color 120ms ease;
 }
 .btnPrimary {
-  background-color: #0B1220;
-  border: 1px solid #0B1220;
-  color: #fff;
+  background-color: var(--color-primary-50, #f0f7ff);
+  border: 1px solid var(--color-primary-200, #c7e2ff);
+  color: var(--color-primary, #1E4DB7);
 }
-.btnPrimary:hover:not(:disabled) { background-color: #1e293b; transform: none; box-shadow: none; }
+.btnPrimary:hover:not(:disabled) { background-color: var(--color-primary-100, #e0eeff); border-color: var(--color-primary-300, #a5d2ff); transform: none; box-shadow: none; }
 .btnSecondary {
   background-color: #fff;
   border: 1px solid #e5e7eb;
@@ -275,7 +275,7 @@
 .s_ai_failed   { background: #FFFBEB; color: #92400E; border-color: #FCD34D; }
 .s_returned    { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .s_accepted    { background: #F0F9FF; color: #075985; border-color: #BAE6FD; }
-.s_published   { background: #0B1220; color: #fff; border-color: #0B1220; }
+.s_published   { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
 .s_rejected    { background: #fff; color: #B91C1C; border-color: #FECACA; }
 
 .emptyState {

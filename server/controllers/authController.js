@@ -382,12 +382,16 @@ class AuthController {
         { $set: { emailVerified: true, emailVerifiedAt: new Date(), updatedAt: new Date() } }
       );
 
-      // Email verified — initialize the account LOCKED (no auto-trial).
-      // Access begins only when a code is redeemed or a plan is purchased.
+      // Email verified — start the 8-day free trial for the plan the user
+      // signed up for (Basic on nexa.mk, Pro on leads.nexa.mk). Full access
+      // until it lapses, then the scheduler auto-suspends. One per email.
       try {
         const sub = req.app.locals.subscriptionService;
-        if (sub) await sub.initLocked(userId);
-      } catch (e) { console.error('initLocked after verify warning:', e.message); }
+        if (sub) {
+          const u = await userService.findById(userId);
+          await sub.initTrial(userId, { plan: u?.intendedPlan || 'basic' });
+        }
+      } catch (e) { console.error('initTrial after verify warning:', e.message); }
 
       try {
         const creditService = req.app.locals.creditService;

@@ -136,16 +136,19 @@ class TopicsService {
     if (visible !== 'B' && tier !== 'ADMIN') return [];
     // Filter by member's declared practice areas/categories. If none declared,
     // show everything that's open.
+    // Return claimable (open) AND in-flight (requested/in_progress) topics so the
+    // board can render taken ones grayed-out. Published/archived drop off.
     const filter = {
-      status: WORKLIST_STATUS.OPEN,
-      activeSubmissionId: null
+      status: { $in: [WORKLIST_STATUS.OPEN, WORKLIST_STATUS.REQUESTED, WORKLIST_STATUS.IN_PROGRESS] }
     };
     const areas = user.superUser?.practiceAreas || [];
     if (areas.length > 0) {
       // practiceArea is a free-text label; we match either practiceArea OR category.
       filter.$or = [{ practiceArea: { $in: areas } }, { category: { $in: areas } }];
     }
-    return this.worklist.find(filter).sort({ updatedAt: -1 }).toArray();
+    // Open first, then taken; newest within each group.
+    const items = await this.worklist.find(filter).sort({ updatedAt: -1 }).toArray();
+    return items.sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1));
   }
 
   async getOneForMember(user, id) {
@@ -168,14 +171,9 @@ class TopicsService {
       e.code = check.reason === 'trial' ? 'TRIAL_LOCKED' : 'TIER_FORBIDDEN';
       throw e;
     }
-    const reason = String(requestReason || '').trim();
-    if (!reason) {
-      const e = new Error('Образложение е задолжително.'); e.code = 'INCOMPLETE'; throw e;
-    }
-    if (reason.length > REQUEST_REASON_MAX) {
-      const e = new Error(`Образложението е премногу долго (макс ${REQUEST_REASON_MAX} карактери).`);
-      e.code = 'TOO_LONG'; throw e;
-    }
+    // Reason is now optional — clicking "Одговори" claims the topic and starts
+    // writing immediately (no separate request/approval step).
+    const reason = String(requestReason || '').trim().slice(0, REQUEST_REASON_MAX);
     const wlOid = TopicsService.toObjectId(worklistId);
     const uid = TopicsService.toObjectId(user._id);
     if (!wlOid || !uid) { const e = new Error('Invalid id'); e.code = 'INVALID_ID'; throw e; }
@@ -202,12 +200,14 @@ class TopicsService {
       _id: new ObjectId(),
       worklistId: wlOid,
       authorId: uid,
-      status: SUBMISSION_STATUS.REQUESTED,
-      requestReason: reason.slice(0, REQUEST_REASON_MAX),
+      // Claim goes straight to writable (in_progress) — no admin approval needed
+      // to START. Editorial review still happens when the member submits.
+      status: SUBMISSION_STATUS.IN_PROGRESS,
+      requestReason: reason,
       answers: (wl.questions || []).map(q => ({ order: q.order, text: '', wordCount: 0 })),
       revisions: [],
       requestedAt: now,
-      approvedAt: null,
+      approvedAt: now,
       submittedAt: null,
       acceptedAt: null,
       publishedAt: null,
@@ -218,12 +218,17 @@ class TopicsService {
     };
     await this.subs.insertOne(sub);
 
-    // Transition the worklist row to 'requested' (still open to other members
-    // for visibility on the admin worklist, but invisible on the member board
-    // because activeSubmissionId is still null until approval).
-    await this.worklist.updateOne({ _id: wlOid }, {
-      $set: { status: WORKLIST_STATUS.REQUESTED, updatedAt: now }
-    });
+    // Lock the worklist row to this author ATOMICALLY: only succeeds if it's
+    // still open and unclaimed, so two members clicking at once can't both grab
+    // the same topic. If the lock fails, roll back the submission we just made.
+    const lock = await this.worklist.updateOne(
+      { _id: wlOid, status: WORKLIST_STATUS.OPEN, activeSubmissionId: null },
+      { $set: { status: WORKLIST_STATUS.IN_PROGRESS, activeSubmissionId: sub._id, updatedAt: now } }
+    );
+    if (lock.modifiedCount === 0) {
+      await this.subs.deleteOne({ _id: sub._id });
+      const e = new Error('Оваа тема штотуку беше земена од друг член.'); e.code = 'NOT_OPEN'; throw e;
+    }
 
     return sub;
   }

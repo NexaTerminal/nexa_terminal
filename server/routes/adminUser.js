@@ -15,6 +15,11 @@ module.exports = function buildAdminUserRoutes(controller) {
   // Pro dashboard summary — Pro (admin_user) only.
   router.get('/me', requireAdminUser, (req, res) => controller.getSummary(req, res));
 
+  // Provider profile (practice areas + cities for lead routing) — Pro only.
+  // De-merge Phase 4; cap enforcement lives in the controller.
+  router.get('/provider-profile',  requireAdminUser, (req, res) => controller.getProviderProfile(req, res));
+  router.put('/provider-profile',  requireAdminUser, (req, res) => controller.updateProviderProfile(req, res));
+
   // Sub-user (seat) management — both tiers (Basic co-workers / Pro clients).
   // The seat TYPE is derived from the caller's role inside SubSeatService.
   router.get('/seats',                     requireSeatManager, (req, res) => controller.listSeats(req, res));

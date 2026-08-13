@@ -38,7 +38,23 @@
     text-decoration: none;
     white-space: nowrap;
     transition: all 0.3s ease;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Product B (leads.nexa.mk) wordmark badge next to the logo. */
+.brand-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 999px;
+    padding: 2px 8px;
+    line-height: 1.4;
 }
 
 .logo:hover {

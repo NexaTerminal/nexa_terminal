@@ -6,89 +6,84 @@
 
 ## 1. The one-paragraph pitch
 
-Nexa is a **business operations ecosystem for small and medium firms in North Macedonia**. The core product is **Nexa Terminal** — a SaaS platform that automates legal documents, runs compliance health checks, provides AI legal/marketing assistance, and analyzes contracts. Around the Terminal, Nexa operates a network of **SEO + GEO optimized satellite sites** that attract real prospects in specific legal and business niches, then route those inbound leads to the firm's paying Admin users. A separate property — **Topics.nexa** — lets those Admin users publish expert Q&A content, building authority that the satellite sites and Google + AI assistants surface back to potential clients.
+Nexa is a **two-sided business operations ecosystem for small and medium firms in North Macedonia**. The core product is **Nexa Terminal** — a SaaS platform that automates legal documents, runs a broad suite of compliance health checks, provides AI legal/marketing assistance, analyzes contracts, and manages HR and contract registries. Around the Terminal, Nexa operates a network of **SEO + GEO optimized satellite sites** that attract real prospects in specific legal and business niches, then route those inbound leads to **Pro** subscribers (service providers). A public compliance teaser — **/proverka** — pulls cold prospects into the funnel, and an expert Q&A surface — **Topics** — lets Pro members publish authority-building content that Google and AI assistants surface back to potential clients.
 
-The pitch on the homepage tells this as a 3-act story:
+The two-sided model:
+- **Basic** = the *demand* side — SMBs using the Terminal's tools to run their own operations.
+- **Pro** = the *supply* side — lawyers, accountants, and consultants who get client leads, a network presence, and the ability to manage their own clients as sub-accounts.
+
+The homepage tells this as a 3-act story:
 1. **Part 1 — We bring clients to you** (satellite sites + lead routing)
-2. **Part 2 — We make you visible as an expert** (Topics.nexa)
-3. **Part 3 — Automate your operations** (Terminal trial)
+2. **Part 2 — We make you visible as an expert** (Topics + newsletter + blog)
+3. **Part 3 — Automate your operations** (the Terminal)
 
 ---
 
 ## 2. Pricing model
 
-All prices in **EUR**, using **9-ending psychological pricing**. Three plans × three billing cycles. Each card on the public pricing page is a single clickable Link → `/login`; the green trial banner at the bottom reads **"Пробајте бесплатен период, без обврска"** (Try the free period, no commitment).
+All prices in **EUR** (with an EUR/MKD toggle on the public page), using **9-ending psychological pricing**. **Two tiers** × three billing cycles. The public `/pricing` page is a two-tier chooser (Basic + Pro).
 
-| Plan | Monthly | Quarterly | Yearly | Save (Q / Y) |
+| Plan | Monthly | Quarterly | Yearly | Audience |
 |---|---:|---:|---:|---|
-| **Стандарден** (Standard, 1 user) | €39 | €99 | €359 | 15% / 23% |
-| **Admin · 5** (team of 5) | €79 | €199 | €719 | 16% / 24% |
-| **Admin · 10** (team of 10) | €149 | €379 | €1.349 | 15% / 25% |
+| **Основен** (Basic) | €19 | €49 | €179 | SMBs (demand side) |
+| **Про** (Pro) | €39 | €99 | €359 | Service providers (supply side) |
 
-The cycle toggle on the pricing page shows approximate discount chips: **−15%** quarterly, **−24%** annual.
+Quarterly ≈ 14–16% off three months; annual ≈ 22–24% off twelve months.
 
 ### What each plan includes
 
-**Стандарден** — Terminal-only, individual user:
-- Automated documents (up to 3 templates)
-- Business news feed
-- Legal compliance health check
-- HR / operational health check
-- Marketing health check
-- Contract analysis (legal + commercial risk)
-- AI legal assistant
+**Основен / Basic** — all Terminal tools for one company:
+- Automated document templates (employment, contracts, health & safety, personal data, accounting, central register, and more)
+- **My Templates** — upload your own `.docx`, mark placeholders, and automate it
+- Legal AI assistant · Marketing AI assistant · Contract analysis
+- Personal AI preferences (tone & style / "stance")
+- Legal, marketing, HR, and cybersecurity compliance checks
+- **Request for offers** — source quotes from providers (Sourcing)
+- 1 blog post / month on the Nexa blog, published under the user's name
+- Newsletter banner reaching 1000+ subscribers — once per quarter
+- Virtual Fair · Courses & learning resources
+- Up to **3 co-worker seats** in the company
 
-**Admin · 5** — everything in Standard, plus:
-- Team of up to 5 sub-seat users
-- Unlimited access to all document templates
-- Monthly appearance in the Nexa newsletter
-- Presence on Nexa satellite sites
-- Expert answers on Nexa Topics
-- Priority support
+**Про / Pro** — everything in Basic, plus:
+- Up to **25 client sub-accounts** — manage clients under one subscription
+- **Cases (leads)** sourced via the satellite sites
+- Virtual Fair booth with the provider's products/services
+- 2 blog posts per month (instead of 1)
+- **Topics Q&A** — expert answers to public questions
+- **Request for offers (tender side)** — respond to client requests
+- Editorial spot in the monthly newsletter for accepted blog posts
 
-**Admin · 10** — everything in Admin · 5, plus:
-- Team of up to 10 sub-seat users
-- Larger AI / document credit pool
+### Onboarding & subscription lifecycle (code-first, no trial)
 
-### Subscription lifecycle
+There is **no free trial**. A brand-new account starts **LOCKED** (`subscription.status: 'none'`) and has no feature access until it is unlocked one of two ways:
 
 ```
-register ──► trial (8 days, no card) ──► pick a plan
-                                          │
-                                          ▼
-                                   pro-forma invoice
-                                   sent by email
-                                          │
-                          ┌───────────────┴───────────────┐
-                          ▼                               ▼
-                3-day grace period               payment received
-              (auto-granted, one-time             via bank transfer
-               while payment processes)                  │
-                          │                              ▼
-                          └────────────────────► account active
+register (locked) ──► redeem promo code (/redeem)  ──► active (€0, promo, time-boxed)
+                 └──► pick a plan → pro-forma invoice → bank transfer → active (paid)
 ```
 
-Key rules:
-- **No credit-card processing**. Payment is by manual bank transfer. The Terminal issues a pro-forma invoice on plan selection.
-- The **3-day grace period is granted automatically** the first time a user submits a plan request after the trial, so they don't lose access while their payment is in transit. It's a one-time grant — after it's used, the user has to wait for actual payment to unlock again.
-- **Trial expiration → suspended** state. The user can still navigate the Terminal freely (data is preserved) but feature endpoints return HTTP 402, which the React client catches and opens the in-Terminal **SubscriptionGate** modal.
-- A daily cron job sends reminder emails (2 days before trial end, on expiration, 14 days before renewal, 3 days before, on renewal day) using a bilingual MK/EN email template set.
-- Standard users cannot subscribe to Admin plans and vice versa — the SubscriptionGate enforces this with a clear "Available only at registration" message.
+- **Code-first acquisition**: outbound sales issue per-prospect **promo codes** (typically a time-boxed Pro grant). A prospect redeems at `/redeem?code=…`, which activates the plan at €0 with `paidVia: 'promo'`. Google OAuth sign-in is wired (`/auth/callback`, `/auth/success`).
+- **Paid path**: the user picks a plan; the Terminal issues a **pro-forma invoice** by email; payment is by **manual bank transfer** (no card processing). On confirmed payment the platform admin approves and the account goes active.
+- **One-time 3-day grace**: the first time a locked/expired user shows intent (requests an invoice) without having paid, a race-safe 3-day grace window is auto-granted so access isn't interrupted while payment is in transit.
+- **Expiration → suspended**: when `endsAt` passes, the account is suspended. The user can still navigate the Terminal (data preserved) but feature endpoints return **HTTP 402**, which the React client catches to open the in-Terminal **SubscriptionGate** modal.
+- A daily cron sends bilingual MK/EN reminder emails (paid renewal at −14d / −3d / on expiry; promo expiry at −3d / on expiry).
 
 ### Server-side pricing source of truth
 
-Defined in `server/constants/roles.js`:
+Defined in `server/constants/roles.js`. Canonical two-tier model with legacy keys retained for back-compat:
 
 ```js
+const PLANS  = { BASIC: 'basic', PRO: 'pro' };
 const PLAN_PRICES = {
-  standard: { monthly: 39,  quarterly: 99,  annual: 359  },
-  admin_5:  { monthly: 79,  quarterly: 199, annual: 719  },
-  admin_10: { monthly: 149, quarterly: 379, annual: 1349 }
+  basic: { monthly: 19, quarterly: 49, annual: 179 },
+  pro:   { monthly: 39, quarterly: 99, annual: 359 }
 };
+const PLAN_SEATS = { basic: 3, pro: 25 };
+const PLAN_TO_ROLE = { basic: 'standard_user', pro: 'admin_user' };
 const PLAN_CURRENCY = 'EUR';
 ```
 
-Same prices echo across: `Pricing.js`, `SubscriptionGate.js`, `schemaGraph.js` (JSON-LD), payment-instruction emails, and all i18n descriptors.
+`canonicalPlan()` normalizes legacy keys (`standard`→`basic`; `admin_5`/`admin_10`→`pro`). Same prices echo across `Pricing.js`, `SubscriptionGate.js`, `schemaGraph.js` (JSON-LD), payment-instruction emails, and i18n descriptors.
 
 ---
 
@@ -96,411 +91,260 @@ Same prices echo across: `Pricing.js`, `SubscriptionGate.js`, `schemaGraph.js` (
 
 | Role | Description | How they get it |
 |---|---|---|
-| `standard_user` | One-seat user. Owns their own Terminal account. | Self-registration at `/login`. |
-| `admin_user` | Owns an Admin · 5 or · 10 plan; can invite sub-seats. | Self-registration with `intendedPlan: 'admin_5'` or `'admin_10'`. |
-| `sub_seat` | Created by an Admin user. Uses Terminal under the admin's subscription pool. | Invited via the Admin user's Team page. |
+| `regular` | Registered, locked, no plan yet (edge/legacy). | Self-registration, pre-activation. |
+| `standard_user` | **Basic** subscriber. One company, up to 3 co-worker seats. | Registration + Basic activation (code or paid). |
+| `admin_user` | **Pro** subscriber. Service provider; up to 25 client sub-accounts. | Registration with `intendedPlan: 'pro'` + activation. |
+| `sub_seat` | Created by a Basic co-worker slot or a Pro client account. Uses the Terminal under the parent's subscription pool. | Invited via the parent's Team page. |
 | `admin` | Platform operator (Martin). Bypasses all gating. | Set manually in DB. |
 
-### Sub-seat invitation flow
+### Sub-seat / client-account invitation flow
 
-The Admin user goes to `/terminal/team` and creates a seat. The form requires:
-- Email address (becomes the username, lowercased on store)
-- Full name (optional)
-- **Company mode** (no default — must be explicitly chosen):
-  - **Shared** — the sub-seat uses the parent's `companyInfo`. Updates to the parent's profile propagate automatically (via `updateMany` in `userController.updateProfile`). Designed for one company adding internal users.
-  - **Independent** — the sub-seat fills in their own company info via the CompanyInfoPrompt modal that appears on first visit to `/terminal/documents`. Designed for B2B service-provider scenarios where one Admin reseller provisions standalone tenants for different end customers.
+The parent user goes to `/terminal/team` and creates a seat. The form requires an email (becomes the lowercased username), optional name, and a **company mode** (must be explicitly chosen):
+- **Shared** — the sub-seat uses the parent's `companyInfo`; profile updates propagate automatically. For a single company adding internal co-workers (the Basic pattern).
+- **Independent** — the sub-seat fills in their own company info via the CompanyInfoPrompt modal on first visit. For the Pro pattern where one provider provisions standalone tenants for different end clients.
 
 The backend (`subSeatService.invite`):
-- Generates a memorable 4-word + 4-digit temp password
-- Hashes it with bcrypt (10 rounds)
-- Creates the user with `mustChangePassword: true`, `role: 'sub_seat'`, `parentSuperUserId: parent._id`
-- Returns the **plaintext temp password** in the response (shown once)
+- Generates a memorable temp password, hashes with bcrypt, creates the user with `mustChangePassword: true`, `role: 'sub_seat'`, `parentSuperUserId: parent._id`
+- Returns the **plaintext temp password** once (shown on a credentials card with copy buttons)
 
-The frontend Team page renders a **credentials card** with copy buttons for username + temp password. The Admin can also reset a seat's password later, revoke a seat, or reactivate a revoked seat (all atomic operations).
-
-### Sub-seat login + first-login behavior
-
-- Lookup is **case-insensitive** on username (stored lowercase at write; lookup lowercases input — fixed in commit `5d0e737`)
-- On first login, the JWT response includes `mustChangePassword: true`
-- `PrivateRoute` reads this and redirects to `/terminal/change-password` until cleared
-- Credits used by a sub-seat are debited from the **parent admin's credit pool** (via `resolveCreditBearerId` in `creditMiddleware.js`)
-- Sub-seats don't carry a subscription record of their own; their access is gated transitively through the parent admin's effective status
+Sub-seats: case-insensitive username lookup; forced password change on first login (`PrivateRoute` → `/terminal/change-password`); credits debited from the **parent's** pool (`resolveCreditBearerId`); access gated transitively through the parent's effective subscription status.
 
 ---
 
 ## 4. The Terminal — feature inventory
 
-`https://nexa.mk/terminal/*` — Macedonian-only (the public site is bilingual; the Terminal is locked to MK).
+`https://nexa.mk/terminal/*` — Macedonian-only interior (the public site is bilingual MK/EN).
 
-### Dashboard (`/terminal`)
+### Dashboard (`/terminal`, `/terminal/dashboard`)
 
-Two-column layout (sidebar + main content area). Main column shows:
-- **Брзи дејства** (Quick actions) card with three text-only shortcut columns:
-  - **Шаблони** (Templates): Договор за вработување · Спогодба за престанок · Одлука за годишен одмор · Сите →
-  - **Проверки** (Checks): Правна проверка · HR и оперативна · Маркетинг проверка · Сите →
-  - **AI алатки**: Правен AI помошник · Анализа на договор · Маркетинг AI · Сите →
-- A minimal text filter bar above the feed for blog categories (Сите · Претприемништво · Правни · Инвестиции · Маркетинг · …)
-- Blog post cards (image + title + 2-line excerpt + tags + like/dislike reactions)
+Sidebar + main content. Quick-action launcher (Templates · Checks · AI tools), a category filter bar, and a blog/news feed with reactions.
 
 ### Document automation
 
-- **50+ DOCX templates** organized by category (employment, contracts, obligations, personal data protection, other)
-- Each template = a React form + a `docxtemplater` template + a controller in `server/controllers/autoDocuments/`
-- All documents pull company data from `user.companyInfo` (or parent's, for shared sub-seats)
-- 13-digit EMBG/PIN validation per Macedonian standard
-- **Custom templates**: users upload a .docx, mark placeholder fields, and generate new documents from their own forms (My Templates page)
+- **45+ DOCX templates** across categories: **employment** (contracts, annexes, terminations of many kinds, bonuses, disciplinary actions, leave decisions, organization act…), **contracts** (NDA, loan, rent, SaaS, services, mediation, debt assumption…), **obligations** (vehicle sale-purchase…), **personal data protection** (consent, GDPR company politics, data-protection policy, estimation procedure, rulebook, privacy policy), **accounting** (annual accounts adoption, dividend payment, cash-register maximum, invoice-signing authorization, write-off), **central register** (company **formation**/incorporation packs and **company changes** — multi-document `.docx` bundles), **health & safety**, and **other** (master services agreement, employee stock purchase plan, warning before lawsuit).
+- Each template = a React form + a `docxtemplater` template + a controller in `server/controllers/autoDocuments/`.
+- All documents pull company data from `user.companyInfo` (or the parent's for shared sub-seats). 13-digit EMBG/PIN validation per Macedonian standard.
+- **My Templates** (`/terminal/my-templates`) — upload a `.docx`, mark placeholder fields, then fill / bulk-generate / edit / view history from your own forms. A **Template Marketplace** (`/terminal/template-marketplace`) surfaces shareable templates.
 
 ### AI assistants
 
-- **Правен AI** (`/terminal/ai-chat`) — legal Q&A
-- **Маркетинг AI** (`/terminal/marketing-ai`) — marketing strategy and content
-- **Анализа на договор** (`/terminal/contract-analysis`) — uploads a .docx contract, extracts legal + commercial risks, termination clauses, penalties, licenses, liability
+- **Правен AI** (`/terminal/ai-chat`) — legal Q&A over a Macedonian legal corpus (RAG). Renders Markdown; adaptive structured legal format.
+- **Маркетинг AI** (`/terminal/marketing-ai`) — marketing strategy and content.
+- **Анализа на договор** (`/terminal/contract-analysis`) — uploads a `.docx` contract, extracts legal + commercial risks, termination clauses, penalties, licenses, and liability (commercial rating badge).
+- **AI Stance / preferences** (`/terminal/ai/stance`) — personal tone & style preferences applied to AI output.
 
-### Compliance health checks (`/terminal/*-screening`)
+### Compliance health checks — the LHC platform (`/terminal/legal-screening/*` + others)
 
-Structured questionnaires that produce a prioritized risk report:
-- **Правен** (legal) — labor law, contracts, company structure compliance
-- **HR и оперативен** — workplace regulations, safety training, employee documentation
-- **Маркетинг** — content compliance, lead-gen ethics, advertising rules
-- **Сајбер безбедност** — security posture, data protection, GDPR-like requirements
+A large, structured questionnaire-and-report platform built on a **shared scoring engine** (`server/controllers/lhc/lhcScoring.js` + `lhcShared.js`) using a fraction model, four maturity bands, and critical gates. Modules:
 
-### Admin user features (`/terminal/admin-user/*`)
+**Legal (LHC) — `/terminal/legal-screening/*`:**
+- **Employment** — full check plus 4 sub-modules (**Part 1–4**, the "Employment-Parts" pattern)
+- **GDPR / data protection** — rebuilt to a/b/c/d maturity with profiling + critical gates
+- **General** — cross-topic pool that consumes the module results
+- **Health & Safety**
+- **Archives** (archiving obligations)
+- **Protection & Rescue**
+- **Waste Management**
+- **Tax compliance** — 4 sub-modules: **General**, **Payroll**, **Profit**, **VAT**
 
-Visible only to `role: 'admin_user'`:
-- **Преглед** — dashboard with seat usage, recent leads, subscription state
-- **Клиенти** (Leads inbox) — leads that match the admin's practice area + city, with **first-to-claim** semantics (atomic `findOneAndUpdate` in `leadsService.claim`). Status enum: `unclaimed → offered → claimed | dismissed`.
-- **Тим** (Team) — sub-seat management: invite, reset password, revoke, reactivate; each card shows seat usage status and the credentials card during onboarding
+**Other checks (own routes):**
+- **HR & operational** — `/terminal/hr-screening` (module `hhc`)
+- **Marketing** — `/terminal/marketing-screening` (module `mhc`)
+- **Cybersecurity** — `/terminal/cyber-screening` (module `chc`)
+
+Each check produces a prioritized, banded compliance report at `.../report/:id`.
+
+### HR module — Вработени (`/terminal/employees`)
+
+An employee registry (clones the contracts pattern): list, create, detail, and edit employees. Provides **computed leave balances** and a daily **reminder cron** (e.g. contract/leave events). Employee data can prefill document generation.
+
+### Contracts registry (`/terminal/contracts`)
+
+A registry of the company's contracts (list / new / detail / edit) with a **contract-reminder scheduler** for renewal/expiry dates.
+
+### Marketing
+
+- **Marketing** (`/terminal/marketing`) and **Marketing Hub** (`/terminal/marketing-hub`) — marketing tooling and content surface
+- **Marketing performance report** (`/terminal/marketing/performance-report`)
+
+### Ecosystem / two-sided features
+
+- **Sourcing — Request for offers** (`/terminal/sourcing`) — SMBs request quotes; providers respond (offer-requests).
+- **Find a lawyer** (`/terminal/find-lawyer`) — directory into the provider network.
+- **Virtual Fair** (`/terminal/fair`, `/terminal/fair/:id`) — booths with provider products/services; admin moderation.
+- **Investments** (`/terminal/investments`) — investment listings/detail.
+- **Sales funnel** (`/terminal/sales`) — provider sales pipeline.
+- **Blog publishing** — submit (`/terminal/blogs/submit`), my submissions, published, with admin moderation of pending submissions.
+- **Topics Q&A** (`/terminal/topics-qa`) — Pro members answer public questions; admin worklist assigns/curates.
+- **Newsletter ad booking** (`NewsletterAdBooking`) — banner slots in the Nexa newsletter (bookable, limited slots).
+- **Credits / Billing / Subscription** (`/terminal/credits`, `/terminal/billing`, `/terminal/subscription`).
+
+### Pro-user features (`/terminal/admin-user/*`)
+
+Visible to `role: 'admin_user'` (Pro):
+- **Dashboard** — seat usage, recent leads, subscription state
+- **Leads inbox** (`/terminal/admin-user/leads`) — leads matching the provider's practice area + city, **first-to-claim** atomic semantics (`unclaimed → offered → claimed | dismissed`)
+- **Team** (`/terminal/team`) — sub-seat / client-account management
 
 ### Platform admin features (`/terminal/admin/*`)
 
-Visible only to `role: 'admin'` (Martin). Sidebar groups them into collapsible dropdowns:
-- **Блогови** → Управувај блогови · Додади блог
-- **Корисници** → Сите корисници · Претплати
-- **Маркетплејс** → Клиенти · Провајдери на услуги · Барања за понуди
-- **Управување со Chatbot**
-
-User detail modal on the "Сите корисници" page supports: copy-credentials, password reset (sends an email), role change with guardrails, and (planned) usage statistics from the `user_analytics` and `activity_logs` collections.
+Visible to `role: 'admin'` (Martin). Grouped in the sidebar:
+- **Blogs** — manage, add, edit, pending submissions
+- **Users** — all users, subscriptions, **Pro invoices**, **invited prospects**
+- **Marketplace** — leads, service providers, offer requests, inquiries
+- **Topics** — submissions + worklist curation
+- **Content ops** — updates, newsletter ad bookings, Fair moderation, **Proverka funnel** (share-link builder + per-source analytics)
+- **Chatbot management**
 
 ### Education
 
-`/terminal/education` — course library with category filter (Сите · Правни · Маркетинг · Менаџмент). Currently four real courses:
-- Работни односи
-- Удел во трговско друштво
-- Извршување врз недвижности
-- Локално SEO
-
-(Coming-soon placeholders were removed for a cleaner first impression.)
+`/terminal/education` — course library with category filter and lesson pages (`/course/:id/lesson/:id`).
 
 ---
 
-## 5. The satellite sites (Nexa ecosystem)
+## 5. The satellite sites & public funnel (Nexa ecosystem)
 
-Five SEO + GEO optimized properties, each owning a specific topic in Macedonian legal/business space. They serve two purposes:
-1. **Independent value** for visitors searching that specific topic
-2. **Lead generation** — visitors who fill a contact form become leads routed to Admin users
+SEO + GEO optimized properties that (a) provide independent value to searchers and (b) generate leads routed to Pro members. Public-facing landing/entry routes on the main site include `/ecosystem`, `/corporate`, `/employment`, `/residence`, `/trademark`, `/smetkovoditeli` (accountants), `/topics`, and the compliance funnel `/proverka`.
 
-### `samodaprasham.mk` — citizen legal questions
+### Practice-area routing enum
 
-Target audience: **individuals** with legal questions in Macedonian — inheritance, divorce, criminal defense, property disputes, employment.
+`PRACTICE_AREAS` in `roles.js`: `consumer-legal`, `immigration`, `citizenship`, `company-registration`, `ip-law`, `tax-accounting`, `labor-law`, `general-legal`.
 
-Pitch on the Nexa homepage: *"Citizens have legal questions. Some are serious cases. Many need real representation — not just information."*
+### The satellite properties
 
-Visitors typically arrive via long-tail Google queries like *"кој наследува без тестамент во Македонија"*. The contact form on the question page routes the matter to a lawyer in the matching practice area.
+- **`samodaprasham.mk`** — citizen legal questions (inheritance, divorce, criminal defense, property, employment). Long-tail Google intent; routes to the matching practice area.
+- **`immigration.mk`** — residence permits for foreigners. High commercial intent, often urgent.
+- **`macedoniancitizenship.mk`** — diaspora & descendants seeking citizenship. Long-cycle, high-ticket case work.
+- **`company.nexa.mk`** — company registration (ДОО/ДООЕЛ/АД, Central Registry, ownership changes, branches). Pairs the lead with a lawyer + accountant.
+- **`iplaw.nexa.mk`** — intellectual property (trademarks, patents, copyright, licensing). Lower volume, high value.
+- **`osiguran.nexa.mk`** — insurance niche (added mid-2026).
 
-### `immigration.mk` — residence permits for foreigners
+> Satellite sites are hardcoded across several files and copy strings; grep `iplaw` / satellite domains to find every reference before adding a new one.
 
-Target audience: **foreign citizens, investors, and workers** in or moving to North Macedonia who need residence permits — issuance, renewal, change of purpose.
+### /proverka — public compliance teaser
 
-Pitch: *"Foreigners need expert help with residence permits. These visitors come with clear intent to pay — often for an urgent case."*
-
-High commercial intent: someone who searches *"residence permit Macedonia"* in English is generally ready to pay a local advisor.
-
-### `macedoniancitizenship.mk` — diaspora & descendants
-
-Target audience: **people of Macedonian origin** living abroad (Australia, US, Canada, Europe) applying for citizenship through origin, marriage, or investment routes.
-
-Pitch: *"The diaspora seeks to reclaim citizenship. These cases need legal guidance and document preparation over months, not weeks. That is specialist work."*
-
-Long-cycle, high-ticket case work. The visitor is usually willing to engage a Macedonian lawyer over months.
-
-### `company.nexa.mk` — company registration
-
-Target audience: **founders and new entrepreneurs** setting up a ДОО / ДООЕЛ / АД, registering with the Central Registry, changing owners, opening branches.
-
-Pitch: *"Entrepreneurs are looking to register a company. They need an accountant and a lawyer from day one."*
-
-Pairs the lead with both a legal advisor and a bookkeeping partner.
-
-### `iplaw.nexa.mk` — intellectual property
-
-Target audience: **growing companies and innovators** dealing with trademarks, patents, copyrights, licensing.
-
-Pitch: *"Brands and innovators need protection. These clients are already successful — they can afford professional services and pay for quality."*
-
-Lower volume than `samodaprasham.mk`, but each lead is high-value.
+A public, Google-first funnel: 15 shuffled cross-topic compliance questions give a prospect a teaser of their compliance posture, optionally capturing an email, then pulling them toward registration. Admins build per-source share links and track a per-source funnel.
 
 ### Why this works (SEO + GEO)
 
-- Each site is optimized **for classic Google search**: clean URLs, structured data, fast pages, expert-authored content
-- Each site is also optimized **for AI assistants (GEO)**: clear factual content, FAQ schema, llms.txt, direct answers in the text. When someone asks ChatGPT *"how do I register a DOO in Skopje"*, the AI surfaces our pages
-- Content is **written or reviewed by licensed professionals** (no plagiarism, no auto-generated content) — this is a positioning + compliance choice
-- The number of satellite sites is **not exposed** on the homepage copy (the previous "5 satellite sites" was changed to "network of specialized sites") so the count can grow without forcing copy updates
+- Optimized for classic Google search (clean URLs, structured data, fast pages, expert-authored content) **and** for AI assistants (GEO): FAQ schema, `llms.txt`, direct factual answers.
+- Content is written or reviewed by licensed professionals — a positioning + compliance choice. Nexa makes **no "checked by a lawyer" guarantees** in product copy.
 
 ---
 
-## 6. Topics.nexa — expert Q&A platform
+## 6. Topics — expert Q&A
 
-A separate property: `topics.nexa.mk`. Different role from the satellite sites:
-- Satellites = bring leads in
-- **Topics = make Admin users visible as experts**
-
-Admin users (paying Admin · 5 / · 10) publish expert answers on Topics. Those answers:
-- Become public, SEO + GEO optimized content owned by the Admin user's profile
-- Get surfaced by Google when users search the question topic
-- Get cited by AI assistants when they answer related queries
-- Build authority that drives direct outreach to that Admin user
-
-On the homepage, this is presented as a hero card with three mock Q&A cards (Како се пресметува отпремнина? · ДДВ за SaaS услуги од странство? · Регистрација на заштитен знак — чекори?) — a visual hint of what the platform contains.
-
-The benefit framing: *"Direct promotion through expertise, not ads. Content targets what people already search for. AI assistants cite your answers in responses."*
+Topics is the "make providers visible as experts" surface. Pro members answer public questions **inside the Terminal** (`/terminal/topics-qa`, `/terminal/topics-qa/answer/:id`); an admin **worklist** (`/terminal/admin/topics/worklist`) and **submissions** review (`/terminal/admin/topics/submissions`) curate and publish. Public Topics content (`/topics`) is SEO + GEO optimized so Google and AI assistants surface and cite the answers, driving direct outreach to the answering provider.
 
 ---
 
-## 7. Marketing channels for Admin users
+## 7. Marketing channels for Pro members
 
-Admin plans (· 5 and · 10) buy more than seat capacity. They buy distribution. Four promotional channels:
-
-1. **Monthly Nexa newsletter feature** — once per month, the Admin user gets a monthly article appearance to the newsletter list. SEO compounds because the newsletter pages are public.
-2. **Presence on satellite sites** — Admin users in matching practice areas + cities are surfaced in directory-style components on the relevant satellite (`samodaprasham.mk` for general legal, `immigration.mk` for immigration cases, etc.)
-3. **Topics.nexa publishing** — expert Q&A platform, SEO + AI assistant indexing
-4. **Lead routing** — inbound contact forms on satellite sites route to Admin users by practice + city. First Admin to claim wins.
-
-The pitch line on the public site (Part 1 of the story): *"We run a network of specialized sites. Each covers a specific need, each targets visitors with clear intent to pay. Those visitors — your clients."*
+Pro buys distribution, not just seats:
+1. **Lead routing** — inbound satellite-site contact forms route by practice + city; first Pro to claim wins.
+2. **Topics Q&A publishing** — expert answers, SEO + AI-assistant indexing.
+3. **Monthly newsletter** — editorial spot for accepted blog posts + bookable banner slots (1000+ subscribers).
+4. **Blog** — up to 2 posts/month under the provider's name (Basic gets 1).
+5. **Virtual Fair booth** — products/services showcase.
+6. **Satellite/directory presence** — surfaced in matching practice areas + cities.
 
 ---
 
 ## 8. Public website structure
 
-`https://nexa.mk/*` — bilingual MK/EN. Formal address (Вие / Вашиот / Ве) across all MK copy.
+`https://nexa.mk/*` — bilingual MK/EN, formal address (Вие / Вашиот / Ве) across all MK copy.
 
 ### Information architecture
 
 | URL | Purpose |
 |---|---|
-| `/` | Home — 3-act story (Part 1 satellites · Part 2 Topics · Part 3 Terminal final CTA) |
-| `/about` | Full ecosystem explanation, sidebar TOC, FAQ, contact, legal entity disclosure |
-| `/pricing` | Minimal intro + 3 cards + pro-forma invoice flow explainer |
+| `/` | Home — 3-act story |
+| `/about` | Full ecosystem explanation, FAQ, contact, legal entity |
+| `/pricing` | Two-tier chooser (Basic + Pro) + pro-forma invoice flow |
+| `/proverka` | Public compliance teaser funnel |
+| `/ecosystem`, `/corporate`, `/employment`, `/residence`, `/trademark`, `/smetkovoditeli`, `/topics` | Niche landing / funnel entry pages |
+| `/redeem` | Promo-code redemption (Google OAuth wired) |
 | `/contact` | Email + company info + JSON-LD Contact schema |
-| `/blog` and `/blog/:slug` | Marketing content, indexed by category |
-| `/terms-conditions` | Legal — Macedonian commercial terms |
-| `/privacy-policy` | GDPR-equivalent privacy policy, NEKSA AMD as controller |
-
-The navbar holds four items (Екосистем · Цени · Блог · Контакт) — **right-aligned**, with the logo on the left and Login + language switcher at the far right.
-
-### Home story flow
-
-1. **Hero** — pill *"Деловен екосистем за мали и средни фирми во Македонија"*, gradient H1 *"Целиот ваш бизнис, во еден екосистем."*, two CTAs (Try the Terminal + See plans), tertiary link to About
-2. **Ecosystem intro** — *"Nexa е целосен екосистем кој го надградува Вашиот бизнис. Не е само алатка. Прво Ви ги автоматизира внатрешните процеси... Потоа Ви носи нови клиенти преку мрежа од специјализирани сајтови. И на крај, Ве прави видлив како експерт во Вашата област."*
-3. **ДЕЛ 1 · Носиме клиенти кај Вас** — compact 3-col grid of satellite cards (image + tag + title + body + audience + Посети link)
-4. **ДЕЛ 2 · Ве правиме видливи како експерт** — Topics.nexa hero card (text + bullets + 3 mock Q&A cards stacked at angles)
-5. **ДЕЛ 3 · Автоматизирајте го Вашето работење** — dark ink section, 2-col hero with gradient-fill title, 4 feature bullets, glassmorphism Terminal mock cards (Документ генериран · Скрининг во тек · AI одговор)
+| `/blog`, `/blog/:id` | Marketing content by category |
+| `/terms-conditions`, `/general-conditions`, `/privacy-policy` | Legal |
+| `/login`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/auth/success` | Auth |
+| `/shared/:shareToken`, `/preview/:documentType`, `/provider-response/:token` | Shared docs, document preview, provider lead response |
 
 ### Visual language
 
-- **Aurora gradient hero backgrounds** with floating colored orbs (only on selected hero sections)
-- **Brand palette**: 50→900 slate-blue (`--nx-primary-*`), teal accent (`--nx-teal`), Inter typeface, custom `--nx-*` CSS variables
-- **Cards**: white with 1px slate border, soft 1-2px shadow, hover lifts 3px + tints border blue
-- **Glass effects**: `backdrop-filter: blur()` for the final-CTA mock cards on dark
-- **Animations**: fade-in-up entrance + IntersectionObserver scroll-reveal hook
-- **Chapter markers**: short primary-blue underline accent + uppercase eyebrow + 26-40px title
+Aurora gradient hero backgrounds; slate-blue brand palette (`--nx-primary-*`) + teal accent; Inter typeface; CSS-Modules cards (white, 1px border, soft shadow, 3px hover lift); glassmorphism on dark; fade-in-up + IntersectionObserver scroll-reveal.
 
-### Pricing page structure
+### SEO / GEO
 
-- Minimal centered intro (eyebrow ЦЕНИ + headline + 1-line lead)
-- Cycle toggle (Месечно / Квартално / Годишно)
-- Three plan cards — each is a single `<Link>` to `/login`; bottom of each card is a **bright green trial banner** (no button look) reading *"Пробајте бесплатен период, без обврска →"*
-- Footnote: *"Сите цени се без ДДВ."*
-- Payment-flow explainer below: 4-step horizontal flow connected by a gradient hairline (Пробен период → Изберете план → Прими профактура → Уплати и користи)
-
-### SEO
-
-Per-page via `SEOHelmet`:
-- Canonical URL
-- Open Graph (title, description, url, image 1200×630, locale, site_name)
-- Twitter Card (summary_large_image)
-- hreflang triplet (mk / en / x-default)
-
-Per-page via `schemaGraph.js`:
-- `NEXA_ORG` (Organization, with legal entity NEKSA AMD DOOEL Skopje)
-- `NEXA_WEBSITE`
-- `webPage()`, `breadcrumb()`, `faqPage()`
-- `superUserService()` (Service offer with 3 EUR Offer entries)
-- `terminalProduct()` (Product offer)
-- `personMartin` (for author attribution on legal pages)
-- `contactPage()` for /contact
-
-### GEO
-
-- `llms.txt` at the site root — concise structured TL;DR + sections (what we are · ecosystem properties · operator · citation guidance) — the GEO-standard format that AI assistants check first
-- Mobile-friendly: viewport meta WITHOUT `maximum-scale=1` (pinch-zoom works, no a11y / SEO penalty)
-- `robots` meta with `max-image-preview:large` and `max-snippet:-1` so AI assistants and rich snippets can preview the full page
-
-### Bilingual handling
-
-- Default language = MK
-- Language stored in `localStorage` and toggled via `?lang=` query param or the navbar switcher
-- Terminal forces MK regardless of browser/locale (the Terminal is MK-only by design — keeps document generation deterministic)
-- Public pages dual-render via `useTranslation('website')` against `mk.json` and `en.json` namespaces
+Per-page `SEOHelmet` (canonical, Open Graph, Twitter Card, hreflang mk/en/x-default) and `schemaGraph.js` JSON-LD (`NEXA_ORG`, `NEXA_WEBSITE`, `webPage`, `breadcrumb`, `faqPage`, service/product offers, `personMartin`, `contactPage`). Site-root `llms.txt`; mobile viewport without `maximum-scale=1`; permissive `robots` meta for rich snippets and AI previews.
 
 ---
 
 ## 9. Lead routing system
 
-The leadgen flow is the differentiating feature that distinguishes Nexa from a plain SaaS.
+The leadgen flow is the differentiating feature.
 
 ### Inbound webhook
 
-External lead source (a satellite-site contact form) POSTs to:
 ```
 POST /api/leads/inbound
 ```
-with body:
-```json
-{
-  "site": "immigration.mk",
-  "practiceArea": "immigration",
-  "city": "Skopje",
-  "name": "...", "email": "...", "phone": "...",
-  "question": "Free-text..."
-}
-```
+Body carries `site`, `practiceArea`, `city`, contact fields, and free-text `question`. Authenticated by **HMAC-SHA256** in `X-Nexa-Signature` (verified by `leadWebhookHmac.js` before the controller runs).
 
-Authenticated by an **HMAC-SHA256 signature** in the `X-Nexa-Signature` header (computed over the raw body + a shared secret). `leadWebhookHmac.js` middleware verifies before the controller runs.
+### Routing & claim
 
-### Routing logic
+`leadRoutingService.pickAssignee(lead, candidates)` selects a single Pro user by matching `practiceAreas` + `city`, with round-robin / fairness tiebreakers. `leadsService.claim` is a single **atomic `findOneAndUpdate`** (`status: 'offered', offeredTo: userId`) — first to claim wins, others get 409. A daily reaper reassigns stale `offered` leads.
 
-`leadRoutingService.pickAssignee(lead, candidates)` — a pure function with 12 inline unit tests — selects a single Admin user from candidates whose `superUser.practiceAreas` and `superUser.city` match the lead. Tiebreakers: roundRobin by last claim timestamp, fairness across recent volume.
-
-### Status enum
-
-```
-unclaimed → offered → claimed   (success path)
-                   ↘ dismissed   (admin user declined)
-```
-
-`leadsService.claim(leadId, userId)` is a single **atomic `findOneAndUpdate`** with the filter `{ status: 'offered', offeredTo: userId }`. First Admin to call it wins; the rest receive 409 Conflict. No auctions, no overlapping ownership.
+Status enum: `unclaimed → offered → claimed | dismissed`.
 
 ### Notification surface
 
-Three places an Admin sees a new lead:
-1. **In-app dashboard tile** on `/terminal/admin-user`
-2. **Email** sent via Resend (with Gmail/Nodemailer fallback)
-3. **Live Socket.io event** for users currently in the Terminal
-
-### Stale-lead reaper
-
-A daily cron job (`leadRoutingService.tryAutoAssign`) reassigns leads that have been `offered` to a specific Admin for more than N hours without claim, falling back to the next candidate in the routing pool.
+In-app dashboard tile, email (Resend → Gmail fallback), and live Socket.io event.
 
 ---
 
 ## 10. Subscription & access enforcement
 
-### State machine
+### State machine (no trial)
 
 ```
-trial ──► pending_approval ──► active ──► renewal cycles
-   │              │                │
-   │              └─► (admin reject) ──► suspended
-   │                                          │
-   └─► (trial expires) ─► suspended ◄─────────┘
-                              │
-                              ▼
-                          cancelled (one-click reactivate possible)
+none (locked) ──► pending_approval ──► active ──► renewal cycles
+     │                   │                 │
+     │                   └─► (reject) ──► suspended
+     │                                        ▲
+     └─► redeem promo ─► active (€0) ─────────┘  (on expiry)
+                                              │
+                                          cancelled
 ```
 
 Implemented in `server/services/subscriptionService.js`:
-- `startTrial(userId)` — idempotent. Sets `subscription.status: 'trial'`, `endsAt = now + 8 days`. Auto-called at registration; also backfilled by the `/me` controller and by the `subscriptionGuard` middleware so any user without a subscription record gets a fresh trial on first hit (prevents the "Сметката е суспендирана" bug on first-time users).
-- `requestApproval(userId, { plan, cycle })` — moves to `pending_approval`. If user is post-trial AND grace not yet used, atomically grants the 3-day grace via `findOneAndUpdate` with `gracePeriod.used: false` filter (race-safe — concurrent requests can't double-grant).
-- `approve(userId, { plan, cycle, invoiceNumber })` — moves to `active`, sets `endsAt` based on cycle (30/90/365 days).
-- `reject`, `suspend`, `extend`, `cancel` — admin operations.
-- `effectiveStatus(user)` — resolves status, handling the sub-seat → parent transitive case.
-- `hasFeatureAccess(user)` — single rule: access iff trial/active unexpired OR grace active.
-- `grantGracePeriod(userId)` — standalone, atomic, race-safe.
-- `computeDueReminder(user)` — daily cron uses this to decide which (if any) email to send.
+- **No auto-trial** — new accounts initialize LOCKED (`status: 'none'`); no feature access until a code is redeemed or a plan is paid.
+- `requestApproval(userId, { plan, cycle })` — moves to `pending_approval`; if the user is post-activation and grace is unused, atomically grants the one-time 3-day grace (race-safe).
+- `redeemPromo(userId, { plan, cycle, code })` — free €0 activation with `paidVia: 'promo'`, time-boxed.
+- `activate` (shared by admin-approve and promo-redeem) — sets `active`, `endsAt` by cycle (30/90/365), preserves the platform admin, records `paidVia`.
+- `reject`, `suspend`, `extend`, `cancel` — admin ops. `effectiveStatus(user)` resolves the sub-seat→parent transitive case. `hasFeatureAccess(user)` = active-unexpired OR grace-active. `computeDueReminder(user)` drives the daily cron.
 
-### Daily cron
+### Enforcement
 
-`subscriptionScheduler.js` runs once per day:
-- Sends reminder emails per `REMINDER_SCHEDULE` (trial-2d, trial-expired, renewal-14d, renewal-3d, suspended)
-- Auto-grants the 3-day grace to users who have a `requestedPlan` but no active subscription yet
-- Transitions trials with no payment intent to `suspended`
+- **Gate (middleware)** — `subscriptionGuard.js` on feature routes (auto-documents, custom templates, marketing docs, all health checks, chatbot, marketing-bot, contract analysis, HR/contracts, etc.). Platform-admin bypass; active/grace pass; anything else → **HTTP 402** with a `SUBSCRIPTION_*` code.
+- **Gate (frontend)** — a global axios interceptor catches 402 and dispatches a `subscription:blocked` window event; `SubscriptionGate.js` (mounted in `PrivateRoute`) opens a two-tier order modal (Basic / Pro, cycle toggle, **Нарачај** → `/api/subscription/request-invoice`, auto-granting grace if eligible). Locked, never-activated accounts see a **LockedWelcome** onboarding panel.
+- **SubscriptionStatusBanner** — slim per-page strip with variants for grace / renewal-coming / pending / suspended / cancelled; its CTA re-dispatches `subscription:blocked` so the user stays inside the Terminal.
 
-### Gate (middleware)
+### Schedulers (node-cron)
 
-`subscriptionGuard.js` is applied to feature routes: `/api/auto-documents`, `/api/custom-templates`, `/api/marketing-documents`, all health-check routes, chatbot, marketing-bot, contract-analysis.
-
-Behavior:
-- Platform admin bypass
-- Trial / active / active-grace → pass through
-- Anything else → HTTP 402 with `code: SUBSCRIPTION_*` and the subscription state in the response body
-
-### Gate (frontend)
-
-A global axios interceptor catches 402 responses and dispatches a custom `subscription:blocked` window event. `SubscriptionGate.js` is mounted globally inside `PrivateRoute` and listens for that event. When fired, it opens a single-screen modal:
-- 3 plan tiles (Standard · Admin · 5 · Admin · 10) — vertical card layout, name + short tag + current-cycle price, soft hover lift
-- Active plan's description in a slate-tinted panel below the tile grid
-- Cycle toggle (Месечно · Квартално · Годишно), flex-column buttons with separate label + price lines
-- Email field (only if user has no email; otherwise shows the email it'll be sent to)
-- Single primary button: **Нарачај** (Order) — issues a `/api/subscription/request-invoice` POST that auto-grants grace if eligible
-- Fineprint: *"По нарачката добивате 3 дена дополнителен пристап..."*
-
-### SubscriptionStatusBanner
-
-Slim strip at the top of every Terminal page. Variants:
-- **Trial** — *"Пробен период — остануваат N денови. Изберете план за да го задржите пристапот."*
-- **Grace** — *"Грејс период — останува N денови. Извршете уплата..."*
-- **Renewal coming up (≤14d)** — *"Претплатата истекува за N денови..."*
-- **Pending approval** — informational, no CTA
-- **Suspended** — *"Сметката е суспендирана..."*
-- **Cancelled** — *"Претплатата е откажана..."*
-
-Clicking the CTA dispatches the same `subscription:blocked` event so the user stays inside the Terminal — never bounced back to the public `/pricing` page.
+`subscriptionScheduler.js` (reminders + grace auto-grant + suspend transitions), `trialReminderScheduler.js` (promo/subscription-offer проформа nudges during MK bank hours), `contractReminderScheduler.js`, `hrReminderScheduler.js`, `creditScheduler.js`, `backupScheduler.js` (weekly DB backup → Google Drive), `fairScheduleService.js`.
 
 ---
 
 ## 11. Email system
 
-Provider stack: **Resend (primary) → Gmail/Nodemailer (fallback)**, configured in `server/services/emailService.js`. Templates live in `server/emails/subscriptionEmails.js` and elsewhere.
-
-Subscription-related templates (bilingual MK/EN):
-- `trialEndingIn2Days`
-- `trialExpired`
-- `subscriptionPending`
-- `subscriptionApproved`
-- `subscriptionRejected`
-- `renewalIn14Days`
-- `renewalIn3Days`
-- `subscriptionSuspended`
-- `adminApprovalNeeded` (to Martin when a user submits a plan request)
-- `subSeatInvite` (with credentials)
-- `paymentInstructions` (pro-forma invoice with bank details from env vars)
-- `graceBegun`
-
-Bank details for the pro-forma invoice are pulled from environment variables, not hardcoded.
+Provider stack: **Resend (primary) → Gmail/Nodemailer (fallback)** in `server/services/emailService.js`. Subscription templates (bilingual MK/EN) in `server/emails/subscriptionEmails.js`: renewal −14d / −3d / expired, promo −3d / expired, `subscriptionPending`, `subscriptionApproved`, `subscriptionRejected`, `subscriptionSuspended`, `adminApprovalNeeded`, `subSeatInvite` (credentials), `paymentInstructions` (pro-forma invoice with bank details from env), `graceBegun`. Bank details come from environment variables, not hardcoded.
 
 ---
 
 ## 12. Macedonian-language rule
 
-Across the **public website**, the formal address is used:
-- **Вие** (you) instead of *ти*
-- **Вашиот / Вашата / Вашите** instead of *твојот / твоjата / твоите*
-- **Ве / Ви** instead of *те / ти*
-- Imperative verbs in formal plural: **Започнете / Изберете / Контактирајте / Пробајте** instead of *Започни / Избери / Контактирај / Пробај*
-
-This is consistent across all public copy (Home story flow, Pricing, About, Contact, FAQ, satellite-card descriptions, CTAs, navbar labels, footer).
-
-The Terminal interior (Macedonian-only) uses a mix appropriate to in-product context.
+Public website uses formal address: **Вие / Вашиот / Ве**, imperatives in formal plural (Започнете / Изберете / Контактирајте). Consistent across Home, Pricing, About, Contact, FAQ, satellite copy, CTAs, navbar, footer. The Terminal interior (MK-only) uses in-product-appropriate phrasing.
 
 ---
 
@@ -510,23 +354,19 @@ The Terminal interior (Macedonian-only) uses a mix appropriate to in-product con
 |---|---|
 | Backend | Node.js + Express |
 | Database | MongoDB native driver (no Mongoose) |
-| Auth | Passport JWT |
+| Auth | Passport JWT + Google OAuth |
 | Frontend | React 19 + React Router 6 + i18next |
-| Styling | CSS Modules + custom `--nx-*` design tokens, no Tailwind / no UI library |
+| Styling | CSS Modules + `--nx-*` design tokens (no Tailwind / no UI library) |
 | Document generation | docxtemplater |
+| AI / RAG | Legal corpus retrieval for the legal AI (budget-aware model routing) |
 | Email | Resend + Nodemailer (Gmail fallback) |
 | Realtime | Socket.io |
 | Scheduling | node-cron |
+| Backups | weekly cron → Google Drive (OAuth2) |
 | Hosting | Railway (server), Vercel (client) |
 | Schema | Inline JSON-LD via `schemaGraph.js` + react-helmet-async |
 
-Security choices:
-- **CSRF**: double-submit-cookie pattern in `middleware/csrf.js`, with an `exemptCSRF` allowlist for non-state-changing or programmatic endpoints (lead webhook, subscription requests, etc.)
-- **Rate limiting**: per-route IP-based rate limiters on `/api/auth/*`, `/api/credits/*`, etc.
-- **HMAC-SHA256** signing on the inbound lead webhook
-- **bcryptjs** for password hashing (10 rounds)
-- **Helmet** for security headers
-- **Joi** for input validation
+Security: double-submit-cookie **CSRF** (`middleware/csrf.js`) with an `exemptCSRF` allowlist; per-route IP **rate limiting**; **HMAC-SHA256** lead webhook; **bcryptjs** hashing; **Helmet**; **Joi** validation.
 
 ---
 
@@ -535,61 +375,56 @@ Security choices:
 - Operating entity: **Друштво за услуги НЕКСА АМД ДООЕЛ Скопје**
 - Address: Бул. Партизански Одреди 102/2-14, Скопје – Карпош
 - Contact: +389 78 534 258 · info@nexa.mk
-- All public content is written or reviewed by licensed professionals
-- Nexa explicitly **disclaims** being a law firm and does not provide individual legal advice — visitors are referred to the Macedonian Bar Association directory
-- DPO (Data Protection Officer) duties: contact `info@nexa.mk`
-- Cookie + privacy policy disclosed on `/privacy-policy`
-- Terms on `/terms-conditions`
+- All public content is written or reviewed by licensed professionals; Nexa makes **no "checked by a lawyer" guarantees** in the product.
+- Nexa explicitly **disclaims** being a law firm and does not provide individual legal advice — visitors are referred to the Macedonian Bar Association directory.
+- DPO duties: `info@nexa.mk`. Cookie + privacy policy on `/privacy-policy`; terms on `/terms-conditions` and `/general-conditions`.
 
 ---
 
-## 15. Summary of recent product changes (this development cycle)
+## 15. Summary of recent product changes (since the last overview)
 
-A compressed list of what shipped, in roughly the order it was built:
+Roughly in the order shipped:
 
-1. **Nexa 2.0 public site rebuild** — modernized hero, aurora gradients, glass card system, scroll-reveal, inline SVG icon library; removed fake stats/testimonials per instruction
-2. **Three-plan pricing** rebuilt as Standard / Admin · 5 / Admin · 10 (replaced previous Type A/B labels)
-3. **Admin user / sub-seat / lead system** — full 7-slice implementation: admin-user model, sub-seat invitation with company-mode picker, lead webhook with HMAC, atomic claim, in-app + email + Socket.io notifications, daily stale-lead reaper
-4. **Subscription state machine** — trial → pending → active → renewals; one-time 3-day grace; daily reminders; 8-day free trial without card
-5. **Free signup** — username + password only at `/login`; trial auto-started; in-Terminal modal handles plan selection later
-6. **Per-invite company-mode picker** — Shared (synced) vs Independent (standalone) — no default, must choose
-7. **Public site simplification** — dropped `/for-professionals`, removed "five sites" hardcoding, removed Martin attribution line, removed B2B/lawyer framing on the public copy
-8. **Pricing page redesign** — minimal centered intro replaces aurora hero, cards fully clickable as Links, prominent green trial banner replaces buttons, pro-forma invoice 4-step flow explainer added under the footnote
-9. **9-ending EUR pricing** — 39 / 79 / 149 base, quarterly ~15% off, annual ~25% off
-10. **3-act story flow** on the Home page with Дел 1 / Дел 2 / Дел 3 chapter markers
-11. **Compact satellite grid** with themed Unsplash photos (Lady Justice / passport / passport+map / founders / IP sketches) — replaces alternating row-by-row showcase
-12. **Topics.nexa hero card** with mock Q&A stack
-13. **Final-CTA dark hero** with gradient title, feature bullets, glassmorphism mock Terminal cards (document generated · screening progress · AI answer)
-14. **Right-aligned navbar** menu items with logo staying left
-15. **Formal MK address** rule applied across all public copy
-16. **SEO / mobile hardening** — viewport fix (removed `maximum-scale=1`), canonical + hreflang in `index.html`, robots/format-detection meta, updated default title + description to MK ecosystem framing
-17. **Terminal UX polish** — sidebar admin groups (Blogs / Users / Marketplace dropdowns), 3-column shortcut launcher on Dashboard replacing blog-only feed, blog category filter bar with MK display labels (Претприемништво / Инвестиции), education category filter, my-templates icon-button fix
-18. **Bug fixes** — trial backfill on `/me` and in subscription guard (prevents "suspended" banner on first-time users); case-insensitive username lookup at login (sub-seats typing email in mixed case no longer get 401)
+1. **Two-tier merge** — Standard / Admin·5 / Admin·10 collapsed to **Basic + Pro**; roles `basic→standard_user`, `pro→admin_user`; seats 3 / 25; new EUR pricing (19/49/179 · 39/99/359); legacy keys kept for back-compat via `canonicalPlan()`.
+2. **Code-first onboarding (trial removed)** — accounts start LOCKED; unlock via **promo code** (`/redeem`) or paid plan; **LockedWelcome** panel for never-activated users; Google OAuth sign-in; promo-expiry reminder cadence.
+3. **LHC platform overhaul** — unified `lhcScoring.js` engine (fraction model, 4 bands, critical gates); Employment split into full + Parts 1–4; **Tax module** (General / Payroll / Profit / VAT); Archives, Protection & Rescue, Waste Management, Health & Safety, GDPR (a/b/c/d maturity), and a General cross-topic pool.
+4. **HR module** — `/terminal/employees` registry with computed leave balances + reminder cron; document prefill.
+5. **Contracts registry** — `/terminal/contracts` with renewal/expiry reminders.
+6. **Marketing Hub** — `/terminal/marketing-hub` + performance report; blog opened to Basic (1/mo).
+7. **Topics Q&A** moved in-Terminal with an admin worklist + submissions review.
+8. **Proverka funnel** — public 15-question compliance teaser, Google-first, per-source admin share links & analytics.
+9. **Two-sided ecosystem surfaces** — Sourcing (request for offers / tender), Find-a-lawyer, Virtual Fair (+ moderation), Investments, Sales funnel, Newsletter ad booking (limited slots).
+10. **Central Register document packs** — company **formation/incorporation** and **company changes** multi-document `.docx` bundles.
+11. **Contract analysis** enrichment — commercial rating badge, structured JSON fields.
+12. **DB backup system** — `npm run backup` + admin endpoint + weekly cron → Google Drive.
+13. **CSRF fix** for blog edit/delete; case-insensitive sub-seat login; trial-backfill removal (locked model).
 
 ---
 
 ## 16. Where to look (for AI tooling)
 
-If an AI advisor needs source-of-truth files to dig into specific topics, here are the canonical locations:
-
 | Topic | File |
 |---|---|
-| Pricing constants | `server/constants/roles.js` (`PLAN_PRICES`) |
+| Roles / plans / prices | `server/constants/roles.js` |
 | Subscription state machine | `server/services/subscriptionService.js` |
+| Promo codes / referrals | `server/services/promoCodeService.js`, `referralService.js` |
 | Sub-seat lifecycle | `server/services/subSeatService.js` |
-| Lead routing logic | `server/services/leadRoutingService.js` (+ tests) |
+| Lead routing | `server/services/leadRoutingService.js` (+ tests) |
+| LHC scoring engine | `server/controllers/lhc/lhcScoring.js`, `lhcShared.js` |
+| LHC modules | `server/controllers/lhc/*Controller.js` (employment, tax, gdpr, etc.) |
+| HR / employees | `server/controllers/employeeController.js`, `server/routes/employees.js` |
+| Contracts registry | `server/controllers/contractController.js`, `server/routes/contracts.js` |
+| Auto-documents | `server/controllers/autoDocuments/*` (45 controllers) |
+| Schedulers | `server/services/*Scheduler.js` |
 | Email templates | `server/emails/subscriptionEmails.js` |
-| Public homepage copy | `client/src/pages/website/Home.js` |
-| Pricing page | `client/src/pages/website/Pricing.js` |
-| Satellite list | `client/src/pages/website/Home.js` (SATELLITES const) + `client/src/components/website/EcosystemMap.js` |
-| Subscription modal | `client/src/components/terminal/SubscriptionGate.js` |
-| Subscription strip | `client/src/components/terminal/SubscriptionStatusBanner.js` |
-| Sidebar groups | `client/src/components/terminal/Sidebar.js` |
-| Dashboard feed | `client/src/components/terminal/SocialFeed.js` |
+| Public pricing | `client/src/pages/website/Pricing.js` |
+| Public home | `client/src/pages/website/Home.js` |
+| Proverka funnel | `client/src/pages/website/*` + `server/routes/publicScreening.js` |
+| Subscription gate / banner | `client/src/components/terminal/SubscriptionGate.js`, `SubscriptionStatusBanner.js` |
+| Terminal routes table | `client/src/App.js` |
 | Schema.org / JSON-LD | `client/src/components/seo/schemaGraph.js` |
-| MK translation strings | `client/src/i18n/locales/website/mk.json` |
-| Routes table | `client/src/App.js` |
+| MK translations | `client/src/i18n/locales/website/mk.json` |
 
 ---
 
-*End of overview. Last updated: 2026-05-26.*
+*End of overview. Last updated: 2026-08-10.*

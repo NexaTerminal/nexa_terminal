@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { openSubscriptionGate, hasFreeDocPass, hasFreeCheckPass } from '../../lib/tier';
+import { activeProduct } from '../../lib/storefront';
 import { PROVERKA_RESULT_KEY } from '../../pages/website/Proverka';
 import styles from './LockedWelcome.module.css';
 
@@ -17,9 +18,9 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
  * order a plan (opens the in-terminal SubscriptionGate modal).
  */
 
-// Mirrors the 4 task groups of the terminal sidebar:
+// ── Product A (SMB) pillars — mirror the SMB sidebar groups:
 // Администрирај · Набави · Расти · Учи.
-const PILLARS = [
+const PILLARS_A = [
   {
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -58,8 +59,51 @@ const PILLARS = [
   }
 ];
 
+// ── Product B (Lawyers / Pro) pillars — the leads.nexa.mk value proposition.
+const PILLARS_B = [
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M3 13h5l1 3h6l1-3h5"/><path d="M3 13V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/>
+      </svg>
+    ),
+    title: 'Насочени случаи',
+    desc: 'Барања од клиенти од нашата мрежа специјализирани сајтови — насочени до Вас по област и град, право во сандачето.'
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9-2.6.9-5.5-4-3.9 5.5-.8z"/>
+      </svg>
+    ),
+    title: 'Ексклузивност по област',
+    desc: 'Најмногу 3 правници по област. Помалку конкуренција, повеќе вредни случаи — местото е Ваше додека областа е слободна.'
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M3 17l6-6 4 4 7-7"/><path d="M17 7h4v4"/>
+      </svg>
+    ),
+    title: 'Видливост како експерт',
+    desc: 'Одговарајте на Topics прашања, објавете блог под Ваше име и добијте банер во билтенот до 1000+ претплатници.'
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M5.5 18.5l2-2M16.5 7.5l2-2"/>
+      </svg>
+    ),
+    title: 'Алатки за работа',
+    desc: 'Правен AI, автоматизирани документи и анализа на договори — бонус кон членството, користете колку сакате.'
+  }
+];
+
 export default function LockedWelcome() {
   const { currentUser } = useAuth();
+  // Domain-driven shell: leads.nexa.mk → the Pro onboarding pitch, nexa.mk → SMB.
+  const isPro = activeProduct() === 'B';
+  const PILLARS = isPro ? PILLARS_B : PILLARS_A;
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null); // { ok, text }
@@ -118,10 +162,13 @@ export default function LockedWelcome() {
           </>
         ) : (
           <>
-            <h1 className={styles.title}>Добредојдовте во Nexa Терминал</h1>
+            <h1 className={styles.title}>
+              {isPro ? 'Добредојдовте во Nexa за правници' : 'Добредојдовте во Nexa Терминал'}
+            </h1>
             <p className={styles.lead}>
-              Вашата сметка е креирана. За да ги отклучите алатките, внесете код за
-              активација или изберете план — активирањето е веднашно.
+              {isPro
+                ? 'Вашата сметка е креирана. За да почнете да примате насочени случаи од нашата мрежа, внесете код за активација или изберете план — активирањето е веднашно.'
+                : 'Вашата сметка е креирана. За да ги отклучите алатките, внесете код за активација или изберете план — активирањето е веднашно.'}
             </p>
           </>
         )}
@@ -151,7 +198,7 @@ export default function LockedWelcome() {
         </div>
       )}
 
-      {hasFreeCheckPass(currentUser) && (
+      {!isPro && hasFreeCheckPass(currentUser) && (
         <div className={styles.freeDoc}>
           <span className={styles.freeDocBadge}>Бесплатно</span>
           <span className={styles.freeDocText}>
@@ -208,7 +255,7 @@ export default function LockedWelcome() {
         </p>
       )}
 
-      {hasFreeDocPass(currentUser) && (
+      {!isPro && hasFreeDocPass(currentUser) && (
         <div className={styles.freeDoc}>
           <span className={styles.freeDocBadge}>Подарок</span>
           <span className={styles.freeDocText}>

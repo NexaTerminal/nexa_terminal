@@ -12,12 +12,17 @@
  *   p.options     — [{ label, mkd }]  (monthly, quarterly, annual)
  *   p.appUrl      — link into the terminal subscription page
  *   p.final       — boolean; true for the last (2-days-left) nudge
+ *   p.product     — 'A' (SMB) | 'B' (lawyers/Pro); brands the header/footer
  */
 function trialReminderEmail(p = {}) {
   const {
     name = '', planLabel = 'Про', daysLeft = 0, trialEndsAt,
-    options = [], appUrl = 'https://nexa.mk/terminal/subscription', final = false
+    options = [], appUrl = 'https://nexa.mk/terminal/subscription', final = false,
+    product = 'A'
   } = p;
+
+  // Per-product brand so a lawyer's reminder reads as "Nexa за правници".
+  const brandName = product === 'B' ? 'Nexa за правници' : 'Nexa';
 
   const fmtDate = (d) => {
     if (!d) return '';
@@ -41,7 +46,7 @@ function trialReminderEmail(p = {}) {
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;background:#F6F7F9;padding:24px;">
     <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E6E8EC;border-radius:12px;overflow:hidden;">
       <div style="padding:22px 28px;border-bottom:1px solid #EEF0F3;">
-        <span style="font-size:13px;font-weight:700;letter-spacing:.08em;color:#1E4DB7;text-transform:uppercase;">Nexa</span>
+        <span style="font-size:13px;font-weight:700;letter-spacing:.08em;color:#1E4DB7;text-transform:uppercase;">${brandName}</span>
       </div>
       <div style="padding:26px 28px;color:#1F2937;line-height:1.6;font-size:15px;">
         <p style="margin:0 0 12px;">Здраво${name ? ' ' + name : ''},</p>
@@ -82,7 +87,7 @@ function trialReminderEmail(p = {}) {
         </p>
       </div>
       <div style="padding:16px 28px;border-top:1px solid #EEF0F3;color:#9CA3AF;font-size:12px;">
-        © ${new Date().getFullYear()} Nexa Terminal
+        © ${new Date().getFullYear()} ${brandName}
       </div>
     </div>
   </div>`;

@@ -580,7 +580,7 @@ async function initializeServices(database) {
 
     app.use('/api/leads',            buildLeadRoutes.publicRoutes(leadsController));
     app.use('/api/admin/leads',      buildLeadRoutes.adminRoutes(leadsController));
-    app.use('/api/admin-user/leads', buildLeadRoutes.adminUserRoutes(leadsController));
+    app.use('/api/admin-user/leads', subscriptionGuard, buildLeadRoutes.adminUserRoutes(leadsController));
     console.log('✅ /api/leads + /api/admin/leads + /api/admin-user/leads mounted');
 
     // Sub-seat (team) management — always mount.
@@ -595,7 +595,7 @@ async function initializeServices(database) {
       usersCollection: database.collection('users')
     });
     app.locals.subSeatService = subSeatService;
-    app.use('/api/admin-user', buildAdminUserRoutes(adminUserController));
+    app.use('/api/admin-user', subscriptionGuard, buildAdminUserRoutes(adminUserController));
     console.log('✅ /api/admin-user mounted (team + dashboard)');
 
     // Daily stale-leads cron — only when leadRouting flag is on.
@@ -963,7 +963,7 @@ function registerRoutes() {
 
   // Nexa 3.0 — AI Stance Preferences (no CSRF, JWT-protected)
   try {
-    app.use('/api/ai/stance', require('./routes/stance'));
+    app.use('/api/ai/stance', subscriptionGuard, require('./routes/stance'));
     console.log('✅ AI Stance Preferences routes loaded successfully');
   } catch (error) {
     console.error('❌ Stance preferences routes error:', error.message);
@@ -971,7 +971,7 @@ function registerRoutes() {
 
   // Nexa 3.0 — Blog Submissions (member workflow + admin queue)
   try {
-    app.use('/api/blogs/submissions',       require('./routes/blogSubmissions'));
+    app.use('/api/blogs/submissions',       subscriptionGuard, require('./routes/blogSubmissions'));
     app.use('/api/admin/blogs/submissions', require('./routes/adminBlogSubmissions'));
     console.log('✅ Blog Submissions routes loaded successfully');
   } catch (error) {
@@ -981,7 +981,7 @@ function registerRoutes() {
   // Nexa 3.0 — Newsletter banner slots (member booking + admin, flag-gated)
   if (settings.isFeatureEnabled('newsletterAds') || process.env.NEXA_FF_NEWSLETTER_ADS === 'true') {
     try {
-      app.use('/api/newsletter-ads',       require('./routes/newsletterAds'));
+      app.use('/api/newsletter-ads',       subscriptionGuard, require('./routes/newsletterAds'));
       app.use('/api/admin/newsletter-ads', require('./routes/adminNewsletterAds'));
       console.log('✅ Newsletter ad-slot routes loaded successfully');
     } catch (error) {
@@ -992,10 +992,10 @@ function registerRoutes() {
   // Nexa 3.0 — Inquiry Board (manual model — operator-curated, no auto-routing)
   try {
     const mine = require('./routes/inquiriesMine');
-    app.use('/api/inquiries',        require('./routes/inquiries'));
+    app.use('/api/inquiries',        subscriptionGuard, require('./routes/inquiries'));
     app.use('/api/admin/inquiries',  require('./routes/adminInquiries'));
-    app.use('/api/my-claims',        mine.claims);
-    app.use('/api/my-engagements',   mine.engagements);
+    app.use('/api/my-claims',        subscriptionGuard, mine.claims);
+    app.use('/api/my-engagements',   subscriptionGuard, mine.engagements);
     console.log('✅ Inquiry Board routes loaded successfully');
   } catch (error) {
     console.error('❌ Inquiry Board routes error:', error.message);
@@ -1014,7 +1014,7 @@ function registerRoutes() {
   // JWT-protected /api/topics router for /api/topics/pages/:slug.
   try {
     app.use('/api/topics/pages',   require('./routes/topicsPublic'));
-    app.use('/api/topics',         require('./routes/topics'));
+    app.use('/api/topics',         subscriptionGuard, require('./routes/topics'));
     app.use('/api/admin/topics',   require('./routes/adminTopics'));
     console.log('✅ Topics Q&A routes loaded successfully');
   } catch (error) {

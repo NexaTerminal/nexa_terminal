@@ -27,6 +27,12 @@ const SAMPLE_CARDS = [
   }
 ];
 
+// Satellite sites that feed the case pool. Keep in sync with LeadsHome.
+const CASE_SOURCES = [
+  'samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk',
+  'company.nexa.mk', 'iplaw.nexa.mk', 'osiguran.mk'
+];
+
 const CATEGORY_LABEL = {
   legal: 'Правен', accounting: 'Сметководство', tax: 'Даноци', insurance: 'Осигурување',
   real_estate: 'Недвижности', hr: 'HR', marketing: 'Маркетинг', translation: 'Превод', other: 'Друго'
@@ -164,24 +170,16 @@ export default function LeadsPage() {
 
           <div className={styles.leadsIntro}>
             <p className={styles.leadsIntroLead}>
-              Анонимизирани барања од клиенти преку Nexa сателитските сајтови — само
-              серозни, филтрирани случаи кои одговараат на Вашата практика.
+              <span className={styles.leadsScrutiny}>✓ Проверени</span>
+              Секој случај доаѓа од реален клиент преку нашата мрежа и е филтриран
+              рачно пред да стигне до Вас — без спам, само сериозни намери.
             </p>
-            <div className={styles.leadsFlow}>
-              <FlowStep n={1} icon={<IconFlag />} title="Изразете интерес"
-                desc="Означувате дека сакате да го преземете случајот." />
-              <FlowStep n={2} icon={<IconFunnel />} title="Уредничка квалификација"
-                desc="Nexa го проверува и филтрира барањето." />
-              <FlowStep n={3} icon={<IconMail />} title="Добивте го контактот"
-                desc="По одобрување, го добивате контактот на клиентот." />
-            </div>
             <div className={styles.commercialSources}>
-              <span className={styles.commercialSourcesLabel}>Извори:</span>
-              <a href="https://samodaprasham.mk"        target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>samodaprasham.mk</a>
-              <a href="https://immigration.mk"          target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>immigration.mk</a>
-              <a href="https://macedoniancitizenship.mk" target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>macedoniancitizenship.mk</a>
-              <a href="https://company.nexa.mk"         target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>company.nexa.mk</a>
-              <a href="https://iplaw.nexa.mk"           target="_blank" rel="noopener noreferrer" className={styles.commercialSourceLink}>iplaw.nexa.mk</a>
+              <span className={styles.commercialSourcesLabel}>Од мрежата:</span>
+              {CASE_SOURCES.map((host) => (
+                <a key={host} href={`https://${host}`} target="_blank" rel="noopener noreferrer"
+                   className={styles.commercialSourceLink}>{host}</a>
+              ))}
             </div>
           </div>
         </header>

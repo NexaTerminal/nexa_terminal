@@ -73,6 +73,7 @@ import AdminInquiryDetailPage from './pages/terminal/admin/AdminInquiryDetail';
 import AnswerTopicPage                  from './pages/terminal/AnswerTopic';
 import AdminTopicsWorklistPage          from './pages/terminal/admin/AdminTopicsWorklist';
 import AdminTopicsWorklistNewPage       from './pages/terminal/admin/AdminTopicsWorklistNew';
+import AdminTopicsWorklistEditPage      from './pages/terminal/admin/AdminTopicsWorklistEdit';
 import AdminTopicsSubmissionsPage       from './pages/terminal/admin/AdminTopicsSubmissions';
 import AdminTopicsSubmissionDetailPage  from './pages/terminal/admin/AdminTopicsSubmissionDetail';
 
@@ -475,6 +476,7 @@ function App() {
       <Route path="/terminal/topics-qa/answer/:id"            element={<PrivateRoute><AnswerTopicPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/worklist"           element={<PrivateRoute><AdminTopicsWorklistPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/worklist/new"       element={<PrivateRoute><AdminTopicsWorklistNewPage /></PrivateRoute>} />
+      <Route path="/terminal/admin/topics/worklist/:id/edit"  element={<PrivateRoute><AdminTopicsWorklistEditPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions"        element={<PrivateRoute><AdminTopicsSubmissionsPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
     </Routes>

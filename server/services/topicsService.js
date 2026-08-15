@@ -81,17 +81,39 @@ class TopicsService {
     if (!oid) { const e = new Error('Invalid id'); e.code = 'INVALID_ID'; throw e; }
     const doc = await this.worklist.findOne({ _id: oid });
     if (!doc) { const e = new Error('Not found'); e.code = 'NOT_FOUND'; throw e; }
-    // Block edits while a submission is in-flight beyond title/scope tweaks.
+
+    // A submission's `answers` array is built from the question list at
+    // requestToOpen time. Once a topic leaves OPEN (an author is locked in),
+    // editing the questions/structure would desync those answers — so only
+    // copy-level fields (title/scope/keyword) stay editable.
+    const locked = !!doc.activeSubmissionId || doc.status !== WORKLIST_STATUS.OPEN;
+    if (locked && Array.isArray(input.questions)) {
+      const e = new Error('Темата има активно поднесување — прашањата не може да се менуваат.');
+      e.code = 'LOCKED'; throw e;
+    }
+
+    // Validate the fields actually being changed (parity with create).
+    const errs = [];
+    if (input.title !== undefined && !String(input.title).trim()) errs.push('title');
+    if (input.scope !== undefined && String(input.scope).trim().length < 40) errs.push('scope');
+    if (!locked && input.practiceArea !== undefined && !String(input.practiceArea).trim()) errs.push('practiceArea');
+    if (errs.length) {
+      const e = new Error(`Невалидни полиња: ${errs.join(', ')}`);
+      e.code = 'INVALID_INPUT'; e.fields = errs; throw e;
+    }
+
     const patch = { updatedAt: new Date() };
-    if (input.title           !== undefined) patch.title           = String(input.title).trim().slice(0, 240);
-    if (input.practiceArea    !== undefined) patch.practiceArea    = String(input.practiceArea).trim().slice(0, 80);
-    if (input.category        !== undefined) patch.category        = String(input.category).trim().slice(0, 80);
-    if (input.targetKeyword   !== undefined) patch.targetKeyword   = String(input.targetKeyword).trim().slice(0, 240);
-    if (input.targetLengthWords !== undefined) patch.targetLengthWords = Math.max(300, Math.min(5000, Number(input.targetLengthWords) || DEFAULT_TARGET_LENGTH_WORDS));
-    if (input.softDeadlineDays  !== undefined) patch.softDeadlineDays  = Math.max(7, Math.min(120, Number(input.softDeadlineDays) || DEFAULT_SOFT_DEADLINE_DAYS));
-    if (input.scope           !== undefined) patch.scope           = String(input.scope).trim().slice(0, 1200);
-    if (Array.isArray(input.questions)) {
-      patch.questions = TopicsService._normalizeQuestions(input.questions);
+    // Always-editable (safe even mid-submission)
+    if (input.title         !== undefined) patch.title         = String(input.title).trim().slice(0, 240);
+    if (input.targetKeyword !== undefined) patch.targetKeyword = String(input.targetKeyword).trim().slice(0, 240);
+    if (input.scope         !== undefined) patch.scope         = String(input.scope).trim().slice(0, 1200);
+    // Structural / question fields — only while the topic is still OPEN
+    if (!locked) {
+      if (input.practiceArea    !== undefined) patch.practiceArea    = String(input.practiceArea).trim().slice(0, 80);
+      if (input.category        !== undefined) patch.category        = String(input.category).trim().slice(0, 80);
+      if (input.targetLengthWords !== undefined) patch.targetLengthWords = Math.max(300, Math.min(5000, Number(input.targetLengthWords) || DEFAULT_TARGET_LENGTH_WORDS));
+      if (input.softDeadlineDays  !== undefined) patch.softDeadlineDays  = Math.max(7, Math.min(120, Number(input.softDeadlineDays) || DEFAULT_SOFT_DEADLINE_DAYS));
+      if (Array.isArray(input.questions)) patch.questions = TopicsService._normalizeQuestions(input.questions);
     }
     await this.worklist.updateOne({ _id: oid }, { $set: patch });
     return this.worklist.findOne({ _id: oid });

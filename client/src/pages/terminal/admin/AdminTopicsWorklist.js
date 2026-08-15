@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import { TOPIC_CATEGORIES } from '../../../config/topicCategories';
 import styles from '../Topics.module.css';
 
 const STATUS_LABEL = {
@@ -25,6 +26,7 @@ export default function AdminTopicsWorklistPage() {
   const { token } = useAuth();
   const [filter, setFilter] = useState('');
   const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
 
@@ -38,6 +40,32 @@ export default function AdminTopicsWorklistPage() {
   };
 
   useEffect(refresh, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Coverage overview counts are computed from ALL live (non-archived) topics,
+  // independent of the status tab, so the gaps stay stable while filtering.
+  useEffect(() => {
+    axios.get('/api/admin/topics/worklist', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setAllItems(res.data?.items || []))
+      .catch(() => { /* overview is best-effort */ });
+  }, [token, items]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    for (const t of allItems) {
+      if (t.status === 'archived') continue;
+      const c = t.category || '';
+      counts[c] = (counts[c] || 0) + 1;
+    }
+    return counts;
+  }, [allItems]);
+
+  // Non-empty categories stored on topics that are no longer in the canonical
+  // list (e.g. legacy „Договори"/„Шт" tags) — surfaced so they can be re-filed.
+  const legacyCategories = useMemo(
+    () => Object.keys(categoryCounts).filter(c => c && !TOPIC_CATEGORIES.includes(c)),
+    [categoryCounts]
+  );
+  const uncategorized = categoryCounts[''] || 0;
 
   const archive = async (id) => {
     if (!window.confirm('Архивирај ја темата?')) return;
@@ -59,6 +87,45 @@ export default function AdminTopicsWorklistPage() {
             членови додека не се поднесе барање за отворање.
           </p>
         </header>
+
+        <div className={styles.field} style={{ marginBottom: 18 }}>
+          <label className={styles.label}>Покриеност по категории</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {TOPIC_CATEGORIES.map(c => {
+              const n = categoryCounts[c] || 0;
+              return (
+                <Link
+                  key={c}
+                  to={`/terminal/admin/topics/worklist/new?category=${encodeURIComponent(c)}`}
+                  className={styles.chip}
+                  style={{
+                    textDecoration: 'none',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    borderStyle: n === 0 ? 'dashed' : 'solid'
+                  }}
+                  title={n === 0 ? 'Нема теми — додади нова' : `${n} теми`}
+                >
+                  {c} <b style={{ color: n === 0 ? '#b91c1c' : 'inherit' }}>({n})</b>
+                </Link>
+              );
+            })}
+            {legacyCategories.map(c => (
+              <span key={c} className={styles.chip}
+                    style={{ borderStyle: 'dashed', color: '#b45309' }}
+                    title="Категорија надвор од стандардните — уредете ги темите за да ги префрлите">
+                {c} ({categoryCounts[c]}) ⚠
+              </span>
+            ))}
+            {uncategorized > 0 && (
+              <span className={styles.chip}
+                    style={{ borderStyle: 'dashed', color: '#b91c1c' }}
+                    title="Теми без категорија — доделете им категорија преку „Уреди“">
+                Без категорија ({uncategorized})
+              </span>
+            )}
+          </div>
+          <span className={styles.help}>Кликни на категорија за да додадеш нова тема во неа. Црвените (0) се непокриени; ⚠ се нестандардни категории.</span>
+        </div>
 
         <nav className={styles.tabs}>
           {FILTERS.map(f => (
@@ -87,6 +154,9 @@ export default function AdminTopicsWorklistPage() {
                 <div className={styles.cardHead}>
                   <div className={styles.cardTitle}>{t.title}</div>
                   <span className={styles.chip}>{t.practiceArea}</span>
+                  {t.category
+                    ? <span className={styles.chip}>{t.category}</span>
+                    : <span className={styles.chip} style={{ borderStyle: 'dashed', color: '#b91c1c' }}>Без категорија</span>}
                   <span className={`${styles.statusPill} ${styles['s_' + t.status]}`}>{STATUS_LABEL[t.status]}</span>
                 </div>
                 <div className={styles.cardScope}>{t.scope}</div>
@@ -98,6 +168,14 @@ export default function AdminTopicsWorklistPage() {
                 </div>
                 <div className={styles.cardRow}>
                   <span style={{ flex: 1 }} />
+                  {t.status !== 'archived' && (
+                    <Link to={`/terminal/admin/topics/worklist/${t._id}/edit`} className={styles.btnSecondary} style={{ textDecoration: 'none' }}>
+                      Уреди
+                    </Link>
+                  )}
+                  <Link to="/terminal/admin/topics/worklist/new" state={{ from: t }} className={styles.btnGhost} style={{ textDecoration: 'none' }}>
+                    Копирај
+                  </Link>
                   {t.status !== 'archived' && !t.activeSubmissionId && (
                     <button type="button" className={styles.btnGhost} onClick={() => archive(t._id)}>Архивирај</button>
                   )}

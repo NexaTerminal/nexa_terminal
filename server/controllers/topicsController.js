@@ -25,7 +25,8 @@ const handle = (res, err, status = 500) => {
     NOT_FOUND:          404,
     NOT_OPEN:           409,
     HAS_ACTIVE:         409,
-    ALREADY_ACTIVE:     409
+    ALREADY_ACTIVE:     409,
+    LOCKED:             409
   };
   return res.status(map[err.code] || status).json({
     success: false, code: err.code || 'ERROR', message: err.message, fields: err.fields

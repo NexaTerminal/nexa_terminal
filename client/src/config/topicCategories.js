@@ -7,12 +7,29 @@
  * itself (the worklist `category` field is free text).
  */
 export const TOPIC_CATEGORIES = [
-  'Корпоративно право',
-  'Работни односи',
-  'Договори',
-  'Штета',
-  'Сопственост',
-  'Усогласеност'
+  'Работни односи',    // Labour Law
+  'Даноци',            // Tax Law
+  'Сопственост',       // Real Estate / Property Law
+  'Облигации',         // Obligations — the general category covering contracts + damages
+  'Корпоративно право',// Corporate Law
+  'Усогласеност'       // Compliance
+];
+
+/**
+ * Common practice-area keys used to route open topics to members by their
+ * specialization. Free text is still allowed (the field is a datalist, not a
+ * closed select) — this list just keeps the common values consistent.
+ */
+export const PRACTICE_AREAS = [
+  'employment_law',
+  'tax_law',
+  'corporate_law',
+  'contract_law',
+  'real_estate_law',
+  'ip_law',
+  'immigration',
+  'compliance',
+  'litigation'
 ];
 
 /** Does a worklist topic belong to the selected category ('all' = any). */

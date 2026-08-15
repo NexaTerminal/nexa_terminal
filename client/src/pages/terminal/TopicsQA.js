@@ -63,6 +63,7 @@ export default function TopicsQAPage() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [category, setCategory] = useState('all');
+  const [preview, setPreview] = useState(null); // topic being previewed (read-only)
 
   useEffect(() => {
     if (!visible) { setLoading(false); return; }
@@ -230,7 +231,10 @@ export default function TopicsQAPage() {
                     {shown.map(t => {
                       const taken = t.status !== 'open' || !!t.activeSubmissionId;
                       return (
-                        <div key={t._id} className={`${styles.qCard} ${taken ? styles.qCardTaken : ''}`}>
+                        <div key={t._id} className={`${styles.qCard} ${taken ? styles.qCardTaken : ''}`}
+                             role="button" tabIndex={0}
+                             onClick={() => setPreview(t)}
+                             onKeyDown={(e) => { if (e.key === 'Enter') setPreview(t); }}>
                           <div className={styles.qCardTop}>
                             {t.category && <span className={styles.chip}>{t.category}</span>}
                             {taken && <span className={styles.takenBadge}>Земено</span>}
@@ -239,14 +243,10 @@ export default function TopicsQAPage() {
                           {t.scope && <div className={styles.qCardScope}>{t.scope}</div>}
                           <div className={styles.qCardFoot}>
                             <span className={styles.metaItem}><MetaList /> {(t.questions || []).length} прашања</span>
-                            {taken ? (
-                              <span className={styles.takenNote}>Друг член одговара</span>
-                            ) : (
-                              <button type="button" className={styles.qCardBtn}
-                                      onClick={() => onAnswer(t)}>
-                                Одговори →
-                              </button>
-                            )}
+                            <button type="button" className={styles.qCardBtn}
+                                    onClick={(e) => { e.stopPropagation(); setPreview(t); }}>
+                              Прегледај →
+                            </button>
                           </div>
                         </div>
                       );
@@ -296,6 +296,37 @@ export default function TopicsQAPage() {
             ))}
           </div>
         )}
+
+        {preview && (() => {
+          const taken = preview.status !== 'open' || !!preview.activeSubmissionId;
+          return (
+            <div className={styles.previewBackdrop} onClick={() => setPreview(null)}>
+              <div className={styles.previewModal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+                <button type="button" className={styles.previewClose} aria-label="Затвори" onClick={() => setPreview(null)}>×</button>
+                {preview.category && <span className={styles.chip}>{preview.category}</span>}
+                <h2 className={styles.previewTitle}>{preview.title}</h2>
+                {preview.scope && <p className={styles.previewScope}>{preview.scope}</p>}
+                <div className={styles.previewMeta}>
+                  <span className={styles.metaItem}><MetaList /> {(preview.questions || []).length} прашања</span>
+                  {preview.targetLengthWords && <span className={styles.metaItem}><MetaLen /> ~{preview.targetLengthWords} зборови</span>}
+                </div>
+                <ol className={styles.previewQuestions}>
+                  {(preview.questions || []).map(q => <li key={q.order}>{q.prompt}</li>)}
+                </ol>
+                <div className={styles.previewActions}>
+                  {taken ? (
+                    <span className={styles.takenNote}>Друг член веќе одговара на оваа тема.</span>
+                  ) : (
+                    <button type="button" className={styles.qCardBtn}
+                            onClick={() => { const t = preview; setPreview(null); onAnswer(t); }}>
+                      Одговори на оваа тема →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </TerminalShell>
   );

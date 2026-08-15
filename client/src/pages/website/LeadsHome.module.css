@@ -1,120 +1,417 @@
-/* leads.nexa.mk — Grand-Slam-offer specific blocks (hero/sections reuse
-   Home.module.css). Design tokens only, no new library. */
+/* leads.nexa.mk — full-bleed split login page. Left: brand + pitch on light.
+   Right: full-height dark band with the login card. Tokens only, no library. */
 
-/* ── Problem strip ───────────────────────────────────────────────────────── */
-.problem {
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 1.65fr 1fr;
+  grid-template-rows: 1fr auto;
+  background: var(--nx-bg, #fff);
+  color: var(--nx-text, #1f2937);
+  font-family: var(--nx-font, 'Inter', system-ui, sans-serif);
+  -webkit-tap-highlight-color: transparent;
+}
+/* Grid items default to min-width: auto — keep the long heading from blowing
+   out its track and pushing the login band off-screen. */
+.page > * { min-width: 0; }
+.pitchSide { grid-column: 1; grid-row: 1; }
+.loginCol { grid-column: 2; grid-row: 1 / -1; }   /* dark band, full height */
+.footer   { grid-column: 1; grid-row: 2; }
+
+/* ── Left side (brand · pitch · footer) ───────────────────────────────── */
+.pitchSide {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background:
+    radial-gradient(900px 460px at 12% -10%, var(--nx-primary-50, #f0f7ff), transparent 60%),
+    var(--nx-bg, #fff);
+}
+
+/* ── Top bar ──────────────────────────────────────────────────────────── */
+.topBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
-  margin-top: 8px;
+  padding: 16px clamp(20px, 4vw, 56px);
 }
-.problemCard {
-  padding: 20px;
-  border: 1px solid var(--nx-border, #e2e8f0);
-  border-radius: 14px;
-  background: #fff;
-}
-.problemCard h3 { font-size: 16px; margin: 0 0 6px; color: var(--nx-primary-800, #17324f); }
-.problemCard p { font-size: 14px; color: var(--nx-text-muted, #64748b); margin: 0; }
-.problemBad { color: #b91c1c; font-weight: 600; }
-.problemGood { color: #047857; font-weight: 600; }
+.brand { display: inline-flex; align-items: center; }
+.brandLogo { height: 30px; width: auto; display: block; }
 
-/* ── The Offer box ───────────────────────────────────────────────────────── */
-.offerWrap { display: flex; justify-content: center; }
-.offer {
-  width: 100%;
+.topNav {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 26px);
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+.topNav a {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--nx-text-soft, #4b5563);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.topNav a:hover { color: var(--nx-primary-600, #1a44a3); }
+/* Cross-product link (→ nexa.mk main site) — set apart from the page nav */
+.crossLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--nx-primary-100, #e0eeff);
+  border-radius: var(--nx-r-pill, 999px);
+  background: var(--nx-primary-50, #f0f7ff);
+  color: var(--nx-primary-700, #163a8f) !important;
+  font-weight: 600;
+}
+.crossLink:hover {
+  border-color: var(--nx-primary-200, #c7e2ff);
+  background: var(--nx-primary-100, #e0eeff);
+}
+
+/* ── Pitch (fills the left column, vertically centered) ───────────────── */
+.intro {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: 720px;
-  border-radius: 20px;
-  border: 1px solid var(--nx-border, #e2e8f0);
-  background: #fff;
-  box-shadow: 0 18px 50px rgba(15, 32, 51, 0.12);
-  overflow: hidden;
+  padding: clamp(20px, 4vh, 48px) clamp(20px, 4vw, 56px);
 }
-.offerHead {
-  padding: 22px 28px;
-  background: linear-gradient(135deg, var(--nx-primary-700, #1e3a5f), var(--nx-primary-900, #0f2033));
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--nx-primary-700, #163a8f);
+  background: var(--nx-primary-50, #f0f7ff);
+  border: 1px solid var(--nx-primary-100, #e0eeff);
+  padding: 6px 14px;
+  border-radius: var(--nx-r-pill, 999px);
+}
+.title {
+  margin: 18px 0 0;
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--nx-ink, #0b1220);
+  overflow-wrap: break-word;
+}
+.lead {
+  margin: 16px 0 0;
+  max-width: 58ch;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.6;
+  color: var(--nx-text-soft, #4b5563);
+}
+/* How it works — 3 steps */
+.steps {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  counter-reset: step;
+}
+.steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--nx-text, #1f2937);
+}
+.stepNum {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
   color: #fff;
+  background: var(--nx-primary-600, #1a44a3);
 }
-.offerBadge {
-  display: inline-block;
-  font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 999px;
-  background: rgba(255,255,255,.16); margin-bottom: 10px;
-}
-.offerHead h3 { font-size: 22px; margin: 0; font-weight: 700; }
-.offerHead p  { font-size: 14px; opacity: .85; margin: 6px 0 0; }
 
-.offerList { list-style: none; margin: 0; padding: 14px 28px; }
-.offerItem {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px dashed var(--nx-border, #e8edf3);
+/* Network marquee */
+.network { margin-top: 30px; }
+.networkLabel {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nx-muted, #9ca3af);
 }
-.offerItem:last-child { border-bottom: 0; }
-.offerCheck {
-  flex-shrink: 0; margin-top: 2px;
-  width: 22px; height: 22px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: #ecfdf5; color: #047857; font-size: 13px; font-weight: 700;
+.marquee {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
-.offerText { flex: 1; }
-.offerText strong { display: block; font-size: 15px; color: var(--nx-primary-800, #17324f); }
-.offerText span { font-size: 13.5px; color: var(--nx-text-muted, #64748b); }
-.offerWorth {
-  flex-shrink: 0; align-self: center;
-  font-size: 13px; color: var(--nx-text-muted, #94a3b8);
+.marqueeTrack {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  animation: nx-marquee 34s linear infinite;
+}
+.marquee:hover .marqueeTrack { animation-play-state: paused; }
+@keyframes nx-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.chip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  background: #fff;
+  border: 1px solid var(--nx-line, #e6e8ec);
+  border-radius: var(--nx-r-lg, 14px);
+  box-shadow: var(--nx-shadow-1, 0 1px 2px rgba(15, 23, 42, 0.04));
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.chip:hover {
+  border-color: var(--nx-primary-200, #c7e2ff);
+  box-shadow: var(--nx-shadow-2, 0 4px 14px rgba(15, 23, 42, 0.06));
+  transform: translateY(-2px);
+}
+.chipDomain {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nx-primary-700, #163a8f);
+}
+.chipTag {
+  font-size: 12.5px;
+  color: var(--nx-muted, #6b7280);
   white-space: nowrap;
 }
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack { animation: none; flex-wrap: wrap; width: auto; }
+  .marquee { -webkit-mask-image: none; mask-image: none; }
+}
 
-.offerPrice {
-  padding: 22px 28px 26px;
-  border-top: 2px solid var(--nx-border, #eef2f7);
-  text-align: center;
+/* ── Login band — full-height dark column (edge to edge) ──────────────── */
+.loginCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: clamp(28px, 3vw, 48px);
+  background:
+    radial-gradient(700px 420px at 82% -12%, rgba(123, 184, 255, 0.2), transparent 60%),
+    radial-gradient(600px 360px at 20% 118%, rgba(43, 179, 192, 0.14), transparent 60%),
+    linear-gradient(160deg, var(--nx-primary-800, #13317a), var(--nx-primary-900, #0f2766));
 }
-.offerWorthTotal { font-size: 14px; color: var(--nx-text-muted, #64748b); }
-.offerWorthTotal b { color: var(--nx-primary-800, #17324f); }
-.priceRow {
-  display: flex; align-items: baseline; justify-content: center; gap: 12px;
-  margin: 8px 0 4px;
-}
-.priceOld { font-size: 20px; color: #94a3b8; text-decoration: line-through; }
-.priceNew { font-size: 40px; font-weight: 800; color: var(--nx-primary-800, #17324f); }
-.priceUnit { font-size: 15px; color: var(--nx-text-muted, #64748b); }
-.priceNote { font-size: 13px; color: #047857; font-weight: 600; margin: 4px 0 16px; }
-.offerCta {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 14px 28px; border-radius: 12px;
-  background: var(--nx-teal, #10b6a0); color: #fff;
-  font-weight: 700; font-size: 16px; text-decoration: none;
-  transition: transform .15s ease, filter .15s ease;
-}
-.offerCta:hover { transform: translateY(-2px); filter: brightness(1.05); }
-.offerSub { font-size: 12.5px; color: var(--nx-text-muted, #94a3b8); margin: 12px 0 0; }
-
-/* ── Scarcity + guarantee ────────────────────────────────────────────────── */
-.rowTwo {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;
-}
-.panel {
-  padding: 22px 24px; border-radius: 16px; border: 1px solid var(--nx-border, #e2e8f0);
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 372px;
   background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 24px 60px -12px rgba(9, 20, 45, 0.45),
+    0 8px 20px -8px rgba(9, 20, 45, 0.35);
+  padding: 32px 30px 30px;
+  overflow: hidden;
 }
-.panelIcon { font-size: 22px; }
-.panel h3 { font-size: 17px; margin: 8px 0 6px; color: var(--nx-primary-800, #17324f); }
-.panel p  { font-size: 14px; color: var(--nx-text-muted, #64748b); margin: 0; }
-.panelWarn { border-color: #fed7aa; background: #fff7ed; }
-.panelSafe { border-color: #a7f3d0; background: #f0fdf9; }
-
-/* ── FAQ ─────────────────────────────────────────────────────────────────── */
-.faq { max-width: 760px; margin: 0 auto; }
-.faqItem {
-  padding: 18px 0; border-bottom: 1px solid var(--nx-border, #e8edf3);
+/* Crisp accent edge along the top of the card */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--nx-primary-500, #1e4db7), var(--nx-teal, #2bb3c0));
 }
-.faqItem h3 { font-size: 16px; margin: 0 0 6px; color: var(--nx-primary-800, #17324f); }
-.faqItem p  { font-size: 14px; color: var(--nx-text-muted, #64748b); margin: 0; }
+.cardTitle {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--nx-ink, #0b1220);
+}
+.cardSub {
+  margin: 6px 0 22px;
+  font-size: 14px;
+  color: var(--nx-muted, #6b7280);
+}
 
-@media (max-width: 640px) {
-  .rowTwo { grid-template-columns: 1fr; }
-  .offerItem { flex-wrap: wrap; }
-  .offerWorth { width: 100%; padding-left: 34px; }
+.google {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nx-text, #1f2937);
+  background: #fff;
+  border: 1px solid var(--nx-line-strong, #d1d5db);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.google:hover:not(:disabled) { background: var(--nx-bg-soft, #f7f8fa); border-color: #b9c0ca; box-shadow: var(--nx-shadow-1, 0 1px 2px rgba(15, 23, 42, 0.06)); }
+.google:disabled { opacity: 0.6; cursor: default; }
+.googleIcon { width: 18px; height: 18px; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  font-size: 12px;
+  color: var(--nx-muted, #9ca3af);
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--nx-line, #e6e8ec);
+}
+
+.form { display: grid; gap: 12px; }
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px; /* >=16px avoids iOS focus auto-zoom on mobile */
+  color: var(--nx-text, #1f2937);
+  background: var(--nx-bg-soft, #f7f8fa);
+  border: 1px solid var(--nx-line-strong, #d1d5db);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.input::placeholder { color: var(--nx-muted, #9ca3af); }
+.input:focus {
+  background: #fff;
+  border-color: var(--nx-primary-500, #1e4db7);
+  box-shadow: 0 0 0 3px rgba(30, 77, 183, 0.14);
+}
+.forgotRow { display: flex; justify-content: flex-end; margin-top: -2px; }
+.smallLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nx-primary-600, #1a44a3);
+  text-decoration: none;
+}
+.smallLink:hover { text-decoration: underline; }
+
+.submit {
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--nx-primary-600, #1a44a3);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -6px rgba(26, 68, 163, 0.6);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+.submit:hover:not(:disabled) { background: var(--nx-primary-700, #163a8f); box-shadow: 0 8px 20px -6px rgba(22, 58, 143, 0.7); }
+.submit:active:not(:disabled) { transform: translateY(1px); }
+.submit:disabled { opacity: 0.7; cursor: default; box-shadow: none; }
+
+.error {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--nx-r-sm, 6px);
+}
+
+.footNote {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--nx-muted, #6b7280);
+}
+
+/* ── Small footer ─────────────────────────────────────────────────────── */
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--nx-line, #e6e8ec);
+  font-size: 13px;
+  color: var(--nx-muted, #9ca3af);
+}
+.footer a {
+  color: var(--nx-text-soft, #4b5563);
+  text-decoration: none;
+}
+.footer a:hover { color: var(--nx-primary-600, #1a44a3); }
+.footerSep { color: var(--nx-line-strong, #d1d5db); }
+
+/* ── Responsive: stack (pitch → login → footer), scrollable ───────────── */
+@media (max-width: 900px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+  }
+  .intro {
+    max-width: none;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    padding-top: 8px;
+  }
+  /* Dark band rises as a rounded "sheet" over the light pitch */
+  .loginCol {
+    padding: 40px 24px 48px;
+    border-radius: 24px 24px 0 0;
+    margin-top: 8px;
+  }
+  .card { max-width: 440px; margin: 0 auto; }
+  .footer { justify-content: center; }
+}
+
+/* ── Small phones ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .topBar { padding: 14px 18px; gap: 10px; }
+  .topNav { gap: 14px; }
+  .topNav a { font-size: 13.5px; }
+  .brandLogo { height: 26px; }
+  .intro { padding: 8px 18px 4px; }
+  .title { font-size: clamp(24px, 7vw, 30px); margin-top: 14px; }
+  .lead { font-size: 15px; margin-top: 12px; }
+  .steps { margin-top: 20px; gap: 12px; }
+  .steps li { font-size: 14.5px; gap: 12px; }
+  .stepNum { width: 24px; height: 24px; font-size: 12.5px; }
+  .network { margin-top: 24px; }
+  .loginCol { padding: 30px 16px 40px; }
+  .card { padding: 26px 22px 24px; }
+  .cardTitle { font-size: 21px; }
+  .footer { padding: 14px 18px; font-size: 12.5px; row-gap: 4px; }
+}
+
+/* ── Very small phones ────────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .topNav { gap: 12px; }
+  .topNav a { font-size: 13px; }
+  .brandLogo { height: 24px; }
 }

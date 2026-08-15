@@ -1,102 +1,91 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
-import PublicLayout from '../../components/website/PublicLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import SEOHelmet from '../../components/seo/SEOHelmet';
-import Icon from '../../components/website/Icon';
-import useScrollReveal from '../../hooks/useScrollReveal';
 import { NEXA_ORG, NEXA_WEBSITE, webPage } from '../../components/seo/schemaGraph';
-import hs from './Home.module.css';
+import { getStorefront, otherStorefrontUrl } from '../../lib/storefront';
 import styles from './LeadsHome.module.css';
 
 /**
  * leads.nexa.mk — Product B storefront (Nexa for Lawyers).
- * Lean, no pricing: dream-outcome hero → the satellite network that brings the
- * clients → scarcity + risk reversal → FAQ → contact. Honest throughout (no
- * fabricated testimonials/earnings).
+ * Single-viewport, no-scroll login page: 2/3 explanation + 1/3 login. Its own
+ * lean top bar carries the essential links (main site, blog, contact, legal).
  */
 export default function LeadsHome() {
   const { t } = useTranslation('website');
-  useScrollReveal();
   const lang = i18n.language || 'mk';
   const isMk = lang === 'mk';
   const url = 'https://leads.nexa.mk/';
   const T = (mk, en) => (isMk ? mk : en);
 
-  const SATELLITES = [
-    {
-      name: 'СамоДаПрашам', url: 'https://samodaprasham.mk', domain: 'samodaprasham.mk',
-      tag: T('Правни прашања од граѓани', 'Citizen legal questions'),
-      image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
-      title: T('Граѓаните имаат правни прашања. Некои се сериозни случаи.', 'Citizens have legal questions. Some are serious cases.'),
-      body: T('Илјадници луѓе годишно бараат одговор за наследство, развод, кривична одбрана, имотни спорови и работни односи. Голем дел имаат потреба од вистинско застапување — нивните прашања стигнуваат до правник со соодветна област.',
-              'Thousands each year search for answers on inheritance, divorce, criminal defense, property and employment. Many need real representation — their questions route to a lawyer in the right area.'),
-      audience: T('Целна публика: физички лица', 'Audience: individuals')
-    },
-    {
-      name: 'Immigration.mk', url: 'https://immigration.mk', domain: 'immigration.mk',
-      tag: T('Странци кои живеат во Македонија', 'Foreigners living in Macedonia'),
-      image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80',
-      title: T('Странците бараат стручна помош за дозвола за престој.', 'Foreigners need expert help with residence permits.'),
-      body: T('Странски државјани, инвеститори и работници постојано имаат потреба од издавање, обновување и пренамена на дозволи. Овие посетители се клиенти со јасна намера да платат — често за итен случај.',
-              'Foreign citizens, investors and workers constantly need to obtain, renew or change permits. These visitors come with clear intent to pay — often urgently.'),
-      audience: T('Целна публика: странци, инвеститори', 'Audience: foreigners, investors')
-    },
-    {
-      name: 'Македонско државјанство', url: 'https://macedoniancitizenship.mk', domain: 'macedoniancitizenship.mk',
-      tag: T('Дијаспора и потомци', 'Diaspora and descendants'),
-      image: 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?auto=format&fit=crop&w=1200&q=80',
-      title: T('Дијаспората бара начин да го врати државјанството.', 'The diaspora seeks to reclaim citizenship.'),
-      body: T('Луѓе со македонско потекло од Австралија, САД, Канада и Европа аплицираат преку потекло, брак или инвестиција. Случаите бараат правно водство и подготовка на документи со месеци — работа за специјализиран адвокат.',
-              'People with Macedonian roots abroad apply through origin, marriage or investment. These cases need legal guidance over months — specialist work.'),
-      audience: T('Целна публика: дијаспора, потомци', 'Audience: diaspora, descendants')
-    },
-    {
-      name: 'Company.nexa.mk', url: 'https://company.nexa.mk', domain: 'company.nexa.mk',
-      tag: T('Нови претприемачи', 'New entrepreneurs'),
-      image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
-      title: T('Претприемачи бараат да отворат фирма.', 'Entrepreneurs are looking to register a company.'),
-      body: T('Регистрација на ДОО, ДООЕЛ, АД, подружница, измена на основач, регистрација во Централен регистар. Секој месец стотици претприемачи имаат потреба од сметководител и адвокат уште од прв ден.',
-              'Registering a DOO, DOOEL, AD, branch, owner change, Central Registry filing. Each month hundreds of founders need an accountant and a lawyer from day one.'),
-      audience: T('Целна публика: основачи, инвеститори', 'Audience: founders, investors')
-    },
-    {
-      name: 'IPLaw.nexa.mk', url: 'https://iplaw.nexa.mk', domain: 'iplaw.nexa.mk',
-      tag: T('Брендови и иноватори', 'Brands and innovators'),
-      image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80',
-      title: T('Брендовите и иноваторите бараат заштита.', 'Brands and innovators need protection.'),
-      body: T('Заштитни знаци, патенти, авторски права, лиценцирање. Компаниите кои растат сакаат да го заштитат тоа што го градат — веќе се успешни и плаќаат за квалитет.',
-              'Trademarks, patents, copyrights, licensing. Growing companies protect what they build — already successful, they pay for quality.'),
-      audience: T('Целна публика: компании во раст', 'Audience: growing companies')
-    },
-    {
-      name: 'Осигуран', url: 'https://osiguran.nexa.mk', domain: 'osiguran.nexa.mk',
-      tag: T('Права од осигурување', 'Insurance rights'),
-      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80',
-      title: T('Осигурениците бараат да ги остварат своите права.', 'Policyholders want to exercise their rights.'),
-      body: T('Неутрален водич за осигурувањето во Македонија — права на осигурениците, постапки за штети и жалби. Кога спорот со осигурител бара правна помош, барањето стигнува до правник.',
-              'A neutral guide to insurance in Macedonia — policyholder rights, claims and complaints. When a dispute needs legal help, the request reaches a lawyer.'),
-      audience: T('Целна публика: осигуреници, граѓани и бизниси', 'Audience: policyholders, individuals and businesses')
+  const { loginWithUsername } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const goAfterAuth = () => {
+    const params = new URLSearchParams(location.search);
+    navigate(params.get('redirect') || '/terminal', { replace: true });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!username || !password) {
+      setError(T('Внесете корисничко име и лозинка.', 'Enter your username and password.'));
+      return;
     }
+    setLoading(true);
+    try {
+      const result = await loginWithUsername(username, password);
+      if (result.success) goAfterAuth();
+      else setError(result.error || T('Неуспешна најава.', 'Login failed.'));
+    } catch (err) {
+      setError(err.message || T('Неуспешна најава.', 'Login failed.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google OAuth — carry the storefront + redirect through so a new Google
+  // account lands on the right product shell (leads.nexa.mk → Pro).
+  const handleGoogleLogin = () => {
+    const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    const state = new URLSearchParams();
+    state.set('sf', getStorefront());
+    state.set('origin', window.location.origin);
+    if (redirect) state.set('redirect', redirect);
+    window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
+  };
+
+  const STEPS = [
+    T('Клиент нè контактира преку некој од нашите сајтови.',
+      'A client contacts us through one of our sites.'),
+    T('Го препознаваме случајот по област и град.',
+      'We identify the case by practice area and city.'),
+    T('Се најавувате и го преземате клиентот.',
+      'You sign in and take the client.')
   ];
 
-  const FAQ = [
-    { q: T('Што ако не добијам случаи?', 'What if I get no cases?'),
-      a: T('Не сте врзани — можете да откажете во секое време. Бидејќи има само 3 правници по област, шансите се на Ваша страна.',
-           'No lock-in — cancel anytime. With only 3 lawyers per area, the odds are in your favor.') },
-    { q: T('Колку правници има по област?', 'How many lawyers per area?'),
-      a: T('Најмногу 3. Кога областа е полна, влегувате на листа на чекање — за да останат случаите вредни за членовите.',
-           'At most 3. When an area is full you join a waitlist — to keep cases valuable for members.') },
-    { q: T('Морам ли да го користам софтверот?', 'Do I have to use the software?'),
-      a: T('Не. Случаите се главното; алатките на Терминалот се бонус што го користите колку сакате.',
-           'No. Cases are the point; the Terminal tools are a bonus you use as much as you like.') },
-    { q: T('Дали Nexa е адвокатска канцеларија?', 'Is Nexa a law firm?'),
-      a: T('Не. Ве поврзуваме со потенцијални клиенти. Правната работа и односот со клиентот се целосно Ваши.',
-           'No. We connect you with potential clients. The legal work and client relationship are entirely yours.') }
+  const NETWORK = [
+    { domain: 'samodaprasham.mk', url: 'https://samodaprasham.mk', tag: T('Правни прашања', 'Legal questions') },
+    { domain: 'immigration.mk', url: 'https://immigration.mk', tag: T('Дозволи за престој', 'Residence permits') },
+    { domain: 'macedoniancitizenship.mk', url: 'https://macedoniancitizenship.mk', tag: T('Државјанство', 'Citizenship') },
+    { domain: 'company.nexa.mk', url: 'https://company.nexa.mk', tag: T('Основање фирма', 'Company setup') },
+    { domain: 'iplaw.nexa.mk', url: 'https://iplaw.nexa.mk', tag: T('Интелектуална сопственост', 'IP law') },
+    { domain: 'osiguran.nexa.mk', url: 'https://osiguran.nexa.mk', tag: T('Осигурување', 'Insurance') }
   ];
 
   return (
-    <PublicLayout>
+    <div className={styles.page}>
       <SEOHelmet
         title={T('Nexa за правници — нови клиенти од нашата мрежа', 'Nexa for Lawyers — new clients from our network')}
         description={T('Насочени случаи од специјализирани сајти по област и град, плус видливост како експерт. Ограничени места по област.',
@@ -107,146 +96,122 @@ export default function LeadsHome() {
         jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa for Lawyers', description: T('Нови клиенти за правници.', 'New clients for lawyers.'), language: lang })]}
       />
 
-      {/* ============ HERO ============ */}
-      <section className={`${hs.hero} nx-hero-aurora`}>
-        <span className="nx-orb nx-orb-1" aria-hidden></span>
-        <span className="nx-orb nx-orb-2" aria-hidden></span>
+      {/* ── Left side: brand · pitch · footer ───────────────────────────── */}
+      <div className={styles.pitchSide}>
+      <header className={styles.topBar}>
+        <Link to="/" className={styles.brand} aria-label="Nexa за правници">
+          <img src="/nexa-logo-navbar.png" alt="Nexa" className={styles.brandLogo} />
+        </Link>
+        <nav className={styles.topNav}>
+          <Link to="/blog">{T('Блог', 'Blog')}</Link>
+          <Link to="/contact">{T('Контакт', 'Contact')}</Link>
+          <a href={otherStorefrontUrl('/')} className={styles.crossLink}>
+            {T('Nexa за бизниси', 'Nexa for business')}
+            <span aria-hidden> ↗</span>
+          </a>
+        </nav>
+      </header>
 
-        <div className={`nexa-container ${hs.heroInner}`}>
-          <span className={`nx-pill ${hs.heroPill} nx-fade-in-up`}>
-            <Icon name="network" size={14} />
-            {T('За правници, сметководители и консултанти', 'For lawyers, accountants and consultants')}
+      <main className={styles.intro}>
+          <span className={styles.pill}>
+            {T('Ние нудиме можности — Вие решавате проблеми', 'We bring the opportunities — you solve the problems')}
           </span>
-          <h1 className="nx-fade-in-up nx-d-100">
-            {T('Нови клиенти, испорачани до Вас. Без реклами, без агенции.',
-               'New clients, delivered to you. No ads, no agencies.')}
+          <h1 className={styles.title}>
+            {T('Клиентите нè контактираат. Ние Ви ги предаваме.', 'Clients reach out to us. We hand them to you.')}
           </h1>
-          <p className={`${hs.heroSub} nx-fade-in-up nx-d-200`}>
-            {T('Управуваме мрежа од специјализирани правни сајти што привлекуваат клиенти со јасна намера. Ги насочуваме тие случаи право до Вас — по област и град.',
-               'We run a network of specialized legal sites that attract high-intent clients. We route those cases straight to you — by practice area and city.')}
+          <p className={styles.lead}>
+            {T('Луѓе со правни потреби нè контактираат секој ден. Најавете се и преземете ги случаите од Ваша област и град.',
+               'People with legal needs contact us every day. Sign in and take the cases from your area and city.')}
           </p>
-          <div className={`${hs.heroCtas} nx-fade-in-up nx-d-300`}>
-            <Link to="/contact" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-              {T('Разговарајте со нас', 'Talk to us')}
-              <Icon name="arrowRight" size={18} />
-            </Link>
-          </div>
-          <p className={`${hs.heroTertiary} nx-fade-in-up nx-d-400`}>
-            {T('~2.500 посетители месечно · 1000+ претплатници · само 3 правници по област',
-               '~2,500 visits / month · 1000+ subscribers · only 3 lawyers per area')}
-          </p>
-        </div>
-      </section>
 
-      {/* ============ WE BRING YOU CLIENTS — the satellite network ============ */}
-      <section className="nx-section">
-        <div className="nexa-container">
-          <div className={`${hs.sectionHead} nx-reveal`}>
-            <span className="nx-eyebrow">{T('За провајдери на услуги', 'For service providers')}</span>
-            <h2>{T('Адвокат, сметководител или консултант? Nexa Ви носи клиенти.',
-                   'Lawyer, accountant or consultant? Nexa brings you clients.')}</h2>
-            <p>{T('Про членството е за оние што продаваат услуги. Управуваме мрежа од специјализирани сајтови што привлекуваат посетители со конкретна потреба — а нивните барања стигнуваат до Вас. Плус, Вашата експертиза станува видлива содржина што клиентите ја наоѓаат пред да Ве побараат.',
-                  'The Pro membership is for those who sell services. We run a network of specialized sites that attract visitors with a concrete need — and their requests reach you. Plus, your expertise becomes visible content clients find before they even search for you.')}</p>
-            <p className={hs.providerCtaLine}>
-              <Link to="/smetkovoditeli" className="nexa-btn nexa-btn-secondary">
-                {T('Сметководител? Водете ги сите клиенти од една сметка →', 'An accountant? Manage all clients from one account →')}
-              </Link>
-            </p>
-          </div>
-
-          <div className={`${hs.chapterMarker} ${hs.chapterMarkerCentered} nx-reveal`}>
-            <span className={hs.chapterNum}>{T('Дел 2', 'Part 2')}</span>
-            <h3 className={hs.chapterTitle}>{T('Носиме клиенти кај Вас', 'We bring clients to you')}</h3>
-            <p className={hs.chapterLead}>{T('Управуваме мрежа од специјализирани сајтови. Секој покрива конкретна потреба, секој таргетира посетители со јасна намера да платат. Тие посетители — Ваши клиенти.',
-                   'We run a network of specialized sites. Each covers a specific need, each targets visitors with clear intent to pay. Those visitors — your clients.')}</p>
-          </div>
-
-          <div className={hs.satelliteList}>
-            {SATELLITES.map((s, i) => (
-              <article key={s.url} className={`${hs.satellite} nx-reveal ${i % 2 === 1 ? hs.satelliteFlip : ''}`} style={{ transitionDelay: `${i * 60}ms` }}>
-                <a className={hs.satelliteImage} href={s.url} target="_blank" rel="noopener">
-                  <img src={s.image} alt={s.name} loading="lazy" />
-                  <span className={hs.satelliteDomainBadge}>{s.domain}</span>
-                </a>
-                <div className={hs.satelliteContent}>
-                  <span className={hs.satelliteTag}>{s.tag}</span>
-                  <h3 className={hs.satelliteTitle}>{s.title}</h3>
-                  <p className={hs.satelliteBody}>{s.body}</p>
-                  <div className={hs.satelliteMeta}>
-                    <span className={hs.satelliteAudience}>{s.audience}</span>
-                    <a className={hs.satelliteLink} href={s.url} target="_blank" rel="noopener">
-                      {T('Посети', 'Visit')} <Icon name="arrowRight" size={14} />
-                    </a>
-                  </div>
-                </div>
-              </article>
+          <ol className={styles.steps}>
+            {STEPS.map((s, i) => (
+              <li key={s}><span className={styles.stepNum}>{i + 1}</span>{s}</li>
             ))}
-          </div>
-        </div>
-      </section>
+          </ol>
 
-      {/* ============ SCARCITY + RISK REVERSAL ============ */}
-      <section className="nx-section nx-section-soft">
-        <div className="nexa-container">
-          <div className={styles.rowTwo}>
-            <div className={`${styles.panel} ${styles.panelWarn} nx-reveal`}>
-              <div className={styles.panelIcon} aria-hidden>⏳</div>
-              <h3>{T('Само 3 места по област', 'Only 3 seats per area')}</h3>
-              <p>{T('Го ограничуваме бројот на правници по област намерно — за секој член да добие вредни случаи. Кога областа е полна, се затвора до слободно место.',
-                    'We cap lawyers per area on purpose — so each member gets valuable cases. When an area fills, it closes until a seat opens.')}</p>
-            </div>
-            <div className={`${styles.panel} ${styles.panelSafe} nx-reveal`}>
-              <div className={styles.panelIcon} aria-hidden>🛡️</div>
-              <h3>{T('Без обврска', 'No commitment')}</h3>
-              <p>{T('Плаќате со профактура и банкарски трансфер — без картичка, без автоматска наплата. Откажувате во секое време.',
-                    'You pay by pro-forma invoice and bank transfer — no card, no auto-billing. Cancel anytime.')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ FAQ ============ */}
-      <section className="nx-section">
-        <div className="nexa-container">
-          <div className={`${hs.chapterMarker} ${hs.chapterMarkerCentered} nx-reveal`}>
-            <span className={hs.chapterNum}>{T('Прашања', 'Questions')}</span>
-            <h2 className={hs.chapterTitle}>{T('Она што правниците најчесто прашуваат.', 'What lawyers ask most.')}</h2>
-          </div>
-          <div className={styles.faq}>
-            {FAQ.map((f) => (
-              <div key={f.q} className={`${styles.faqItem} nx-reveal`}>
-                <h3>{f.q}</h3>
-                <p>{f.a}</p>
+          <div className={styles.network}>
+            <span className={styles.networkLabel}>{T('Од нашата мрежа', 'From our network')}</span>
+            <div className={styles.marquee}>
+              <div className={styles.marqueeTrack}>
+                {[...NETWORK, ...NETWORK].map((n, i) => (
+                  <a key={`${n.domain}-${i}`} href={n.url} target="_blank" rel="noopener noreferrer"
+                     className={styles.chip} aria-hidden={i >= NETWORK.length}>
+                    <span className={styles.chipDomain}>{n.domain}</span>
+                    <span className={styles.chipTag}>{n.tag}</span>
+                  </a>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+      </main>
+      </div>
 
-      {/* ============ FINAL CTA ============ */}
-      <section className={`${hs.ctaFinal} nx-section-ink`}>
-        <div className="nexa-container">
-          <div className={`${hs.finalGrid} nx-reveal`}>
-            <div className={hs.finalContent}>
-              <h2 className={hs.finalTitle}>
-                {T('Земи го Вашето место додека областа е слободна.', 'Claim your seat while your area is open.')}
-              </h2>
-              <ul className={hs.finalFeatures}>
-                <li><span className={hs.finalFeatureDot} aria-hidden />{T('Ексклузивни случаи по област и град', 'Exclusive cases by area and city')}</li>
-                <li><span className={hs.finalFeatureDot} aria-hidden />{T('Само 3 правници по област', 'Only 3 lawyers per area')}</li>
-                <li><span className={hs.finalFeatureDot} aria-hidden />{T('Видливост преку Topics, билтен и блог', 'Visibility via Topics, newsletter and blog')}</li>
-                <li><span className={hs.finalFeatureDot} aria-hidden />{T('Без обврска — платите по профактура', 'No commitment — pay by invoice')}</li>
-              </ul>
-              <div className={hs.heroCtas}>
-                <Link to="/contact" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-                  {T('Разговарајте со нас', 'Talk to us')}
-                  <Icon name="arrowRight" size={18} />
+      <aside className={styles.loginCol}>
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>{T('Најавете се', 'Sign in')}</h2>
+            <p className={styles.cardSub}>
+              {T('Продолжете во Вашиот Nexa Terminal.', 'Continue to your Nexa Terminal.')}
+            </p>
+
+            <button type="button" className={styles.google} onClick={handleGoogleLogin} disabled={loading}>
+              <svg className={styles.googleIcon} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              {T('Најавете се со Google', 'Sign in with Google')}
+            </button>
+
+            <div className={styles.divider}>{T('или', 'or')}</div>
+
+            {error && <div className={styles.error}>{error}</div>}
+
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <input
+                type="text"
+                className={styles.input}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={T('Корисничко име или даночен број', 'Username or tax number')}
+                autoComplete="username"
+              />
+              <input
+                type="password"
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={T('Лозинка', 'Password')}
+                autoComplete="current-password"
+              />
+              <div className={styles.forgotRow}>
+                <Link to="/forgot-password" className={styles.smallLink}>
+                  {T('Заборавена лозинка?', 'Forgot password?')}
                 </Link>
               </div>
-            </div>
+              <button type="submit" className={styles.submit} disabled={loading}>
+                {loading ? T('Се најавувате…', 'Signing in…') : T('Најава', 'Sign in')}
+              </button>
+            </form>
+
+            <p className={styles.footNote}>
+              {T('Немате профил?', 'No account?')}{' '}
+              <Link to="/login" className={styles.smallLink}>{T('Регистрирајте се', 'Create one')}</Link>
+            </p>
           </div>
-        </div>
-      </section>
-    </PublicLayout>
+      </aside>
+
+      {/* ── Small footer (bottom-left on desktop, page bottom on mobile) ─── */}
+      <footer className={styles.footer}>
+        <span>© {new Date().getFullYear()} Nexa Terminal</span>
+        <span className={styles.footerSep} aria-hidden>·</span>
+        <Link to="/privacy-policy">{T('Приватност', 'Privacy')}</Link>
+        <span className={styles.footerSep} aria-hidden>·</span>
+        <Link to="/terms-conditions">{T('Услови', 'Terms')}</Link>
+        <span className={styles.footerSep} aria-hidden>·</span>
+        <a href="mailto:info@nexa.mk">info@nexa.mk</a>
+      </footer>
+    </div>
   );
 }

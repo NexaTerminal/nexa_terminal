@@ -105,3 +105,26 @@ export function canonicalRedirectTarget(product, { token, path } = {}) {
   }
   return `${protocol}//${targetHost}${portPart}${dest}`;
 }
+
+/**
+ * Full URL to the OTHER storefront's host for cross-product navigation
+ * (leads.nexa.mk ↔ nexa.mk, and leads.localhost ↔ localhost in dev). Preserves
+ * protocol + port. On any host that isn't a known storefront family (previews,
+ * IPs, staging) it returns the plain `path` so links never jump off-domain
+ * unexpectedly. This is discovery navigation only — no auth/token transfer.
+ */
+export function otherStorefrontUrl(path = '/') {
+  if (typeof window === 'undefined') return path;
+  const { hostname, port, protocol } = window.location;
+  const onLeads = /^leads\./i.test(hostname);
+  const bare = hostname.replace(/^leads\./i, '').replace(/^www\./i, '');
+
+  let aHost, bHost;
+  if (bare === 'nexa.mk')        { aHost = 'nexa.mk';   bHost = 'leads.nexa.mk'; }
+  else if (bare === 'localhost') { aHost = 'localhost'; bHost = 'leads.localhost'; }
+  else return path; // unknown host → stay put
+
+  const targetHost = onLeads ? aHost : bHost;
+  const portPart = port ? `:${port}` : '';
+  return `${protocol}//${targetHost}${portPart}${path}`;
+}

@@ -45,6 +45,24 @@
   color: var(--nx-ink) !important;
   background: var(--nx-bg-soft);
 }
+/* Cross-product link (→ the sibling site) — set apart from the page nav */
+.crossLink {
+  color: var(--nx-primary-700, #163a8f) !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 7px 12px;
+  margin-left: 4px;
+  border: 1px solid var(--nx-primary-100, #e0eeff);
+  border-radius: 999px;
+  background: var(--nx-primary-50, #f0f7ff);
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background 120ms var(--nx-ease), border-color 120ms var(--nx-ease);
+}
+.crossLink:hover {
+  background: var(--nx-primary-100, #e0eeff);
+  border-color: var(--nx-primary-200, #c7e2ff);
+}
 .right {
   display: flex;
   align-items: center;

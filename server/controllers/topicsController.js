@@ -55,8 +55,15 @@ async function notifyAdmin(req, template) {
 const TOPICS_ADMIN_QUEUE = 'https://nexa.mk/terminal/admin/topics/submissions';
 
 async function loadAuthor(req, authorId) {
-  try { return await req.app.locals.db.collection('users').findOne({ _id: authorId },
-    { projection: { email: 1, username: 1, fullName: 1 } }); } catch { return null; }
+  try {
+    const u = await req.app.locals.db.collection('users').findOne({ _id: authorId },
+      { projection: { email: 1, officialEmail: 1, username: 1, fullName: 1 } });
+    if (!u) { console.warn('[topics] author not found for email:', String(authorId)); return null; }
+    // Some accounts carry the contact address in officialEmail, not email.
+    u.email = u.email || u.officialEmail || '';
+    if (!u.email) console.warn('[topics] author has no email:', String(authorId));
+    return u;
+  } catch (e) { console.warn('[topics] loadAuthor failed:', e.message); return null; }
 }
 
 // ── member endpoints ───────────────────────────────────────────────────────

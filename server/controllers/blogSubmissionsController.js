@@ -59,11 +59,16 @@ async function notifyAdmin(req, template) {
 
 async function loadAuthor(req, authorId) {
   try {
-    return await req.app.locals.db.collection('users').findOne(
+    const u = await req.app.locals.db.collection('users').findOne(
       { _id: authorId },
-      { projection: { email: 1, username: 1, fullName: 1 } }
+      { projection: { email: 1, officialEmail: 1, username: 1, fullName: 1 } }
     );
-  } catch { return null; }
+    if (!u) { console.warn('[blog-submissions] author not found for email:', String(authorId)); return null; }
+    // Some accounts carry the contact address in officialEmail, not email.
+    u.email = u.email || u.officialEmail || '';
+    if (!u.email) console.warn('[blog-submissions] author has no email:', String(authorId));
+    return u;
+  } catch (e) { console.warn('[blog-submissions] loadAuthor failed:', e.message); return null; }
 }
 
 // ── member endpoints ────────────────────────────────────────────────────────

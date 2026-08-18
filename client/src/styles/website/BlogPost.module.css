@@ -233,15 +233,15 @@
 .articleLayout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 3rem;
-  max-width: 1280px;
+  gap: 3.5rem;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
 .article {
-  max-width: 880px;
-  padding: 3rem 0;
+  max-width: 760px; /* ~70-char measure for comfortable, professional reading */
+  padding: 2.5rem 0 3rem;
 }
 
 /* Sidebar */
@@ -313,80 +313,86 @@
 }
 
 .content {
-  font-size: 1.1875rem;
-  line-height: 1.8;
-  color: #334155;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  color: #1f2937;
+  font-family: var(--nx-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif);
   overflow-wrap: break-word;
   word-break: normal;
 }
 
 .content p {
-  margin-bottom: 1.75rem;
+  margin: 0 0 1.15rem;
 }
 
+/* No decorative drop-cap — keep the first paragraph like any other. */
 .content p:first-of-type::first-letter {
-  font-size: 3.5rem;
-  font-weight: 700;
-  line-height: 1;
-  float: left;
-  margin: 0.1em 0.15em 0 0;
-  color: #0f172a;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  float: none;
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
 }
 
 .content h2 {
-  font-size: 1.625rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 2.5rem 0 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  letter-spacing: -0.01em;
+  margin: 2rem 0 0.75rem;
+  font-family: var(--nx-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  letter-spacing: -0.015em;
   overflow-wrap: break-word;
   word-break: normal;
 }
 
 .content h3 {
-  font-size: 1.375rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #0f172a;
-  margin: 2rem 0 0.875rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 1.6rem 0 0.6rem;
+  font-family: var(--nx-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  letter-spacing: -0.01em;
 }
 
 .content ul,
 .content ol {
-  margin: 1.5rem 0;
-  padding-left: 1.5rem;
+  margin: 1.1rem 0;
+  padding-left: 1.35rem;
 }
 
 .content li {
-  margin-bottom: 0.75rem;
-  line-height: 1.7;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
 }
 
 .content a {
-  color: #3b82f6;
+  color: var(--nx-primary-600, #1a44a3);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: rgba(26, 68, 163, 0.35);
+  text-underline-offset: 3px;
+  font-weight: 500;
 }
 
 .content a:hover {
-  color: #2563eb;
+  color: var(--nx-primary-700, #163a8f);
+  text-decoration-color: currentColor;
 }
 
 .content strong {
   font-weight: 600;
-  color: #1e293b;
+  color: #0f172a;
 }
 
 .content blockquote {
-  margin: 2rem 0;
-  padding: 1.25rem 1.5rem;
-  border-left: 3px solid #3b82f6;
-  background: #f8fafc;
-  font-style: italic;
+  margin: 1.75rem 0;
+  padding: 0.5rem 0 0.5rem 1.35rem;
+  border-left: 3px solid var(--nx-primary-500, #1e4db7);
+  background: transparent;
+  font-style: normal;
   color: #475569;
+  font-size: 1.09375rem;
 }
 
 .content code {
@@ -757,12 +763,12 @@
   }
 
   .content {
-    font-size: 1.0625rem;
-    line-height: 1.75;
+    font-size: 1.03125rem;
+    line-height: 1.7;
   }
 
   .content p:first-of-type::first-letter {
-    font-size: 2.75rem;
+    font-size: inherit;
   }
 
   .content h2 {
@@ -895,7 +901,7 @@
   }
 
   .content p:first-of-type::first-letter {
-    font-size: 2.25rem;
+    font-size: inherit;
   }
 
   .ctaBanner {

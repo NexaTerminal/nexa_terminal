@@ -112,10 +112,10 @@
 .formSection {
   flex: 1; /* Equal width with preview */
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: none;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
+  padding: 1.5rem 1.5rem 0; /* room for the sticky action bar at the bottom */
+  border: none; /* borderless, cleaner focused editing */
   overflow-y: auto;
   overflow-x: visible; /* Allow tooltips to escape horizontally */
   max-height: calc(100vh - 160px);
@@ -127,11 +127,11 @@
 
 .previewSection {
   flex: 1; /* Equal width with form */
-  background: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: none;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
+  background: #f7f8fa;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04); /* whisper-thin, not a hard border */
+  padding: 1.5rem 1.75rem;
+  border: none;
   overflow-y: auto;
   overflow-x: visible; /* Allow tooltips to escape */
   max-height: calc(100vh - 160px);
@@ -374,12 +374,12 @@
 
 .form-section {
   margin-bottom: 1rem;
-  padding: 1rem;
-  background: #ffffff; /* Clean white */
+  padding: 0.25rem 0;
+  background: transparent;
   border-radius: 6px;
-  border: none; /* Remove border for cleaner look */
+  border: none; /* borderless, cleaner focused editing */
   min-height: 350px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  box-shadow: none;
   overflow: visible; /* Allow tooltips to escape */
 }
 
@@ -499,23 +499,30 @@
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 12px 16px; /* Increased vertical and horizontal padding for better touch */
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  padding: 12px 14px; /* Increased vertical and horizontal padding for better touch */
+  border: 1px solid transparent;
+  border-radius: 8px;
   font-size: 16px; /* Prevents iOS auto-zoom */
-  transition: all 0.2s ease;
-  background: #ffffff;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #f6f7f9; /* soft filled field — calmer than a hard outline */
   color: #374151;
   box-sizing: border-box;
   min-height: 44px; /* Minimum touch target height */
+}
+
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+  background: #f1f3f6;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #6b7280;
-  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.1);
+  background: #ffffff;
+  border-color: var(--color-primary-500, #1e4db7);
+  box-shadow: 0 0 0 3px rgba(30, 77, 183, 0.12);
 }
 
 .form-group input::placeholder,
@@ -1048,13 +1055,20 @@
    ======================================== */
 
 .form-actions {
-  padding: 1rem;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff; /* Clean white */
+  padding: 0.85rem 0.25rem 0.25rem;
+  border-top: none; /* borderless — soft shadow gives the only separation */
+  /* Translucency + blur so content scrolls softly beneath the sticky bar */
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+  box-shadow: 0 -8px 12px -10px rgba(15, 23, 42, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 0 0 8px 8px;
+  /* Always reachable — stick to the bottom of the form column while scrolling */
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
 }
 
 /* ========================================
@@ -5736,10 +5750,10 @@
 }
 
 .form-section {
-  border: 1px solid #f1f5f9;
+  border: none; /* borderless, cleaner focused editing */
   border-radius: 8px;
   /* padding: 1.5rem; */
-  background: #f8fafc;
+  background: transparent;
 }
 
 .form-section h4 {
@@ -7226,4 +7240,107 @@ p, span, div, h1, h2, h3, h4, h5, h6, li {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   margin-top: var(--spacing-2);
+}
+
+/* ========================================
+   QUIET SUCCESS BAR (replaces success modal) + PRO HEADER ROW
+   ======================================== */
+
+.success-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--color-neutral-50, #f9fafb);
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  border-left: 3px solid var(--color-success, #10b981);
+  border-radius: var(--border-radius-md, 10px);
+}
+.success-check {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-success, #10b981);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.success-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.success-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.success-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-primary-600, #1a44a3);
+  cursor: pointer;
+}
+.success-link:hover { text-decoration: underline; }
+.success-expiry {
+  font-size: 12.5px;
+  color: var(--text-muted, #6b7280);
+}
+
+/* ========================================
+   FOCUS MODE — the editor takes over the screen; shell chrome auto-hides and
+   slides in on edge hover. Scoped to the document page only.
+   ======================================== */
+
+/* The top navbar (Header) stays fixed/visible; only the left Sidebar auto-hides
+   and slides in on left-edge hover, so the editor takes over the screen. The
+   wrapper lets us slide the shared Sidebar without touching its own module. */
+.chromeSide {
+  position: fixed;
+  top: 0; bottom: 0; left: 0;
+  width: 256px;
+  z-index: 1000;
+  transform: translateX(calc(-100% + 6px));
+  transition: transform 0.28s ease;
+  will-change: transform;
+  box-shadow: 6px 0 24px -12px rgba(9, 20, 45, 0.35);
+}
+.chromeSide:hover,
+.chromeSide:focus-within { transform: translateX(0); }
+
+/* With the sidebar floating, the stage fills the width (header still holds 60px). */
+.focusMode .dashboardMain {
+  margin-left: 0;
+  width: 100%;
+}
+/* A hair of breathing room so the borderless panels read as a focused stage. */
+.focusMode .splitLayout {
+  padding: 12px 14px;
+  gap: 1rem;
+}
+.focusMode .formSection,
+.focusMode .previewSection {
+  max-height: calc(100vh - 84px); /* viewport minus fixed header + stage padding */
+}
+
+@media (max-width: 1024px) {
+  /* On tablets/phones the sidebar is already hidden by the base layout — keep
+     it fully visible and behave like the normal stacked page. */
+  .chromeSide { position: static; width: auto; transform: none; box-shadow: none; }
+  .focusMode .splitLayout { padding: 1rem; }
 }

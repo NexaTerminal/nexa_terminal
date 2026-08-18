@@ -5,8 +5,9 @@ import Sidebar from '../terminal/Sidebar';
 import ProfileReminderBanner from '../terminal/ProfileReminderBanner';
 import DocumentPreview from '../terminal/documents/DocumentPreview';
 import FormField, { TermsField } from '../forms/FormField';
-import DocumentSuccessModal from './DocumentSuccessModal';
+import ClientSelector from './ClientSelector';
 import { useDocumentForm } from '../../hooks/useDocumentForm';
+import { visibleTier } from '../../lib/tier';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -32,7 +33,6 @@ const BaseDocumentPage = ({
     missingFields,
     currentStepData,
     shareData,
-    showSuccessModal,
 
     // Computed values
     isLastStep,
@@ -44,7 +44,6 @@ const BaseDocumentPage = ({
     prevStep,
     handleSubmit,
     forceGeneration,
-    closeSuccessModal,
 
     // Modal controls
     setShowMissingFieldsModal,
@@ -57,6 +56,21 @@ const BaseDocumentPage = ({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  // Pro-only "generate for a client" selector. Selecting a saved client sets
+  // clientId (the server rebuilds the company party from it) and prefills the
+  // company fields for the live preview; clearing restores the lawyer's own
+  // company. Basic users never see this.
+  const vt = visibleTier(currentUser);
+  const isPro = vt === 'B' || vt === 'ADMIN';
+  const onSelectClient = (clientId, client) => {
+    handleInputChange('clientId', clientId || '');
+    const src = client || currentUser?.companyInfo || {};
+    handleInputChange('companyName', src.companyName || '');
+    handleInputChange('companyAddress', src.companyAddress || src.address || '');
+    handleInputChange('companyTaxNumber', src.companyTaxNumber || src.taxNumber || '');
+    handleInputChange('companyManager', src.companyManager || src.manager || src.role || '');
+  };
 
   // Create preview data with fallbacks
   const previewData = React.useMemo(() => {
@@ -73,17 +87,24 @@ const BaseDocumentPage = ({
   }, [formData]);
 
   return (
-    <div className={styles.documentPage}>
+    <div className={`${styles.documentPage} ${styles.focusMode}`}>
+      {/* Focus mode: the top navbar stays fixed; only the left sidebar auto-hides
+          and slides in on left-edge hover, so the editor takes over the screen.
+          The wrapper lets us slide the shared Sidebar without touching its module. */}
       <Header isTerminal={true} />
       <div className={styles.dashboardLayout}>
-        <Sidebar />
+        <div className={styles.chromeSide}><Sidebar /></div>
         <main className={styles.dashboardMain}>
-          
-          <ProfileReminderBanner currentUser={currentUser} />
-          
+
+          {/* Own-company reminder is a Basic concern; Pro uses the client selector. */}
+          {!isPro && <ProfileReminderBanner currentUser={currentUser} />}
+
           <div className={styles.splitLayout}>
             {/* Form Section */}
             <div className={styles.formSection}>
+              {/* Pro: choose the client this document is for, at the top of the form. */}
+              {isPro && <ClientSelector value={formData.clientId} onSelect={onSelectClient} />}
+
               {/* Step Progress */}
               <StepProgress steps={steps} currentStep={currentStep} />
               
@@ -138,9 +159,13 @@ const BaseDocumentPage = ({
                 onSubmit={handleSubmit}
               />
 
-              {/* Shareable Link Section - Shows after document is generated */}
+              {/* Quiet inline success bar — shows after the document downloads. */}
               {shareData && shareData.shareUrl && (
-                <ShareableLinkSection shareUrl={shareData.shareUrl} />
+                <ShareableLinkSection
+                  shareUrl={shareData.shareUrl}
+                  fileName={shareData.fileName}
+                  expiresAt={shareData.expiresAt}
+                />
               )}
             </div>
 
@@ -170,23 +195,6 @@ const BaseDocumentPage = ({
         isGenerating={isGenerating}
         onCancel={() => setShowMissingFieldsModal(false)}
         onConfirm={forceGeneration}
-      />
-
-      {/* Success Modal with Shareable Link */}
-      <DocumentSuccessModal
-        isOpen={showSuccessModal}
-        shareUrl={shareData?.shareUrl}
-        shareToken={shareData?.shareToken}
-        marketPrice={shareData?.marketPrice}
-        fileName={shareData?.fileName}
-        expiresAt={shareData?.expiresAt}
-        onClose={closeSuccessModal}
-        onDownloadAgain={() => {
-          if (shareData?.shareUrl) {
-            // Trigger download again using the shared document endpoint
-            window.location.href = shareData.shareUrl.replace('/shared/', '/api/shared-documents/') + '/download';
-          }
-        }}
       />
     </div>
   );
@@ -366,19 +374,17 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
 };
 
 /**
- * Shareable Link Section Component
- * Displays the shareable link with copy button after document generation
+ * Quiet success bar — shown inline after the document downloads. Replaces the
+ * old blocking success modal: one line with a copy-link action, a re-download
+ * link and a muted expiry caption. No headings, boxes or emoji.
  */
-const ShareableLinkSection = ({ shareUrl }) => {
+const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
     } catch (err) {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
       textarea.value = shareUrl;
       textarea.style.position = 'fixed';
@@ -387,35 +393,34 @@ const ShareableLinkSection = ({ shareUrl }) => {
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
+  const downloadAgain = () => {
+    window.location.href = shareUrl.replace('/shared/', '/api/shared-documents/') + '/download';
+  };
+
+  const expiryLabel = expiresAt
+    ? new Date(expiresAt).toLocaleDateString('mk-MK', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
+
   return (
-    <div className={styles['shareable-link-section']}>
-      <div className={styles['shareable-link-header']}>
-        <span className={styles['link-icon']}>🔗</span>
-        <h4 className={styles['link-title']}>Линк за споделување</h4>
-      </div>
-      <div className={styles['shareable-link-content']}>
-        <input
-          type="text"
-          value={shareUrl}
-          readOnly
-          className={styles['link-input']}
-          onClick={(e) => e.target.select()}
-        />
-        <button
-          onClick={copyToClipboard}
-          className={`${styles['copy-link-btn']} ${copied ? styles['copied'] : ''}`}
-        >
-          {copied ? '✓ Копирано' : 'Копирај'}
+    <div className={styles['success-bar']}>
+      <span className={styles['success-check']} aria-hidden>✓</span>
+      <span className={styles['success-text']}>
+        Генериран{fileName ? ` · ${fileName}` : ''}
+      </span>
+      <div className={styles['success-actions']}>
+        <button type="button" className={styles['success-link']} onClick={copyToClipboard}>
+          {copied ? 'Копирано' : 'Копирај линк'}
         </button>
+        <button type="button" className={styles['success-link']} onClick={downloadAgain}>
+          Преземи повторно
+        </button>
+        {expiryLabel && <span className={styles['success-expiry']}>Важи до {expiryLabel}</span>}
       </div>
-      <p className={styles['link-description']}>
-        Споделете го овој линк со други лица за да можат да го прегледаат, симнат и коментираат документот.
-      </p>
     </div>
   );
 };

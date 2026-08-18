@@ -122,7 +122,9 @@ export const useDocumentForm = (config) => {
         setIsGenerating(false);
         refreshCredits(); // Refresh credits on success
 
-        // Extract share data from response headers
+        // Extract share data from response headers. The document has already
+        // downloaded; we surface the share link inline (below the form) instead
+        // of a blocking success popup — the modal step was removed per request.
         if (result && result.shareToken && result.shareUrl) {
           setShareData({
             shareToken: result.shareToken,
@@ -130,7 +132,6 @@ export const useDocumentForm = (config) => {
             fileName: result.fileName || generatedFileName,
             expiresAt: result.expiresAt
           });
-          setShowSuccessModal(true);
         }
       },
       onError: (error) => {

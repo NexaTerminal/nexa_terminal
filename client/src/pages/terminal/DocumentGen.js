@@ -5,6 +5,7 @@ import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from "../../components/terminal/Sidebar";
 import CompanyInfoPrompt from '../../components/terminal/CompanyInfoPrompt';
+import { visibleTier } from '../../lib/tier';
 import documentCategoriesData from '../../data/documentCategories.json';
 
 const DocumentGen = () => {
@@ -784,7 +785,10 @@ const DocumentGen = () => {
         <Sidebar />
 
         <main className={styles["dashboard-main"]}>
-          <CompanyInfoPrompt />
+          {/* The "complete your own company info" prompt is a Basic (SMB) flow —
+              Basic users generate their OWN paperwork. Pro (lawyers) generate for
+              clients via the client selector, so it must not pop up for them. */}
+          {visibleTier(currentUser) === 'A' && <CompanyInfoPrompt />}
           {renderCurrentStep()}
         </main>
       </div>

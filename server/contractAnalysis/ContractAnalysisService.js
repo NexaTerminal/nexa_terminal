@@ -11,7 +11,15 @@ const PRE_SCAN_EXCERPT_CHARS = 12000; // ~3K tokens
 
 class ContractAnalysisService {
   constructor() {
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    // Explicit timeout + retry cap. Without these the SDK defaults to a 10-min
+    // timeout with 2 retries, so a slow / rate-limited (429) OpenAI call hangs
+    // for minutes — the browser/edge proxy gives up first and the user sees a
+    // bare "Failed to fetch" instead of an actionable error. Fail fast instead.
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: 90 * 1000,
+      maxRetries: 1,
+    });
     this.db = null;
     // In-memory session store: sessionId -> { userId, contractText, preScan, createdAt }
     this.sessions = new Map();
@@ -22,6 +30,30 @@ class ContractAnalysisService {
   setDatabase(database) {
     this.db = database;
     console.log('✓ Database reference set for ContractAnalysisService');
+  }
+
+  /**
+   * OpenAI chat wrapper with a per-request timeout and readable errors. Converts
+   * SDK hangs / rate-limits / auth failures into a thrown Error with a Macedonian
+   * userMessage the controller can return as JSON (instead of a browser "Failed
+   * to fetch" when the request silently times out at the proxy).
+   */
+  async _chat(params, { timeout, label }) {
+    try {
+      return await this.openai.chat.completions.create(params, { timeout });
+    } catch (e) {
+      const status = e?.status || e?.response?.status;
+      console.error(`❌ [contract-analysis] OpenAI ${label} failed:`, status || '', e?.code || '', e?.message);
+      const err = new Error(
+        status === 429 ? 'AI сервисот е привремено преоптоварен или лимитот е достигнат. Обидете се повторно за момент.'
+        : status === 401 ? 'AI сервисот не е достапен (проблем со конфигурација). Пробајте подоцна.'
+        : (e?.name === 'APIConnectionTimeoutError' || /timeout/i.test(e?.message || '')) ? 'AI анализата трае предолго и беше прекината. Обидете се повторно.'
+        : 'Проблем со AI сервисот. Обидете се повторно.'
+      );
+      err.code = 'AI_ERROR';
+      err.aiStatus = status;
+      throw err;
+    }
   }
 
   /** Build the Stance Preferences prefix for this user. Returns '' on any miss. */
@@ -74,12 +106,12 @@ class ContractAnalysisService {
     const stancePrefix = await this._getStancePrefix(userId);
     const messages = buildPreScanMessages(excerpt, stancePrefix);
 
-    const response = await this.openai.chat.completions.create({
+    const response = await this._chat({
       model: PRE_SCAN_MODEL,
       messages,
       temperature: 0.1,
       response_format: { type: 'json_object' },
-    });
+    }, { timeout: 25 * 1000, label: 'pre-scan' });
 
     const raw = response.choices[0]?.message?.content || '{}';
     const preScan = this._safeParseJson(raw, {
@@ -165,12 +197,12 @@ class ContractAnalysisService {
     while (attempts < 2) {
       attempts++;
       try {
-        const response = await this.openai.chat.completions.create({
+        const response = await this._chat({
           model: ANALYSIS_MODEL,
           messages,
           temperature: 0.2,
           response_format: { type: 'json_object' },
-        });
+        }, { timeout: 80 * 1000, label: 'analysis' });
         const raw = response.choices[0]?.message?.content || '{}';
         report = JSON.parse(raw);
         break;

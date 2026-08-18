@@ -193,7 +193,7 @@ export default function AdminInquiryDetailPage() {
               ) : signals.map(s => (
                 <div key={s._id} className={styles.signalCard}>
                   <div className={styles.signalHead}>
-                    <span className={styles.signalName}>{s.member?.fullName || s.member?.username || 'Без име'}</span>
+                    <span className={styles.signalName}>{s.providerName || s.member?.fullName || s.member?.username || 'Без име'}</span>
                     <span className={styles.signalProfession}>{PROFESSION_LABEL[s.profession] || s.profession}</span>
                     <span style={{ flex: 1 }} />
                     <span className={`${styles.signalStatus} ${styles['sig' + s.status.charAt(0).toUpperCase() + s.status.slice(1)]}`}>
@@ -202,7 +202,9 @@ export default function AdminInquiryDetailPage() {
                   </div>
                   <div className={styles.signalHelp}>{s.helpDescription}</div>
                   <div className={styles.signalMeta}>
+                    {s.providerCity && <>Град: {s.providerCity} · </>}
                     Бесплатна почетна: {s.freeTalkOffered ? 'Да' : 'Не'} ·
+                    Профил: {s.member?.fullName || s.member?.username || '—'} ·
                     Е-пошта: {s.member?.email || '—'} ·
                     Поднесено: {fmt(s.createdAt)}
                   </div>

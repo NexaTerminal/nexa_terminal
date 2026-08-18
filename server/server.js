@@ -1019,10 +1019,18 @@ function registerRoutes() {
     app.use('/api/topics/pages',   require('./routes/topicsPublic'));
     app.use('/api/topics',         subscriptionGuard, require('./routes/topics'));
     app.use('/api/admin/topics',   require('./routes/adminTopics'));
-    app.use('/api/clients',        require('./routes/clients'));
     console.log('✅ Topics Q&A routes loaded successfully');
   } catch (error) {
     console.error('❌ Topics Q&A routes error:', error.message);
+  }
+
+  // Pro Clients — saved client profiles for generating documents on their behalf.
+  // Isolated mount: a failure here must not take down (or be mislabeled as) Topics.
+  try {
+    app.use('/api/clients',        require('./routes/clients'));
+    console.log('✅ /api/clients mounted');
+  } catch (error) {
+    console.error('❌ /api/clients route error:', error.message);
   }
 
   // Credit System routes (always enabled)

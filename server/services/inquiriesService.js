@@ -271,6 +271,12 @@ class InquiriesService {
     const freeTalkOffered = !!input?.freeTalkOffered;
     const helpDescription = String(input?.helpDescription || '').trim().slice(0, 400);
     if (!helpDescription) { const e = new Error('helpDescription is required'); e.code = 'INCOMPLETE'; throw e; }
+    // Lawyer / firm name + city — declared per signal so the editorial team can
+    // manually verify the provider is a real, active lawyer before introducing.
+    const providerName = String(input?.providerName || '').trim().slice(0, 120);
+    const providerCity = String(input?.providerCity || '').trim().slice(0, 60);
+    if (!providerName) { const e = new Error('providerName is required'); e.code = 'INCOMPLETE'; throw e; }
+    if (!providerCity) { const e = new Error('providerCity is required'); e.code = 'INCOMPLETE'; throw e; }
 
     const now = new Date();
     try {
@@ -279,6 +285,8 @@ class InquiriesService {
         inquiryId: oid,
         memberId: uid,
         profession,
+        providerName,
+        providerCity,
         freeTalkOffered,
         helpDescription,
         status: SIGNAL_STATUS.PENDING,

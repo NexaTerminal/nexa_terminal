@@ -1027,7 +1027,7 @@ function registerRoutes() {
   // Pro Clients — saved client profiles for generating documents on their behalf.
   // Isolated mount: a failure here must not take down (or be mislabeled as) Topics.
   try {
-    app.use('/api/clients',        require('./routes/clients'));
+    app.use('/api/clients',        subscriptionGuard, require('./routes/clients'));
     console.log('✅ /api/clients mounted');
   } catch (error) {
     console.error('❌ /api/clients route error:', error.message);

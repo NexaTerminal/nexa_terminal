@@ -25,7 +25,12 @@ const STATE_FALLBACK = { key: 'unknown', label: '—', cls: 's_draft' };
 const STATE_ORDER = { returned: 0, draft: 1, submitted: 2, accepted: 3, published: 4, rejected: 5, archived: 6, unknown: 9 };
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const stripHtml = (html = '') =>
+  html.replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;|&#xA0;/gi, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ').trim();
 
 // Line-style icons (no emojis) — match the existing commercialNote SVG style.
 const svgProps = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };

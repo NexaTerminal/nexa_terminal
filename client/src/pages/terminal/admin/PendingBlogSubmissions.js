@@ -15,6 +15,25 @@ const STATUS_LABEL = {
 };
 const fmt = (d) => d ? new Date(d).toLocaleString('mk-MK', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 
+// Publishing to topics.nexa.mk is manual — admin copies text + image. Force a
+// real download when possible (blob), falling back to opening in a new tab.
+const downloadImage = async (url, filename) => {
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objUrl;
+    a.download = filename || 'image';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objUrl);
+  } catch {
+    window.open(url, '_blank', 'noopener');
+  }
+};
+
 export default function PendingBlogSubmissionsPage() {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -108,8 +127,60 @@ export default function PendingBlogSubmissionsPage() {
               )}
             </div>
             <h1>{selected.title}</h1>
+
+            {/* Author profile — submitted with the blog (image · name · email · bio) */}
+            {selected.authorBio && (selected.authorBio.displayName || selected.authorBio.contactEmail || selected.authorBio.bio || selected.authorBio.photoUrl) && (
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '14px 16px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, margin: '4px 0 18px' }}>
+                {selected.authorBio.photoUrl
+                  ? <a href={selected.authorBio.photoUrl} target="_blank" rel="noopener noreferrer" title="Отвори во голем формат" style={{ flexShrink: 0 }}>
+                      <img src={selected.authorBio.photoUrl} alt="author" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+                    </a>
+                  : <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#e0eeff', color: '#1a44a3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
+                      {(selected.authorBio.displayName || '?').trim().charAt(0).toUpperCase()}
+                    </div>}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: '#0b1220' }}>{selected.authorBio.displayName || '(без име)'}</div>
+                  {selected.authorBio.contactEmail && (
+                    <div style={{ fontSize: 13 }}><a href={`mailto:${selected.authorBio.contactEmail}`}>{selected.authorBio.contactEmail}</a></div>
+                  )}
+                  {selected.authorBio.linkedinUrl && (
+                    <div style={{ fontSize: 13 }}><a href={selected.authorBio.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a></div>
+                  )}
+                  {selected.authorBio.website && (
+                    <div style={{ fontSize: 13 }}><a href={selected.authorBio.website} target="_blank" rel="noopener noreferrer">{selected.authorBio.website} ↗</a></div>
+                  )}
+                  {selected.authorBio.photoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => downloadImage(selected.authorBio.photoUrl, `${(selected.authorBio.displayName || 'author').slice(0, 40)}-photo`)}
+                      style={{ background: 'none', border: 0, padding: 0, color: '#1a44a3', fontWeight: 600, cursor: 'pointer', fontSize: 13, marginTop: 2 }}
+                    >
+                      Преземи слика ↓
+                    </button>
+                  )}
+                  {selected.authorBio.bio && (
+                    <div style={{ fontSize: 13, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>{selected.authorBio.bio}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {selected.coverImageUrl && (
-              <img src={selected.coverImageUrl} alt="cover" style={{ width: '100%', borderRadius: 8, marginBottom: 16 }} />
+              <figure style={{ margin: '0 0 16px' }}>
+                <a href={selected.coverImageUrl} target="_blank" rel="noopener noreferrer" title="Отвори во полн формат">
+                  <img src={selected.coverImageUrl} alt="cover" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                </a>
+                <figcaption style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 8, fontSize: 13 }}>
+                  <a href={selected.coverImageUrl} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>Отвори во полн формат ↗</a>
+                  <button
+                    type="button"
+                    onClick={() => downloadImage(selected.coverImageUrl, `${(selected.title || 'blog').slice(0, 40)}-cover`)}
+                    style={{ background: 'none', border: 0, padding: 0, color: '#1a44a3', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
+                  >
+                    Преземи слика ↓
+                  </button>
+                </figcaption>
+              </figure>
             )}
             <div className={styles.detailBody} dangerouslySetInnerHTML={{ __html: sanitizeHTML(selected.bodyHtml) }} />
 

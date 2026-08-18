@@ -70,6 +70,14 @@ exports.listMyPublished = async (req, res) => {
   } catch (err) { return handleErr(res, err); }
 };
 
+// Saved author profile (remembered across posts) for prefilling a new draft.
+exports.getAuthorProfile = async (req, res) => {
+  try {
+    const authorBio = await makeService(req).getAuthorProfile(req.user);
+    return res.json({ success: true, authorBio });
+  } catch (err) { return handleErr(res, err); }
+};
+
 exports.getOne = async (req, res) => {
   try {
     const doc = await makeService(req).getOne(req.user, req.params.id);

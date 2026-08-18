@@ -6,8 +6,7 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
-import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
-import useTermsGate from '../../hooks/useTermsGate';
+import SubmitConsent from '../../components/terminal/SubmitConsent';
 import { canSubmitBlog, isTrial } from '../../lib/tier';
 import styles from './BlogSubmissions.module.css';
 
@@ -34,7 +33,6 @@ const STATUS_LABEL_MK = {
 
 export default function SubmitBlogPage() {
   const { token, currentUser } = useAuth();
-  const { requireTerms, termsModal } = useTermsGate();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const editId = params.get('id') || null;
@@ -45,6 +43,7 @@ export default function SubmitBlogPage() {
   const [authorDisplayName, setAuthorDisplayName] = useState('');
   const [authorContactEmail, setAuthorContactEmail] = useState('');
   const [authorLinkedin, setAuthorLinkedin] = useState('');
+  const [authorWebsite, setAuthorWebsite] = useState('');
   const [authorBio, setAuthorBio] = useState('');
   const [authorPhotoUrl, setAuthorPhotoUrl] = useState(null);
 
@@ -68,6 +67,27 @@ export default function SubmitBlogPage() {
     setAuthorContactEmail((e) => e || currentUser.email || '');
   }, [currentUser]);
 
+  // For a NEW draft, prefill from the remembered author profile so the author
+  // only has to change (not re-enter) their details each time.
+  useEffect(() => {
+    if (editId) return;
+    let cancelled = false;
+    axios.get('/api/blogs/submissions/author-profile', auth)
+      .then(res => {
+        if (cancelled) return;
+        const b = res.data?.authorBio || {};
+        if (b.displayName)  setAuthorDisplayName(b.displayName);
+        if (b.contactEmail) setAuthorContactEmail(b.contactEmail);
+        if (b.linkedinUrl)  setAuthorLinkedin(b.linkedinUrl);
+        if (b.website)      setAuthorWebsite(b.website);
+        if (b.bio)          setAuthorBio(b.bio);
+        if (b.photoUrl)     setAuthorPhotoUrl(b.photoUrl);
+      })
+      .catch(() => { /* no saved profile yet */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
+
   // Load existing submission if editing.
   useEffect(() => {
     if (!editId) return;
@@ -85,6 +105,7 @@ export default function SubmitBlogPage() {
         if (bio.displayName)  setAuthorDisplayName(bio.displayName);
         if (bio.contactEmail) setAuthorContactEmail(bio.contactEmail);
         if (bio.linkedinUrl)  setAuthorLinkedin(bio.linkedinUrl);
+        if (bio.website)      setAuthorWebsite(bio.website);
         if (bio.bio)          setAuthorBio(bio.bio);
         if (bio.photoUrl)     setAuthorPhotoUrl(bio.photoUrl);
       })
@@ -95,7 +116,9 @@ export default function SubmitBlogPage() {
 
   const bodyText = bodyHtml.replace(/<[^>]+>/g, '').trim();
   const lockedForEdit = !['draft', 'returned', 'ai_failed'].includes(status);
-  const canSubmit = allowed.allowed && !lockedForEdit && !!title.trim() && !!bodyText;
+  // Author identity is required to publish under their name: full name + photo.
+  const authorReady = !!authorDisplayName.trim() && !!authorPhotoUrl;
+  const canSubmit = allowed.allowed && !lockedForEdit && !!title.trim() && !!bodyText && authorReady;
 
   const payload = () => ({
     title: title.trim(),
@@ -104,6 +127,7 @@ export default function SubmitBlogPage() {
       displayName:  authorDisplayName.trim(),
       contactEmail: authorContactEmail.trim(),
       linkedinUrl:  authorLinkedin.trim(),
+      website:      authorWebsite.trim(),
       photoUrl:     authorPhotoUrl,
       bio:          authorBio.trim()
     }
@@ -130,6 +154,10 @@ export default function SubmitBlogPage() {
   };
 
   const submit = async () => {
+    if (!authorDisplayName.trim() || !authorPhotoUrl) {
+      setToast({ type: 'error', text: 'Полето Автор бара име и фотографија пред поднесување.' });
+      return;
+    }
     setBusy(true); setToast(null);
     try {
       // Persist the latest edits + author info, then transition.
@@ -250,12 +278,12 @@ export default function SubmitBlogPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Контакт е-пошта *</label>
+                <label className={styles.label}>Контакт е-пошта (опционално)</label>
                 <input type="email" className={styles.input} value={authorContactEmail}
                        disabled={lockedForEdit}
                        onChange={e => setAuthorContactEmail(e.target.value.slice(0, 240))}
                        placeholder="vasa.email@firma.mk" />
-                <div className={styles.help}>На оваа адреса ќе Ве контактираме ако има потреба од измени.</div>
+                <div className={styles.help}>Се прикажува како линк за контакт под објавата.</div>
               </div>
 
               <div className={styles.field}>
@@ -264,6 +292,14 @@ export default function SubmitBlogPage() {
                        disabled={lockedForEdit}
                        onChange={e => setAuthorLinkedin(e.target.value.slice(0, 240))}
                        placeholder="https://www.linkedin.com/in/vase-ime" />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Веб-страница (опционално)</label>
+                <input className={styles.input} value={authorWebsite}
+                       disabled={lockedForEdit}
+                       onChange={e => setAuthorWebsite(e.target.value.slice(0, 240))}
+                       placeholder="https://vasa-firma.mk" />
               </div>
 
               <div className={styles.field}>
@@ -279,7 +315,7 @@ export default function SubmitBlogPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Фотографија (опционално)</label>
+                <label className={styles.label}>Фотографија *</label>
                 {authorPhotoUrl && (
                   <div className={styles.coverPreview} style={{ maxWidth: 120, marginBottom: 8 }}>
                     <img src={authorPhotoUrl} alt="author" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: '50%' }} />
@@ -302,18 +338,26 @@ export default function SubmitBlogPage() {
             )}
 
             {!lockedForEdit && (
-              <div className={styles.actionsRow}>
-                <button type="button" className={styles.btnSecondary}
-                        disabled={busy}
-                        onClick={saveDraft}>
-                  Зачувај нацрт
-                </button>
-                <button type="button" className={styles.btnPrimary}
-                        disabled={busy || !canSubmit}
-                        onClick={() => requireTerms('blog', submit)}>
-                  Поднеси на уреднички преглед
-                </button>
-              </div>
+              <>
+                {!authorReady && (
+                  <div className={styles.help} style={{ color: '#b45309', marginTop: 4 }}>
+                    За да поднесете, пополнете го името и фотографијата во „За авторот“.
+                  </div>
+                )}
+                <div className={styles.actionsRow}>
+                  <button type="button" className={styles.btnSecondary}
+                          disabled={busy}
+                          onClick={saveDraft}>
+                    Зачувај нацрт
+                  </button>
+                  <button type="button" className={styles.btnPrimary}
+                          disabled={busy || !canSubmit}
+                          onClick={submit}>
+                    Поднеси на уреднички преглед
+                  </button>
+                </div>
+                <SubmitConsent />
+              </>
             )}
           </div>
         )}
@@ -327,8 +371,6 @@ export default function SubmitBlogPage() {
             }}
           />
         )}
-
-        {termsModal && <FeatureTermsModal {...termsModal} />}
       </div>
     </TerminalShell>
   );

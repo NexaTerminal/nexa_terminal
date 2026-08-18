@@ -26,6 +26,7 @@ router.use(authenticateJWT);
 // All member endpoints are open to subscribers (Basic + Pro; sub-seats blocked).
 router.get('/',           c.requireSubscriber, c.listMine);
 router.get('/published',  c.requireSubscriber, c.listMyPublished);
+router.get('/author-profile', c.requireSubscriber, c.getAuthorProfile); // before /:id
 router.post('/',          c.requireSubscriber, c.create);
 router.get('/:id',        c.requireSubscriber, c.getOne);
 router.put('/:id',        c.requireSubscriber, c.update);

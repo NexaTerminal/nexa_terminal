@@ -120,7 +120,7 @@ class BlogSubmissionsService {
       status:            STATUS.DRAFT,
       attemptsAi:        0,
       title:             String(input?.title || '').slice(0, 140),
-      bodyHtml:          String(input?.bodyHtml || ''),
+      bodyHtml:          BlogSubmissionsService._normalizeBody(input?.bodyHtml),
       suggestedCategory: String(input?.suggestedCategory || '').slice(0, 80),
       suggestedKeywords: Array.isArray(input?.suggestedKeywords)
         ? input.suggestedKeywords.map(k => String(k || '').trim()).filter(Boolean).slice(0, 5)
@@ -139,6 +139,7 @@ class BlogSubmissionsService {
       updatedAt:         now
     };
     await this.col.insertOne(doc);
+    await this._rememberAuthorProfile(user, doc.authorBio);
     return doc;
   }
 
@@ -158,7 +159,7 @@ class BlogSubmissionsService {
 
     const patch = { updatedAt: new Date() };
     if (input?.title !== undefined)             patch.title = String(input.title).slice(0, 140);
-    if (input?.bodyHtml !== undefined)          patch.bodyHtml = String(input.bodyHtml);
+    if (input?.bodyHtml !== undefined)          patch.bodyHtml = BlogSubmissionsService._normalizeBody(input.bodyHtml);
     if (input?.suggestedCategory !== undefined) patch.suggestedCategory = String(input.suggestedCategory).slice(0, 80);
     if (input?.suggestedKeywords !== undefined) {
       patch.suggestedKeywords = Array.isArray(input.suggestedKeywords)
@@ -171,6 +172,7 @@ class BlogSubmissionsService {
     if (existing.status === STATUS.RETURNED) patch.status = STATUS.DRAFT;
 
     await this.col.updateOne({ _id: oid }, { $set: patch });
+    if (patch.authorBio) await this._rememberAuthorProfile(user, patch.authorBio);
     return this.col.findOne({ _id: oid });
   }
 
@@ -369,6 +371,7 @@ class BlogSubmissionsService {
         bio: bio.bio || '',
         photoUrl: bio.photoUrl || null,
         linkedinUrl: bio.linkedinUrl || '',
+        website: bio.website || '',
         contactEmail: bio.contactEmail || author?.email || ''
       },
       submissionId: doc._id,
@@ -396,15 +399,41 @@ class BlogSubmissionsService {
 
   /** ≤25 of month → next month; >25 → month after next. Returns 'YYYY-MM'. */
   /** Defensive normalization for the author-bio block. */
+  // Non-breaking spaces (often between every word in pasted/generated content)
+  // forbid line breaks, so the browser splits words mid-word. Convert to regular
+  // spaces at save so stored content wraps normally everywhere it's shown.
+  static _normalizeBody(html) {
+    return String(html || '').replace(/&nbsp;|&#160;|&#xA0;/gi, ' ').replace(/\u00A0/g, " ");
+  }
+
   static _normalizeAuthorBio(input) {
     const i = input || {};
     return {
       displayName:  String(i.displayName  || '').trim().slice(0, 120),
       contactEmail: String(i.contactEmail || '').trim().slice(0, 240),
       linkedinUrl:  String(i.linkedinUrl  || '').trim().slice(0, 240),
+      website:      String(i.website      || '').trim().slice(0, 240),
       photoUrl:     String(i.photoUrl     || '').trim().slice(0, 500) || null,
       bio:          String(i.bio          || '').trim().slice(0, 320)
     };
+  }
+
+  // The author profile is remembered on the user so it prefills next time.
+  async getAuthorProfile(user) {
+    const u = await this.db.collection('users').findOne(
+      { _id: BlogSubmissionsService.toObjectId(user._id) },
+      { projection: { blogAuthorProfile: 1 } }
+    );
+    return u?.blogAuthorProfile || {};
+  }
+
+  async _rememberAuthorProfile(user, authorBio) {
+    try {
+      await this.db.collection('users').updateOne(
+        { _id: BlogSubmissionsService.toObjectId(user._id) },
+        { $set: { blogAuthorProfile: authorBio, updatedAt: new Date() } }
+      );
+    } catch (e) { /* non-fatal — remembering is best-effort */ }
   }
 
   static computeNewsletterMonth(now = new Date()) {

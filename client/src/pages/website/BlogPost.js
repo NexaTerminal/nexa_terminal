@@ -418,6 +418,33 @@ export default function BlogPost() {
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(contentAfter) }}
           />
         )}
+
+        {/* Author card — the expert who wrote this post */}
+        {post.author && (post.author.name || post.author.photoUrl) && (
+          <div style={{
+            display: 'flex', gap: 18, alignItems: 'flex-start',
+            marginTop: 40, padding: '22px 24px',
+            background: '#f7f8fa', border: '1px solid #e6e8ec', borderRadius: 16
+          }}>
+            {post.author.photoUrl
+              ? <img src={post.author.photoUrl} alt={post.author.name || 'author'}
+                     style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+              : <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e0eeff', color: '#1a44a3',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 26, flexShrink: 0 }}>
+                  {(post.author.name || '?').trim().charAt(0).toUpperCase()}
+                </div>}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 2 }}>Автор</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#0b1220' }}>{post.author.name}</div>
+              {post.author.bio && <p style={{ fontSize: 14.5, lineHeight: 1.55, color: '#4b5563', margin: '8px 0 0' }}>{post.author.bio}</p>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 10, fontSize: 13.5, fontWeight: 600 }}>
+                {post.author.linkedinUrl && <a href={post.author.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}
+                {post.author.website && <a href={post.author.website} target="_blank" rel="noopener noreferrer">Веб-страница ↗</a>}
+                {post.author.contactEmail && <a href={`mailto:${post.author.contactEmail}`}>Е-пошта</a>}
+              </div>
+            </div>
+          </div>
+        )}
       </article>
 
       {/* Sidebar - Did You Know Facts */}

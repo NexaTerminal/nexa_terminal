@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -45,6 +45,10 @@ export default function SubmitBlogPage() {
   const [authorLinkedin, setAuthorLinkedin] = useState('');
   const [authorWebsite, setAuthorWebsite] = useState('');
   const [authorBio, setAuthorBio] = useState('');
+  const [authorTagline, setAuthorTagline] = useState('');
+  const [authorExtendedBio, setAuthorExtendedBio] = useState('');
+  const [authorCredentials, setAuthorCredentials] = useState([]); // string[]
+  const [credentialDraft, setCredentialDraft] = useState('');
   const [authorPhotoUrl, setAuthorPhotoUrl] = useState(null);
 
   const [status, setStatus] = useState('draft');
@@ -54,7 +58,6 @@ export default function SubmitBlogPage() {
   const [loading, setLoading] = useState(!!editId);
   const [toast, setToast] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const photoRef = useRef();
 
   const auth = { headers: { Authorization: `Bearer ${token}` } };
   const trial = isTrial(currentUser);
@@ -81,6 +84,9 @@ export default function SubmitBlogPage() {
         if (b.linkedinUrl)  setAuthorLinkedin(b.linkedinUrl);
         if (b.website)      setAuthorWebsite(b.website);
         if (b.bio)          setAuthorBio(b.bio);
+        if (b.tagline)      setAuthorTagline(b.tagline);
+        if (b.extendedBio)  setAuthorExtendedBio(b.extendedBio);
+        if (Array.isArray(b.credentials)) setAuthorCredentials(b.credentials);
         if (b.photoUrl)     setAuthorPhotoUrl(b.photoUrl);
       })
       .catch(() => { /* no saved profile yet */ });
@@ -107,6 +113,9 @@ export default function SubmitBlogPage() {
         if (bio.linkedinUrl)  setAuthorLinkedin(bio.linkedinUrl);
         if (bio.website)      setAuthorWebsite(bio.website);
         if (bio.bio)          setAuthorBio(bio.bio);
+        if (bio.tagline)      setAuthorTagline(bio.tagline);
+        if (bio.extendedBio)  setAuthorExtendedBio(bio.extendedBio);
+        if (Array.isArray(bio.credentials)) setAuthorCredentials(bio.credentials);
         if (bio.photoUrl)     setAuthorPhotoUrl(bio.photoUrl);
       })
       .catch(err => setToast({ type: 'error', text: err.response?.data?.message || err.message }))
@@ -120,6 +129,15 @@ export default function SubmitBlogPage() {
   const authorReady = !!authorDisplayName.trim() && !!authorPhotoUrl;
   const canSubmit = allowed.allowed && !lockedForEdit && !!title.trim() && !!bodyText && authorReady;
 
+  const addCredential = () => {
+    const v = credentialDraft.trim();
+    if (!v || authorCredentials.length >= 6) return;
+    setAuthorCredentials(prev => [...prev, v]);
+    setCredentialDraft('');
+  };
+  const removeCredential = (idx) =>
+    setAuthorCredentials(prev => prev.filter((_, i) => i !== idx));
+
   const payload = () => ({
     title: title.trim(),
     bodyHtml,
@@ -129,7 +147,10 @@ export default function SubmitBlogPage() {
       linkedinUrl:  authorLinkedin.trim(),
       website:      authorWebsite.trim(),
       photoUrl:     authorPhotoUrl,
-      bio:          authorBio.trim()
+      bio:          authorBio.trim(),
+      tagline:      authorTagline.trim(),
+      extendedBio:  authorExtendedBio.trim(),
+      credentials:  authorCredentials
     }
   });
 
@@ -177,20 +198,6 @@ export default function SubmitBlogPage() {
     } catch (err) {
       setToast({ type: 'error', text: err.response?.data?.message || err.message });
     } finally { setBusy(false); }
-  };
-
-  const uploadPhoto = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const fd = new FormData(); fd.append('image', file);
-    setBusy(true);
-    try {
-      const res = await axios.post('/api/blogs/submissions/upload-image', fd, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
-      setAuthorPhotoUrl(res.data?.imageUrl || null);
-    } catch (err) {
-      setToast({ type: 'error', text: err.response?.data?.message || err.message });
-    } finally { setBusy(false); if (photoRef.current) photoRef.current.value = ''; }
   };
 
   return (
@@ -278,6 +285,15 @@ export default function SubmitBlogPage() {
               </div>
 
               <div className={styles.field}>
+                <label className={styles.label}>Титула / потпис (опционално)</label>
+                <input className={styles.input} value={authorTagline}
+                       disabled={lockedForEdit}
+                       onChange={e => setAuthorTagline(e.target.value.slice(0, 200))}
+                       placeholder="На пр. Адвокат · магистер по право (LL.M.)" />
+                <div className={styles.help}>Една линија под името во картичката на авторот.</div>
+              </div>
+
+              <div className={styles.field}>
                 <label className={styles.label}>Контакт е-пошта (опционално)</label>
                 <input type="email" className={styles.input} value={authorContactEmail}
                        disabled={lockedForEdit}
@@ -315,20 +331,71 @@ export default function SubmitBlogPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Фотографија *</label>
-                {authorPhotoUrl && (
-                  <div className={styles.coverPreview} style={{ maxWidth: 120, marginBottom: 8 }}>
-                    <img src={authorPhotoUrl} alt="author" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: '50%' }} />
+                <label className={styles.label}>Проширена биографија (опционално)</label>
+                <textarea className={styles.input}
+                          rows={5}
+                          maxLength={1200}
+                          disabled={lockedForEdit}
+                          value={authorExtendedBio}
+                          onChange={e => setAuthorExtendedBio(e.target.value.slice(0, 1200))}
+                          placeholder="Подетален опис — искуство, образование, фокус. Се крие зад „Повеќе за авторот“." />
+                <div className={styles.help}>{authorExtendedBio.length}/1200</div>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Квалификации (опционално)</label>
+                <div className={styles.coverRow}>
+                  <input className={styles.input} value={credentialDraft}
+                         disabled={lockedForEdit || authorCredentials.length >= 6}
+                         onChange={e => setCredentialDraft(e.target.value.slice(0, 160))}
+                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCredential(); } }}
+                         placeholder="На пр. LL.M. — граѓанско право" />
+                  <button type="button" className={styles.btnSecondary}
+                          disabled={lockedForEdit || !credentialDraft.trim() || authorCredentials.length >= 6}
+                          onClick={addCredential}>
+                    Додај
+                  </button>
+                </div>
+                {authorCredentials.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                    {authorCredentials.map((c, i) => (
+                      <span key={i} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        padding: '4px 10px', border: '1px solid #d1d5db', borderRadius: 999,
+                        fontSize: 13, color: '#374151', background: '#fff'
+                      }}>
+                        {c}
+                        {!lockedForEdit && (
+                          <button type="button" onClick={() => removeCredential(i)}
+                                  aria-label="Отстрани"
+                                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 15, lineHeight: 1, padding: 0 }}>
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    ))}
                   </div>
                 )}
-                <div className={styles.coverRow}>
-                  <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp"
-                         onChange={uploadPhoto} disabled={lockedForEdit || busy} className={styles.fileInput} />
-                  {authorPhotoUrl && (
-                    <button type="button" className={styles.btnSecondary} onClick={() => setAuthorPhotoUrl(null)} disabled={lockedForEdit}>
-                      Отстрани
-                    </button>
-                  )}
+                <div className={styles.help}>До 6 значки, се прикажуваат како чипови во картичката.</div>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Фотографија (линк) *</label>
+                {authorPhotoUrl && (
+                  <div className={styles.coverPreview} style={{ maxWidth: 120, marginBottom: 8 }}>
+                    <img src={authorPhotoUrl} alt="author"
+                         style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: '50%' }}
+                         onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
+                  </div>
+                )}
+                <input className={styles.input} type="url"
+                       value={authorPhotoUrl || ''}
+                       disabled={lockedForEdit}
+                       onChange={e => setAuthorPhotoUrl(e.target.value.trim().slice(0, 500) || null)}
+                       placeholder="https://... (линк до Ваша фотографија)" />
+                <div className={styles.help}>
+                  Залепете директен линк до слика (JPG/PNG/WEBP) — на пр. од LinkedIn,
+                  веб-страницата на фирмата или друг јавен извор.
                 </div>
               </div>
             </div>

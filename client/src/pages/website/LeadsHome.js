@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
@@ -28,6 +28,7 @@ export default function LeadsHome() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [active, setActive] = useState(0);
 
   const goAfterAuth = () => {
     const params = new URLSearchParams(location.search);
@@ -66,14 +67,52 @@ export default function LeadsHome() {
     window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
   };
 
-  const STEPS = [
-    T('Клиент нè контактира преку некој од нашите сајтови.',
-      'A client contacts us through one of our sites.'),
-    T('Го препознаваме случајот по област и град.',
-      'We identify the case by practice area and city.'),
-    T('Се најавувате и го преземате клиентот.',
-      'You sign in and take the client.')
+  // Rotating value props — one per Pro feature, each led by a hook.
+  const FEATURES = [
+    {
+      label: T('Клиенти', 'Clients'),
+      hook: T('Ние имаме клиенти. Вие имате експертиза.',
+              'We have the clients. You have the expertise.'),
+      sub: T('Луѓе со правни потреби нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги случаите од Вашата област и град.',
+             'People with legal needs reach us every day through our network of sites. Take the cases from your practice area and city.')
+    },
+    {
+      label: T('Стручни одговори', 'Expert answers'),
+      hook: T('Луѓето треба да знаат за Вас.',
+              'People need to know you exist.'),
+      sub: T('Одговарајте на реални правни прашања и градете репутација како експерт пред публика што веќе бара токму такво знаење.',
+             'Answer real legal questions and build a reputation as the expert in front of an audience already looking for exactly that.')
+    },
+    {
+      label: T('Блог', 'Blog'),
+      hook: T('Имате што да кажете — ние имаме каде да го пренесеме.',
+              'You have something to say — we have where to share it.'),
+      sub: T('Објавувајте стручни статии и стигнете до целата Nexa мрежа од сајтови, читатели и потенцијални клиенти.',
+             'Publish expert articles and reach the entire Nexa network of sites, readers and prospective clients.')
+    },
+    {
+      label: T('Саеми', 'Fairs'),
+      hook: T('Претставете се пред вистинската публика.',
+              'Present yourself to the right audience.'),
+      sub: T('Учествувајте на виртуелни саеми и настани и поврзете се директно со клиенти што бараат Ваши услуги.',
+             'Take part in virtual fairs and events and connect directly with clients seeking your services.')
+    },
+    {
+      label: T('Алатки', 'Tools'),
+      hook: T('Целата Ваша канцеларија на едно место.',
+              'Your whole practice, in one place.'),
+      sub: T('Автоматизирани документи, анализа на договори, правни проверки и AI помошник — подготвени за секој случај.',
+             'Automated documents, contract analysis, compliance checks and an AI assistant — ready for every case.')
+    }
   ];
+
+  // Auto-advance the rotator; pause for users who prefer reduced motion.
+  // Depending on `active` also gives a full dwell after a manual tab click.
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const id = setInterval(() => setActive((a) => (a + 1) % FEATURES.length), 4200);
+    return () => clearInterval(id);
+  }, [active, FEATURES.length]);
 
   const NETWORK = [
     { domain: 'samodaprasham.mk', url: 'https://samodaprasham.mk', tag: T('Правни прашања', 'Legal questions') },
@@ -116,19 +155,30 @@ export default function LeadsHome() {
           <span className={styles.pill}>
             {T('Ние нудиме можности — Вие решавате проблеми', 'We bring the opportunities — you solve the problems')}
           </span>
-          <h1 className={styles.title}>
-            {T('Клиентите нè контактираат. Ние Ви ги предаваме.', 'Clients reach out to us. We hand them to you.')}
-          </h1>
-          <p className={styles.lead}>
-            {T('Луѓе со правни потреби нè контактираат секој ден. Најавете се и преземете ги случаите од Ваша област и град.',
-               'People with legal needs contact us every day. Sign in and take the cases from your area and city.')}
-          </p>
+          <div className={styles.rotator}>
+            <h1 className={styles.rotHook} key={`h-${active}`} aria-live="polite">
+              {FEATURES[active].hook}
+            </h1>
+            <p className={styles.rotSub} key={`s-${active}`}>
+              {FEATURES[active].sub}
+            </p>
+          </div>
 
-          <ol className={styles.steps}>
-            {STEPS.map((s, i) => (
-              <li key={s}><span className={styles.stepNum}>{i + 1}</span>{s}</li>
+          <div className={styles.featureTabs} role="tablist"
+               aria-label={T('Што нудиме', 'What we offer')}>
+            {FEATURES.map((f, i) => (
+              <button
+                key={f.label}
+                type="button"
+                role="tab"
+                aria-selected={i === active}
+                className={`${styles.featureTab} ${i === active ? styles.featureTabActive : ''}`}
+                onClick={() => setActive(i)}
+              >
+                {f.label}
+              </button>
             ))}
-          </ol>
+          </div>
 
           <div className={styles.network}>
             <span className={styles.networkLabel}>{T('Од нашата мрежа', 'From our network')}</span>

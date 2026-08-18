@@ -53,6 +53,15 @@ router.post('/ask', authenticateJWT, checkCredits(1), async (req, res) => {
     // Ask the chatbot (with optional conversationId for history tracking)
     const response = await chatBotService.askQuestion(question, userId, conversationId);
 
+    // Feature-usage signal (best-effort — never blocks the answer).
+    try {
+      req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        queryType: conversationId ? 'conversation' : 'ask',
+      });
+    } catch (_) { /* analytics optional */ }
+
     // Deduct credits after successful question
     const creditService = req.app.locals.creditService;
     if (creditService) {
@@ -325,6 +334,14 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     // Ask the chatbot with conversation context
     const response = await chatBotService.askQuestion(question, userId, conversationId);
 
+    try {
+      req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        queryType: 'conversation',
+      });
+    } catch (_) { /* analytics optional */ }
+
     // Deduct credits after successful question
     const creditService = req.app.locals.creditService;
     if (creditService) {
@@ -425,6 +442,14 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
         console.error('Credit deduction error:', creditError);
       }
     }
+
+    try {
+      req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        queryType: 'conversation_stream',
+      });
+    } catch (_) { /* analytics optional */ }
 
     // Set SSE headers
     res.writeHead(200, {

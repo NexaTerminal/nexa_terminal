@@ -386,7 +386,9 @@ const ACTIVITY_BADGE = {
   blog:       { color: '#1e4db7', bg: '#EEF4FF' },
   lead:       { color: '#7c3aed', bg: '#F5F3FF' },
   topic:      { color: '#0E7490', bg: '#ECFEFF' },
-  admin:      { color: '#B91C1C', bg: '#FEF2F2' }
+  admin:      { color: '#B91C1C', bg: '#FEF2F2' },
+  credit:     { color: '#9a3412', bg: '#FFF7ED' },
+  event:      { color: '#0f766e', bg: '#F0FDFA' }
 };
 function ActivityTimeline({ events, loading }) {
   if (loading) {
@@ -417,6 +419,16 @@ function ActivityTimeline({ events, loading }) {
         );
       })}
     </ul>
+  );
+}
+
+// ---------- small stat box ----------
+function StatBox({ label, value }) {
+  return (
+    <div className={styles.statBox}>
+      <div className={styles.statValue}>{value == null || value === '' ? '—' : value}</div>
+      <div className={styles.statLabel}>{label}</div>
+    </div>
   );
 }
 
@@ -518,6 +530,28 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
               <span>Мора да смени лозинка</span><strong>{data.user.mustChangePassword ? 'Да' : 'Не'}</strong>
               <span>Регистриран</span><strong>{fmtDate(data.user.createdAt)}</strong>
             </div>
+
+            {data.stats && (
+              <div className={styles.statStrip}>
+                <StatBox label="Документи" value={data.stats.documents} />
+                <StatBox label="Проверки" value={data.stats.compliance} />
+                <StatBox label="AI прашања" value={data.stats.aiQueries} />
+                <StatBox label="Најави" value={data.stats.logins} />
+                <StatBox label="Последна најава" value={fmtDate(data.stats.lastLogin)} />
+              </div>
+            )}
+
+            {data.credits && (
+              <>
+                <h4 className={styles.subhead}>Кредити</h4>
+                <div className={styles.kv}>
+                  <span>Салдо</span><strong>{data.credits.balance ?? 0}</strong>
+                  <span>Неделна квота</span><strong>{data.credits.weeklyAllocation ?? '—'}</strong>
+                  <span>Вкупно потрошени</span><strong>{data.credits.lifetimeSpent ?? 0}</strong>
+                  <span>Следно надополнување</span><strong>{fmtDate(data.credits.nextResetDate)}</strong>
+                </div>
+              </>
+            )}
 
             {data.user.subscription && (
               <>

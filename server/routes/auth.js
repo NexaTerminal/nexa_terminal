@@ -26,7 +26,8 @@ router.post('/login', RateLimitingService.createLoginLimiter(), passport.authent
   try {
     // Generate JWT token
     const token = authController.generateToken(req.user);
-    
+    authController.recordAuthEvent(req, req.user._id, 'login', { method: 'email' });
+
     res.json({
       success: true,
       token,
@@ -119,6 +120,8 @@ router.get('/google/callback',
       }
 
       const token = authController.generateToken(user);
+      try { await new UserService(req.app.locals.db).updateLastLogin(user._id); } catch (e) { /* best-effort */ }
+      authController.recordAuthEvent(req, user._id, 'login', { method: 'google' });
       const redirectUrl = redirect
         ? `${clientURL}/auth/callback?token=${token}&redirect=${encodeURIComponent(redirect)}`
         : `${clientURL}/auth/callback?token=${token}`;

@@ -140,6 +140,9 @@ export default function PendingBlogSubmissionsPage() {
                     </div>}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 700, color: '#0b1220' }}>{selected.authorBio.displayName || '(без име)'}</div>
+                  {selected.authorBio.tagline && (
+                    <div style={{ fontSize: 13, color: '#64748b', marginBottom: 2 }}>{selected.authorBio.tagline}</div>
+                  )}
                   {selected.authorBio.contactEmail && (
                     <div style={{ fontSize: 13 }}><a href={`mailto:${selected.authorBio.contactEmail}`}>{selected.authorBio.contactEmail}</a></div>
                   )}
@@ -160,6 +163,16 @@ export default function PendingBlogSubmissionsPage() {
                   )}
                   {selected.authorBio.bio && (
                     <div style={{ fontSize: 13, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>{selected.authorBio.bio}</div>
+                  )}
+                  {selected.authorBio.extendedBio && (
+                    <div style={{ fontSize: 13, color: '#475569', marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{selected.authorBio.extendedBio}</div>
+                  )}
+                  {Array.isArray(selected.authorBio.credentials) && selected.authorBio.credentials.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                      {selected.authorBio.credentials.map((c, i) => (
+                        <span key={i} style={{ padding: '3px 9px', border: '1px solid #d1d5db', borderRadius: 999, fontSize: 12, color: '#374151' }}>{c}</span>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

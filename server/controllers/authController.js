@@ -33,6 +33,22 @@ class AuthController {
     );
   }
 
+  // Record a login/logout (or other auth) event to activity_logs. Best-effort:
+  // auth must never fail because analytics is unavailable.
+  recordAuthEvent(req, userId, kind, meta = {}) {
+    try {
+      const svc = req.app?.locals?.activityLogger?.analyticsService;
+      if (!svc || !userId) return;
+      svc.trackActivity(String(userId), kind, {
+        ipAddress: req.ip,
+        userAgent: req.get && req.get('User-Agent'),
+        ...meta,
+      }).catch(err => console.error(`${kind} tracking error:`, err.message));
+    } catch (err) {
+      console.error('recordAuthEvent error:', err.message);
+    }
+  }
+
   // Format user response
   formatUserResponse(user) {
     return {
@@ -476,6 +492,7 @@ class AuthController {
 
       // Update last login
       await userService.updateLastLogin(user._id);
+      this.recordAuthEvent(req, user._id, 'login', { method: 'username' });
 
       // Generate JWT token
       const token = this.generateToken(user);
@@ -1097,6 +1114,7 @@ class AuthController {
     try {
       // Since we're using JWTs, we don't need to do any server-side cleanup
       // The client will remove the token
+      if (req.user?.id) this.recordAuthEvent(req, req.user.id, 'logout', {});
       res.json({ message: 'Logged out successfully' });
     } catch (error) {
       console.error('Logout error:', error);

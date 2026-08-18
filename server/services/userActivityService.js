@@ -162,6 +162,77 @@ class UserActivityService {
         TYPE_LABEL[a.type] || `Админ акција: ${a.type || '—'}`);
     }
 
+    // ── Credit transactions (spend / weekly reset / grants) ──────────
+    // Human names for what a credit was spent on. `type` is the category;
+    // metadata.documentType / the endpoint's last path segment name the specific feature.
+    const SPEND_CATEGORY = {
+      AI_QUESTION:         'Правен асистент (AI)',
+      DOCUMENT_GENERATION: 'Генерирање документ',
+      LHC_REPORT:          'Правна проверка (LHC)',
+      MHC_REPORT:          'Маркетинг проверка (MHC)',
+      CHC_REPORT:          'Проверка (CHC)',
+      HHC_REPORT:          'Проверка (HHC)',
+    };
+    const prettySlug = (s) => String(s || '')
+      .split('/').filter(Boolean).pop()          // last path segment
+      ?.replace(/-/g, ' ').replace(/\bevaluate\b/i, '').trim() || '';
+    const spendDetail = (t) => {
+      const doc = t.metadata?.documentType;
+      if (doc) return prettySlug(doc);
+      // For LHC/other, the endpoint carries which sub-module (e.g. /lhc/gdpr/evaluate).
+      const ep = t.metadata?.endpoint || '';
+      const seg = ep.replace(/\/evaluate\/?$/, '').split('/').filter(Boolean).pop();
+      return seg && !['generate', 'ask'].includes(seg) ? seg.replace(/-/g, ' ') : '';
+    };
+
+    const creditTx = await readSafe(this.db, 'credit_transactions',
+      { userId: uid },
+      { type: 1, amount: 1, balanceAfter: 1, metadata: 1, createdAt: 1, timestamp: 1 },
+      60
+    );
+    for (const t of creditTx) {
+      const when = t.createdAt || t.timestamp;
+      const amt = typeof t.amount === 'number' ? t.amount : 0;
+      let label;
+      if (t.type === 'WEEKLY_RESET') {
+        label = `Неделно надополнување кредити (+${Math.abs(amt)})`;
+      } else if (t.type === 'INITIAL_CREDIT') {
+        label = `Почетни кредити (+${Math.abs(amt)})`;
+      } else if (amt < 0) {
+        const cat = SPEND_CATEGORY[t.type] || 'Потрошени кредити';
+        const detail = spendDetail(t);
+        label = `−${Math.abs(amt)} кредит · ${cat}${detail ? `: ${detail}` : ''}`;
+      } else {
+        label = `Додадени ${amt} кредити`;
+      }
+      push(when, amt < 0 ? 'credit.spent' : 'credit.granted', label,
+        { balanceAfter: t.balanceAfter, type: t.type });
+    }
+
+    // ── Auth + feature-usage events (activity_logs) ──────────────────
+    const logs = await readSafe(this.db, 'activity_logs',
+      { userId: uid },
+      { action: 1, metadata: 1, timestamp: 1 },
+      120
+    );
+    const ACTION_LABEL = {
+      login:              'Најава',
+      logout:             'Одјава',
+      ai_query:           'Прашање до правен асистент',
+      chatbot_query:      'Прашање до правен асистент',
+      feature_opened:     'Отворена функција',
+      document_generated: 'Документ генериран',
+    };
+    for (const l of logs) {
+      const action = l.action || '';
+      // Skip admin-side actions here (already surfaced from audit_logs above).
+      if (action.startsWith('admin_')) continue;
+      const detail = l.metadata?.feature || l.metadata?.documentType || l.metadata?.queryType || '';
+      const label = (ACTION_LABEL[action] || action) + (detail ? ` · ${detail}` : '');
+      push(l.timestamp, `event.${action}`, label,
+        l.metadata?.ipAddress ? { ip: l.metadata.ipAddress } : undefined);
+    }
+
     // Sort + cap.
     events.sort((a, b) => b.at.getTime() - a.at.getTime());
     return events.slice(0, limit);

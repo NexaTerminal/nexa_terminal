@@ -130,6 +130,39 @@ class AdminUsersController {
         if (parent) out.parent = projectUser(parent);
       }
 
+      // Credit snapshot (best-effort — never fail the drawer over it).
+      try {
+        const creditService = req.app.locals.creditService;
+        if (creditService) out.credits = await creditService.getUserCredits(user._id);
+      } catch (e) { /* credits optional */ }
+
+      // Lightweight usage stats (counts + last activity + login count).
+      try {
+        const uid = user._id;
+        const countSafe = async (name, filter) => {
+          try { return await db.collection(name).countDocuments(filter); } catch { return 0; }
+        };
+        const [documents, compliance, aiQueries, logins] = await Promise.all([
+          countSafe('template_generations', { userId: uid }),
+          (async () => (
+            (await countSafe('lhcAssessments', { userId: uid })) +
+            (await countSafe('mhcAssessments', { userId: uid })) +
+            (await countSafe('chcAssessments', { userId: uid })) +
+            (await countSafe('hhcAssessments', { userId: uid }))
+          ))(),
+          countSafe('activity_logs', { userId: uid, action: { $in: ['ai_query', 'chatbot_query'] } }),
+          countSafe('activity_logs', { userId: uid, action: 'login' }),
+        ]);
+        out.stats = {
+          documents,
+          compliance,
+          aiQueries,
+          logins,
+          lastLogin: user.lastLogin || null,
+          memberSince: user.createdAt || null,
+        };
+      } catch (e) { /* stats optional */ }
+
       res.json({ success: true, ...out });
     } catch (err) {
       console.error('[admin/all-users get] error:', err);

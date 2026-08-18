@@ -157,6 +157,7 @@ export default function BlogPost() {
 
   const showToc = headings.length >= 3;
   const [tocCollapsed, setTocCollapsed] = useState(false);
+  const [authorExpanded, setAuthorExpanded] = useState(false);
 
   // Split content at ~70% for inline CTA
   const { contentBefore, contentAfter } = useMemo(() => {
@@ -421,29 +422,66 @@ export default function BlogPost() {
 
         {/* Author card — the expert who wrote this post */}
         {post.author && (post.author.name || post.author.photoUrl) && (
-          <div style={{
-            display: 'flex', gap: 18, alignItems: 'flex-start',
-            marginTop: 40, padding: '22px 24px',
-            background: '#f7f8fa', border: '1px solid #e6e8ec', borderRadius: 16
-          }}>
-            {post.author.photoUrl
-              ? <img src={post.author.photoUrl} alt={post.author.name || 'author'}
-                     style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-              : <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e0eeff', color: '#1a44a3',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 26, flexShrink: 0 }}>
-                  {(post.author.name || '?').trim().charAt(0).toUpperCase()}
-                </div>}
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 2 }}>Автор</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#0b1220' }}>{post.author.name}</div>
-              {post.author.bio && <p style={{ fontSize: 14.5, lineHeight: 1.55, color: '#4b5563', margin: '8px 0 0' }}>{post.author.bio}</p>}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 10, fontSize: 13.5, fontWeight: 600 }}>
-                {post.author.linkedinUrl && <a href={post.author.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}
-                {post.author.website && <a href={post.author.website} target="_blank" rel="noopener noreferrer">Веб-страница ↗</a>}
-                {post.author.contactEmail && <a href={`mailto:${post.author.contactEmail}`}>Е-пошта</a>}
+          <section className={styles.authorCard}>
+            <div className={styles.authorHead}>
+              {post.author.photoUrl
+                ? <img src={post.author.photoUrl} alt={post.author.name || 'author'} className={styles.authorPhoto} />
+                : <div className={styles.authorPhotoFallback}>
+                    {(post.author.name || '?').trim().charAt(0).toUpperCase()}
+                  </div>}
+              <div className={styles.authorHeadText}>
+                <div className={styles.authorEyebrow}>За авторот</div>
+                <div className={styles.authorName}>{post.author.name}</div>
+                {post.author.tagline && <div className={styles.authorTagline}>{post.author.tagline}</div>}
               </div>
             </div>
-          </div>
+
+            <div className={styles.authorBody}>
+              {post.author.bio && <p className={styles.authorBio}>{post.author.bio}</p>}
+
+              {(post.author.extendedBio || (Array.isArray(post.author.credentials) && post.author.credentials.length > 0)) && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.authorToggle}
+                    aria-expanded={authorExpanded}
+                    onClick={() => setAuthorExpanded(v => !v)}
+                  >
+                    {authorExpanded ? 'Помалку за авторот' : 'Повеќе за авторот'}
+                    <span className={`${styles.authorChevron} ${authorExpanded ? styles.authorChevronUp : ''}`} aria-hidden>⌄</span>
+                  </button>
+
+                  {authorExpanded && (
+                    <div className={styles.authorMore}>
+                      {post.author.extendedBio && <p className={styles.authorExtendedBio}>{post.author.extendedBio}</p>}
+                      {Array.isArray(post.author.credentials) && post.author.credentials.length > 0 && (
+                        <div className={styles.authorChips}>
+                          {post.author.credentials.map((c, i) => (
+                            <span key={i} className={styles.authorChip}>{c}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {(post.author.linkedinUrl || post.author.website || post.author.contactEmail) && (
+                <div className={styles.authorLinks}>
+                  {post.author.linkedinUrl && <a href={post.author.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}
+                  {post.author.website && <a href={post.author.website} target="_blank" rel="noopener noreferrer">Веб-страница ↗</a>}
+                  {post.author.contactEmail && <a href={`mailto:${post.author.contactEmail}`}>Е-пошта</a>}
+                </div>
+              )}
+
+              <p className={styles.authorDisclaimer}>
+                Овие текстови се општа правна информација, а не правен совет. Авторот овде не дава
+                правни совети ниту правни услуги — со надомест или бесплатно — и со самото читање или
+                контактирање на авторот не воспоставува однос адвокат–клиент. За вашата конкретна
+                ситуација — секогаш консултирајте лиценциран адвокат.
+              </p>
+            </div>
+          </section>
         )}
       </article>
 

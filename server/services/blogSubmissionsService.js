@@ -372,7 +372,10 @@ class BlogSubmissionsService {
         photoUrl: bio.photoUrl || null,
         linkedinUrl: bio.linkedinUrl || '',
         website: bio.website || '',
-        contactEmail: bio.contactEmail || author?.email || ''
+        contactEmail: bio.contactEmail || author?.email || '',
+        tagline: bio.tagline || '',
+        extendedBio: bio.extendedBio || '',
+        credentials: Array.isArray(bio.credentials) ? bio.credentials : []
       },
       submissionId: doc._id,
       createdAt: new Date(),
@@ -408,13 +411,19 @@ class BlogSubmissionsService {
 
   static _normalizeAuthorBio(input) {
     const i = input || {};
+    const credentials = Array.isArray(i.credentials)
+      ? i.credentials.map(c => String(c || '').trim().slice(0, 160)).filter(Boolean).slice(0, 6)
+      : [];
     return {
       displayName:  String(i.displayName  || '').trim().slice(0, 120),
       contactEmail: String(i.contactEmail || '').trim().slice(0, 240),
       linkedinUrl:  String(i.linkedinUrl  || '').trim().slice(0, 240),
       website:      String(i.website      || '').trim().slice(0, 240),
       photoUrl:     String(i.photoUrl     || '').trim().slice(0, 500) || null,
-      bio:          String(i.bio          || '').trim().slice(0, 320)
+      bio:          String(i.bio          || '').trim().slice(0, 320),
+      tagline:      String(i.tagline      || '').trim().slice(0, 200),
+      extendedBio:  String(i.extendedBio  || '').trim().slice(0, 1200),
+      credentials
     };
   }
 

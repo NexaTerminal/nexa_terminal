@@ -1181,3 +1181,171 @@
     padding: 0.8125rem 1.25rem;
   }
 }
+
+/* ── Author card ─────────────────────────────────────────────────────────── */
+.authorCard {
+  margin-top: 2.5rem;
+  padding: 1.75rem 1.875rem;
+  background: #ffffff;
+  border: 1px solid #e6e8ec;
+  border-radius: 18px;
+  font-family: var(--nx-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif);
+}
+
+.authorHead {
+  display: flex;
+  gap: 1.125rem;
+  align-items: center;
+}
+
+.authorPhoto,
+.authorPhotoFallback {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.authorPhotoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0eeff;
+  color: var(--nx-primary-600, #1a44a3);
+  font-weight: 700;
+  font-size: 1.75rem;
+}
+
+.authorHeadText {
+  min-width: 0;
+}
+
+.authorEyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 0.125rem;
+}
+
+.authorName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0b1220;
+  line-height: 1.2;
+}
+
+.authorTagline {
+  font-size: 1.0625rem;
+  color: #6b7280;
+  margin-top: 0.1875rem;
+  line-height: 1.4;
+}
+
+.authorBody {
+  margin-top: 0.875rem;
+}
+
+.authorBio,
+.authorExtendedBio {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: #374151;
+  margin: 0;
+}
+
+.authorToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.875rem;
+  padding: 0.4rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid var(--nx-primary-600, #1a44a3);
+  border-radius: 8px;
+  color: var(--nx-primary-600, #1a44a3);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.authorToggle:hover {
+  background: var(--nx-primary-600, #1a44a3);
+  color: #ffffff;
+}
+
+.authorChevron {
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.authorChevronUp {
+  transform: rotate(180deg);
+}
+
+.authorMore {
+  margin-top: 1rem;
+}
+
+.authorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1rem;
+}
+
+.authorChip {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  color: #374151;
+  background: #ffffff;
+  line-height: 1.3;
+}
+
+.authorLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.authorLinks a {
+  color: var(--nx-primary-600, #1a44a3);
+  text-decoration: none;
+}
+
+.authorLinks a:hover {
+  text-decoration: underline;
+}
+
+.authorDisclaimer {
+  margin: 1.25rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e6e8ec;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #9ca3af;
+}
+
+@media (max-width: 640px) {
+  .authorCard {
+    padding: 1.25rem 1.25rem;
+  }
+  .authorName {
+    font-size: 1.25rem;
+  }
+  .authorTagline,
+  .authorBio,
+  .authorExtendedBio {
+    font-size: 1rem;
+  }
+}

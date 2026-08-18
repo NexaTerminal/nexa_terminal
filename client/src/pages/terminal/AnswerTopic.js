@@ -3,8 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
-import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
-import useTermsGate from '../../hooks/useTermsGate';
+import SubmitConsent from '../../components/terminal/SubmitConsent';
 import styles from './Topics.module.css';
 
 const countWords = (s) =>
@@ -14,7 +13,6 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric'
 
 export default function AnswerTopicPage() {
   const { token } = useAuth();
-  const { requireTerms, termsModal } = useTermsGate();
   const { id } = useParams();
   const navigate = useNavigate();
   const auth = { headers: { Authorization: `Bearer ${token}` } };
@@ -158,12 +156,13 @@ export default function AnswerTopicPage() {
 
             <div className={styles.actionBar}>
               <button type="button" className={styles.btnSecondary} disabled={busy || lockedForEdit} onClick={saveDraft}>Зачувај нацрт</button>
-              <button type="button" className={styles.btnPrimary}   disabled={busy || lockedForEdit} onClick={() => requireTerms('topic', submitForReview)}>Поднеси за преглед</button>
+              <button type="button" className={styles.btnPrimary}   disabled={busy || lockedForEdit} onClick={submitForReview}>Поднеси за преглед</button>
               <span style={{ flex: 1 }} />
               {(submission.status === 'in_progress' || submission.status === 'returned') && (
                 <button type="button" className={styles.btnGhost} disabled={busy} onClick={release}>Ослободи ја темата</button>
               )}
             </div>
+            {!lockedForEdit && <SubmitConsent />}
           </div>
 
           <aside className={styles.sidePanel}>
@@ -192,7 +191,6 @@ export default function AnswerTopicPage() {
           </aside>
         </div>
       </div>
-      {termsModal && <FeatureTermsModal {...termsModal} />}
     </TerminalShell>
   );
 }

@@ -1,20 +1,10 @@
 import { useState } from 'react';
+import SubmitConsent from './SubmitConsent';
 import styles from './ExpressInterestModal.module.css';
 
-const PROFESSION_LABEL = {
-  lawyer:           'Адвокат',
-  accountant:       'Сметководител',
-  tax_advisor:      'Даночен советник',
-  insurance_broker: 'Осигурителен брокер',
-  real_estate:      'Недвижности',
-  hr_consultant:    'HR консултант',
-  marketing:        'Маркетинг',
-  translator:       'Преведувач',
-  other:            'Друго'
-};
-
 export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defaultProfession }) {
-  const [profession, setProfession] = useState(defaultProfession || 'lawyer');
+  // Every member here is a lawyer — profession is fixed (no picker), still sent.
+  const [profession] = useState(defaultProfession || 'lawyer');
   const [freeTalkOffered, setFreeTalkOffered] = useState(true);
   const [helpDescription, setHelpDescription] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,24 +35,15 @@ export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defau
 
         <form className={styles.form} onSubmit={submit}>
           <div className={styles.field}>
-            <label className={styles.label}>Професија</label>
-            <select className={styles.select} value={profession} onChange={(e) => setProfession(e.target.value)}>
-              {Object.entries(PROFESSION_LABEL).map(([v, lbl]) => (
-                <option key={v} value={v}>{lbl}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.field}>
             <label className={styles.label}>Бесплатна почетна консултација</label>
             <div className={styles.radioRow}>
-              <label className={styles.radioCell}>
-                <input type="radio" checked={freeTalkOffered === true}  onChange={() => setFreeTalkOffered(true)} />
-                Да, отворен/а сум за краток информативен разговор без надомест.
+              <label className={`${styles.radioCell} ${freeTalkOffered === true ? styles.radioActive : ''}`}>
+                <input type="radio" name="freeTalk" checked={freeTalkOffered === true} onChange={() => setFreeTalkOffered(true)} />
+                <span>Да, отворен/а сум за краток информативен разговор без надомест.</span>
               </label>
-              <label className={styles.radioCell}>
-                <input type="radio" checked={freeTalkOffered === false} onChange={() => setFreeTalkOffered(false)} />
-                Не, претпочитам да започнам наплатно од прв разговор.
+              <label className={`${styles.radioCell} ${freeTalkOffered === false ? styles.radioActive : ''}`}>
+                <input type="radio" name="freeTalk" checked={freeTalkOffered === false} onChange={() => setFreeTalkOffered(false)} />
+                <span>Не, претпочитам да започнам наплатно од прв разговор.</span>
               </label>
             </div>
           </div>
@@ -82,6 +63,8 @@ export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defau
           </div>
 
           {error && <div className={styles.errorBox}>{error}</div>}
+
+          <SubmitConsent />
 
           <div className={styles.actionRow}>
             <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={busy}>Откажи</button>

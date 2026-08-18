@@ -4,8 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import ExpressInterestModal from '../../components/terminal/ExpressInterestModal';
-import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
-import useTermsGate from '../../hooks/useTermsGate';
 import { isTrial, canExpressInterest, visibleTier, trialPreview, openSubscriptionGate } from '../../lib/tier';
 import styles from './Inquiries.module.css';
 
@@ -69,7 +67,6 @@ const OLD_LEAD_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function LeadsPage() {
   const { token, currentUser } = useAuth();
-  const { requireTerms, termsModal } = useTermsGate();
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const trial = isTrial(currentUser);
@@ -150,7 +147,7 @@ export default function LeadsPage() {
   const onExpress = (inq) => {
     if (trial) return;
     if (!canExpressInterest(currentUser).allowed) return;
-    requireTerms('case', () => setModalFor(inq));
+    setModalFor(inq);
   };
 
   const submitInterest = async (payload) => {
@@ -235,8 +232,6 @@ export default function LeadsPage() {
             onSubmit={submitInterest}
           />
         )}
-
-        {termsModal && <FeatureTermsModal {...termsModal} />}
       </div>
     </TerminalShell>
   );

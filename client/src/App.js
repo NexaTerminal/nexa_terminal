@@ -144,6 +144,7 @@ import CourseLesson from './pages/terminal/CourseLesson';
 import Credits from './pages/terminal/Credits';
 import Invite from './pages/terminal/Invite';
 import MyTemplates from './pages/terminal/MyTemplates';
+import ClientsPage from './pages/terminal/Clients';
 import MyTemplateBuilder from './pages/terminal/MyTemplateBuilder';
 import TemplateFormFill from './pages/terminal/TemplateFormFill';
 import TemplateEdit from './pages/terminal/TemplateEdit';
@@ -338,6 +339,7 @@ function App() {
       <Route path="/terminal/cyber-screening/report/:id" element={<PrivateRoute><VerificationRequired><CyberReport /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/hr-screening" element={<PrivateRoute><VerificationRequired><HRQuestionnaire /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/hr-screening/report/:id" element={<PrivateRoute><VerificationRequired><HRReport /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/clients" element={<PrivateRoute><ClientsPage /></PrivateRoute>} />
       <Route path="/terminal/my-templates" element={<PrivateRoute><VerificationRequired><MyTemplates /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/my-templates/new" element={<PrivateRoute><VerificationRequired><MyTemplateBuilder /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/my-templates/:templateId/fill" element={<PrivateRoute><VerificationRequired><TemplateFormFill /></VerificationRequired></PrivateRoute>} />

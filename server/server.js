@@ -860,6 +860,9 @@ function registerRoutes() {
     /^\/topics\/.*$/,
     '/admin/topics',
     /^\/admin\/topics\/.*$/,
+    // Pro client profiles (JWT-Bearer API)
+    '/clients',
+    /^\/clients\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -1016,6 +1019,7 @@ function registerRoutes() {
     app.use('/api/topics/pages',   require('./routes/topicsPublic'));
     app.use('/api/topics',         subscriptionGuard, require('./routes/topics'));
     app.use('/api/admin/topics',   require('./routes/adminTopics'));
+    app.use('/api/clients',        require('./routes/clients'));
     console.log('✅ Topics Q&A routes loaded successfully');
   } catch (error) {
     console.error('❌ Topics Q&A routes error:', error.message);

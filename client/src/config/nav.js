@@ -40,6 +40,17 @@ const documents = {
   ]
 };
 
+// Pro (leads.nexa.mk) variant: lawyers also manage saved client profiles used
+// when generating documents on behalf of a client. Basic keeps `documents`.
+const proDocuments = {
+  key: 'documents', icon: 'doc', label: 'Документи',
+  children: [
+    { path: '/terminal/documents',    label: 'Автоматизирани документи' },
+    { path: '/terminal/clients',      label: 'Клиентски профили' },
+    { path: '/terminal/my-templates', label: 'Мои шаблони' }
+  ]
+};
+
 const employees = { key: 'employees', icon: 'people', label: 'Вработени', path: '/terminal/employees' };
 
 const contracts = {
@@ -120,7 +131,7 @@ const proSections = [
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [documents, contractAnalysis, legalAi]
+    items: [proDocuments, contractAnalysis, legalAi]
   },
   {
     key: 'education-sec', label: 'Едукација',

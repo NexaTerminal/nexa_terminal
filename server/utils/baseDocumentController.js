@@ -31,7 +31,41 @@ const createDocumentController = (config) => {
       // Extract data from request
       const { formData } = req.body;
       const user = req.user;
-      
+
+      // ── Pro "act on behalf of client" override ────────────────────────────
+      // A Pro (lawyer) user may generate a document FOR a saved client. When the
+      // form carries a clientId AND the user is Pro/ADMIN AND owns that client,
+      // the company party becomes the CLIENT's company instead of the user's own.
+      // Basic users never send a clientId, so their path is unchanged.
+      let clientCompanyInfo = null;
+      const clientId = formData && formData.clientId;
+      if (clientId) {
+        try {
+          const tierService = require('../services/tierService');
+          const v = tierService.visibleTier(user);
+          if (v === 'B' || v === 'ADMIN') {
+            const ClientsService = require('../services/clientsService');
+            const clientsService = new ClientsService(req.app.locals.db);
+            const client = await clientsService.getOwned(user._id, clientId);
+            if (client) {
+              clientCompanyInfo = {
+                companyName: client.companyName,
+                companyAddress: client.companyAddress,
+                companyTaxNumber: client.companyTaxNumber,
+                companyManager: client.companyManager,
+                role: client.role || client.companyManager
+              };
+            } else {
+              console.warn(`[${documentName}] clientId ${clientId} not owned by ${user._id} — ignoring override`);
+            }
+          }
+        } catch (e) {
+          console.error(`[${documentName}] Client override failed:`, e.message);
+        }
+        // Not a template field — drop it so it can't leak into the document.
+        if (formData && typeof formData === 'object') delete formData.clientId;
+      }
+
       // Extract and normalize company information from user object
       // For linked members, resolve companyInfo from their company admin
       let effectiveCompanyInfo = user.companyInfo || {};
@@ -47,7 +81,8 @@ const createDocumentController = (config) => {
           console.error(`[${documentName}] Could not resolve admin companyInfo:`, e.message);
         }
       }
-      const companyInfo = effectiveCompanyInfo;
+      // Client override wins when present (verified & owned above).
+      const companyInfo = clientCompanyInfo || effectiveCompanyInfo;
       
       // Map company fields to standardized format for templates
       const company = {

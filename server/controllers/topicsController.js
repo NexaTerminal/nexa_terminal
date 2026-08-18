@@ -37,10 +37,22 @@ async function sendIfEmail(req, user, template) {
   const email = user?.email; if (!email) return;
   try {
     const svc = req.app.locals.emailService;
-    if (!svc?.send) return;
-    await svc.send({ to: email, subject: template.subject, html: template.html });
+    if (!svc?.sendEmail) return;
+    await svc.sendEmail(email, template.subject, template.html);
   } catch (e) { console.warn('[topics] email send failed:', e.message); }
 }
+
+// Notify the editorial inbox. Best-effort; never blocks the request.
+async function notifyAdmin(req, template) {
+  try {
+    const svc = req.app.locals.emailService;
+    if (!svc?.sendEmail) return;
+    const to = process.env.ADMIN_EMAIL || 'terminalnexa@gmail.com';
+    await svc.sendEmail(to, template.subject, template.html);
+  } catch (e) { console.warn('[topics] admin email failed:', e.message); }
+}
+
+const TOPICS_ADMIN_QUEUE = 'https://nexa.mk/terminal/admin/topics/submissions';
 
 async function loadAuthor(req, authorId) {
   try { return await req.app.locals.db.collection('users').findOne({ _id: authorId },
@@ -70,9 +82,12 @@ exports.requestToOpen = async (req, res) => {
     const sub = await svc.requestToOpen(req.user, req.params.id, req.body?.requestReason);
     const wl = await svc.worklist.findOne({ _id: sub.worklistId });
     if (wl) {
+      const authorName = req.user.fullName || req.user.username;
       sendIfEmail(req, req.user, emails.qaRequestReceived({
-        name: req.user.fullName || req.user.username,
-        topic: wl.title
+        name: authorName, topic: wl.title
+      }, 'mk'));
+      notifyAdmin(req, emails.qaAdminNotice({
+        authorName, topic: wl.title, reviewUrl: TOPICS_ADMIN_QUEUE, kind: 'request'
       }, 'mk'));
     }
     return res.status(201).json({ success: true, submission: sub });
@@ -110,7 +125,19 @@ exports.saveDraft = async (req, res) => {
 
 exports.submitForReview = async (req, res) => {
   try {
-    const doc = await make(req).submitForReview(req.user, req.params.id);
+    const svc = make(req);
+    const doc = await svc.submitForReview(req.user, req.params.id);
+    const wl = await svc.worklist.findOne({ _id: doc.worklistId });
+    if (wl) {
+      const authorName = req.user.fullName || req.user.username;
+      const link = `https://nexa.mk/terminal/topics-qa/answer/${doc._id}`;
+      sendIfEmail(req, req.user, emails.qaSubmissionReceived({
+        name: authorName, topic: wl.title, link
+      }, 'mk'));
+      notifyAdmin(req, emails.qaAdminNotice({
+        authorName, topic: wl.title, reviewUrl: TOPICS_ADMIN_QUEUE, kind: 'submission'
+      }, 'mk'));
+    }
     return res.json({ success: true, submission: doc });
   } catch (err) { return handle(res, err); }
 };
@@ -190,7 +217,16 @@ exports.adminSubmissionApproveRequest = async (req, res) => {
 
 exports.adminSubmissionDecline = async (req, res) => {
   try {
-    const doc = await make(req).declineRequest(req.user, req.params.id, req.body?.reason || '');
+    const svc = make(req);
+    const reason = req.body?.reason || '';
+    const doc = await svc.declineRequest(req.user, req.params.id, reason);
+    const wl = await svc.worklist.findOne({ _id: doc.worklistId });
+    const author = await loadAuthor(req, doc.authorId);
+    if (author?.email && wl) {
+      sendIfEmail(req, author, emails.qaRequestDeclined({
+        name: author.fullName || author.username, topic: wl.title, reason: doc.editorialNotes || reason
+      }, 'mk'));
+    }
     return res.json({ success: true, submission: doc });
   } catch (err) { return handle(res, err); }
 };
@@ -216,14 +252,30 @@ exports.adminSubmissionReturn = async (req, res) => {
 
 exports.adminSubmissionAccept = async (req, res) => {
   try {
-    const doc = await make(req).accept(req.user, req.params.id);
+    const svc = make(req);
+    const doc = await svc.accept(req.user, req.params.id);
+    const wl = await svc.worklist.findOne({ _id: doc.worklistId });
+    const author = await loadAuthor(req, doc.authorId);
+    if (author?.email && wl) {
+      sendIfEmail(req, author, emails.qaSubmissionAccepted({
+        name: author.fullName || author.username, topic: wl.title
+      }, 'mk'));
+    }
     return res.json({ success: true, submission: doc });
   } catch (err) { return handle(res, err); }
 };
 
 exports.adminSubmissionReject = async (req, res) => {
   try {
-    const doc = await make(req).reject(req.user, req.params.id, req.body?.editorialNotes);
+    const svc = make(req);
+    const doc = await svc.reject(req.user, req.params.id, req.body?.editorialNotes);
+    const wl = await svc.worklist.findOne({ _id: doc.worklistId });
+    const author = await loadAuthor(req, doc.authorId);
+    if (author?.email && wl) {
+      sendIfEmail(req, author, emails.qaSubmissionRejected({
+        name: author.fullName || author.username, topic: wl.title, editorialNotes: doc.editorialNotes
+      }, 'mk'));
+    }
     return res.json({ success: true, submission: doc });
   } catch (err) { return handle(res, err); }
 };

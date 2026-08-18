@@ -29,6 +29,58 @@ const qaRequestReceived = ({ name, topic }, language = 'mk') => {
   };
 };
 
+// Member acknowledgement when they submit their answers for editorial review.
+const qaSubmissionReceived = ({ name, topic, link }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  if (lang === 'mk') {
+    return {
+      subject: `Одговорите за „${topic}" се примени`,
+      html: wrap(`Здраво ${name || ''},`, `
+        <p>Ги примивме Вашите одговори за темата „<strong>${topic}</strong>".</p>
+        <p>Уредничкиот тим ќе ги прегледа рачно. Ако се потребни доработки, ќе бидете
+        известени; ако сè е во ред, темата ќе биде објавена под Ваше име.</p>
+        ${link ? `<p><a href="${link}">Отвори ја темата →</a></p>` : ''}
+      `)
+    };
+  }
+  return {
+    subject: `Answers for "${topic}" received`,
+    html: wrap(`Hi ${name || ''},`, `
+      <p>We received your answers for topic "<strong>${topic}</strong>".</p>
+      <p>The editorial team will review them manually. If revisions are needed we'll let
+      you know; otherwise it will be published under your name.</p>
+      ${link ? `<p><a href="${link}">Open the topic →</a></p>` : ''}
+    `)
+  };
+};
+
+// Sent to the editorial inbox on a new request-to-open or a new answers submission.
+const qaAdminNotice = ({ authorName, topic, reviewUrl, kind }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const mk = kind === 'request'
+    ? { s: `Ново барање за тема — „${topic}"`, h: 'Ново барање за отворање тема', v: `бара да ја отвори темата` }
+    : { s: `Нови одговори за преглед — „${topic}"`, h: 'Нови одговори во редот за преглед', v: `поднесе одговори за` };
+  const en = kind === 'request'
+    ? { s: `New topic request — "${topic}"`, h: 'New request to open a topic', v: `requested to open` }
+    : { s: `New answers for review — "${topic}"`, h: 'New answers in the review queue', v: `submitted answers for` };
+  if (lang === 'mk') {
+    return {
+      subject: mk.s,
+      html: wrap(mk.h, `
+        <p><strong>${authorName || 'Член'}</strong> ${mk.v} „<strong>${topic}</strong>".</p>
+        <p><a href="${reviewUrl}" style="display:inline-block;background:#0B1220;color:#FFF;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Отвори го редот за преглед →</a></p>
+      `)
+    };
+  }
+  return {
+    subject: en.s,
+    html: wrap(en.h, `
+      <p><strong>${authorName || 'A member'}</strong> ${en.v} "<strong>${topic}</strong>".</p>
+      <p><a href="${reviewUrl}" style="display:inline-block;background:#0B1220;color:#FFF;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Open the review queue →</a></p>
+    `)
+  };
+};
+
 const qaRequestApproved = ({ name, topic, scope, deadline, link }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
   const safeScope = String(scope || '').replace(/</g, '&lt;');
@@ -85,6 +137,75 @@ const qaSubmissionReturned = ({ name, topic, editorialNotes, link }, language = 
   };
 };
 
+// Admin declines the request to open the topic (before it was assigned).
+const qaRequestDeclined = ({ name, topic, reason }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const safe = String(reason || '').replace(/</g, '&lt;').replace(/\n/g, '<br/>');
+  if (lang === 'mk') {
+    return {
+      subject: `Барањето за „${topic}" не е одобрено`,
+      html: wrap(`Здраво ${name || ''},`, `
+        <p>Вашето барање да ја отворите темата „<strong>${topic}</strong>" овојпат не е одобрено.</p>
+        ${safe ? `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 14px;margin:12px 0;"><strong>Образложение:</strong><br/>${safe}</div>` : ''}
+        <p>Темата останува отворена — слободно побарајте друга тема од листата.</p>
+      `)
+    };
+  }
+  return {
+    subject: `Request for "${topic}" was not approved`,
+    html: wrap(`Hi ${name || ''},`, `
+      <p>Your request to open topic "<strong>${topic}</strong>" was not approved this time.</p>
+      ${safe ? `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 14px;margin:12px 0;"><strong>Reason:</strong><br/>${safe}</div>` : ''}
+      <p>The topic stays open — feel free to request another topic from the list.</p>
+    `)
+  };
+};
+
+// Admin rejects the submitted answers (terminal — not published).
+const qaSubmissionRejected = ({ name, topic, editorialNotes }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  const safe = String(editorialNotes || '').replace(/</g, '&lt;').replace(/\n/g, '<br/>');
+  if (lang === 'mk') {
+    return {
+      subject: `Одговорите за „${topic}" не се прифатени`,
+      html: wrap(`Здраво ${name || ''},`, `
+        <p>По уредничкиот преглед, Вашите одговори за „<strong>${topic}</strong>" не се прифатени за објавување.</p>
+        ${safe ? `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 14px;margin:12px 0;"><strong>Образложение:</strong><br/>${safe}</div>` : ''}
+        <p>Темата повторно е отворена за други автори.</p>
+      `)
+    };
+  }
+  return {
+    subject: `Answers for "${topic}" were not accepted`,
+    html: wrap(`Hi ${name || ''},`, `
+      <p>After editorial review, your answers for "<strong>${topic}</strong>" were not accepted for publication.</p>
+      ${safe ? `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 14px;margin:12px 0;"><strong>Reason:</strong><br/>${safe}</div>` : ''}
+      <p>The topic is open again for other authors.</p>
+    `)
+  };
+};
+
+// Admin accepts the answers (queued for publication).
+const qaSubmissionAccepted = ({ name, topic }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  if (lang === 'mk') {
+    return {
+      subject: `Одговорите за „${topic}" се прифатени`,
+      html: wrap(`Честитки ${name || ''},`, `
+        <p>Вашите одговори за „<strong>${topic}</strong>" се прифатени и наскоро ќе бидат објавени под Ваше име.</p>
+        <p>Ќе добиете известување со линк штом темата стане јавна.</p>
+      `)
+    };
+  }
+  return {
+    subject: `Answers for "${topic}" accepted`,
+    html: wrap(`Congratulations ${name || ''},`, `
+      <p>Your answers for "<strong>${topic}</strong>" have been accepted and will be published shortly under your name.</p>
+      <p>You'll get a notification with the link once the topic goes live.</p>
+    `)
+  };
+};
+
 const qaSubmissionPublished = ({ name, topic, publicUrl }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
   if (lang === 'mk') {
@@ -111,7 +232,12 @@ const qaSubmissionPublished = ({ name, topic, publicUrl }, language = 'mk') => {
 
 module.exports = {
   qaRequestReceived,
+  qaSubmissionReceived,
+  qaAdminNotice,
   qaRequestApproved,
+  qaRequestDeclined,
   qaSubmissionReturned,
+  qaSubmissionRejected,
+  qaSubmissionAccepted,
   qaSubmissionPublished
 };

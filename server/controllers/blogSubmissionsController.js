@@ -45,6 +45,18 @@ async function sendIfEmail(req, user, template) {
   }
 }
 
+// Notify the editorial inbox. Best-effort; never blocks the request.
+async function notifyAdmin(req, template) {
+  try {
+    const svc = req.app.locals.emailService;
+    if (!svc?.sendEmail) return;
+    const to = process.env.ADMIN_EMAIL || 'terminalnexa@gmail.com';
+    await svc.sendEmail(to, template.subject, template.html);
+  } catch (e) {
+    console.warn('[blog-submissions] admin email failed:', e.message);
+  }
+}
+
 async function loadAuthor(req, authorId) {
   try {
     return await req.app.locals.db.collection('users').findOne(
@@ -104,16 +116,15 @@ exports.submit = async (req, res) => {
   try {
     const svc = makeService(req);
     const doc = await svc.submit(req.user, req.params.id);
-    // Fire-and-forget acknowledgement email
-    if (!doc._escalated) {
-      const t = emailTemplates.blogSubmissionReceived({
-        name: req.user.fullName || req.user.username,
-        title: doc.title,
-        pass: doc.aiVerdict?.pass === true,
-        issuesCount: doc.aiVerdict?.issues?.length || 0
-      }, 'mk');
-      sendIfEmail(req, req.user, t);
-    }
+    const authorName = req.user.fullName || req.user.username;
+    // Fire-and-forget: acknowledge the author + notify the editorial inbox.
+    sendIfEmail(req, req.user, emailTemplates.blogSubmissionReceived({
+      name: authorName, title: doc.title
+    }, 'mk'));
+    notifyAdmin(req, emailTemplates.blogSubmissionAdminNotice({
+      authorName, title: doc.title,
+      reviewUrl: 'https://nexa.mk/terminal/admin/blogs/pending'
+    }, 'mk'));
     return res.json({ success: true, submission: doc });
   } catch (err) { return handleErr(res, err); }
 };
@@ -190,6 +201,14 @@ exports.adminReject = async (req, res) => {
   try {
     const notes = req.body?.editorialNotes;
     const doc = await makeService(req).adminReject(req.user, req.params.id, notes);
+    const author = await loadAuthor(req, doc.authorId);
+    if (author?.email) {
+      sendIfEmail(req, author, emailTemplates.blogRejected({
+        name: author.fullName || author.username,
+        title: doc.title,
+        editorialNotes: doc.editorialNotes
+      }, 'mk'));
+    }
     return res.json({ success: true, submission: doc });
   } catch (err) { return handleErr(res, err); }
 };
@@ -197,6 +216,14 @@ exports.adminReject = async (req, res) => {
 exports.adminPublish = async (req, res) => {
   try {
     const { submission, blog } = await makeService(req).adminPublish(req.user, req.params.id);
+    const author = await loadAuthor(req, submission.authorId);
+    if (author?.email) {
+      sendIfEmail(req, author, emailTemplates.blogPublished({
+        name: submission.authorBio?.displayName || author.fullName || author.username,
+        title: blog.title,
+        publicUrl: `https://nexa.mk/blog/${blog.slug}`
+      }, 'mk'));
+    }
     return res.json({ success: true, submission, blog: { _id: blog._id, slug: blog.slug } });
   } catch (err) { return handleErr(res, err); }
 };

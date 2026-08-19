@@ -417,7 +417,7 @@ function RejectModal({ user, onCancel, onSubmit }) {
 function PromoCodes({ token, showFlash, setError }) {
   const [codes, setCodes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ code: '', plan: 'pro', maxRedemptions: 100, expiresAt: '' });
+  const [form, setForm] = useState({ code: '', plan: 'pro', promoDays: 30, maxRedemptions: 100, expiresAt: '' });
   const [creating, setCreating] = useState(false);
   const [inviteFor, setInviteFor] = useState(null); // code string
   const auth = { headers: { Authorization: `Bearer ${token}` } };
@@ -445,12 +445,13 @@ function PromoCodes({ token, showFlash, setError }) {
         code: form.code.trim().toUpperCase(),
         plan: form.plan,
         cycle: 'monthly',
+        promoDays: parseInt(form.promoDays, 10) || 30,
         maxRedemptions: parseInt(form.maxRedemptions, 10),
         expiresAt: form.expiresAt || null
       };
       await axios.post('/api/admin/subscriptions/codes', body, auth);
       showFlash(`✓ Created ${form.plan === 'pro' ? 'Pro' : 'Basic'} code ${body.code}`);
-      setForm({ code: '', plan: form.plan, maxRedemptions: 100, expiresAt: '' });
+      setForm({ code: '', plan: form.plan, promoDays: form.promoDays, maxRedemptions: 100, expiresAt: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -470,24 +471,36 @@ function PromoCodes({ token, showFlash, setError }) {
     }
   };
 
-  const linkFor = (code) => `${window.location.origin}/redeem?code=${encodeURIComponent(code)}`;
-  const copyLink = async (code) => {
-    try { await navigator.clipboard.writeText(linkFor(code)); showFlash('✓ Линкот е копиран'); }
-    catch { window.prompt('Копирајте го линкот:', linkFor(code)); }
+  // Pro links live on leads.nexa.mk, Basic on nexa.mk — so the prospect lands on
+  // the storefront that matches the offer. In dev (localhost) we keep the current
+  // origin. plan+days ride along for the Redeem-page headline.
+  const hostForPlan = (plan, days) => {
+    const isPro = !(plan === 'basic' || plan === 'standard');
+    const { hostname, protocol, port } = window.location;
+    const bare = hostname.replace(/^leads\./i, '');
+    if (bare === 'nexa.mk') return `${protocol}//${isPro ? 'leads.nexa.mk' : 'nexa.mk'}`;
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}`; // dev / preview: stay put
+  };
+  const linkFor = (code, plan = 'pro', days = 30) =>
+    `${hostForPlan(plan, days)}/redeem?code=${encodeURIComponent(code)}&plan=${(plan === 'basic' || plan === 'standard') ? 'basic' : 'pro'}&days=${days}`;
+  const copyLink = async (code, plan, days) => {
+    const url = linkFor(code, plan, days);
+    try { await navigator.clipboard.writeText(url); showFlash('✓ Линкот е копиран'); }
+    catch { window.prompt('Копирајте го линкот:', url); }
   };
   // On mobile, open the native share sheet (WhatsApp/Viber/…) so the link can be
   // sent in one tap during a 1-on-1 demo. Falls back to clipboard on desktop.
-  const shareLink = async (code) => {
-    const url = linkFor(code);
+  const shareLink = async (code, plan, days) => {
+    const url = linkFor(code, plan, days);
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Nexa', text: 'Активирајте го вашиот пристап на Nexa:', url });
       } catch (err) {
-        if (err?.name !== 'AbortError') copyLink(code); // ignore user-cancelled
+        if (err?.name !== 'AbortError') copyLink(code, plan, days); // ignore user-cancelled
       }
       return;
     }
-    copyLink(code);
+    copyLink(code, plan, days);
   };
 
   return (
@@ -495,7 +508,8 @@ function PromoCodes({ token, showFlash, setError }) {
       <form className={styles.modal} style={{ position: 'static', boxShadow: 'none', margin: '0 0 20px', maxWidth: 560 }} onSubmit={onCreate}>
         <h2 style={{ marginTop: 0 }}>Mint a campaign code</h2>
         <p className={styles.modalSub}>
-          Grants <strong>{form.plan === 'pro' ? 'Full Pro (25 client seats)' : 'Basic (3 co-worker seats)'} · 30 days · €0</strong>. One redemption per user.
+          Grants <strong>{form.plan === 'pro' ? 'Full Pro (25 client seats)' : 'Basic (3 co-worker seats)'} · {form.promoDays || 30} days · €0</strong>. One redemption per user.
+          {' '}Link opens on <strong>{form.plan === 'pro' ? 'leads.nexa.mk' : 'nexa.mk'}</strong>.
         </p>
         <label className={styles.field}>
           Tier
@@ -503,6 +517,11 @@ function PromoCodes({ token, showFlash, setError }) {
             <option value="pro">Pro — full access + 25 client seats</option>
             <option value="basic">Basic — core tools + 3 co-worker seats</option>
           </select>
+        </label>
+        <label className={styles.field}>
+          Free days (the extra over the standard 8-day trial)
+          <input type="number" min={1} max={365} value={form.promoDays} required
+            onChange={(e) => setForm(s => ({ ...s, promoDays: e.target.value }))} />
         </label>
         <label className={styles.field}>
           Code
@@ -534,13 +553,14 @@ function PromoCodes({ token, showFlash, setError }) {
       ) : (
         <table className={styles.table}>
           <thead>
-            <tr><th>Code</th><th>Tier</th><th>Redemptions</th><th>Expires</th><th>Status</th><th>Link / Email</th></tr>
+            <tr><th>Code</th><th>Tier</th><th>Days</th><th>Redemptions</th><th>Expires</th><th>Status</th><th>Link / Email</th></tr>
           </thead>
           <tbody>
             {codes.map(c => (
               <tr key={c.code}>
                 <td className={styles.mono}>{c.code}</td>
                 <td>{(c.plan === 'pro' || c.plan === 'admin_5' || c.plan === 'admin_10') ? 'Pro' : 'Basic'}</td>
+                <td>{c.promoDays || 30}</td>
                 <td>{c.redemptions} / {c.maxRedemptions}</td>
                 <td>{fmtDate(c.expiresAt)}</td>
                 <td>
@@ -549,8 +569,8 @@ function PromoCodes({ token, showFlash, setError }) {
                   </span>
                 </td>
                 <td className={styles.actions}>
-                  <button className={styles.btnPrimary} onClick={() => shareLink(c.code)}>Сподели</button>
-                  <button className={styles.btnGhost} onClick={() => copyLink(c.code)}>Copy link</button>
+                  <button className={styles.btnPrimary} onClick={() => shareLink(c.code, c.plan, c.promoDays || 30)}>Сподели</button>
+                  <button className={styles.btnGhost} onClick={() => copyLink(c.code, c.plan, c.promoDays || 30)}>Copy link</button>
                   <button className={styles.btnGhost} onClick={() => setInviteFor(c.code)}>Send invite</button>
                   {c.active && <button className={styles.btnDanger} onClick={() => onDeactivate(c.code)}>Deactivate</button>}
                 </td>

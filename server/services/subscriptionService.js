@@ -418,7 +418,7 @@ class SubscriptionService {
    * first; this method only performs the activation with promo markers.
    * Blocks redemption when the user is already on a live paid plan (no stacking).
    */
-  async redeemPromo(userId, { plan, cycle, code }) {
+  async redeemPromo(userId, { plan, cycle, code, durationDays = null }) {
     const user = await this.getUser(userId);
     if (!user) throw new Error('User not found');
 
@@ -437,7 +437,9 @@ class SubscriptionService {
       plan, cycle,
       amountEur: 0,
       paidVia: 'promo',
-      notes: code ? `promo:${code}` : 'promo'
+      notes: code ? `promo:${code}` : 'promo',
+      // Promo window is fixed (default 30) — independent of the billing cycle.
+      durationDaysOverride: durationDays || undefined
     });
   }
 

@@ -38,8 +38,12 @@ class PromoCodeService {
     await this.col.createIndex({ code: 1 }, { unique: true });
   }
 
-  /** Mint a new code. Defaults to Full Pro (admin_5) monthly = 30 days. */
-  async create({ code, plan = 'admin_5', cycle = 'monthly', maxRedemptions, expiresAt, createdBy }) {
+  /**
+   * Mint a new code. Defaults to Pro. `promoDays` is the free window granted on
+   * redeem (default 30) — deliberately decoupled from the billing `cycle` so a
+   * sales link can offer more than the standard 8-day self-serve trial.
+   */
+  async create({ code, plan = 'pro', cycle = 'monthly', promoDays = 30, maxRedemptions, expiresAt, createdBy }) {
     const normalized = normalize(code);
     if (!normalized) throw claimError('INVALID', 'Кодот е задолжителен.');
     if (!/^[A-Z0-9_-]{3,40}$/.test(normalized)) {
@@ -47,6 +51,10 @@ class PromoCodeService {
     }
     const cap = parseInt(maxRedemptions, 10);
     if (!Number.isInteger(cap) || cap < 1) throw claimError('INVALID', 'Границата на искористувања мора да биде ≥ 1.');
+    const days = parseInt(promoDays, 10);
+    if (!Number.isInteger(days) || days < 1 || days > 365) {
+      throw claimError('INVALID', 'Времетраењето (денови) мора да биде помеѓу 1 и 365.');
+    }
     const exp = expiresAt ? new Date(expiresAt) : null;
     if (exp && (isNaN(exp.getTime()) || exp <= new Date())) {
       throw claimError('INVALID', 'Датумот на истекување мора да биде во иднина.');
@@ -55,6 +63,7 @@ class PromoCodeService {
     const doc = {
       code: normalized,
       plan, cycle,
+      promoDays: days,
       maxRedemptions: cap,
       redeemedBy: [],
       expiresAt: exp,

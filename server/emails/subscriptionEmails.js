@@ -8,6 +8,10 @@
  */
 
 const PORTAL_URL = process.env.PORTAL_URL || 'https://nexa.mk';
+// Pro prospects redeem on the lawyers' storefront (leads.nexa.mk); Basic on the
+// SMB storefront (nexa.mk). Keeps the pre-auth branding aligned with the offer.
+const PORTAL_URL_PRO = process.env.PORTAL_URL_PRO || 'https://leads.nexa.mk';
+const portalForPlan = (isPro) => (isPro ? PORTAL_URL_PRO : PORTAL_URL);
 const SUPPORT_EMAIL = 'info@nexa.mk';
 
 const wrap = (lang, title, bodyHtml, ctaUrl, ctaLabel) => {
@@ -293,9 +297,12 @@ const subSeatInvite = ({ name, parentName, email, tempPassword }, language = 'mk
  */
 const promoInviteParts = ({ code, plan = 'pro', days = 30 }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
-  const ctaUrl = `${PORTAL_URL}/redeem?code=${encodeURIComponent(code)}`;
   const tier = tierWord(plan, lang);
   const isPro = !(plan === 'basic' || plan === 'standard');
+  // Host follows the tier; plan+days ride along so the Redeem page can show the
+  // right headline. The actual grant is always resolved server-side from the code.
+  const host = portalForPlan(isPro);
+  const ctaUrl = `${host}/redeem?code=${encodeURIComponent(code)}&plan=${isPro ? 'pro' : 'basic'}&days=${days}`;
   const videoUrl = 'https://www.youtube.com/watch?v=gVbjhEwWaBc';
   // Small helper for a clean, evenly-spaced perks list inside the email body.
   const perkList = (items) =>
@@ -319,7 +326,7 @@ const promoInviteParts = ({ code, plan = 'pro', days = 30 }, language = 'mk') =>
 ${perkList(perks)}
 <p>Повеќе за многуте можности на Nexa, можете да видите на <a href="${videoUrl}" target="_blank" style="color:#1E4DB7;">овој видео линк</a>.</p>
 <p>Кликнете на копчето подолу за да активирате <strong>${days} дена бесплатно</strong>. Ако сè уште немате сметка, ќе ве водиме низ брза регистрација, а кодот се применува автоматски.</p>
-<p style="font-size:13.5px;color:#4b5563;">Сакате прво да видите каде стои вашата фирма? Направете ја нашата <a href="${PORTAL_URL}/proverka" style="color:#1E4DB7;">бесплатна проверка на усогласеност</a> — 10 прашања, 3 минути, без најава.</p>
+<p style="font-size:13.5px;color:#4b5563;">Сакате прво да видите каде стои вашата фирма? Направете ја нашата <a href="${host}/proverka" style="color:#1E4DB7;">бесплатна проверка на усогласеност</a> — 10 прашања, 3 минути, без најава.</p>
 <p style="margin-top:22px;">Со искрена почит,<br/><strong>Тимот на Nexa</strong></p>`;
     return { subject, body, ctaUrl, ctaLabel: `Активирај ${days} дена ${tier}` };
   }
@@ -337,7 +344,7 @@ ${perkList(perks)}
 ${perkList(perks)}
 <p>You can see more of what Nexa can do in <a href="${videoUrl}" target="_blank" style="color:#1E4DB7;">this short video</a>.</p>
 <p>Click the button below to activate <strong>${days} days free</strong>. If you don't have an account yet, we'll walk you through a quick sign-up and the code applies automatically.</p>
-<p style="font-size:13.5px;color:#4b5563;">Want to see where your company stands first? Take our <a href="${PORTAL_URL}/proverka" style="color:#1E4DB7;">free compliance check</a> — 10 questions, 3 minutes, no sign-in.</p>
+<p style="font-size:13.5px;color:#4b5563;">Want to see where your company stands first? Take our <a href="${host}/proverka" style="color:#1E4DB7;">free compliance check</a> — 10 questions, 3 minutes, no sign-in.</p>
 <p style="margin-top:22px;">Warm regards,<br/><strong>The Nexa team</strong></p>`;
   return { subject, body, ctaUrl, ctaLabel: `Activate ${days} days of ${tier}` };
 };

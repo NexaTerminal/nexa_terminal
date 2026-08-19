@@ -55,6 +55,8 @@ const createCodeSchema = Joi.object({
   code: Joi.string().trim().max(40).required(),
   plan: Joi.string().valid(...PLAN_VALUES).default('pro'),
   cycle: Joi.string().valid('monthly', 'quarterly', 'annual').default('monthly'),
+  // Free window granted on redeem — the "extra" over the standard 8-day trial.
+  promoDays: Joi.number().integer().min(1).max(365).default(30),
   maxRedemptions: Joi.number().integer().min(1).max(100000).required(),
   expiresAt: Joi.date().greater('now').allow(null)
 });
@@ -95,7 +97,8 @@ class SubscriptionController {
       let updated;
       try {
         updated = await this.subscriptionService.redeemPromo(req.user._id, {
-          plan: codeDoc.plan, cycle: codeDoc.cycle, code: codeDoc.code
+          plan: codeDoc.plan, cycle: codeDoc.cycle, code: codeDoc.code,
+          durationDays: codeDoc.promoDays || 30
         });
       } catch (activationErr) {
         await this.promoCodeService.releaseClaim(codeDoc.code, req.user._id);
@@ -143,6 +146,7 @@ class SubscriptionController {
           code: c.code,
           plan: c.plan,
           cycle: c.cycle,
+          promoDays: c.promoDays || 30,
           maxRedemptions: c.maxRedemptions,
           redemptions: (c.redeemedBy || []).length,
           expiresAt: c.expiresAt,
@@ -204,7 +208,7 @@ class SubscriptionController {
       const language = req.query.language === 'en' ? 'en' : 'mk';
       const codeDoc = await this.promoCodeService.findByCode(req.params.code);
       if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
-      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, language);
+      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan, days: codeDoc.promoDays || 30 }, language);
       res.json({ success: true, subject: parts.subject, body: parts.body });
     } catch (err) {
       console.error('[admin/subscriptions/codes:invite-draft] error:', err);
@@ -222,7 +226,7 @@ class SubscriptionController {
       const codeDoc = await this.promoCodeService.findByCode(req.params.code);
       if (!codeDoc) return res.status(404).json({ success: false, message: 'Кодот не постои.' });
 
-      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, language);
+      const parts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan, days: codeDoc.promoDays || 30 }, language);
       if (req.body?.subject && req.body.subject.trim()) parts.subject = req.body.subject.trim();
       if (req.body?.body && req.body.body.trim()) parts.body = bodyToHtml(req.body.body);
       // Preview uses the plain redeem link (no per-prospect &p= tag exists yet).
@@ -317,7 +321,7 @@ class SubscriptionController {
       // Build the email — start from the default parts, apply admin overrides.
       // The CTA link gets a per-prospect `&p=<id>` so the Redeem page can report
       // the click back to us (invited → clicked funnel).
-      const baseParts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan }, value.language);
+      const baseParts = subscriptionEmails.promoInviteParts({ code: codeDoc.code, plan: codeDoc.plan, days: codeDoc.promoDays || 30 }, value.language);
       if (value.subject && value.subject.trim()) baseParts.subject = value.subject.trim();
       // Admin body may be plain text — convert to HTML (rich HTML passes through).
       if (value.body && value.body.trim()) baseParts.body = bodyToHtml(value.body);

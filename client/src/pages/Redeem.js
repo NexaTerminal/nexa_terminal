@@ -16,6 +16,11 @@ export default function Redeem() {
   const params = new URLSearchParams(search);
   const code = params.get('code');
   const prospectId = params.get('p'); // cold-invite tracking id
+  // Display hints carried by the invite link (the real grant is resolved
+  // server-side from the code). Default to Pro/30 for older links.
+  const isBasic = params.get('plan') === 'basic';
+  const tierWord = isBasic ? 'Basic' : 'Pro';
+  const days = Math.min(365, Math.max(1, parseInt(params.get('days'), 10) || 30));
 
   useEffect(() => {
     if (code) localStorage.setItem(PENDING_PROMO_KEY, code);
@@ -71,7 +76,7 @@ export default function Redeem() {
     <div style={wrap}>
       <div style={card}>
         <div style={{ fontSize: 13, color: '#1E4DB7', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Nexa</div>
-        <h1 style={{ fontSize: 22, margin: '0 0 8px' }}>Активирајте 30 дена Pro</h1>
+        <h1 style={{ fontSize: 22, margin: '0 0 8px' }}>Активирајте {days} дена {tierWord}</h1>
         <p style={{ color: '#374151', lineHeight: 1.6 }}>
           Вашиот код <strong>{code}</strong> е спремен. Најавете се или регистрирајте се —
           кодот се применува автоматски штом влезете.

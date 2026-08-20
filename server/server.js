@@ -2,6 +2,18 @@
 const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
 require('dotenv').config({ path: envFile });
 
+// Global safety nets: a single bad input (e.g. a malformed PDF that makes an
+// async parser reject outside our try/catch) must never take the whole server
+// down mid-request — that surfaces to the browser as a bare "Failed to fetch".
+// Log loudly and keep serving; a rejection is not a reason to kill every other
+// in-flight request.
+process.on('unhandledRejection', (reason) => {
+  console.error('🛑 [unhandledRejection]', reason && reason.stack ? reason.stack : reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('🛑 [uncaughtException]', err && err.stack ? err.stack : err);
+});
+
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');

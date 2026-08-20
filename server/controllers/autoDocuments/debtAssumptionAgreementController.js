@@ -1,4 +1,4 @@
-const { cleanFormData } = require('../../utils/baseDocumentController');
+const { cleanFormData, resolveCompanyForDocument } = require('../../utils/baseDocumentController');
 const generateDebtAssumptionAgreementDoc = require('../../document_templates/contracts/debtAssumptionAgreement');
 
 /**
@@ -136,18 +136,9 @@ const debtAssumptionAgreementController = async (req, res) => {
     const { formData } = req.body;
     const user = req.user;
 
-    // Extract and normalize company information from user object
-    const companyInfo = user.companyInfo || {};
-
-    // Map company fields to standardized format for templates
-    const company = {
-      companyName: companyInfo.companyName || '',
-      address: companyInfo.address || companyInfo.companyAddress || '',
-      taxNumber: companyInfo.taxNumber || companyInfo.companyTaxNumber || '',
-      manager: user.companyManager || companyInfo.manager || companyInfo.role || '',
-      // Keep original fields for backward compatibility
-      role: user.companyManager || companyInfo.manager || companyInfo.role || ''
-    };
+    // Resolve the company party (honours the Pro "on behalf of client" override)
+    // via the shared helper — same rules as every base-controller document.
+    const company = await resolveCompanyForDocument(req, formData, user, 'договор-за-преземање-на-долг');
 
     console.log('[договор-за-преземање-на-долг] User ID:', user._id || user.id);
     console.log('[договор-за-преземање-на-долг] Processing request for user:', user.email);

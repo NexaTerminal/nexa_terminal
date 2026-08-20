@@ -344,16 +344,23 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
   const generatePreviewUrl = () => {
     const baseUrl = window.location.origin;
 
-    // Merge formData with company info from authenticated user
+    // Company party for the preview. formData already carries the correct company
+    // (a Pro user's selected client, or their own company set via ClientSelector /
+    // the own-company modal), so prefer it and only fall back to the user's own
+    // companyInfo for Basic users who never touch the client selector. Checking
+    // both field-name variants (companyAddress vs address, etc.).
+    const ci = currentUser?.companyInfo || {};
+    const companyName = formData.companyName || ci.companyName || '';
+    const companyAddress = formData.companyAddress || ci.companyAddress || ci.address || '';
+    const companyTaxNumber = formData.companyTaxNumber || ci.companyTaxNumber || ci.taxNumber || '';
+    const companyManager = formData.companyManager || ci.companyManager || ci.manager || ci.role || '';
     const dataWithCompanyInfo = {
       ...formData,
-      // Add company info for preview (if user is authenticated)
-      // Check both field name variants (companyAddress vs address, etc.)
-      companyName: currentUser?.companyInfo?.companyName,
-      companyAddress: currentUser?.companyInfo?.companyAddress || currentUser?.companyInfo?.address,
-      companyTaxNumber: currentUser?.companyInfo?.companyTaxNumber || currentUser?.companyInfo?.taxNumber,
-      companyRepresentative: currentUser?.companyInfo?.companyManager || currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role,
-      companyManager: currentUser?.companyInfo?.companyManager || currentUser?.companyInfo?.manager || currentUser?.companyInfo?.role
+      companyName,
+      companyAddress,
+      companyTaxNumber,
+      companyManager,
+      companyRepresentative: companyManager
     };
 
     // Debug logging

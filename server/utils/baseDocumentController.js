@@ -17,6 +17,74 @@ const DocumentStorageService = require('../services/documentStorageService');
  * - X-Share-Token: The unique share token
  * - X-Share-URL: The full shareable URL
  */
+/**
+ * Resolve the company party for a document, honouring the Pro "act on behalf of
+ * a client" override. Shared by createDocumentController and the few custom
+ * controllers (rent, debt-assumption) that don't use the factory, so every
+ * document type applies the SAME rules:
+ *   1. If formData.clientId is present AND the user is Pro/ADMIN AND owns that
+ *      client → the company party is the CLIENT's company.
+ *   2. Else, linked sub-seats inherit their company admin's companyInfo.
+ *   3. Else, the user's own companyInfo.
+ * Mutates formData to strip clientId (never a template field).
+ * @returns {Promise<object>} standardized company object for templates.
+ */
+const resolveCompanyForDocument = async (req, formData, user, documentName = 'document') => {
+  let clientCompanyInfo = null;
+  const clientId = formData && formData.clientId;
+  if (clientId) {
+    try {
+      const tierService = require('../services/tierService');
+      const v = tierService.visibleTier(user);
+      if (v === 'B' || v === 'ADMIN') {
+        const ClientsService = require('../services/clientsService');
+        const clientsService = new ClientsService(req.app.locals.db);
+        const client = await clientsService.getOwned(user._id, clientId);
+        if (client) {
+          clientCompanyInfo = {
+            companyName: client.companyName,
+            companyAddress: client.companyAddress,
+            companyTaxNumber: client.companyTaxNumber,
+            companyManager: client.companyManager,
+            role: client.role || client.companyManager
+          };
+        } else {
+          console.warn(`[${documentName}] clientId ${clientId} not owned by ${user._id} — ignoring override`);
+        }
+      }
+    } catch (e) {
+      console.error(`[${documentName}] Client override failed:`, e.message);
+    }
+    if (formData && typeof formData === 'object') delete formData.clientId;
+  }
+
+  // Linked members resolve companyInfo from their company admin.
+  let effectiveCompanyInfo = user.companyInfo || {};
+  if (user.companyAdminId && !user.isCompanyAdmin) {
+    try {
+      const UserService = require('../services/userService');
+      const userService = new UserService(req.app.locals.db);
+      const adminUser = await userService.findById(user.companyAdminId.toString());
+      if (adminUser?.companyInfo) effectiveCompanyInfo = adminUser.companyInfo;
+    } catch (e) {
+      console.error(`[${documentName}] Could not resolve admin companyInfo:`, e.message);
+    }
+  }
+
+  const companyInfo = clientCompanyInfo || effectiveCompanyInfo; // client override wins
+  return {
+    companyName: companyInfo.companyName || '',
+    companyAddress: companyInfo.companyAddress || companyInfo.address || '',
+    address: companyInfo.companyAddress || companyInfo.address || '',
+    companyTaxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
+    taxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
+    companyManager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
+    manager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
+    companyLogo: companyInfo.companyLogo || '',
+    role: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || ''
+  };
+};
+
 const createDocumentController = (config) => {
   const { 
     templateFunction, 
@@ -32,73 +100,10 @@ const createDocumentController = (config) => {
       const { formData } = req.body;
       const user = req.user;
 
-      // ── Pro "act on behalf of client" override ────────────────────────────
-      // A Pro (lawyer) user may generate a document FOR a saved client. When the
-      // form carries a clientId AND the user is Pro/ADMIN AND owns that client,
-      // the company party becomes the CLIENT's company instead of the user's own.
-      // Basic users never send a clientId, so their path is unchanged.
-      let clientCompanyInfo = null;
-      const clientId = formData && formData.clientId;
-      if (clientId) {
-        try {
-          const tierService = require('../services/tierService');
-          const v = tierService.visibleTier(user);
-          if (v === 'B' || v === 'ADMIN') {
-            const ClientsService = require('../services/clientsService');
-            const clientsService = new ClientsService(req.app.locals.db);
-            const client = await clientsService.getOwned(user._id, clientId);
-            if (client) {
-              clientCompanyInfo = {
-                companyName: client.companyName,
-                companyAddress: client.companyAddress,
-                companyTaxNumber: client.companyTaxNumber,
-                companyManager: client.companyManager,
-                role: client.role || client.companyManager
-              };
-            } else {
-              console.warn(`[${documentName}] clientId ${clientId} not owned by ${user._id} — ignoring override`);
-            }
-          }
-        } catch (e) {
-          console.error(`[${documentName}] Client override failed:`, e.message);
-        }
-        // Not a template field — drop it so it can't leak into the document.
-        if (formData && typeof formData === 'object') delete formData.clientId;
-      }
+      // Resolve the company party (Pro client-override + linked-member admin +
+      // own company), shared with the custom controllers via one helper.
+      const company = await resolveCompanyForDocument(req, formData, user, documentName);
 
-      // Extract and normalize company information from user object
-      // For linked members, resolve companyInfo from their company admin
-      let effectiveCompanyInfo = user.companyInfo || {};
-      if (user.companyAdminId && !user.isCompanyAdmin) {
-        try {
-          const UserService = require('../services/userService');
-          const userService = new UserService(req.app.locals.db);
-          const adminUser = await userService.findById(user.companyAdminId.toString());
-          if (adminUser?.companyInfo) {
-            effectiveCompanyInfo = adminUser.companyInfo;
-          }
-        } catch (e) {
-          console.error(`[${documentName}] Could not resolve admin companyInfo:`, e.message);
-        }
-      }
-      // Client override wins when present (verified & owned above).
-      const companyInfo = clientCompanyInfo || effectiveCompanyInfo;
-      
-      // Map company fields to standardized format for templates
-      const company = {
-        companyName: companyInfo.companyName || '',
-        // Use new structure with fallbacks for backward compatibility
-        companyAddress: companyInfo.companyAddress || companyInfo.address || '',
-        address: companyInfo.companyAddress || companyInfo.address || '',
-        companyTaxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
-        taxNumber: companyInfo.companyTaxNumber || companyInfo.taxNumber || '',
-        companyManager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
-        manager: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || '',
-        companyLogo: companyInfo.companyLogo || '',
-        // Keep original fields for backward compatibility
-        role: companyInfo.companyManager || user.companyManager || companyInfo.manager || companyInfo.role || ''
-      };
-      
       // Log user and company data for debugging
       console.log(`[${documentName}] User ID: ${user._id || user.id}`);
       console.log(`[${documentName}] User email: ${user.email}`);
@@ -406,6 +411,7 @@ const validators = {
 
 module.exports = {
   createDocumentController,
+  resolveCompanyForDocument,
   validateRequiredFields,
   generateFilename,
   cleanFormData,

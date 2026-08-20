@@ -70,6 +70,24 @@ updatedAt. NEVER: internalNotes, fees/value, opposingParty strategy, non-visible
 Accessible while `publicEnabled && status !== archived`; `closed` shows a final "завршен"
 state; disabled/archived shows an inactive notice. Token is stable for the case's life.
 
+## Automated-documents company-data review (2026-08-20)
+Symptom: preview link showed empty company data when a Pro lawyer generated for a client.
+Root cause: `LivePreviewLink` (BaseDocumentPage) encoded company fields from
+`currentUser.companyInfo` only, ignoring the selected client (whose data is in formData)
+and breaking when the lawyer's own companyInfo is empty. The public `/document-preview`
+endpoint renders purely from the encoded data (no auth → can't resolve clientId), so blanks
+in = blanks out. Fix: prefer formData company fields, fall back to own companyInfo.
+
+Full review (45 docs): preview path is uniform (LivePreviewLink → /document-preview →
+registered template; 45/45 templates registered) → the one fix covers all. DOCX path: 42/45
+use baseDocumentController (already client-aware). 2 custom controllers ignored clientId and
+used only the lawyer's company → rentAgreement, debtAssumptionAgreement. Fixed by extracting
+`resolveCompanyForDocument` (client-override + linked-admin + own company) into
+baseDocumentController and reusing it in both. companyActExtraction = AI extraction (no company
+party). companyChanges/companyIncorporation disable live preview by design.
+Verified: helper unit-tested (own / client-override / not-owned fallback / Basic-ignores-clientId);
+client build + server node --check pass.
+
 ## Review — IMPLEMENTED ✅ (2026-08-20, uncommitted)
 Server: `casesService` (CRUD + embedded deadlines/timeline + redacted `getPublicByToken`
 with lawyer contact), `casesController` (Pro/ADMIN gate + AI brief via gpt-4o-mini,

@@ -88,6 +88,10 @@ const contractAnalysis = { key: 'contract-analysis', icon: 'inbox', label: 'Ан
 // Предмети — case/matter management workspace (deadlines, timeline, client status link).
 const cases = { key: 'cases', icon: 'folder', label: 'Предмети', path: '/terminal/cases' };
 
+// Правна проверка — the Legal Health Check, surfaced for Pro too (same page the
+// SMB layout exposes under Проверки → Правна).
+const legalScreening = { key: 'legal-screening', icon: 'check', label: 'Правна проверка', path: '/terminal/legal-screening' };
+
 // ── Product B relabels (SMB keeps the originals above) ──────────────────────
 // Blog = the marketing hub, framed as the lawyer's publishing surface.
 const proBlog    = { key: 'marketing-hub', icon: 'pencil', label: 'Блог', path: '/terminal/marketing-hub', visible: showsMarketing };
@@ -134,7 +138,7 @@ const proSections = [
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, legalAi, cases]
+    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening]
   },
   {
     key: 'education-sec', label: 'Едукација',

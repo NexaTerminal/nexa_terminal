@@ -80,8 +80,9 @@
 /* Categories Grid */
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
+  /* Smaller min track → ~30% narrower cards, so more fit per row/column. */
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--spacing-md);
   margin-top: var(--spacing-md);
 }
 
@@ -90,7 +91,7 @@
   background: var(--color-white);
   border: 2px solid var(--color-light-gray);
   border-radius: var(--border-radius-md);
-  padding: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
@@ -122,13 +123,13 @@
 }
 
 .category-icon {
-  font-size: 3.5rem;
-  margin-bottom: var(--spacing-md);
+  font-size: 2.25rem;
+  margin-bottom: var(--spacing-xs);
   color: var(--color-accent);
 }
 
 .category-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg, 1.1rem);
   font-weight: 600;
   margin-bottom: var(--spacing-xs);
   color: var(--color-dark);
@@ -143,9 +144,9 @@
 
 .category-description {
   color: var(--color-gray);
-  margin-bottom: var(--spacing-md);
-  line-height: 1.5;
-  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.4;
+  font-size: var(--font-size-sm);
 }
 
 .category-status {

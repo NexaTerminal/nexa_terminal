@@ -23,11 +23,7 @@ const PLAN_LABEL = {
   basic: 'Основен',
   pro:   'Про'
 };
-// Short MK description per plan.
-const PLAN_TOOLTIP = {
-  basic: 'Сите алатки на Терминалот за индивидуална употреба.',
-  pro:   'Терминалот + членство во Nexa мрежата. До 25 под-сметки за Вашите клиенти, Topics Q&A и B2B можности.'
-};
+// Short MK label under the plan name in the offer card.
 const PLAN_SHORT = {
   basic: 'Индивидуално',
   pro:   'До 25 под-сметки'
@@ -98,7 +94,6 @@ export default function SubscriptionGate() {
   if (!currentUser) return null;
 
   const sub = blockedInfo?.subscription || {};
-  const sellablePlan = sellablePlanFor(currentUser);
   const accountSuspended = blockedInfo?.code === 'ACCOUNT_SUSPENDED';
   const graceUsed = sub.graceUsed === true;
   const userHasEmail = !!(currentUser.email && currentUser.email.includes('@'));
@@ -292,52 +287,21 @@ export default function SubscriptionGate() {
             <p className={styles.lead}>
               {graceUsed
                 ? 'Веќе го искористивте 3-дневниот грејс период. Сега треба прво да пристигне уплатата за активирање.'
-                : 'Изберете план и циклус. Ќе Ви испратиме инструкции за уплата и автоматски ќе Ви дадеме 3 дена дополнителен пристап.'}
+                : 'Ќе Ви испратиме инструкции за уплата и автоматски ќе Ви дадеме 3 дена дополнителен пристап.'}
             </p>
 
-            {/* ============ PLAN TILES (Basic / Pro) ============ */}
-            <div className={styles.sectionLabel}>План</div>
-            <div className={styles.planTiles}>
-              {[sellablePlan].map(p => (
-                <button
-                  key={p}
-                  type="button"
-                  className={`${styles.planTile} ${plan === p ? styles.planTileActive : ''}`}
-                  onClick={() => { setPlan(p); const a = PLAN_CYCLES[p] || ['monthly']; if (!a.includes(cycle)) setCycle(a[0]); }}
-                  aria-pressed={plan === p}
-                >
-                  <div className={styles.planTileName}>{PLAN_LABEL[p]}</div>
-                  <div className={styles.planTileShort}>{PLAN_SHORT[p]}</div>
-                  <div className={styles.planTilePriceLine}>
-                    {(() => { const c0 = (PLAN_CYCLES[p] || ['monthly'])[0];
-                      const unit = c0 === 'annual' ? '/ год' : c0 === 'quarterly' ? '/ кв' : '/ мес';
-                      return (<>
-                        <span className={styles.planTilePriceNum}>€{PRICES[p][c0]}</span>
-                        <span className={styles.planTilePriceUnit}>{unit}</span>
-                      </>); })()}
-                  </div>
-                </button>
-              ))}
-            </div>
-            <p className={styles.planDescription}>{PLAN_TOOLTIP[plan]}</p>
-
-            {/* ============ CYCLE TILES ============ */}
-            <div className={styles.sectionLabel}>Циклус на наплата</div>
-            <div className={styles.cycleRow}>
-              {(PLAN_CYCLES[plan] || ['monthly']).map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`${styles.cycleBtn} ${cycle === c ? styles.cycleBtnActive : ''}`}
-                  onClick={() => setCycle(c)}
-                  aria-pressed={cycle === c}
-                >
-                  <span className={styles.cycleName}>
-                    {c === 'monthly' ? 'Месечно' : c === 'quarterly' ? 'Квартално' : 'Годишно'}
-                  </span>
-                  <span className={styles.cyclePrice}>€{PRICES[plan][c]}</span>
-                </button>
-              ))}
+            {/* ============ SINGLE-OFFER SUMMARY (one plan, annual-only) ======= */}
+            <div className={styles.offerCard}>
+              <div className={styles.offerHead}>
+                <div>
+                  <div className={styles.offerName}>{PLAN_LABEL[plan]}</div>
+                  <div className={styles.offerShort}>{PLAN_SHORT[plan]}</div>
+                </div>
+                <div className={styles.offerPrice}>
+                  <span className={styles.offerPriceNum}>€{PRICES[plan]?.annual}</span>
+                  <span className={styles.offerPriceUnit}>/ година</span>
+                </div>
+              </div>
             </div>
 
             {/* ============ EMAIL ============ */}

@@ -265,6 +265,54 @@
   line-height: 1.2;
 }
 
+/* ====== Single-offer summary card (one plan, annual-only) ====== */
+.offerCard {
+  border: 1.5px solid var(--color-primary-200, #c7e2ff);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FE 100%);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 6px 0 20px;
+}
+.offerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.offerName {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0B1220;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.offerShort {
+  margin-top: 4px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary, #1E4DB7);
+  font-weight: 600;
+}
+.offerPrice {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  white-space: nowrap;
+}
+.offerPriceNum {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0B1220;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.offerPriceUnit {
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 500;
+}
+
 .field {
   margin: 0 0 18px;
 }

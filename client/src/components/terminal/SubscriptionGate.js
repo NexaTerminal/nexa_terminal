@@ -26,7 +26,7 @@ const PLAN_LABEL = {
 // Short MK label under the plan name in the offer card.
 const PLAN_SHORT = {
   basic: 'Индивидуално',
-  pro:   'До 25 под-сметки'
+  pro:   ''
 };
 
 /**
@@ -295,7 +295,7 @@ export default function SubscriptionGate() {
               <div className={styles.offerHead}>
                 <div>
                   <div className={styles.offerName}>{PLAN_LABEL[plan]}</div>
-                  <div className={styles.offerShort}>{PLAN_SHORT[plan]}</div>
+                  {PLAN_SHORT[plan] && <div className={styles.offerShort}>{PLAN_SHORT[plan]}</div>}
                 </div>
                 <div className={styles.offerPrice}>
                   <span className={styles.offerPriceNum}>€{PRICES[plan]?.annual}</span>

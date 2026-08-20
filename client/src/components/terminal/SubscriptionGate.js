@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { planProduct } from '../../lib/tier';
 import styles from './SubscriptionGate.module.css';
 
 // EUR prices (two-tier model). Match server/constants/roles.js PLAN_PRICES.
+// Each tier is a SINGLE annual offer: Basic €90/yr, Pro €190/yr.
 const PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 49 },
-  pro:   { monthly: 39, quarterly: 99, annual: 359 }
+  basic: { monthly: 19, quarterly: 49, annual: 90 },
+  pro:   { monthly: 39, quarterly: 99, annual: 190 }
 };
-// Cycles offered at checkout per plan. Basic (Product A) is annual-only
-// (single €49/yr offer); Pro keeps the full cycle ladder.
+// Cycles offered at checkout per plan — both tiers are annual-only.
 const PLAN_CYCLES = {
   basic: ['annual'],
-  pro:   ['monthly', 'quarterly', 'annual']
+  pro:   ['annual']
 };
+// The single plan a user may buy is decided by their PRODUCT: Pro (Product B,
+// leads.nexa.mk) sells 'pro'; everyone else (Product A, nexa.mk) sells 'basic'.
+const sellablePlanFor = (user) => (planProduct(user) === 'B' ? 'pro' : 'basic');
 // Public-facing tier labels.
 const PLAN_LABEL = {
   basic: 'Основен',
@@ -28,8 +32,6 @@ const PLAN_SHORT = {
   basic: 'Индивидуално',
   pro:   'До 25 под-сметки'
 };
-
-const ALL_PLANS = ['basic', 'pro'];
 
 /**
  * Event-driven subscription gate.
@@ -77,10 +79,8 @@ export default function SubscriptionGate() {
   useEffect(() => {
     if (!open) return;
     const sub = blockedInfo?.subscription || {};
-    const defaultPlan =
-      sub.plan && ALL_PLANS.includes(sub.plan)        ? sub.plan
-    : currentUser?.role === 'admin_user'              ? 'pro'
-    :                                                   'basic';
+    // Single-plan model: the user's product dictates the only plan they can buy.
+    const defaultPlan = sellablePlanFor(currentUser);
     const allowed = PLAN_CYCLES[defaultPlan] || ['monthly'];
     const seedCycle = sub.cycle && allowed.includes(sub.cycle) ? sub.cycle : allowed[0];
     setCycle(seedCycle);
@@ -98,6 +98,7 @@ export default function SubscriptionGate() {
   if (!currentUser) return null;
 
   const sub = blockedInfo?.subscription || {};
+  const sellablePlan = sellablePlanFor(currentUser);
   const accountSuspended = blockedInfo?.code === 'ACCOUNT_SUSPENDED';
   const graceUsed = sub.graceUsed === true;
   const userHasEmail = !!(currentUser.email && currentUser.email.includes('@'));
@@ -297,7 +298,7 @@ export default function SubscriptionGate() {
             {/* ============ PLAN TILES (Basic / Pro) ============ */}
             <div className={styles.sectionLabel}>План</div>
             <div className={styles.planTiles}>
-              {ALL_PLANS.map(p => (
+              {[sellablePlan].map(p => (
                 <button
                   key={p}
                   type="button"

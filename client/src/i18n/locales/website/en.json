@@ -41,7 +41,7 @@
   "home": {
     "seoTitle": "Nexa — The business operations ecosystem for North Macedonia",
     "seoDesc": "Nexa unites automated legal documents, AI assistance, compliance health checks, and access to verified professionals for Macedonian businesses.",
-    "heroTitle": "Your legal department — for €19 a month.",
+    "heroTitle": "Your legal department, for every business.",
     "heroSubtitle": "Automated legal documents, compliance checks, AI assistance grounded in Macedonian law, networking with verified professionals and practical education — everything a small business needs, in one place.",
     "ctaTerminal": "Choose a plan",
     "ctaProfessionals": "Free compliance check",
@@ -63,7 +63,7 @@
     "feature6Desc": "Practical courses and lessons on legal, HR and operational procedures — learn how to apply the documents and checks in practice.",
     "audienceHeading": "Pick the plan that fits",
     "audienceBusinessTitle": "Standard — for a single user",
-    "audienceBusinessDesc": "From €19/month. Full Terminal access: documents, AI, compliance checks and contract analysis.",
+    "audienceBusinessDesc": "Full Terminal access: documents, AI, compliance checks and contract analysis.",
     "audienceBusinessCta": "Get started",
     "audienceProTitle": "Admin — for teams",
     "audienceProDesc": "Nexa Network · application-based. Everything in Nexa Platform + promotional channels via the newsletter, satellite sites and Topics. Team of 5 or 10 sub-seats.",
@@ -106,9 +106,9 @@
     "s7SubscribeLabel": "Email",
     "s7SubscribeCta": "Subscribe",
     "s8Heading": "Basic — for businesses",
-    "s8P1": "€19 / month, €49 / quarter or €179 / year. For your company. Full Terminal access — automated documents, compliance checks, contract analysis, AI assistance, offer requests and the Virtual Fair. Up to 3 co-workers in your company.",
+    "s8P1": "For your company. Full Terminal access — automated documents, compliance checks, contract analysis, AI assistance, offer requests and the Virtual Fair. Up to 3 co-workers in your company.",
     "s9Heading": "Pro — for service providers",
-    "s9P1": "€39 / month. Everything in Basic, plus Nexa Network membership and up to 25 client sub-accounts you manage under your subscription. Includes cases (leads) via the satellite sites, a Virtual Fair booth, monthly blog placement, Topics Q&A and a spot in the Nexa newsletter.",
+    "s9P1": "Everything in Basic, plus Nexa Network membership and up to 25 client sub-accounts you manage under your subscription. Includes cases (leads) via the satellite sites, a Virtual Fair booth, monthly blog placement, Topics Q&A and a spot in the Nexa newsletter.",
     "s10Heading": "How everything connects",
     "s10P1": "A visitor arrives at one of the guide sites with a question. They fill out a contact form with consent. The inquiry is routed to a Super User with matching expertise and location. The Super User contacts the visitor directly. Optionally, the visitor also becomes a Terminal user to manage their own documents.",
     "s11Heading": "Authorship, expertise, governance",
@@ -163,7 +163,7 @@
   },
   "pricing": {
     "seoTitle": "Pricing — Nexa",
-    "seoDesc": "Two plans: Basic from €19/month and Pro from €39/month. Transparent pricing, no hidden fees.",
+    "seoDesc": "Two plans: Basic for SMBs and Pro for lawyers & accountants. Register and choose your plan in the Terminal.",
     "title": "Pricing",
     "intro": "Simple plans. No hidden costs. Cancel any time.",
     "billing": {

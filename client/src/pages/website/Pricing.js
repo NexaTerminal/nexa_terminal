@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
@@ -10,23 +9,11 @@ import { NEXA_ORG, NEXA_WEBSITE, webPage, terminalProduct } from '../../componen
 import styles from './Pricing.module.css';
 
 // De-merge Phase 2+3 — the pricing page is a SINGLE-offer page per storefront:
-//   main  (nexa.mk)       → Product A (Basic), €49 / year, annual-only.
-//   leads (leads.nexa.mk) → Product B (Pro),  founding €59 / quarter (list €99).
-// EUR is the source of truth; MKD derived at 1 EUR = 61.5 MKD.
-const EUR_TO_MKD = 61.5;
-// Pro founding-cohort rate (advertised on leads.nexa.mk; granted via promo code).
-const PRO_LIST_QUARTERLY = 99;
-const PRO_FOUNDING_QUARTERLY = 59;
-const BASIC_ANNUAL = 49; // mirrors server/constants/roles.js PLAN_PRICES.basic.annual
-
-const fmtPrice = (eur, currency) => {
-  if (currency === 'mkd') {
-    const mkd = Math.round(eur * EUR_TO_MKD);
-    // Format with a thin space as thousands separator: "1 169"
-    return mkd.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  }
-  return String(eur);
-};
+//   main  (nexa.mk)       → Product A (Basic)
+//   leads (leads.nexa.mk) → Product B (Pro)
+// NOTE: Prices are deliberately NOT shown on this public page — they surface
+// only in the terminal buy flow (SubscriptionGate) after the user registers and
+// picks a plan. This page sells the value + feature set and routes to signup.
 
 export default function Pricing() {
   const { t } = useTranslation('website');
@@ -35,16 +22,13 @@ export default function Pricing() {
   const isMk = lang === 'mk';
   const url = 'https://nexa.mk/pricing';
 
-  const [currency, setCurrency] = useState('eur');     // 'eur' | 'mkd'
   const store = getStorefront();
   const isLeads = store === 'leads';
 
-  // Single offer per storefront (no cycle toggle — one price each).
+  // Single offer per storefront (no price shown — chosen & priced in-terminal).
   const offer = isLeads
-    ? { key: 'pro',   intent: 'pro', eur: PRO_FOUNDING_QUARTERLY, listEur: PRO_LIST_QUARTERLY,
-        suffix: isMk ? '/ квартал' : '/ quarter', suffixMkd: isMk ? 'ден / квартал' : 'MKD / quarter' }
-    : { key: 'basic', intent: null, eur: BASIC_ANNUAL, listEur: null,
-        suffix: isMk ? '/ година' : '/ year',    suffixMkd: isMk ? 'ден / година' : 'MKD / year' };
+    ? { key: 'pro',   intent: 'pro' }
+    : { key: 'basic', intent: null };
 
   const PLAN_COPY = {
     basic: {
@@ -130,45 +114,23 @@ export default function Pricing() {
           <header className={styles.pageIntro}>
             <span className={styles.pageIntroEyebrow}>
               <span className={styles.pageIntroDot} aria-hidden />
-              {isMk ? 'Цени' : 'Pricing'}
+              {isMk ? 'Планови' : 'Plans'}
             </span>
             <h1 className={styles.pageIntroTitle}>
               {isLeads
                 ? (isMk ? 'Повеќе клиенти. Една претплата.' : 'More clients. One subscription.')
-                : (isMk ? 'Сите алатки за Вашиот бизнис — една цена.' : 'Every tool for your business — one price.')}
+                : (isMk ? 'Сите алатки за Вашиот бизнис.' : 'Every tool for your business.')}
             </h1>
             <p className={styles.pageIntroLead}>
               {isLeads
                 ? (isMk
-                    ? 'Насочени случаи од нашата мрежа од специјализирани сајти, плус видливост како експерт. Основачка цена за првите правници и сметководители.'
-                    : 'Routed cases from our network of specialized sites, plus visibility as an expert. A founding rate for the first lawyers and accountants.')
+                    ? 'Насочени случаи од нашата мрежа од специјализирани сајти, плус видливост како експерт.'
+                    : 'Routed cases from our network of specialized sites, plus visibility as an expert.')
                 : (isMk
-                    ? 'Документи, AI помош, проверки на усогласеност и алатки за секојдневното работење. Една годишна претплата, без обврска.'
-                    : 'Documents, AI help, compliance checks and everyday operations tools. One annual subscription, no commitment.')}
+                    ? 'Документи, AI помош, проверки на усогласеност и алатки за секојдневното работење.'
+                    : 'Documents, AI help, compliance checks and everyday operations tools.')}
             </p>
           </header>
-
-          <div className={styles.toggleStack}>
-            <div className={styles.currencyToggleWrap} role="group" aria-label={isMk ? 'Валута' : 'Currency'}>
-              <div className={styles.currencyToggle}>
-                <button type="button"
-                  className={`${styles.currencyToggleBtn} ${currency === 'eur' ? styles.currencyToggleBtnActive : ''}`}
-                  onClick={() => setCurrency('eur')}
-                  aria-pressed={currency === 'eur'}>
-                  EUR
-                </button>
-                <button type="button"
-                  className={`${styles.currencyToggleBtn} ${currency === 'mkd' ? styles.currencyToggleBtnActive : ''}`}
-                  onClick={() => setCurrency('mkd')}
-                  aria-pressed={currency === 'mkd'}>
-                  MKD
-                </button>
-              </div>
-              <span className={styles.currencyToggleHint}>
-                {isMk ? `1 € = ${EUR_TO_MKD} ден` : `1 € = ${EUR_TO_MKD} MKD`}
-              </span>
-            </div>
-          </div>
 
           <div className={styles.chooserCards}>
             <Link to={offer.intent ? `/login?intent=${offer.intent}` : '/login'}
@@ -177,24 +139,10 @@ export default function Pricing() {
               <h2 className={styles.chooserCardTitle}>{copy.title}</h2>
               <p className={styles.chooserCardBody}>{copy.body}</p>
 
-              <div className={styles.chooserPriceLine}>
-                {currency === 'eur' && <span className={styles.chooserCurrency}>€</span>}
-                <span className={styles.chooserPriceNum}>{fmtPrice(offer.eur, currency)}</span>
-                <span className={styles.chooserPriceSuffix}>
-                  {currency === 'mkd' ? offer.suffixMkd : offer.suffix}
-                </span>
-                {offer.listEur && (
-                  <span className={styles.chooserSaveBadge}>
-                    {isMk ? 'Основачка цена' : 'Founding rate'}
-                  </span>
-                )}
-              </div>
               <div className={styles.chooserSubline}>
-                {offer.listEur
-                  ? (isMk
-                      ? `Редовна цена €${offer.listEur} / квартал · ограничен број места по област`
-                      : `List price €${offer.listEur} / quarter · limited seats per practice area`)
-                  : (isMk ? 'Без обврска · откажете во секое време' : 'No commitment · cancel anytime')}
+                {isMk
+                  ? 'Регистрирајте се и изберете план — цената и профактурата ги гледате во Терминалот.'
+                  : 'Register and choose a plan — you see the price and pro-forma invoice in the Terminal.'}
               </div>
 
               {copy.features && copy.features.length > 0 && (

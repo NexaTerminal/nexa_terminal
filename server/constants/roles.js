@@ -95,15 +95,15 @@ const GRACE_DAYS = 3;
 // One per email (enforced by the email-eligibility guard at registration).
 const TRIAL_DAYS = 8;
 
-// EUR prices per the public pricing page (Nexa 3.0).
-// Quarterly ≈ 14–16% off three months of monthly.
-// Annual    ≈ 22–24% off twelve months of monthly.
-// Product A (Basic) is sold as a single annual offer (€49/yr) on the SMB
-// storefront; monthly/quarterly keys are retained for existing subscriptions'
-// back-compat but are no longer offered at checkout.
+// EUR prices (Nexa 3.0). Each tier is now sold as a SINGLE annual offer:
+//   Basic (Product A, nexa.mk)      → €90 / year
+//   Pro   (Product B, leads.nexa.mk) → €190 / year
+// Prices are NOT stated on the public site — they surface only in the terminal
+// buy flow (SubscriptionGate). Monthly/quarterly keys are retained for existing
+// subscriptions' back-compat but are no longer offered at checkout.
 const PLAN_PRICES = Object.freeze({
-  basic: { monthly: 19, quarterly: 49,  annual: 49 },
-  pro:   { monthly: 39, quarterly: 99,  annual: 359 },
+  basic: { monthly: 19, quarterly: 49,  annual: 90 },
+  pro:   { monthly: 39, quarterly: 99,  annual: 190 },
   // legacy
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
   admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },

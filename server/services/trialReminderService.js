@@ -65,10 +65,12 @@ class TrialReminderService {
     }).toArray();
   }
 
-  /** Build the 3-cycle option list for the user's plan. */
+  /** Build the option list for the user's plan. Each tier is now sold as a
+   * single ANNUAL offer (Basic €90/yr, Pro €190/yr), so we present only that —
+   * monthly/quarterly are no longer purchasable at checkout. */
   static _options(planKey) {
     const prices = PLAN_PRICES[planKey] || PLAN_PRICES.pro;
-    return ['monthly', 'quarterly', 'annual'].map(cycle => ({
+    return ['annual'].map(cycle => ({
       cycle,
       label: CYCLE_LABEL[cycle],
       eur: prices[cycle],

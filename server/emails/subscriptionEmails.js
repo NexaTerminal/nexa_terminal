@@ -67,6 +67,9 @@ const tierWord = (plan, lang) => {
 
 // Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
 const PLAN_PRICES = {
+  basic: { monthly: 19, quarterly: 49,  annual: 90 },
+  pro:   { monthly: 39, quarterly: 99,  annual: 190 },
+  // legacy
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
   admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
   admin_10: { monthly: 59, quarterly: 149, annual: 549 }

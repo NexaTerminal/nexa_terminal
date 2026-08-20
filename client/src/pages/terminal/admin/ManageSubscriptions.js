@@ -31,9 +31,10 @@ const TABS = [
 ];
 
 // Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
+// Each tier is sold as a single annual offer: Basic €90/yr, Pro €190/yr.
 const PLAN_PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 179 },
-  pro:   { monthly: 39, quarterly: 99, annual: 359 },
+  basic: { monthly: 19, quarterly: 49, annual: 90 },
+  pro:   { monthly: 39, quarterly: 99, annual: 190 },
   // legacy (pre-migration docs)
   standard: { monthly: 19, quarterly: 49,  annual: 179 },
   admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },

@@ -85,11 +85,14 @@ const education = { key: 'education', icon: 'book', label: 'Курсеви', pat
 // full Договори group is SMB-oriented and hidden for Pro).
 const contractAnalysis = { key: 'contract-analysis', icon: 'inbox', label: 'Анализа на договор', path: '/terminal/contract-analysis' };
 
+// Предмети — case/matter management workspace (deadlines, timeline, client status link).
+const cases = { key: 'cases', icon: 'folder', label: 'Предмети', path: '/terminal/cases' };
+
 // ── Product B relabels (SMB keeps the originals above) ──────────────────────
 // Blog = the marketing hub, framed as the lawyer's publishing surface.
 const proBlog    = { key: 'marketing-hub', icon: 'pencil', label: 'Блог', path: '/terminal/marketing-hub', visible: showsMarketing };
-// Клиенти = the sales-funnel page, framed as a CRM to record potential clients.
-const proClients = { key: 'sales', icon: 'people', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
+// Потенцијални клиенти = the sales-funnel page, framed as a CRM to record leads.
+const proClients = { key: 'sales', icon: 'people', label: 'Потенцијални клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 
 // ── Product A (SMB) + ADMIN — the historical task-based layout ──────────────
 // Unchanged for A/ADMIN except that Продажна инка now carries showsSalesFunnel
@@ -131,7 +134,7 @@ const proSections = [
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, legalAi]
+    items: [proDocuments, contractAnalysis, legalAi, cases]
   },
   {
     key: 'education-sec', label: 'Едукација',

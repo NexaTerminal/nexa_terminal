@@ -1,0 +1,99 @@
+/* Case detail — a compact, single-look workspace. Base buttons/inputs/badges are
+   reused from ../contracts/Contracts.module.css; layout + panels live here. */
+
+/* ── Hero header ─────────────────────────────────────────────────────────── */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-left: 4px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.hero[data-status="open"]        { border-left-color: #2563eb; }
+.hero[data-status="in_progress"] { border-left-color: #7c3aed; }
+.hero[data-status="waiting"]     { border-left-color: #d97706; }
+.hero[data-status="closed"]      { border-left-color: #16a34a; }
+.hero[data-status="archived"]    { border-left-color: #94a3b8; }
+
+.heroMain { min-width: 0; flex: 1; }
+.heroTitle { font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.25; }
+.heroSub { font-size: 0.88rem; color: #64748b; margin: 4px 0 0; }
+.heroActions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+.statusSelect { padding: 7px 10px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; }
+
+/* Number / court chips under the title */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  background: #f1f5f9; border-radius: 8px; padding: 4px 10px; font-size: 0.8rem; color: #0f172a;
+}
+.chipKey { color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.chipStrong { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+
+/* ── Two-column grid ─────────────────────────────────────────────────────── */
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.colStack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.panel { background: #fff; border: 1px solid #e8edf3; border-radius: 12px; padding: 16px 18px; }
+.panelHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.panelTitle { font-size: 0.98rem; font-weight: 700; color: #0f172a; margin: 0; }
+.count { font-size: 0.78rem; color: #94a3b8; font-weight: 600; }
+
+/* ── Details rows (aside) ────────────────────────────────────────────────── */
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.86rem; }
+.rowKey { color: #64748b; }
+.rowVal { color: #0f172a; font-weight: 600; text-align: right; }
+.desc { font-size: 0.86rem; color: #334155; margin: 10px 0 0; white-space: pre-wrap; }
+.notes { font-size: 0.86rem; color: #334155; white-space: pre-wrap; }
+
+/* ── Public link ─────────────────────────────────────────────────────────── */
+.publicBox { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.publicUrl { flex: 1 1 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; color: #1d4ed8; word-break: break-all; }
+.publicOff { color: #94a3b8; text-decoration: line-through; }
+.publicActions { display: flex; gap: 6px; flex-wrap: wrap; }
+/* The shared .smallBtn sets no text color, so it can render near-invisible on
+   this tinted box. Force the same darker blue as the link. */
+.publicActions button,
+.publicActions a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+.publicActions a:hover,
+.publicActions button:hover { color: #1e40af; }
+
+/* ── Deadline / timeline items ───────────────────────────────────────────── */
+.item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid #f1f5f9; }
+.item:first-of-type { border-top: none; padding-top: 2px; }
+.itemMain { flex: 1; min-width: 0; }
+.itemTitle { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
+.itemTitleDone { text-decoration: line-through; color: #94a3b8; }
+.itemSub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+.itemBody { font-size: 0.86rem; color: #334155; margin-top: 5px; white-space: pre-wrap; }
+.itemBadges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.itemActions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; max-width: 190px; }
+.overdue { color: #dc2626; }
+
+.tag { font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #4338ca; white-space: nowrap; }
+.tagVisible { background: #dcfce7; color: #15803d; }
+.tagMuted { background: #f1f5f9; color: #64748b; }
+
+/* Timeline dot rail */
+.timeline { position: relative; }
+.tlItem { position: relative; padding-left: 18px; }
+.tlItem::before { content: ""; position: absolute; left: 3px; top: 14px; width: 8px; height: 8px; border-radius: 50%; background: #2563eb; }
+
+/* ── Add forms + checkboxes ──────────────────────────────────────────────── */
+.addForm { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
+.checkRow { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0; }
+.check { display: flex; align-items: center; gap: 7px; font-size: 0.84rem; color: #334155; cursor: pointer; }
+.check input { width: 16px; height: 16px; }
+
+/* ── AI helper ───────────────────────────────────────────────────────────── */
+.aiBox { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.aiResult { background: #fff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.85rem; color: #334155; white-space: pre-wrap; }
+.aiLabel { font-size: 0.72rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 4px; }
+.aiActed { margin-top: 8px; }

@@ -87,6 +87,10 @@ import ContractForm from './pages/terminal/contracts/ContractForm';
 import Employees from './pages/terminal/employees/Employees';
 import EmployeeDetail from './pages/terminal/employees/EmployeeDetail';
 import EmployeeForm from './pages/terminal/employees/EmployeeForm';
+import Cases from './pages/terminal/cases/Cases';
+import CaseForm from './pages/terminal/cases/CaseForm';
+import CaseDetail from './pages/terminal/cases/CaseDetail';
+import CaseStatus from './pages/public/CaseStatus';
 import DocumentGeneratorPage from './pages/DocumentGeneratorPage';
 import DocumentTemplateGenerator from './pages/terminal/documents/DocumentTemplateGenerator';
 import LegalScreening from './pages/terminal/LegalScreening';
@@ -269,6 +273,7 @@ function App() {
 
       {/* Shared Document Viewer - Public (no auth required) */}
       <Route path="/shared/:shareToken" element={<SharedDocument />} />
+      <Route path="/predmet/:token" element={<CaseStatus />} />
 
       {/* Document Preview - Public (no auth required) */}
       <Route path="/preview/:documentType" element={<DocumentPreviewPage />} />
@@ -290,6 +295,10 @@ function App() {
       <Route path="/terminal/employees/new" element={<PrivateRoute><VerificationRequired><EmployeeForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/employees/:id" element={<PrivateRoute><VerificationRequired><EmployeeDetail /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/employees/:id/edit" element={<PrivateRoute><VerificationRequired><EmployeeForm /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cases" element={<PrivateRoute><VerificationRequired><Cases /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cases/new" element={<PrivateRoute><VerificationRequired><CaseForm /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cases/:id" element={<PrivateRoute><VerificationRequired><CaseDetail /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/cases/:id/edit" element={<PrivateRoute><VerificationRequired><CaseForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/generator" element={<PrivateRoute><VerificationRequired><DocumentGeneratorPage /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/:categoryId/:templateId" element={<PrivateRoute><VerificationRequired><DocumentTemplateGenerator /></VerificationRequired></PrivateRoute>} />
       {/* <Route path="/terminal/documents/contracts/annex-employment-agreement" element={<PrivateRoute><AnnexEmploymentAgreement /></PrivateRoute>} /> */}

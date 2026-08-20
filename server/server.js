@@ -437,6 +437,26 @@ async function initializeServices(database) {
     console.error('HR module init failed:', e.message);
   }
 
+  // --- Cases module (Предмети — управување со предмети + потсетници за рокови) ---
+  try {
+    const CasesService = require('./services/casesService');
+    const CaseReminderService = require('./services/caseReminderService');
+    const CaseReminderScheduler = require('./services/caseReminderScheduler');
+
+    // Touch indexes once at boot (list/getPublic also ensure lazily).
+    await new CasesService(database)._ensureIndexes();
+
+    const caseReminderService = new CaseReminderService(database, require('./services/emailService'));
+    app.locals.caseReminderService = caseReminderService;
+
+    const caseReminderScheduler = new CaseReminderScheduler(caseReminderService);
+    caseReminderScheduler.start();
+    app.locals.caseReminderScheduler = caseReminderScheduler;
+    console.log('✅ Cases module ready (предмети + потсетници за рокови)');
+  } catch (e) {
+    console.error('Cases module init failed:', e.message);
+  }
+
   // --- Credit System (initialized FIRST after userService because it
   //     is a core dependency for almost every premium route) ---
   try {
@@ -875,6 +895,10 @@ function registerRoutes() {
     // Pro client profiles (JWT-Bearer API)
     '/clients',
     /^\/clients\/.*$/,
+    // Pro cases / Предмети (JWT-Bearer API) + public status page (unauthenticated)
+    '/cases',
+    /^\/cases\/.*$/,
+    /^\/public\/cases\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -1043,6 +1067,16 @@ function registerRoutes() {
     console.log('✅ /api/clients mounted');
   } catch (error) {
     console.error('❌ /api/clients route error:', error.message);
+  }
+
+  // Pro Cases (Предмети) — legal matter management + public client status pages.
+  // Isolated mount so a failure here can't cascade to neighbouring Pro routes.
+  try {
+    app.use('/api/cases',        subscriptionGuard, require('./routes/cases'));
+    app.use('/api/public/cases', require('./routes/publicCases'));
+    console.log('✅ /api/cases + /api/public/cases mounted');
+  } catch (error) {
+    console.error('❌ /api/cases route error:', error.message);
   }
 
   // Credit System routes (always enabled)

@@ -1,60 +1,93 @@
-# Admin user stats & actions — Phase 1 + 2
+# Предмети (Case Management) — leads.nexa Pro
 
-Goal: richer per-user admin view (credits, login/logout history, feature usage) so
-we can understand behaviour early. Server-side tracking only (reliable, no client noise).
+A case-management workspace for solo Macedonian lawyers, added as the **last item
+in the "Алатки" drawer**. Pro (tier B) / ADMIN only, behind subscriptionGuard.
 
-## Context (what already exists)
-- Drawer timeline source: `server/services/userActivityService.js` — pure-read aggregator
-  already pulling: account created/emailVerified/lastLogin, subscription lifecycle,
-  invoices, **documents** (`template_generations`), **compliance** (lhc/mhc/chc/hhc),
-  blog submissions, inquiry signals, topics, admin `audit_logs`.
-- Credits: `creditService.getUserCredits()` + `credit_transactions` collection. Not surfaced.
-- `activity_logs` + `user_analytics` via `userAnalyticsService.trackActivity` — only wired
-  for admin actions today.
-- `user.lastLogin` set on **username** login only; not on passport/local or Google.
+## Data model — `cases` collection (embedded sub-arrays, native driver)
+```
+{
+  _id, ownerId,
+  title, caseType,            // caseType ∈ parnica|krivicno|upravna|dogovorno|
+                              //   nasledstvo|rabotni|izvrsuvanje|registracija|drugo
+  status,                     // open|in_progress|waiting|closed|archived
+  clientId?, clientName, clientEmail,   // link to `clients` or free text; email for public-link handoff
+  courtName, caseNumber, opposingParty,
+  description, internalNotes, priority(low|normal|high), value,
+  openedAt, closedAt,
+  publicToken (uuid, stable), publicEnabled (bool),
+  deadlines: [ { _id, title, type, dueAt, done, clientVisible, remind, remindersSent:[{type,at}] } ],
+  timeline:  [ { _id, at, type, title, body, clientVisible, createdAt } ],
+  createdAt, updatedAt
+}
+```
+Rationale: like `employee.remindersSent` / `contract`, sub-docs are embedded — a
+solo lawyer has few deadlines/entries per case; avoids extra collections/joins.
 
-## Phase 1 — Surface existing data (no new tracking)
-- [ ] `userActivityService`: also read `credit_transactions` (spend / weekly reset / initial)
-      → timeline events (`credit.spent`, `credit.reset`, `credit.granted`).
-- [ ] `userActivityService`: also read `activity_logs` (login/logout/feature) → timeline.
-- [ ] `adminUsersController.getOne`: attach `credits` (balance, weeklyAllocation, nextReset,
-      lifetimeSpent) + `stats` (docs count, compliance count, lastActive, loginCount).
-- [ ] `AllUsers.js` drawer: add **Credits** block + **stats strip**; add icons/labels for the
-      new timeline event types in `ActivityTimeline`.
+## Server
+- [ ] `services/casesService.js` — CRUD scoped to ownerId (mirror clientsService);
+      deadline add/update/complete/remove; timeline add/update/remove; `getPublicByToken`
+      returning a **redacted** view (no internalNotes, no fees, no non-visible entries).
+- [ ] `controllers/casesController.js` — `requireProOrAdmin` (tierService.visibleTier),
+      CRUD + sub-resource handlers + `aiBrief` + public `getPublic`.
+- [ ] `routes/cases.js` — JWT + requireProOrAdmin, all case ops.
+- [ ] `routes/publicCases.js` — no-auth GET `/:token`.
+- [ ] Mount in server.js: `/api/cases` (subscriptionGuard) + `/api/public/cases`;
+      add `/public/cases/*` to csrfExemptRoutes.
+- [ ] `services/caseReminderService.js` + `caseReminderScheduler.js` — daily **09:00**
+      Europe/Skopje (08:00 contracts, 10:00 HR already taken). Offsets [7,3,1] days
+      before `dueAt`; only cases with status ∈ {open,in_progress,waiting}; per-deadline
+      `remind` toggle; idempotent `remindersSent`; ONE digest email per owner. Wire in
+      initializeServices + expose service on app.locals for an admin run-now later.
+- [ ] `emails/caseReminderEmails.js` — MK digest template (deadlines grouped, days-left).
+- [ ] AI brief: `POST /api/cases/:id/ai-brief` {notes} → {summary, clientSummary} using
+      OpenAI `gpt-4o-mini` (same SDK/pattern as blogGuidelineCheckService), MK prompt,
+      short + cheap. Fail-soft.
 
-## Phase 2 — Capture missing signals (server-side)
-- [ ] `authController`: add `recordAuthEvent(req, userId, kind, meta)` → writes `login`/`logout`
-      to `activity_logs` (ip + userAgent + method).
-- [ ] Call it in: `loginUsername`, `/login` (passport local, auth.js), Google callback, `logout`.
-- [ ] Also call `userService.updateLastLogin` in passport-local + Google (currently username-only).
-- [ ] Wire `activityLogger` feature tracking to key endpoints NOT already captured by an output
-      collection — primarily **AI/chatbot query**. (Docs/compliance/blog/topics already captured.)
+## Client
+- [ ] `pages/terminal/cases/Cases.js` — list (mirror Employees.js): status filter chips,
+      search, **next-deadline** column, upcoming-deadlines summary strip, "+ Нов предмет".
+- [ ] `pages/terminal/cases/CaseForm.js` — create/edit core fields (+ client picker reusing
+      `/api/clients`, or free-text client name/email).
+- [ ] `pages/terminal/cases/CaseDetail.js` — workspace:
+      header (status control, client, court/number) · Рокови (add/edit/done, remind + client-visible
+      toggles) · Дневник (add entry, **AI brief helper**, client-visible toggle) · Јавен линк
+      (copy, enable/disable, shows client URL) · Internal notes.
+- [ ] `pages/public/CaseStatus.js` — public client status page (no auth, MK): title, status badge,
+      court/number, next client-visible date, curated client-visible timeline, last-updated, lawyer
+      contact. Inactive/closed states handled gracefully.
+- [ ] CSS: reuse `Contracts.module.css` vocabulary for the list; new `CaseDetail.module.css`,
+      `public/CaseStatus.module.css`.
+- [ ] Routes in App.js: `/terminal/cases`, `/cases/new`, `/cases/:id`, `/cases/:id/edit`
+      (PrivateRoute + VerificationRequired), public `/predmet/:token`.
 
-## Verify
-- [ ] Login (username + Google) writes a `login` row; logout writes `logout`.
-- [ ] Drawer shows Credits block + stats strip + credit/login events in timeline.
-- [ ] No double-counting of docs/compliance (still single events).
+## Nav
+- [ ] `config/nav.js`: add `Предмети` as the LAST item of the `pro-tools` (Алатки) section.
 
-## Review — DONE (Phase 1 + 2)
-Backend:
-- `userActivityService.js`: timeline now also reads `credit_transactions`
-  (spent/reset/granted) and `activity_logs` (login/logout/ai_query/feature).
-  Admin-side actions filtered out here to avoid dup with `audit_logs`.
-- `adminUsersController.getOne`: attaches `credits` (balance/quota/lifetimeSpent/nextReset)
-  and `stats` (documents, compliance, aiQueries, logins, lastLogin, memberSince). Both best-effort.
-- `authController.recordAuthEvent()` helper → writes login/logout to `activity_logs`
-  (ip + userAgent + method). Wired: `loginUsername`, passport `/login` (auth.js),
-  Google callback (+ updateLastLogin there), `logout`.
-- `chatbot.js`: `ai_query` feature event on /ask, /conversations/:id/ask, and ask-stream.
+## Public-page privacy rules (hard)
+Returned publicly ONLY: title, caseType label, status label, courtName, caseNumber,
+timeline entries with `clientVisible:true`, next deadline with `clientVisible:true`,
+updatedAt. NEVER: internalNotes, fees/value, opposingParty strategy, non-visible entries.
+Accessible while `publicEnabled && status !== archived`; `closed` shows a final "завршен"
+state; disabled/archived shows an inactive notice. Token is stable for the case's life.
 
-Frontend (`AllUsers.js` + module.css):
-- Drawer: stat strip (5 boxes) + Кредити block; timeline badges for `credit` + `event`.
+## Review — IMPLEMENTED ✅ (2026-08-20, uncommitted)
+Server: `casesService` (CRUD + embedded deadlines/timeline + redacted `getPublicByToken`
+with lawyer contact), `casesController` (Pro/ADMIN gate + AI brief via gpt-4o-mini,
+fail-soft), `routes/cases.js` + `routes/publicCases.js`, mounted in server.js
+(`/api/cases` behind subscriptionGuard, `/api/public/cases` open; both CSRF-exempt).
+`caseReminderService` + `caseReminderScheduler` (daily 09:00 Europe/Skopje, offsets
+[7,3,1], idempotent, one digest per owner) wired in initializeServices; MK email in
+`emails/caseReminderEmails.js`.
+Client: `config/cases.js` (labels/helpers), `services/casesApi.js`, `pages/terminal/cases/`
+(Cases list, CaseForm, CaseDetail workspace with public-link box + AI helper + client-visible
+toggles), `pages/public/CaseStatus.js` (redacted client page at `/predmet/:token`).
+Nav: `Предмети` added as LAST item in the `pro-tools` (Алатки) section + `folder` icon.
 
-Notes / follow-ups:
-- Login history is forward-looking: existing users show logins only after next sign-in.
-  (lastLogin timestamp already existed; count starts now.)
-- Documents/compliance/blog/topics are NOT double-tracked (still from output collections).
-- Phase 3 (platform DAU/WAU + feature leaderboard dashboard) deferred.
+Verified: `react-scripts build` compiles; eslint clean on all new files; reminder pure-logic
+unit test passes (tightest fires / wider recorded / done+no-remind+already-sent+closed skipped);
+routes + all controller handlers require cleanly. Dev servers NOT started (user may have active
+sessions — per CLAUDE.md). AI brief needs `OPENAI_API_KEY` (degrades to raw notes without it);
+reminder emails need `RESEND_API_KEY` (dev-logs otherwise).
 
-Verify: all changed files pass `node --check` / babel parse. Live smoke test after deploy:
-log in → drawer shows a `Најава` event + login count increments.
+Not done / possible follow-ups: admin "run reminders now" endpoint; full inline edit of a
+deadline/entry (currently toggle+delete+re-add); pagination on the case list; a dashboard widget.

@@ -6,6 +6,7 @@ import ProfileReminderBanner from '../terminal/ProfileReminderBanner';
 import DocumentPreview from '../terminal/documents/DocumentPreview';
 import FormField, { TermsField } from '../forms/FormField';
 import ClientSelector from './ClientSelector';
+import OwnCompanyModal from './OwnCompanyModal';
 import { useDocumentForm } from '../../hooks/useDocumentForm';
 import { visibleTier } from '../../lib/tier';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
@@ -63,13 +64,34 @@ const BaseDocumentPage = ({
   // company. Basic users never see this.
   const vt = visibleTier(currentUser);
   const isPro = vt === 'B' || vt === 'ADMIN';
-  const onSelectClient = (clientId, client) => {
-    handleInputChange('clientId', clientId || '');
-    const src = client || currentUser?.companyInfo || {};
+  const [showOwnCompanyModal, setShowOwnCompanyModal] = useState(false);
+
+  const applyCompanySource = (src) => {
     handleInputChange('companyName', src.companyName || '');
     handleInputChange('companyAddress', src.companyAddress || src.address || '');
     handleInputChange('companyTaxNumber', src.companyTaxNumber || src.taxNumber || '');
     handleInputChange('companyManager', src.companyManager || src.manager || src.role || '');
+  };
+
+  const onSelectClient = (clientId, client) => {
+    handleInputChange('clientId', clientId || '');
+    if (!clientId) {
+      // "Мојата фирма" — use the user's own company. If nothing is recorded yet,
+      // prompt for it once; the modal saves it to the profile and prefills.
+      if (!hasOwnCompanyInfo(currentUser)) {
+        setShowOwnCompanyModal(true);
+        return;
+      }
+      applyCompanySource(currentUser?.companyInfo || {});
+      return;
+    }
+    applyCompanySource(client || {});
+  };
+
+  const handleOwnCompanySaved = (companyInfo) => {
+    setShowOwnCompanyModal(false);
+    handleInputChange('clientId', '');
+    applyCompanySource(companyInfo);
   };
 
   // Create preview data with fallbacks
@@ -196,7 +218,29 @@ const BaseDocumentPage = ({
         onCancel={() => setShowMissingFieldsModal(false)}
         onConfirm={forceGeneration}
       />
+
+      {/* Own-company capture: shown when a Pro user picks "Мојата фирма" but has
+          no company data recorded. Saves it to the profile and prefills. */}
+      <OwnCompanyModal
+        isOpen={showOwnCompanyModal}
+        onClose={() => setShowOwnCompanyModal(false)}
+        onSaved={handleOwnCompanySaved}
+      />
     </div>
+  );
+};
+
+/**
+ * True when the user has the required company fields on file. Mirrors the
+ * fields ClientSelector/onSelectClient prefill for "Мојата фирма".
+ */
+const hasOwnCompanyInfo = (user) => {
+  const c = user?.companyInfo || {};
+  return !!(
+    c.companyName &&
+    (c.companyAddress || c.address) &&
+    (c.companyTaxNumber || c.taxNumber) &&
+    (c.companyManager || c.manager || c.role)
   );
 };
 

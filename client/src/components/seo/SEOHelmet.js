@@ -20,7 +20,7 @@ export default function SEOHelmet({
   description,
   keywords,
   canonical = '/',
-  ogImage = '/nexa-blog-share.png',
+  ogImage = '/nexa-blog-share-v2.png',
   type = 'website',
   locale = 'mk_MK',
   altLocale = 'en_US',

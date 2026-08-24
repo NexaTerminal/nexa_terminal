@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PENDING_PROMO_KEY } from '../components/PromoRedeemWatcher';
+import { getStorefront } from '../lib/storefront';
 
 /**
  * Public landing for the hard-coded campaign deep link `/redeem?code=CODE`.
@@ -54,10 +55,18 @@ export default function Redeem() {
 
   // One-click path for cold leads: straight to Google OAuth. The code already
   // sits in localStorage, so it auto-applies the moment the user comes back
-  // authenticated — same browser session, no copy-paste.
+  // authenticated — same browser session, no copy-paste. We MUST carry `origin`
+  // (and `sf`) through the OAuth round-trip so the callback returns to the SAME
+  // host the link opened on (e.g. leads.nexa.mk). Otherwise the callback falls
+  // back to CLIENT_URL (nexa.mk), the fallback trial is minted as Basic, and the
+  // pending promo code — stored in this origin's localStorage — is stranded on
+  // the wrong origin and never redeemed. See PromoRedeemWatcher.
   const googleLogin = () => {
     const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-    window.location.href = `${apiURL}/auth/google`;
+    const state = new URLSearchParams();
+    state.set('sf', getStorefront());
+    state.set('origin', window.location.origin);
+    window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
   };
 
   if (!code) {

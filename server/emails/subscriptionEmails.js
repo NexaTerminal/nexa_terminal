@@ -14,6 +14,14 @@ const PORTAL_URL_PRO = process.env.PORTAL_URL_PRO || 'https://leads.nexa.mk';
 const portalForPlan = (isPro) => (isPro ? PORTAL_URL_PRO : PORTAL_URL);
 const SUPPORT_EMAIL = 'info@nexa.mk';
 
+// Basic/standard are the SMB tier; everything else is Pro (lawyers/leads.nexa.mk).
+const isProPlan = (plan) => !(plan === 'basic' || plan === 'standard');
+// Post-pricing-change there is NO public /pricing page — each tier is sold as a
+// single annual plan inside the Terminal (SubscriptionGate). Route the buyer to
+// the right storefront (Pro → leads.nexa.mk, Basic → nexa.mk) subscription page.
+const buyUrl = (plan) => `${portalForPlan(isProPlan(plan))}/terminal/subscription`;
+const terminalUrl = (plan) => `${portalForPlan(isProPlan(plan))}/terminal`;
+
 const wrap = (lang, title, bodyHtml, ctaUrl, ctaLabel) => {
   const dir = 'ltr';
   return `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><title>${title}</title></head>
@@ -116,13 +124,13 @@ const subscriptionApproved = ({ name, plan, cycle, endsAt, invoiceNumber }, lang
     const body = `<p>Здраво ${name || ''},</p>
 <p>Вашата претплата за <strong>${planLabel(plan, 'mk')}</strong> (${cycleLabel(cycle, 'mk')}) е активна до <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
 ${invoiceNumber ? `<p>Број на фактура: <strong>${invoiceNumber}</strong></p>` : ''}`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/terminal`, 'Отвори терминал') };
+    return { subject: title, html: wrap('mk', title, body, terminalUrl(plan), 'Отвори терминал') };
   }
   const title = 'Your subscription is active';
   const body = `<p>Hi ${name || ''},</p>
 <p>Your <strong>${planLabel(plan, 'en')}</strong> subscription (${cycleLabel(cycle, 'en')}) is active until <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
 ${invoiceNumber ? `<p>Invoice number: <strong>${invoiceNumber}</strong></p>` : ''}`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/terminal`, 'Open the Terminal') };
+  return { subject: title, html: wrap('en', title, body, terminalUrl(plan), 'Open the Terminal') };
 };
 
 const subscriptionRejected = ({ name, reason }, language = 'mk') => {
@@ -148,15 +156,15 @@ const renewalIn14Days = ({ name, plan, cycle, endsAt }, language = 'mk') => {
   if (lang === 'mk') {
     const title = 'Обнова за 14 дена';
     const body = `<p>Здраво ${name || ''},</p>
-<p>Вашата претплата за ${planLabel(plan, 'mk')} (${cycleLabel(cycle, 'mk')}) истекува на <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
-<p>За да продолжите без прекин, пратете уплата за следниот период.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Обнови') };
+<p>Вашата годишна претплата за ${planLabel(plan, 'mk')} истекува на <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
+<p>За да продолжите без прекин, обновете ја претплатата за наредната година преку Терминалот.</p>`;
+    return { subject: title, html: wrap('mk', title, body, buyUrl(plan), 'Обнови') };
   }
   const title = 'Renewal in 14 days';
   const body = `<p>Hi ${name || ''},</p>
-<p>Your ${planLabel(plan, 'en')} subscription (${cycleLabel(cycle, 'en')}) ends on <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
-<p>To avoid interruption, send payment for the next period.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Renew') };
+<p>Your annual ${planLabel(plan, 'en')} subscription ends on <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
+<p>To avoid interruption, renew for the next year from the Terminal.</p>`;
+  return { subject: title, html: wrap('en', title, body, buyUrl(plan), 'Renew') };
 };
 
 const renewalIn3Days = ({ name, plan, cycle, endsAt }, language = 'mk') => {
@@ -165,12 +173,12 @@ const renewalIn3Days = ({ name, plan, cycle, endsAt }, language = 'mk') => {
     const title = 'Последна потсетник — обнова за 3 дена';
     const body = `<p>Здраво ${name || ''},</p>
 <p>Вашата претплата истекува на <strong>${fmtDate(endsAt, 'mk')}</strong>. Ако не пристигне уплата, сметката ќе биде суспендирана.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Обнови сега') };
+    return { subject: title, html: wrap('mk', title, body, buyUrl(plan), 'Обнови сега') };
   }
   const title = 'Final reminder — renewal in 3 days';
   const body = `<p>Hi ${name || ''},</p>
 <p>Your subscription ends on <strong>${fmtDate(endsAt, 'en')}</strong>. Without payment, the account will be suspended.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Renew now') };
+  return { subject: title, html: wrap('en', title, body, buyUrl(plan), 'Renew now') };
 };
 
 const subscriptionSuspended = ({ name }, language = 'mk') => {
@@ -370,13 +378,13 @@ const promoActivated = ({ name, plan, endsAt }, language = 'mk') => {
     const body = `<p>Здраво ${name || ''},</p>
 <p>Вашиот <strong>${planLabel(plan, 'mk')}</strong> пристап е активиран со кодот и важи до <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
 <p>За да ги користите сите функции, потврдете ја вашата фирма во Терминалот.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/terminal`, 'Отвори терминал') };
+    return { subject: title, html: wrap('mk', title, body, terminalUrl(plan), 'Отвори терминал') };
   }
   const title = `Your ${tier} access is active`;
   const body = `<p>Hi ${name || ''},</p>
 <p>Your <strong>${planLabel(plan, 'en')}</strong> access has been activated with the code and is valid until <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
 <p>To use every feature, verify your company inside the Terminal.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/terminal`, 'Open the Terminal') };
+  return { subject: title, html: wrap('en', title, body, terminalUrl(plan), 'Open the Terminal') };
 };
 
 // ---------- promo conversion nudges ----------
@@ -389,14 +397,14 @@ const promoEndingIn3Days = ({ name, plan = 'pro', endsAt }, language = 'mk') => 
     const title = `Вашиот бесплатен ${tier} истекува за 3 дена`;
     const body = `<p>Здраво ${name || ''},</p>
 <p>Вашиот бесплатен пристап до <strong>Nexa ${tier}</strong> завршува на <strong>${fmtDate(endsAt, 'mk')}</strong>.</p>
-<p>За да го задржите пристапот без прекин, изберете план и продолжете да работите без застој.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Изберете план') };
+<p>За да го задржите пристапот без прекин, активирајте годишна претплата за <strong>Nexa ${tier}</strong> преку Терминалот.</p>`;
+    return { subject: title, html: wrap('mk', title, body, buyUrl(plan), 'Активирај претплата') };
   }
   const title = `Your free ${tier} ends in 3 days`;
   const body = `<p>Hi ${name || ''},</p>
 <p>Your free access to <strong>Nexa ${tier}</strong> ends on <strong>${fmtDate(endsAt, 'en')}</strong>.</p>
-<p>To keep your access without interruption, pick a plan and carry on uninterrupted.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
+<p>To keep your access without interruption, activate an annual <strong>Nexa ${tier}</strong> subscription from the Terminal.</p>`;
+  return { subject: title, html: wrap('en', title, body, buyUrl(plan), 'Activate subscription') };
 };
 
 /** "Your free {tier} has ended" → subscribe to restore access. */
@@ -407,14 +415,14 @@ const promoEnded = ({ name, plan = 'pro' }, language = 'mk') => {
     const title = `Вашиот бесплатен ${tier} период заврши`;
     const body = `<p>Здраво ${name || ''},</p>
 <p>Вашиот бесплатен период со <strong>Nexa ${tier}</strong> заврши. Вашите податоци се сочувани.</p>
-<p>За да го вратите целосниот пристап, изберете план — продолжувате точно од таму каде што застанавте.</p>`;
-    return { subject: title, html: wrap('mk', title, body, `${PORTAL_URL}/pricing`, 'Изберете план') };
+<p>За да го вратите целосниот пристап, активирајте годишна претплата за <strong>Nexa ${tier}</strong> — продолжувате точно од таму каде што застанавте.</p>`;
+    return { subject: title, html: wrap('mk', title, body, buyUrl(plan), 'Врати пристап') };
   }
   const title = `Your free ${tier} period has ended`;
   const body = `<p>Hi ${name || ''},</p>
 <p>Your free <strong>Nexa ${tier}</strong> period has ended. Your data is safe.</p>
-<p>To restore full access, pick a plan — you'll continue right where you left off.</p>`;
-  return { subject: title, html: wrap('en', title, body, `${PORTAL_URL}/pricing`, 'Choose a plan') };
+<p>To restore full access, activate an annual <strong>Nexa ${tier}</strong> subscription — you'll continue right where you left off.</p>`;
+  return { subject: title, html: wrap('en', title, body, buyUrl(plan), 'Restore access') };
 };
 
 // ---------- admin notification ----------

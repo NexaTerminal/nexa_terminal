@@ -34,7 +34,6 @@ router.get('/sitemap.xml', async (req, res) => {
       { url: '/blog', priority: '0.9', changefreq: 'daily' },
       { url: '/about', priority: '0.7', changefreq: 'monthly' },
       { url: '/contact', priority: '0.6', changefreq: 'monthly' },
-      { url: '/pricing', priority: '0.8', changefreq: 'weekly' },
       { url: '/legal-health-check', priority: '0.8', changefreq: 'weekly' },
       { url: '/marketing-health-check', priority: '0.8', changefreq: 'weekly' },
       { url: '/company-health-check', priority: '0.8', changefreq: 'weekly' },

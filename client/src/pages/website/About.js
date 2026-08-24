@@ -142,13 +142,13 @@ export default function About() {
           <section id="for-businesses">
             <h2>{t('about.s8Heading')}</h2>
             <p>{t('about.s8P1')}</p>
-            <p><a href="/pricing">{t('home.pricingTeaserHeading')} →</a></p>
+            <p><a href="/register">{t('about.registerCta')} →</a></p>
           </section>
 
           <section id="for-professionals">
             <h2>{t('about.s9Heading')}</h2>
             <p>{t('about.s9P1')}</p>
-            <p><a href="/pricing">{t('pricing.title')} →</a></p>
+            <p><a href="/register">{t('about.registerCta')} →</a></p>
           </section>
 
           <section id="how-it-connects">

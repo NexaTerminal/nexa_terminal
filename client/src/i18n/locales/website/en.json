@@ -2,7 +2,6 @@
   "nav": {
     "ecosystem": "Ecosystem",
     "forProfessionals": "For Professionals",
-    "pricing": "Pricing",
     "blog": "Blog",
     "contact": "Contact",
     "terminalLogin": "Terminal Login",
@@ -68,13 +67,13 @@
     "audienceProTitle": "Admin — for teams",
     "audienceProDesc": "Nexa Network · application-based. Everything in Nexa Platform + promotional channels via the newsletter, satellite sites and Topics. Team of 5 or 10 sub-seats.",
     "audienceProCta": "See plan",
-    "pricingTeaserHeading": "Pricing",
     "blogHeading": "From the blog"
   },
   "about": {
     "seoTitle": "What is Nexa? The Macedonian business operations ecosystem · Nexa",
     "seoDesc": "Nexa is an integrated ecosystem of legal-tech tools, expert guides, and a professional network for Macedonian businesses and the lawyers and accountants who serve them. Learn how the Terminal, the six guide sites, and Topics work together.",
     "title": "What is Nexa",
+    "registerCta": "Register and choose your plan",
     "sidebarHeading": "On this page",
     "s1Heading": "What Nexa is (TL;DR)",
     "s1P1": "Nexa is an integrated business operations ecosystem for North Macedonia. It combines a SaaS platform (the Nexa Terminal) that automates legal documents and compliance, a network of expert-authored guide websites covering specific legal domains, and a professional network of verified lawyers, accountants, and consultants. Together, these tools help small and medium businesses run their operations and help professionals reach new clients.",
@@ -160,64 +159,6 @@
     "formCity": "City",
     "formMessage": "Brief message",
     "formSubmit": "Submit application"
-  },
-  "pricing": {
-    "seoTitle": "Pricing — Nexa",
-    "seoDesc": "Two plans: Basic for SMBs and Pro for lawyers & accountants. Register and choose your plan in the Terminal.",
-    "title": "Pricing",
-    "intro": "Simple plans. No hidden costs. Cancel any time.",
-    "billing": {
-      "monthly": "Monthly",
-      "quarterly": "Quarterly",
-      "annual": "Annual"
-    },
-    "billedAs": {
-      "monthly": "billed monthly",
-      "quarterly": "billed quarterly",
-      "annual": "billed annually"
-    },
-    "perMonth": "/month",
-    "perQuarter": "/quarter",
-    "perYear": "/year",
-    "effective": "≈ {value} MKD/month",
-    "save": "Save {percent}%",
-    "popular": "Most flexible",
-    "plan1": {
-      "name": "Nexa Platform",
-      "tagline": "All Terminal tools for individual use.",
-      "cta": "Get started"
-    },
-    "plan2": {
-      "name": "Nexa Network · Kantora",
-      "tagline": "The Terminal plus Nexa Network membership. Up to 5 sub-seats.",
-      "cta": "Apply"
-    },
-    "plan3": {
-      "name": "Nexa Network · Studio",
-      "tagline": "The Terminal plus an expanded Nexa Network membership. Up to 10 sub-seats + Topics Q&A authoring board.",
-      "cta": "Apply"
-    },
-    "includes": "What's included",
-    "everythingPlus": "Everything in Nexa Platform, plus:",
-    "features": {
-      "docs": "Automated documents (up to 3 templates)",
-      "docsUnlimited": "Unlimited access to all templates",
-      "news": "Business news",
-      "compliance": "Legal compliance check",
-      "operative": "Operational & HR check",
-      "marketing": "Marketing check",
-      "contract": "Contract analysis (legal + commercial)",
-      "ai": "AI assistance",
-      "satellites": "Presence on Nexa satellite sites",
-      "seats5": "Team of up to 5 users",
-      "seats10": "Team of up to 10 users",
-      "creditPool": "Larger AI + document credit pool",
-      "topics": "Expert answers on Nexa Topics",
-      "newsletter": "Monthly feature in the Nexa newsletter",
-      "priority": "Priority support"
-    },
-    "footnote": "All prices exclude VAT.",
-    "notAvailableForRole": "Only available at registration"
   },
   "gate": {
     "title": "Choose a plan to continue",

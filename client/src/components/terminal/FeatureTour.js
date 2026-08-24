@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { activeProduct } from '../../lib/storefront';
 import styles from '../../styles/terminal/FeatureTour.module.css';
 
 // v3: bumped when the sidebar sections became collapsible — the tour now
@@ -11,6 +12,8 @@ const MAX_TOUR_VIEWS = 3;
 // `data-tour="section-{key}"` attribute (set in components/terminal/
 // Sidebar.js). Sections start collapsed, so the tour points at the group
 // headers — the full map of the app: Администрирај → Набави → Расти → Учи.
+// This is the Product A (Basic / nexa.mk) layout — see PRO_TOUR_STEPS below
+// for the Product B (Pro / leads.nexa.mk) layout, which has different sections.
 const TOUR_STEPS = [
   {
     target: '[data-tour="section-administration"]',
@@ -38,8 +41,56 @@ const TOUR_STEPS = [
   }
 ];
 
+// Product B (Pro / leads.nexa.mk) layout — the primary "client-getting" group
+// has no section header (label:null), so those steps anchor directly to the
+// nav ITEMS via `data-tour="{item.key}"`; the drawer + education steps anchor
+// to their SECTION HEADERS via `data-tour="section-{key}"` (see config/nav.js).
+const PRO_TOUR_STEPS = [
+  {
+    target: '[data-tour="leads"]',
+    title: 'Случаи',
+    text: 'Твојот извор на клиенти: прегледувај дојдовни случаи од фирми и преземи ги оние што одговараат на твојата пракса.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="topicsqa"]',
+    title: 'Теми',
+    text: 'Одговарај на правни прашања под твое име — гради видливост и стручен авторитет, со SEO корист за твојот профил.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="marketing-hub"]',
+    title: 'Блог',
+    text: 'Објави статии под твое име на Nexa блогот и резервирај банер во билтенот до 1000+ претплатници.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="sales"]',
+    title: 'Потенцијални клиенти',
+    text: 'Лесен CRM: евидентирај и следи ги потенцијалните клиенти на едно место.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="section-pro-tools"]',
+    title: 'Алатки',
+    text: 'Сè за секојдневната работа: генерирај 45+ правни документи и клиентски профили, анализирај договори, прашај го Правниот AI, води предмети и провери усогласеност. Кликни за да ги видиш алатките.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="section-education-sec"]',
+    title: 'Едукација',
+    text: 'Кога учиш: курсеви и стручни содржини за бизнис и право. Добредојде во Nexa!',
+    position: 'right'
+  }
+];
+
+// The terminal shell is product-aware (domain-driven), so the tour must match
+// whichever sidebar layout the user actually sees, otherwise the step targets
+// don't exist and the tour collapses to a single leftover step.
+const BASE_STEPS = activeProduct() === 'B' ? PRO_TOUR_STEPS : TOUR_STEPS;
+
 const FeatureTour = () => {
-  const [steps, setSteps] = useState(TOUR_STEPS);
+  const [steps, setSteps] = useState(BASE_STEPS);
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState({});
@@ -53,7 +104,7 @@ const FeatureTour = () => {
     // Small delay to let the sidebar render, then keep only the steps whose
     // sidebar item actually exists for this user (tier predicates hide some).
     const timer = setTimeout(() => {
-      const present = TOUR_STEPS.filter((s) => document.querySelector(s.target));
+      const present = BASE_STEPS.filter((s) => document.querySelector(s.target));
       if (present.length === 0) return;
       setSteps(present);
       setIsVisible(true);

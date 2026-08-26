@@ -545,6 +545,42 @@ async function initializeServices(database) {
     app.use('/api/admin/subscriptions', subscriptionRoutes.adminRoutes(subscriptionController));
     console.log('✅ /api/subscription + /api/admin/subscriptions mounted');
 
+    // Outreach: contact lists (audiences) + daily drip sender. Reuses the promo
+    // code / ledger / cold-email-copy / email services above. Ships PAUSED — the
+    // scheduler fires daily but no-ops until an admin configures buckets and
+    // flips the toggle on (see config/dripConfig.js + outreach_drip_settings).
+    try {
+      const ContactListService = require('./services/contactListService');
+      const DripSettingsService = require('./services/dripSettingsService');
+      const DripSendService = require('./services/dripSendService');
+      const DripScheduler = require('./services/dripScheduler');
+      const OutreachController = require('./controllers/outreachController');
+      const outreachRoutes = require('./routes/outreach');
+
+      const contactListService = new ContactListService(database);
+      await contactListService.ensureIndexes();
+      const dripSettingsService = new DripSettingsService(database);
+      await dripSettingsService.ensureIndexes();
+      app.locals.contactListService = contactListService;
+      app.locals.dripSettingsService = dripSettingsService;
+
+      const dripSendService = new DripSendService({
+        contactListService, dripSettingsService, invitedProspectsService,
+        coldEmailTemplateService, promoCodeService, emailService,
+      });
+      const dripScheduler = new DripScheduler(dripSendService);
+      dripScheduler.start();
+      app.locals.dripScheduler = dripScheduler;
+
+      const outreachController = new OutreachController({
+        contactListService, dripSettingsService, dripScheduler,
+      });
+      app.use('/api/admin/outreach', outreachRoutes(outreachController));
+      console.log('✅ /api/admin/outreach mounted (drip scheduler started)');
+    } catch (e) {
+      console.error('⚠️  Outreach/drip init failed:', e.message);
+    }
+
     // Trial → paid reminders: emails a subscription-offer proforma to promo-trial
     // users during MK bank working hours (Mon–Fri 08–14). Idempotent per stage.
     try {

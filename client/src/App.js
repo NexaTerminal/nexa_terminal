@@ -30,6 +30,7 @@ import EnhancedManageUsers from './pages/terminal/admin/EnhancedManageUsers';
 import ManageSubscriptions from './pages/terminal/admin/ManageSubscriptions';
 import AllUsers from './pages/terminal/admin/AllUsers';
 import InvitedProspects from './pages/terminal/admin/InvitedProspects';
+import ContactLists from './pages/terminal/admin/ContactLists';
 import ProverkaFunnel from './pages/terminal/admin/ProverkaFunnel';
 import Team from './pages/terminal/admin-user/Team';
 import ProviderProfile from './pages/terminal/ProviderProfile';
@@ -445,6 +446,7 @@ function App() {
       <Route path="/terminal/admin/subscriptions" element={<PrivateRoute><ManageSubscriptions /></PrivateRoute>} />
       <Route path="/terminal/admin/all-users" element={<PrivateRoute><AllUsers /></PrivateRoute>} />
       <Route path="/terminal/admin/invited-prospects" element={<PrivateRoute><InvitedProspects /></PrivateRoute>} />
+      <Route path="/terminal/admin/contact-lists" element={<PrivateRoute><ContactLists /></PrivateRoute>} />
       <Route path="/terminal/admin/proverka-funnel" element={<PrivateRoute><ProverkaFunnel /></PrivateRoute>} />
       <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />

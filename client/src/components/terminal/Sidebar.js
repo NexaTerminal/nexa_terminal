@@ -87,6 +87,7 @@ const Sidebar = () => {
         { path: '/terminal/admin/subscriptions',           label: 'Претплати' },
         { path: '/terminal/admin/subscriptions?tab=codes', label: 'Промо кодови' },
         { path: '/terminal/admin/invited-prospects',       label: 'Поканети потенцијални корисници' },
+        { path: '/terminal/admin/contact-lists',           label: 'Контакт листи' },
         { path: '/terminal/admin/proverka-funnel',         label: 'Проверка — функел' },
         { path: '/terminal/admin/pro-invoices',            label: 'Профактури' }
       ]

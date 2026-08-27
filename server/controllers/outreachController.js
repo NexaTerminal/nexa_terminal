@@ -95,21 +95,48 @@ class OutreachController {
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
   }
 
-  /** CSV export — a single list (?listId=) or all lists (deduped by email). */
+  /**
+   * CSV export.
+   *   ?listId=<id> → a single list, flat table.
+   *   (no listId)  → ALL contacts in one file, split by list name with a section
+   *                  header per list and a per-list running number.
+   */
   async exportCsv(req, res) {
     try {
-      const listId = req.query.listId || null;
-      const rows = await this.lists.exportRows(listId);
-      const cols = ['email', 'name', 'company', 'list', 'type', 'status'];
       const esc = (v) => {
         const s = String(v == null ? '' : v);
         return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
       };
-      const lines = [cols.join(',')];
-      for (const r of rows) lines.push(cols.map((c) => esc(r[c])).join(','));
+      const listId = req.query.listId || null;
+      let lines;
+      let name;
+
+      if (listId) {
+        // Single list — flat table (unchanged behaviour).
+        const rows = await this.lists.exportRows(listId);
+        const cols = ['email', 'name', 'company', 'list', 'type', 'status'];
+        lines = [cols.join(',')];
+        for (const r of rows) lines.push(cols.map((c) => esc(r[c])).join(','));
+        name = 'contacts-list';
+      } else {
+        // All lists — one file, split by list name, numbered within each list.
+        const groups = await this.lists.exportGrouped();
+        const cols = ['Бр.', 'Име', 'Е-маил', 'Компанија', 'Статус'];
+        lines = [];
+        for (const g of groups) {
+          if (lines.length) lines.push('');                       // blank row between lists
+          lines.push(esc(`=== ${g.name} (${g.type}) — ${g.contacts.length} контакти ===`));
+          lines.push(cols.join(','));
+          g.contacts.forEach((c, i) => {
+            lines.push([i + 1, esc(c.name), esc(c.email), esc(c.company), esc(c.status)].join(','));
+          });
+        }
+        if (!lines.length) lines.push('Нема контакти.');
+        name = 'contacts-all';
+      }
+
       // Prepend a UTF-8 BOM so Excel reads the Cyrillic correctly.
       const csv = '﻿' + lines.join('\r\n');
-      const name = listId ? 'contacts-list' : 'contacts-all';
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${name}.csv"`);
       res.send(csv);

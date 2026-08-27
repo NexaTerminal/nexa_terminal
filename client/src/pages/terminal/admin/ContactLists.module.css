@@ -1,4 +1,4 @@
-.wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+.wrap { max-width: 1430px; margin: 0 auto; padding: 24px 20px 60px; }
 
 .pageHead { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
 .pageHead h1 { font-size: 24px; font-weight: 700; color: #0B1220; margin: 0; }
@@ -43,7 +43,7 @@
 .btnPrimary:disabled, .btnGhost:disabled { opacity: 0.5; cursor: default; }
 
 /* ── Two-column layout ── */
-.cols { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+.cols { display: grid; grid-template-columns: 440px 1fr; gap: 20px; align-items: start; }
 
 .listsCol { background: #fff; border: 1px solid #E6E8EC; border-radius: 14px; padding: 14px; }
 .listsTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -54,7 +54,7 @@
 .listLi { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
 .listLi:hover { background: #F6F8FA; }
 .listLi.active { background: #EEF4FF; }
-.listName { flex: 1; font-size: 14px; color: #0B1220; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listName { flex: 1 1 auto; min-width: 80px; font-size: 14px; color: #0B1220; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .count { font-size: 12px; color: #6B7280; background: #F3F4F6; border-radius: 12px; padding: 1px 8px; }
 .edit { border: none; background: none; color: #1E4DB7; cursor: pointer; font-size: 13px; opacity: 0.5; }
 .edit:hover { opacity: 1; }

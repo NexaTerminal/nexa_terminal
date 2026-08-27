@@ -251,6 +251,29 @@ class ContactListService {
     return rows;
   }
 
+  /**
+   * Grouped export for the "all contacts" CSV: every list (sorted by name) with
+   * its own contacts (sorted by name). NOT deduped — a contact that sits in two
+   * lists appears under each, since the file is split by list.
+   */
+  async exportGrouped() {
+    const lists = (await this.lists.find({}).toArray())
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'mk'));
+    const groups = [];
+    for (const l of lists) {
+      const contacts = (await this.contacts.find({ listId: l._id }).toArray())
+        .sort((a, b) => String(a.name || a.email || '').localeCompare(String(b.name || b.email || ''), 'mk'))
+        .map((c) => ({
+          email: c.email,
+          name: c.name || '',
+          company: c.company || '',
+          status: c.status || '',
+        }));
+      groups.push({ name: l.name || '', type: l.type || '', contacts });
+    }
+    return groups;
+  }
+
   async deleteContact(id) {
     if (!isValidId(id)) return false;
     const doc = await this.contacts.findOne({ _id: toId(id) }, { projection: { listId: 1 } });

@@ -359,7 +359,7 @@ export default function ContactLists() {
                       onBlur={() => saveRename(l._id)}
                     />
                   ) : (
-                    <span className={styles.listName}>{l.name}</span>
+                    <span className={styles.listName} title={l.name || 'Без име'}>{l.name || 'Без име'}</span>
                   )}
                   <span className={styles.count}>{l.contactCount || 0}</span>
                   <button className={styles.edit} title="Преименувај"

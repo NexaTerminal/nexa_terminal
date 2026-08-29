@@ -121,22 +121,52 @@ class ContractAnalysisService {
       suggestedQuestions: [],
     });
 
-    // Always inject the "which party are you" question if pre-scan omitted it
-    // and we have parties detected.
-    if (
-      preScan.parties?.length >= 2 &&
-      !preScan.suggestedQuestions?.some(q => q.id === 'user-role')
-    ) {
-      preScan.suggestedQuestions = [
-        {
-          id: 'user-role',
-          question: 'Која страна сте Вие во овој договор?',
-          type: 'single-choice',
-          options: preScan.parties.map(p => `${p.role} (${p.label})`),
-        },
-        ...(preScan.suggestedQuestions || []),
-      ].slice(0, 3);
+    // Curated intake questions. We deliberately DON'T use the model's own
+    // suggestedQuestions here (they drifted toward low-value prompts like
+    // "is it signed or being negotiated?"). Instead we ask a fixed set focused
+    // on what the user wants PROTECTED, so the analysis can advocate precisely.
+    // The model's pre-scan is still used for party/type detection above.
+    const questions = [];
+    if (preScan.parties?.length >= 2) {
+      questions.push({
+        id: 'user-role',
+        question: 'Која страна сте Вие во овој договор?',
+        type: 'single-choice',
+        options: preScan.parties.map(p => `${p.role} (${p.label})`),
+      });
     }
+    questions.push({
+      id: 'protect-priorities',
+      question: 'Што Ви е најважно да заштитите во овој договор? (изберете едно или повеќе)',
+      type: 'multi-choice',
+      options: [
+        'Навремено плаќање и наплата',
+        'Услови за раскинување и излез',
+        'Ограничување на одговорност и казни',
+        'Интелектуална сопственост и бренд',
+        'Доверливост на информации',
+        'Рокови и испорака',
+        'Ексклузивност и конкуренција',
+        'Квалитет и стандарди на производот/услугата',
+      ],
+    });
+    questions.push({
+      id: 'deal-goal',
+      question: 'Која е Вашата главна цел со овој договор?',
+      type: 'single-choice',
+      options: [
+        'Долгорочна и стабилна соработка',
+        'Еднократна трансакција',
+        'Минимизирање на ризик',
+        'Максимална флексибилност за излез',
+      ],
+    });
+    questions.push({
+      id: 'specific-concern',
+      question: 'Дали имате конкретна грижа или ситуација што сакате да ја провериме? (опционално)',
+      type: 'text',
+    });
+    preScan.suggestedQuestions = questions;
 
     const sessionId = crypto.randomUUID();
     this.sessions.set(sessionId, {
@@ -181,11 +211,22 @@ class ContractAnalysisService {
       throw err;
     }
 
+    // Re-key answers by their question TEXT (not the internal id) and flatten
+    // multi-select arrays, so the model reads "Што сакате да заштитите: …"
+    // instead of an opaque "protect-priorities". Empty answers are dropped.
+    const qLabels = new Map((session.preScan?.suggestedQuestions || []).map(q => [q.id, q.question]));
+    const labeledAnswers = {};
+    for (const [id, val] of Object.entries(userAnswers || {})) {
+      const v = Array.isArray(val) ? val.filter(Boolean).join(', ') : val;
+      if (v == null || String(v).trim() === '') continue;
+      labeledAnswers[qLabels.get(id) || id] = v;
+    }
+
     const stancePrefix = await this._getStancePrefix(userId);
     const messages = buildAnalysisMessages({
       contractText: session.contractText,
       userRole,
-      userAnswers,
+      userAnswers: labeledAnswers,
       contractType: session.preScan?.contractType,
       parties: session.preScan?.parties,
       stancePrefix,

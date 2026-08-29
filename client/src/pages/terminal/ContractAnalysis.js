@@ -117,7 +117,7 @@ export default function ContractAnalysis() {
               {isUploading && (
                 <div className={styles.statusBox}>
                   <div className={styles.spinner} />
-                  Читам го документот „{filename}"…
+                  Го читам документот „{filename}"…
                 </div>
               )}
             </>

@@ -86,6 +86,12 @@ class SubscriptionScheduler {
       }
     }
 
+    // 3. Safety net — suspend ANY lapsed 'active' sub the reminder path missed
+    // (e.g. reminder already marked sent, or a prior suspend that didn't stick).
+    // Reminder-independent, so status can never drift out of sync with expiry.
+    try { suspended += await this.subscriptionService.suspendExpired(); }
+    catch (e) { console.error('[SubscriptionScheduler] suspendExpired failed:', e.message); }
+
     console.log(`[SubscriptionScheduler] runDaily — reminders:${remindersSent} graces:${gracesGranted} suspended:${suspended} elapsed:${Date.now() - startedAt}ms`);
     return { remindersSent, gracesGranted, suspended };
   }

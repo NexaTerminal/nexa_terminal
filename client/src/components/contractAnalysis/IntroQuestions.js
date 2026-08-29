@@ -17,6 +17,13 @@ export default function IntroQuestions({ preScan, onSubmit, isAnalyzing }) {
 
   const handleChange = (id, value) => setAnswers(prev => ({ ...prev, [id]: value }));
 
+  // Toggle one option in a multi-choice answer (stored as an array).
+  const toggleMulti = (id, opt) => setAnswers(prev => {
+    const cur = Array.isArray(prev[id]) ? prev[id] : [];
+    const next = cur.includes(opt) ? cur.filter(o => o !== opt) : [...cur, opt];
+    return { ...prev, [id]: next };
+  });
+
   const handleSubmit = () => {
     let userRole = answers['user-role'] || roleFallback;
     if (!userRole) {
@@ -50,6 +57,23 @@ export default function IntroQuestions({ preScan, onSubmit, isAnalyzing }) {
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
+          ) : q.type === 'multi-choice' ? (
+            <div className={styles.chips}>
+              {(q.options || []).map(opt => {
+                const selected = Array.isArray(answers[q.id]) && answers[q.id].includes(opt);
+                return (
+                  <button
+                    type="button"
+                    key={opt}
+                    className={`${styles.chip} ${selected ? styles.chipSelected : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => toggleMulti(q.id, opt)}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
           ) : (
             <textarea
               className={styles.textarea}

@@ -479,6 +479,35 @@ class SubscriptionService {
     return { affectedSubSeats: 0 };
   }
 
+  /**
+   * Suspend every own-account subscription whose ACTIVE window has lapsed
+   * (endsAt in the past) with no live grace. Reminder-independent on purpose:
+   * an account must never stay 'active' past expiry just because its reminder
+   * was already marked sent. Mirrors the guard's request-time rule so the
+   * stored status matches what the guard already enforces. Idempotent; returns
+   * the number suspended. Cheap (indexed) and safe to run on every admin view.
+   */
+  async suspendExpired(now = new Date()) {
+    const expired = await this.users.find({
+      'subscription.status': SUBSCRIPTION_STATUSES.ACTIVE,
+      'subscription.endsAt': { $ne: null, $lte: now },
+      $or: [
+        { 'subscription.gracePeriod': null },
+        { 'subscription.gracePeriod.endsAt': { $exists: false } },
+        { 'subscription.gracePeriod.endsAt': null },
+        { 'subscription.gracePeriod.endsAt': { $lte: now } }
+      ]
+    }).project({ _id: 1 }).toArray();
+
+    let suspended = 0;
+    for (const u of expired) {
+      try { await this.suspend(u._id, { reason: 'auto: expired' }); suspended++; }
+      catch (e) { console.warn('[suspendExpired] failed for', String(u._id), e.message); }
+    }
+    if (suspended) console.log(`[suspendExpired] suspended ${suspended} lapsed subscription(s)`);
+    return suspended;
+  }
+
   async extend(userId, days) {
     if (typeof days !== 'number' || days <= 0) throw new Error('Invalid days');
     const user = await this.getUser(userId);

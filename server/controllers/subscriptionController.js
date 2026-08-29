@@ -564,6 +564,12 @@ class SubscriptionController {
 
   async listAll(req, res) {
     try {
+      // Self-heal before reading: flip any lapsed 'active' subs to 'suspended'
+      // so the table reflects real access state (matches what the guard already
+      // enforces at request time) instead of a stale stored status.
+      try { await this.subscriptionService.suspendExpired(); }
+      catch (e) { console.warn('[admin/subscriptions/list] suspendExpired failed:', e.message); }
+
       const { status, plan, page = 1, pageSize = 50 } = req.query;
       const q = {};
       if (status) q['subscription.status'] = status;

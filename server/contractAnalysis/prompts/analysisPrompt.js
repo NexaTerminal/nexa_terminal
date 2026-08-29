@@ -245,7 +245,7 @@ function buildAnalysisMessages({ contractText, userRole, userAnswers, contractTy
     contractText,
     '---',
     '',
-    'Изврши темелна анализа како застапник на корисникот и врати JSON според специфицираниот формат. Не прескокнувај ниту едно од задолжителните полиња (termination, penalties, licenses, liability, legalRisks, commercialRisks, commercialSummary, hiddenCosts, marketBenchmark, negotiationPlaybook).',
+    'Изврши темелна анализа како застапник на корисникот и врати JSON според специфицираниот формат. Ако корисникот наведе што сака да заштити и својата цел, дај им приоритет — прво и најдетално обработи ги точно тие теми, поврзувајќи ги со конкретни клаузули. Не прескокнувај ниту едно од задолжителните полиња (termination, penalties, licenses, liability, legalRisks, commercialRisks, commercialSummary, hiddenCosts, marketBenchmark, negotiationPlaybook).',
   ]
     .filter(Boolean)
     .join('\n');

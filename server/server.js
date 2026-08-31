@@ -163,6 +163,12 @@ app.use('/api/chc', subscriptionGuard, require('./routes/chc'));
 // Mount HHC (HR & Operational Health Check) routes (JWT-protected API)
 app.use('/api/hhc', subscriptionGuard, require('./routes/hhc'));
 
+// Outreach (admin: contact lists + daily drip). Mounted SYNCHRONOUSLY here so
+// the route exists the instant the server listens; its controller is resolved
+// late from app.locals (set in initializeServices). This avoids the 404 window
+// that late-mounting caused on Railway cold starts / partial deploys.
+app.use('/api/admin/outreach', require('./routes/outreach'));
+
 // Mount Virtual Fair routes (JWT-protected API). No subscriptionGuard here:
 // browsing is open to ALL authenticated users (incl. trial/suspended preview);
 // posting is gated per-route by requireBoothPoster (active paid plans only).
@@ -555,7 +561,6 @@ async function initializeServices(database) {
       const DripSendService = require('./services/dripSendService');
       const DripScheduler = require('./services/dripScheduler');
       const OutreachController = require('./controllers/outreachController');
-      const outreachRoutes = require('./routes/outreach');
 
       const contactListService = new ContactListService(database);
       await contactListService.ensureIndexes();
@@ -572,11 +577,12 @@ async function initializeServices(database) {
       dripScheduler.start();
       app.locals.dripScheduler = dripScheduler;
 
-      const outreachController = new OutreachController({
+      // The router is already mounted synchronously above; just expose the
+      // controller for it to resolve per request.
+      app.locals.outreachController = new OutreachController({
         contactListService, dripSettingsService, dripScheduler,
       });
-      app.use('/api/admin/outreach', outreachRoutes(outreachController));
-      console.log('✅ /api/admin/outreach mounted (drip scheduler started)');
+      console.log('✅ outreach controller ready (drip scheduler started)');
     } catch (e) {
       console.error('⚠️  Outreach/drip init failed:', e.message);
     }

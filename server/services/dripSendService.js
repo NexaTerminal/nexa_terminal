@@ -43,17 +43,22 @@ class DripSendService {
   /**
    * Run one drip pass. Returns a per-bucket summary. Honors the pause switch:
    * if settings.enabled is false, no-ops and reports paused:true.
+   *
+   * `onlyType` ('basic' | 'pro') restricts the pass to a single bucket — used by
+   * the admin "Send now" buttons that fire each audience independently. When
+   * omitted, both buckets run (the scheduled daily pass).
    */
-  async runOnce(now = new Date()) {
+  async runOnce(now = new Date(), onlyType = null) {
     const settings = await this.settings.get();
     if (!settings.enabled) {
       console.log('[Drip] runOnce skipped — paused (settings.enabled=false)');
       return { paused: true, basic: { sent: 0, failed: 0, skipped: 0 }, pro: { sent: 0, failed: 0, skipped: 0 } };
     }
     const since = this._startOfToday(now);
-    console.log(`[Drip] runOnce start — since=${since.toISOString()}`);
+    const types = onlyType ? [onlyType] : ['basic', 'pro'];
+    console.log(`[Drip] runOnce start — since=${since.toISOString()} types=${types.join(',')}`);
     const result = { paused: false };
-    for (const type of ['basic', 'pro']) {
+    for (const type of types) {
       result[type] = await this._runBucket(type, settings[type], since);
     }
     console.log('[Drip] runOnce done →', JSON.stringify({ basic: result.basic, pro: result.pro }));

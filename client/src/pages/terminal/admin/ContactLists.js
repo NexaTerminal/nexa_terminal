@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import MACEDONIAN_CITIES from '../../../data/macedonianCities';
 import styles from './ContactLists.module.css';
 
 const TYPE_LABEL = { basic: 'Basic', pro: 'Pro' };
@@ -154,14 +155,35 @@ export default function ContactLists() {
     finally { setBusy(false); }
   };
   const [ce, setCe] = useState('');
+  const emptyExtra = { company: '', city: '', name: '', other: '' };
+  const [showExtra, setShowExtra] = useState(false);
+  const [caExtra, setCaExtra] = useState(emptyExtra);
   const addOne = async () => {
     if (!selectedId || !ce.trim()) return;
     try {
-      await axios.post(`${api}/lists/${selectedId}/contacts`, { email: ce.trim() }, auth);
-      setCe('');
+      await axios.post(`${api}/lists/${selectedId}/contacts`, { email: ce.trim(), ...caExtra }, auth);
+      setCe(''); setCaExtra(emptyExtra); setShowExtra(false);
       loadContacts(selectedId); loadLists(); loadDrip();
     } catch (e) { fail(e.response?.data?.message || e.message); }
   };
+  // Per-contact detail editor (modal). `company` = назив, `name` = менаџер.
+  const [editContact, setEditContact] = useState(null); // the contact being edited
+  const [cForm, setCForm] = useState({ company: '', city: '', name: '', other: '' });
+  const openContact = (c) => {
+    setEditContact(c);
+    setCForm({ company: c.company || '', city: c.city || '', name: c.name || '', other: c.other || '' });
+  };
+  const closeContact = () => { setEditContact(null); };
+  const saveContact = async () => {
+    if (!editContact) return;
+    try {
+      await axios.put(`${api}/contacts/${editContact._id}`, cForm, auth);
+      closeContact();
+      notify('Контактот е зачуван.');
+      loadContacts(selectedId);
+    } catch (e) { fail(e.response?.data?.message || e.message); }
+  };
+
   const setContactStatus = async (contactId, status) => {
     try {
       await axios.put(`${api}/contacts/${contactId}`, { status }, auth);
@@ -193,16 +215,20 @@ export default function ContactLists() {
       notify(res.data.settings.enabled ? 'Дрипот е активиран.' : 'Дрипот е паузиран.');
     } catch (e) { fail(e.response?.data?.message || e.message); }
   };
-  const runNow = async () => {
-    setBusy(true);
+  // `type` restricts the send to one bucket ('basic' | 'pro'); omit for both.
+  const [busyType, setBusyType] = useState(null); // which send button is spinning
+  const runNow = async (type = null) => {
+    setBusy(true); setBusyType(type || 'all');
     try {
-      const res = await axios.post(`${api}/drip/run-now`, {}, auth);
+      const res = await axios.post(`${api}/drip/run-now`, type ? { type } : {}, auth);
       const r = res.data.result || {};
       if (r.paused) notify('Дрипот е паузиран — ништо не е испратено.');
+      else if (type === 'basic') notify(`Испратено — Basic: ${r.basic?.sent || 0}`);
+      else if (type === 'pro') notify(`Испратено — Pro: ${r.pro?.sent || 0}`);
       else notify(`Испратено — Basic: ${r.basic?.sent || 0}, Pro: ${r.pro?.sent || 0}`);
       loadDrip(); if (selectedId) loadContacts(selectedId);
     } catch (e) { fail(e.response?.data?.message || e.message); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setBusyType(null); }
   };
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -293,8 +319,11 @@ export default function ContactLists() {
               <button className={drip.enabled ? styles.btnWarn : styles.btnPrimary} onClick={togglePause}>
                 {drip.enabled ? 'Паузирај' : 'Активирај'}
               </button>
-              <button className={styles.btnGhost} onClick={runNow} disabled={busy}>
-                {busy ? '…' : 'Испрати сега'}
+              <button className={styles.btnGhost} onClick={() => runNow('basic')} disabled={busy}>
+                {busyType === 'basic' ? '…' : 'Испрати Basic'}
+              </button>
+              <button className={styles.btnGhost} onClick={() => runNow('pro')} disabled={busy}>
+                {busyType === 'pro' ? '…' : 'Испрати Pro'}
               </button>
             </div>
             <div className={styles.buckets}>
@@ -382,26 +411,48 @@ export default function ContactLists() {
                   <button className={styles.btnGhost} onClick={() => exportCsv(selected._id)}>Извези CSV</button>
                 </div>
                 <div className={styles.importBox}>
-                  <textarea rows={3} placeholder="Внеси е-маил адреси (по еден во ред, или email, име, фирма)"
+                  <textarea rows={3} placeholder={'Еден контакт во ред. Само е-маил, или со детали одвоени со запирка:\nemail@пример.мк, Назив на фирма, Град, Менаџер, Друго'}
                     value={pasteText} onChange={(e) => setPasteText(e.target.value)} />
                   <button className={styles.btnPrimary} onClick={importContacts} disabled={busy}>Увези</button>
                 </div>
+                <p className={styles.importHint}>
+                  Формат по ред: <code>е-маил, фирма, град, менаџер, друго</code> — само е-маилот е задолжителен, останатите колони се опционални.
+                </p>
                 <div className={styles.addOne}>
                   <input placeholder="еден е-маил" value={ce} onChange={(e) => setCe(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addOne()} />
-                  <button className={styles.btnGhost} onClick={addOne}>Додади</button>
+                  <button type="button" className={styles.btnGhost} onClick={() => setShowExtra((v) => !v)}>
+                    {showExtra ? '− детали' : '＋ детали'}
+                  </button>
+                  <button className={styles.btnPrimary} onClick={addOne}>Додади</button>
                 </div>
+                {showExtra && (
+                  <div className={styles.addExtra}>
+                    <input placeholder="Назив на фирма" value={caExtra.company}
+                      onChange={(e) => setCaExtra((f) => ({ ...f, company: e.target.value }))} />
+                    <select value={caExtra.city} onChange={(e) => setCaExtra((f) => ({ ...f, city: e.target.value }))}>
+                      <option value="">Град…</option>
+                      {MACEDONIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <input placeholder="Менаџер" value={caExtra.name}
+                      onChange={(e) => setCaExtra((f) => ({ ...f, name: e.target.value }))} />
+                    <input placeholder="Друго" value={caExtra.other}
+                      onChange={(e) => setCaExtra((f) => ({ ...f, other: e.target.value }))} />
+                  </div>
+                )}
                 <table className={styles.table}>
                   <thead>
-                    <tr><th>Е-маил</th><th>Фирма</th><th>Статус</th><th></th></tr>
+                    <tr><th>Е-маил</th><th>Фирма</th><th>Град</th><th>Менаџер</th><th>Статус</th><th></th></tr>
                   </thead>
                   <tbody>
                     {contacts.map((c) => (
-                      <tr key={c._id}>
+                      <tr key={c._id} className={styles.clickRow} onClick={() => openContact(c)} title="Кликни за да уредиш">
                         <td>{c.email}</td>
                         <td>{c.company || '—'}</td>
+                        <td>{c.city || '—'}</td>
+                        <td>{c.name || '—'}</td>
                         <td><span className={`${styles.st} ${styles['st_' + c.status]}`}>{STATUS_LABEL[c.status] || c.status}</span></td>
-                        <td className={styles.rowActions}>
+                        <td className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
                           {c.status !== 'pending' && (
                             <button className={styles.miniBtn} title="Врати во ред" onClick={() => setContactStatus(c._id, 'pending')}>↺</button>
                           )}
@@ -409,13 +460,55 @@ export default function ContactLists() {
                         </td>
                       </tr>
                     ))}
-                    {contacts.length === 0 && <tr><td colSpan={4} className={styles.empty}>Нема контакти.</td></tr>}
+                    {contacts.length === 0 && <tr><td colSpan={6} className={styles.empty}>Нема контакти.</td></tr>}
                   </tbody>
                 </table>
               </>
             )}
           </main>
         </div>
+
+        {/* Contact detail editor */}
+        {editContact && (
+          <div className={styles.overlay} onClick={closeContact}>
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHead}>
+                <h3>Уреди контакт</h3>
+                <button className={styles.modalClose} onClick={closeContact}>✕</button>
+              </div>
+              <label className={styles.field}>
+                Е-маил
+                <input value={editContact.email} readOnly disabled />
+              </label>
+              <label className={styles.field}>
+                Назив на фирма
+                <input value={cForm.company} placeholder="Назив на фирма"
+                  onChange={(e) => setCForm((f) => ({ ...f, company: e.target.value }))} />
+              </label>
+              <label className={styles.field}>
+                Град
+                <select value={cForm.city} onChange={(e) => setCForm((f) => ({ ...f, city: e.target.value }))}>
+                  <option value="">— избери град —</option>
+                  {MACEDONIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+              <label className={styles.field}>
+                Менаџер / контакт лице
+                <input value={cForm.name} placeholder="Име и презиме"
+                  onChange={(e) => setCForm((f) => ({ ...f, name: e.target.value }))} />
+              </label>
+              <label className={styles.field}>
+                Друго
+                <textarea rows={3} value={cForm.other} placeholder="Дополнителни белешки"
+                  onChange={(e) => setCForm((f) => ({ ...f, other: e.target.value }))} />
+              </label>
+              <div className={styles.modalFoot}>
+                <button className={styles.btnGhost} onClick={closeContact}>Откажи</button>
+                <button className={styles.btnPrimary} onClick={saveContact}>Зачувај</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </TerminalShell>
   );

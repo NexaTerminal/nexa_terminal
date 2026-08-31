@@ -729,8 +729,9 @@ function SendInviteModal({ code, token, onClose, onDone, onError }) {
   const selectedName = templates.find(t => t._id === selectedTpl)?.name;
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720 }}>
+    <div className={styles.modalBackdrop}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, position: 'relative' }}>
+        <button type="button" className={styles.inviteClose} onClick={onClose} title="Затвори" aria-label="Затвори">✕</button>
         <h2>Send invite — {code}</h2>
         <p className={styles.modalSub}>
           Pick a saved text or edit below. Write in normal text — it's formatted into the email automatically.

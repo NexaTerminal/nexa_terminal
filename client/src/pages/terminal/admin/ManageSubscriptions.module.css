@@ -217,6 +217,20 @@
   padding: 28px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.20);
 }
+.inviteClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #9CA3AF;
+  padding: 6px;
+  border-radius: 8px;
+}
+.inviteClose:hover { color: #0B1220; background: #F3F4F6; }
 .modal h2 {
   font-size: 20px;
   font-weight: 700;

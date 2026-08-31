@@ -114,21 +114,21 @@ class OutreachController {
       if (listId) {
         // Single list — flat table (unchanged behaviour).
         const rows = await this.lists.exportRows(listId);
-        const cols = ['email', 'name', 'company', 'list', 'type', 'status'];
+        const cols = ['email', 'company', 'city', 'name', 'other', 'list', 'type', 'status'];
         lines = [cols.join(',')];
         for (const r of rows) lines.push(cols.map((c) => esc(r[c])).join(','));
         name = 'contacts-list';
       } else {
         // All lists — one file, split by list name, numbered within each list.
         const groups = await this.lists.exportGrouped();
-        const cols = ['Бр.', 'Име', 'Е-маил', 'Компанија', 'Статус'];
+        const cols = ['Бр.', 'Е-маил', 'Компанија', 'Град', 'Менаџер', 'Друго', 'Статус'];
         lines = [];
         for (const g of groups) {
           if (lines.length) lines.push('');                       // blank row between lists
           lines.push(esc(`=== ${g.name} (${g.type}) — ${g.contacts.length} контакти ===`));
           lines.push(cols.join(','));
           g.contacts.forEach((c, i) => {
-            lines.push([i + 1, esc(c.name), esc(c.email), esc(c.company), esc(c.status)].join(','));
+            lines.push([i + 1, esc(c.email), esc(c.company), esc(c.city), esc(c.name), esc(c.other), esc(c.status)].join(','));
           });
         }
         if (!lines.length) lines.push('Нема контакти.');
@@ -170,11 +170,16 @@ class OutreachController {
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
   }
 
-  /** Manually fire a drip pass now (still respects pause + daily top-up). */
+  /**
+   * Manually fire a drip pass now (still respects pause + daily top-up).
+   * Optional body { type: 'basic' | 'pro' } fires a single bucket.
+   */
   async runNow(req, res) {
     try {
       if (!this.scheduler) return res.status(503).json({ success: false, message: 'Дрип не е достапен.' });
-      const result = await this.scheduler.runNow();
+      const type = req.body?.type;
+      const onlyType = (type === 'basic' || type === 'pro') ? type : null;
+      const result = await this.scheduler.runNow(onlyType);
       res.json({ success: true, result });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
   }

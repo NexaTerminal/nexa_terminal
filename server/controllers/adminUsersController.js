@@ -16,7 +16,7 @@ const { ObjectId } = require('mongodb');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const Joi = require('joi');
-const { ROLES, PLANS, PLAN_SEATS, isValidPlan } = require('../constants/roles');
+const { ROLES, PLANS, PLAN_SEATS, isValidPlan, SUBSCRIPTION_STATUSES } = require('../constants/roles');
 
 const toObjectId = (id) => (id instanceof ObjectId ? id : new ObjectId(id));
 
@@ -104,6 +104,67 @@ class AdminUsersController {
       });
     } catch (err) {
       console.error('[admin/all-users list] error:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /**
+   * GET /api/admin/all-users/summary — small headline counters for the list page.
+   *
+   * NOTE on the data model: there is no `status: 'trial'`. Both trial flavours are
+   * stored as `status: 'active'` + `paidVia: 'promo'` (see subscriptionService):
+   *   - 8-day self-serve trial → also carries `subscription.trial === true`
+   *   - promo-link / code redemption → `subscription.trial` absent, notes `promo:*`
+   * The `trial` flag and `paidVia` survive an auto-suspend (suspend() only rewrites
+   * status + notes), so we can still classify finished trials after expiry.
+   */
+  async summary(req, res) {
+    try {
+      const db = req.app.locals.db || req.app.locals.database;
+      const users = db.collection('users');
+      const now = new Date();
+
+      const ACTIVE  = SUBSCRIPTION_STATUSES.ACTIVE;
+      const live    = { 'subscription.status': ACTIVE, 'subscription.endsAt': { $gt: now } };
+      // A promo/trial period counts as "finished" once suspended, cancelled, or
+      // simply lapsed (endsAt passed) even if the sweep hasn't flipped it yet.
+      const finished = {
+        $or: [
+          { 'subscription.status': { $in: [SUBSCRIPTION_STATUSES.SUSPENDED, SUBSCRIPTION_STATUSES.CANCELLED] } },
+          { 'subscription.endsAt': { $ne: null, $lte: now } }
+        ]
+      };
+
+      const [
+        total,
+        trial8Active,
+        promoActive,
+        paidActive,
+        trialFinished,
+        pending,
+        suspended,
+        subSeats
+      ] = await Promise.all([
+        users.countDocuments({}),
+        // 8-day self-serve trial, still running
+        users.countDocuments({ ...live, 'subscription.paidVia': 'promo', 'subscription.trial': true }),
+        // promo-link / code trial, still running (not the self-serve 8-day flag)
+        users.countDocuments({ ...live, 'subscription.paidVia': 'promo', 'subscription.trial': { $ne: true } }),
+        // genuinely paid + live (bank transfer, not a promo/trial)
+        users.countDocuments({ ...live, 'subscription.paidVia': { $ne: 'promo' } }),
+        // any promo/trial (either flavour) whose free window has ended
+        users.countDocuments({ 'subscription.paidVia': 'promo', ...finished }),
+        users.countDocuments({ 'subscription.status': SUBSCRIPTION_STATUSES.PENDING_APPROVAL }),
+        users.countDocuments({ 'subscription.status': SUBSCRIPTION_STATUSES.SUSPENDED }),
+        users.countDocuments({ role: ROLES.SUB_SEAT })
+      ]);
+
+      res.json({
+        success: true,
+        summary: { total, trial8Active, promoActive, paidActive, trialFinished, pending, suspended, subSeats }
+      });
+    } catch (err) {
+      console.error('[admin/all-users summary] error:', err);
       res.status(500).json({ success: false, message: err.message });
     }
   }

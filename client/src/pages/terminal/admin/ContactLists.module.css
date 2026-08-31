@@ -75,8 +75,13 @@
 
 .importBox { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; margin-bottom: 10px; }
 .importBox textarea { width: 100%; resize: vertical; font-family: inherit; }
-.addOne { display: flex; gap: 8px; margin-bottom: 16px; }
+.importHint { font-size: 12px; color: #6B7280; margin: -4px 0 12px; }
+.importHint code { background: #F3F4F6; border-radius: 4px; padding: 1px 6px; font-size: 11.5px; color: #374151; }
+.addOne { display: flex; gap: 8px; margin-bottom: 10px; }
 .addOne input { flex: 1; }
+.addExtra { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.addExtra input, .addExtra select { width: 100%; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; }
+@media (max-width: 640px) { .addExtra { grid-template-columns: 1fr 1fr; } }
 
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #9CA3AF; padding: 8px 10px; border-bottom: 1px solid #EEF0F3; }
@@ -92,6 +97,20 @@
 .st_sent { background: #ECFDF5; color: #047857; }
 .st_failed { background: #FEF2F2; color: #B91C1C; }
 .st_unsubscribed { background: #FEF3C7; color: #92400E; }
+
+.clickRow { cursor: pointer; }
+.clickRow:hover td { background: #F9FAFB; }
+
+/* Contact detail editor modal */
+.overlay { position: fixed; inset: 0; background: rgba(11, 18, 32, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal { background: #fff; border-radius: 14px; width: 100%; max-width: 440px; padding: 22px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); }
+.modalHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.modalHead h3 { margin: 0; font-size: 17px; color: #0B1220; }
+.modalClose { border: none; background: none; cursor: pointer; font-size: 16px; color: #9CA3AF; padding: 4px; }
+.modalClose:hover { color: #0B1220; }
+.modal .field textarea { width: 100%; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 10px; font-size: 14px; font-family: inherit; resize: vertical; }
+.modal .field input:disabled { background: #F3F4F6; color: #6B7280; }
+.modalFoot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
 
 @media (max-width: 860px) {
   .cols { grid-template-columns: 1fr; }

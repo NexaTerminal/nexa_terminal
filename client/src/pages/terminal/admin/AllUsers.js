@@ -60,6 +60,7 @@ export default function AllUsers() {
   const [error, setError] = useState('');
   const [flash, setFlash] = useState('');
   const [detail, setDetail] = useState(null);
+  const [summary, setSummary] = useState(null);
   const [credsReveal, setCredsReveal] = useState(null); // { email, tempPassword }
   const [deleteTarget, setDeleteTarget] = useState(null); // user doc to confirm deletion
   const [backingUp, setBackingUp] = useState(false);
@@ -83,7 +84,31 @@ export default function AllUsers() {
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
+  useEffect(() => {
+    let cancelled = false;
+    axios.get('/api/admin/all-users/summary', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => { if (!cancelled) setSummary(res.data?.summary || null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [token]);
+
   const showFlash = (m) => { setFlash(m); setTimeout(() => setFlash(''), 3500); };
+
+  // Quick-suspend straight from the row (same endpoint as the detail drawer).
+  const [suspendingId, setSuspendingId] = useState(null);
+  const handleSuspend = async (user) => {
+    if (!window.confirm(`Суспендирај го ${user.email || user.username}? Податоците остануваат, пристапот до функциите се блокира.`)) return;
+    setSuspendingId(user._id); setError('');
+    try {
+      await axios.post(`/api/admin/subscriptions/${user._id}/suspend`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showFlash('Корисникот е суспендиран.');
+      fetchList();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally { setSuspendingId(null); }
+  };
 
   const downloadBackup = async () => {
     setBackingUp(true); setError('');
@@ -125,6 +150,19 @@ export default function AllUsers() {
             {backingUp ? 'Се подготвува…' : '⬇ Бекап на базата'}
           </button>
         </div>
+
+        {summary && (
+          <div className={styles.statStrip}>
+            <StatBox label="Вкупно корисници" value={summary.total} />
+            <StatBox label="Пробен 8 дена" value={summary.trial8Active} />
+            <StatBox label="Пробен преку линк" value={summary.promoActive} />
+            <StatBox label="Платени активни" value={summary.paidActive} />
+            <StatBox label="Истечен пробен" value={summary.trialFinished} />
+            <StatBox label="На чекање" value={summary.pending} />
+            <StatBox label="Суспендирани" value={summary.suspended} />
+            <StatBox label="Под-сметки" value={summary.subSeats} />
+          </div>
+        )}
 
         <div className={styles.toolbar}>
           <input
@@ -201,14 +239,16 @@ export default function AllUsers() {
                         <button className={styles.btnGhost} onClick={(e) => { e.stopPropagation(); setDetail(u._id); }}>
                           Управувај
                         </button>
-                        <a
-                          className={styles.btnGhost}
-                          href={`/terminal/billing?user=${u._id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ marginLeft: 6, textDecoration: 'none' }}
-                        >
-                          Сметководство
-                        </a>
+                        {u.role !== 'admin' && u.role !== 'sub_seat' && sub.status !== 'suspended' && (
+                          <button
+                            className={styles.btnGhost}
+                            onClick={(e) => { e.stopPropagation(); handleSuspend(u); }}
+                            disabled={suspendingId === u._id}
+                            style={{ marginLeft: 6, color: '#B45309', borderColor: '#FDE68A' }}
+                          >
+                            {suspendingId === u._id ? 'Се суспендира…' : '⛔ Суспендирај'}
+                          </button>
+                        )}
                         {u.role !== 'admin' && (
                           <button
                             className={styles.btnGhost}

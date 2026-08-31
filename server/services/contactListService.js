@@ -134,7 +134,7 @@ class ContactListService {
     return this.contacts.find(q).sort({ createdAt: 1 }).limit(Math.min(limit, 2000)).toArray();
   }
 
-  async addContact(listId, { email, name, company }) {
+  async addContact(listId, { email, name, company, city, other }) {
     if (!isValidId(listId)) return { ok: false, reason: 'bad_list' };
     const e = normEmail(email);
     if (!isEmail(e)) return { ok: false, reason: 'bad_email' };
@@ -147,6 +147,7 @@ class ContactListService {
       await this.contacts.insertOne({
         listId: toId(listId), email: e,
         name: clean(name, 160), company: clean(company, 200),
+        city: clean(city, 120), other: clean(other, 500),
         status: 'pending', sentAt: null, createdAt: now, updatedAt: now,
       });
       await this._recount(listId);
@@ -158,8 +159,10 @@ class ContactListService {
   }
 
   /**
-   * Bulk import from pasted text. Accepts newline/comma/semicolon-separated
-   * lines; each line may be "email" or "email, name, company". Returns counts.
+   * Bulk import from pasted text. One contact per line; columns are separated by
+   * comma / semicolon / tab in this order:
+   *   email, company, city, manager, other
+   * Only the email is required — trailing columns may be omitted. Returns counts.
    */
   async bulkImport(listId, rawText) {
     if (!isValidId(listId)) return { added: 0, duplicates: 0, invalid: 0 };
@@ -168,13 +171,18 @@ class ContactListService {
     const now = new Date();
 
     // Parse + dedup within the pasted block first.
-    const rows = new Map(); // email → { name, company }
+    const rows = new Map(); // email → { company, city, name, other }
     for (const line of lines) {
       const parts = line.split(/[,;\t]/).map((p) => p.trim());
       const e = normEmail(parts[0]);
       if (!isEmail(e)) { invalid++; continue; }
       if (rows.has(e)) { duplicates++; continue; }
-      rows.set(e, { name: clean(parts[1], 160), company: clean(parts[2], 200) });
+      rows.set(e, {
+        company: clean(parts[1], 200),
+        city: clean(parts[2], 120),
+        name: clean(parts[3], 160),
+        other: clean(parts[4], 500),
+      });
     }
 
     // Global dedup: drop any email already present in ANY list (not just this one).
@@ -192,6 +200,7 @@ class ContactListService {
       const docs = [...rows.entries()].map(([email, meta]) => ({
         listId: toId(listId), email,
         name: meta.name, company: meta.company,
+        city: meta.city, other: meta.other,
         status: 'pending', sentAt: null, createdAt: now, updatedAt: now,
       }));
       try {
@@ -207,11 +216,13 @@ class ContactListService {
     return { added, duplicates, invalid };
   }
 
-  async updateContact(id, { name, company, status }) {
+  async updateContact(id, { name, company, city, other, status }) {
     if (!isValidId(id)) return null;
     const $set = { updatedAt: new Date() };
     if (name !== undefined) $set.name = clean(name, 160);
     if (company !== undefined) $set.company = clean(company, 200);
+    if (city !== undefined) $set.city = clean(city, 120);
+    if (other !== undefined) $set.other = clean(other, 500);
     if (status !== undefined && VALID_STATUS.has(status)) {
       $set.status = status;
       if (status === 'pending') $set.sentAt = null; // requeue
@@ -243,6 +254,8 @@ class ContactListService {
         email: c.email,
         name: c.name || '',
         company: c.company || '',
+        city: c.city || '',
+        other: c.other || '',
         list: l?.name || '',
         type: l?.type || '',
         status: c.status || '',
@@ -267,6 +280,8 @@ class ContactListService {
           email: c.email,
           name: c.name || '',
           company: c.company || '',
+          city: c.city || '',
+          other: c.other || '',
           status: c.status || '',
         }));
       groups.push({ name: l.name || '', type: l.type || '', contacts });

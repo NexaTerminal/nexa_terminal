@@ -38,9 +38,12 @@ class DripScheduler {
     }
   }
 
-  /** Manual trigger (admin "Run now"). Still respects pause + daily top-up. */
-  async runNow() {
-    return this.service.runOnce(new Date());
+  /**
+   * Manual trigger (admin "Run now"). Still respects pause + daily top-up.
+   * `onlyType` ('basic' | 'pro') restricts the pass to one bucket.
+   */
+  async runNow(onlyType = null) {
+    return this.service.runOnce(new Date(), onlyType);
   }
 
   stop() {

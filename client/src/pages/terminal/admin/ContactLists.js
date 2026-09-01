@@ -27,6 +27,9 @@ export default function ContactLists() {
   const [flash, setFlash] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState('');
+  const [results, setResults] = useState(null); // null = not searching; [] = no hits
+  const [searchNonce, setSearchNonce] = useState(0); // bump to re-run the active search
 
   const notify = (m) => { setFlash(m); setError(''); setTimeout(() => setFlash(''), 4000); };
   const fail = (m) => { setError(m); setTimeout(() => setError(''), 6000); };
@@ -68,6 +71,20 @@ export default function ContactLists() {
 
   useEffect(() => { loadLists(); loadDrip(); loadAux(); }, [loadLists, loadDrip, loadAux]);
   useEffect(() => { loadContacts(selectedId); }, [selectedId, loadContacts]);
+
+  // Global contact search (across all lists), debounced. Clears to the normal
+  // per-list view when the box is emptied.
+  useEffect(() => {
+    const q = search.trim();
+    if (q.length < 2) { setResults(null); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await axios.get(`${api}/search`, { ...auth, params: { q } });
+        setResults(res.data.contacts || []);
+      } catch (e) { fail(e.response?.data?.message || e.message); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [search, searchNonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selected = lists.find((l) => l._id === selectedId);
 
@@ -127,18 +144,26 @@ export default function ContactLists() {
   };
 
   // Export to CSV (opens in Excel). Fetched as a blob so the auth header rides
-  // along; `listId` omitted → all lists, deduped by email server-side.
-  const exportCsv = async (listId) => {
+  // along. `query` selects the scope:
+  //   ''                    → all lists (grouped, deduped server-side)
+  //   '?listId=<id>'        → one list, flat table
+  //   '?listIds=a,b,c'      → the selected lists, grouped
+  const download = async (query, filename) => {
     try {
-      const url = `${api}/export${listId ? `?listId=${listId}` : ''}`;
-      const res = await axios.get(url, { ...auth, responseType: 'blob' });
+      const res = await axios.get(`${api}/export${query}`, { ...auth, responseType: 'blob' });
       const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = listId ? 'contacts-list.csv' : 'contacts-all.csv';
+      a.download = filename;
       document.body.appendChild(a); a.click(); a.remove();
       window.URL.revokeObjectURL(blobUrl);
     } catch (e) { fail(e.response?.data?.message || e.message); }
+  };
+  const exportCsv = (listId) =>
+    download(listId ? `?listId=${listId}` : '', listId ? 'contacts-list.csv' : 'contacts-all.csv');
+  const exportSelectedCsv = () => {
+    if (mergeSel.length === 0) return;
+    download(`?listIds=${mergeSel.join(',')}`, 'contacts-selected.csv');
   };
 
   // ── Contact actions ───────────────────────────────────────────────────
@@ -180,20 +205,21 @@ export default function ContactLists() {
       await axios.put(`${api}/contacts/${editContact._id}`, cForm, auth);
       closeContact();
       notify('Контактот е зачуван.');
-      loadContacts(selectedId);
+      loadContacts(selectedId); refreshSearch();
     } catch (e) { fail(e.response?.data?.message || e.message); }
   };
 
+  const refreshSearch = () => { if (results !== null) setSearchNonce((n) => n + 1); };
   const setContactStatus = async (contactId, status) => {
     try {
       await axios.put(`${api}/contacts/${contactId}`, { status }, auth);
-      loadContacts(selectedId); loadDrip();
+      loadContacts(selectedId); loadDrip(); refreshSearch();
     } catch (e) { fail(e.response?.data?.message || e.message); }
   };
   const deleteContact = async (contactId) => {
     try {
       await axios.delete(`${api}/contacts/${contactId}`, auth);
-      loadContacts(selectedId); loadLists(); loadDrip();
+      loadContacts(selectedId); loadLists(); loadDrip(); refreshSearch();
     } catch (e) { fail(e.response?.data?.message || e.message); }
   };
 
@@ -361,6 +387,7 @@ export default function ContactLists() {
                   })}
                 </select>
                 <button className={styles.btnPrimary} onClick={doMerge}>Спој</button>
+                <button className={styles.btnGhost} onClick={exportSelectedCsv}>Извези избрани (CSV)</button>
                 <button className={styles.btnGhost} onClick={() => { setMergeSel([]); setMergeTarget(''); }}>Откажи</button>
               </div>
             )}
@@ -403,8 +430,57 @@ export default function ContactLists() {
 
           {/* Contacts */}
           <main className={styles.contactsCol}>
-            {!selected && <div className={styles.placeholder}>Избери листа за да ги видиш контактите.</div>}
-            {selected && (
+            <div className={styles.searchBox}>
+              <input
+                type="text"
+                placeholder="🔍 Пребарај контакт (е-маил, фирма, град, менаџер) низ сите листи…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && <button className={styles.btnGhost} onClick={() => setSearch('')}>Исчисти</button>}
+            </div>
+
+            {/* Global search results — shown whenever the search box is active. */}
+            {results !== null && (
+              <>
+                <div className={styles.contactsHead}>
+                  <h2>Резултати од пребарување <span className={styles.count}>{results.length}</span></h2>
+                </div>
+                <table className={styles.table}>
+                  <thead>
+                    <tr><th>Е-маил</th><th>Фирма</th><th>Град</th><th>Менаџер</th><th>Листа</th><th>Статус</th><th></th></tr>
+                  </thead>
+                  <tbody>
+                    {results.map((c) => (
+                      <tr key={c._id} className={styles.clickRow} onClick={() => openContact(c)} title="Кликни за да уредиш">
+                        <td>{c.email}</td>
+                        <td>{c.company || '—'}</td>
+                        <td>{c.city || '—'}</td>
+                        <td>{c.name || '—'}</td>
+                        <td>
+                          <button className={styles.linkBtn}
+                            onClick={(e) => { e.stopPropagation(); setSearch(''); setSelectedId(c.listId); }}
+                            title="Отвори ја листата">
+                            <span className={`${styles.badge} ${styles[c.listType]}`}>{TYPE_LABEL[c.listType] || c.listType}</span> {c.listName || '—'}
+                          </button>
+                        </td>
+                        <td><span className={`${styles.st} ${styles['st_' + c.status]}`}>{STATUS_LABEL[c.status] || c.status}</span></td>
+                        <td className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
+                          {c.status !== 'pending' && (
+                            <button className={styles.miniBtn} title="Врати во ред" onClick={() => setContactStatus(c._id, 'pending')}>↺</button>
+                          )}
+                          <button className={styles.miniDel} onClick={() => deleteContact(c._id)}>✕</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {results.length === 0 && <tr><td colSpan={7} className={styles.empty}>Нема совпаѓања.</td></tr>}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+            {results === null && !selected && <div className={styles.placeholder}>Избери листа за да ги видиш контактите.</div>}
+            {results === null && selected && (
               <>
                 <div className={styles.contactsHead}>
                   <h2>{selected.name} <span className={`${styles.badge} ${styles[selected.type]}`}>{TYPE_LABEL[selected.type]}</span></h2>

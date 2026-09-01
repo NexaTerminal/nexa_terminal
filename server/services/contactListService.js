@@ -134,6 +134,28 @@ class ContactListService {
     return this.contacts.find(q).sort({ createdAt: 1 }).limit(Math.min(limit, 2000)).toArray();
   }
 
+  /**
+   * Global contact search across every list. Matches `q` (case-insensitive) on
+   * email / company / city / name and returns the hit plus its list name+type,
+   * so the admin can locate a contact without knowing which list it sits in.
+   */
+  async searchContacts(q, { limit = 100 } = {}) {
+    const term = String(q || '').trim();
+    if (term.length < 2) return [];
+    const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const contacts = await this.contacts
+      .find({ $or: [{ email: rx }, { company: rx }, { city: rx }, { name: rx }] })
+      .limit(Math.min(limit, 500))
+      .toArray();
+    if (contacts.length === 0) return [];
+    const lists = await this.lists.find({}).toArray();
+    const listMap = new Map(lists.map((l) => [String(l._id), l]));
+    return contacts.map((c) => {
+      const l = listMap.get(String(c.listId));
+      return { ...c, listName: l?.name || '', listType: l?.type || '' };
+    });
+  }
+
   async addContact(listId, { email, name, company, city, other }) {
     if (!isValidId(listId)) return { ok: false, reason: 'bad_list' };
     const e = normEmail(email);
@@ -268,9 +290,13 @@ class ContactListService {
    * Grouped export for the "all contacts" CSV: every list (sorted by name) with
    * its own contacts (sorted by name). NOT deduped — a contact that sits in two
    * lists appears under each, since the file is split by list.
+   *
+   * `listIds` (array) restricts the export to just those lists; null/empty → all.
    */
-  async exportGrouped() {
-    const lists = (await this.lists.find({}).toArray())
+  async exportGrouped(listIds = null) {
+    const ids = Array.isArray(listIds) ? listIds.filter(isValidId).map(toId) : null;
+    const q = ids && ids.length ? { _id: { $in: ids } } : {};
+    const lists = (await this.lists.find(q).toArray())
       .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'mk'));
     const groups = [];
     for (const l of lists) {

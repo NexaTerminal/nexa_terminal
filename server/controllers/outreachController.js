@@ -61,6 +61,14 @@ class OutreachController {
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
   }
 
+  /** GET /search?q=… — find contacts across all lists. */
+  async searchContacts(req, res) {
+    try {
+      const contacts = await this.lists.searchContacts(req.query.q, { limit: 100 });
+      res.json({ success: true, contacts });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+  }
+
   async addContact(req, res) {
     try {
       const r = await this.lists.addContact(req.params.id, req.body || {});
@@ -97,9 +105,10 @@ class OutreachController {
 
   /**
    * CSV export.
-   *   ?listId=<id> → a single list, flat table.
-   *   (no listId)  → ALL contacts in one file, split by list name with a section
-   *                  header per list and a per-list running number.
+   *   ?listId=<id>          → a single list, flat table.
+   *   ?listIds=<id>,<id>,…  → the selected lists, split by list name (grouped).
+   *   (neither)             → ALL contacts in one file, split by list name with a
+   *                           section header per list and a per-list running number.
    */
   async exportCsv(req, res) {
     try {
@@ -108,6 +117,7 @@ class OutreachController {
         return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
       };
       const listId = req.query.listId || null;
+      const listIds = (req.query.listIds || '').split(',').map((s) => s.trim()).filter(Boolean);
       let lines;
       let name;
 
@@ -119,8 +129,9 @@ class OutreachController {
         for (const r of rows) lines.push(cols.map((c) => esc(r[c])).join(','));
         name = 'contacts-list';
       } else {
-        // All lists — one file, split by list name, numbered within each list.
-        const groups = await this.lists.exportGrouped();
+        // Selected lists (listIds) or all lists — one file, split by list name,
+        // numbered within each list.
+        const groups = await this.lists.exportGrouped(listIds.length ? listIds : null);
         const cols = ['Бр.', 'Е-маил', 'Компанија', 'Град', 'Менаџер', 'Друго', 'Статус'];
         lines = [];
         for (const g of groups) {
@@ -132,7 +143,7 @@ class OutreachController {
           });
         }
         if (!lines.length) lines.push('Нема контакти.');
-        name = 'contacts-all';
+        name = listIds.length ? 'contacts-selected' : 'contacts-all';
       }
 
       // Prepend a UTF-8 BOM so Excel reads the Cyrillic correctly.

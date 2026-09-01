@@ -39,7 +39,8 @@ router.delete('/lists/:id',     (req, res) => req.outreach.deleteList(req, res))
 router.post('/lists/merge',     (req, res) => req.outreach.mergeLists(req, res));
 router.get('/export',           (req, res) => req.outreach.exportCsv(req, res));
 
-// Contacts within a list
+// Contacts
+router.get('/search',                (req, res) => req.outreach.searchContacts(req, res));
 router.get('/lists/:id/contacts',    (req, res) => req.outreach.getContacts(req, res));
 router.post('/lists/:id/contacts',   (req, res) => req.outreach.addContact(req, res));
 router.post('/lists/:id/import',     (req, res) => req.outreach.importContacts(req, res));

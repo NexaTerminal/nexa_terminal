@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import LhcDisclaimer from '../../../components/terminal/lhc/LhcDisclaimer';
 import LhcCoverageNote from '../../../components/terminal/lhc/LhcCoverageNote';
+import LhcAiNarrative from '../../../components/terminal/lhc/LhcAiNarrative';
+import LhcFindingActions from '../../../components/terminal/lhc/LhcFindingActions';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import api from '../../../services/api';
@@ -173,6 +175,9 @@ const GeneralReport = () => {
               </div>
             </div>
 
+            {/* AI advisory summary */}
+            <LhcAiNarrative assessmentId={assessment._id} />
+
             {/* Category Breakdown */}
             {assessment.categoryBreakdown && (
               <div className={styles["category-breakdown-section"]}>
@@ -224,12 +229,15 @@ const GeneralReport = () => {
                       <div className={styles["recommendation-checkbox"]}>
                         <input type="checkbox" id={`rec-${index}`} />
                       </div>
-                      <label htmlFor={`rec-${index}`} className={styles["recommendation-text"]}>
-                        <span className={styles["recommendation-category-badge"]}>
-                          {recommendation.sourceCategoryName}
-                        </span>
-                        {recommendation.text}
-                      </label>
+                      <div className={styles["recommendation-body"]}>
+                        <label htmlFor={`rec-${index}`} className={styles["recommendation-text"]}>
+                          <span className={styles["recommendation-category-badge"]}>
+                            {recommendation.sourceCategoryName}
+                          </span>
+                          {recommendation.text}
+                        </label>
+                        <LhcFindingActions finding={recommendation} />
+                      </div>
                     </div>
                   ))}
                 </div>

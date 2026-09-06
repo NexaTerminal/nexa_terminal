@@ -7,6 +7,8 @@ import api from '../../../services/api';
 import usePrintReport from '../../../hooks/usePrintReport';
 import LhcDisclaimer from './LhcDisclaimer';
 import LhcCoverageNote from './LhcCoverageNote';
+import LhcAiNarrative from './LhcAiNarrative';
+import LhcFindingActions from './LhcFindingActions';
 
 // Shared §6.2 report layout for every module scored through lhcScoring.js
 // (Employment + Parts 1–4, Health & Safety, Archives). Each page passes its
@@ -135,6 +137,9 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
 
             <LhcCoverageNote coveragePct={assessment.coveragePct} provisional={assessment.provisional} />
 
+            {/* AI advisory summary */}
+            <LhcAiNarrative assessmentId={assessment._id} />
+
             {redFlagNote && assessment.redFlagTriggered && (
               <div className={`${styles['finding-card']} ${styles['finding-card-violation']}`}>
                 🚩 {redFlagNote}
@@ -164,6 +169,7 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
                       {(cf.legalRef || cf.legalBasis) && (
                         <div className={styles['finding-article']}><strong>Правна основа:</strong> {cf.legalRef || cf.legalBasis}</div>
                       )}
+                      <LhcFindingActions finding={cf} />
                     </div>
                   ))}
                 </div>
@@ -212,10 +218,13 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
                       <div className={styles['recommendation-checkbox']}>
                         <input type="checkbox" id={`rec-${i}`} />
                       </div>
-                      <label htmlFor={`rec-${i}`} className={styles['recommendation-text']}>
-                        {(r.severity === 'critical' || r.severity === 'high') ? '⚠ ' : '✶ '}{r.text}
-                        {r.legalRef ? <span className={styles['recommendation-category-badge']}> · {r.legalRef}</span> : null}
-                      </label>
+                      <div className={styles['recommendation-body']}>
+                        <label htmlFor={`rec-${i}`} className={styles['recommendation-text']}>
+                          {(r.severity === 'critical' || r.severity === 'high') ? '⚠ ' : '✶ '}{r.text}
+                          {r.legalRef ? <span className={styles['recommendation-category-badge']}> · {r.legalRef}</span> : null}
+                        </label>
+                        <LhcFindingActions finding={r} />
+                      </div>
                     </div>
                   ))}
                 </div>

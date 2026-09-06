@@ -34,6 +34,28 @@ const CASE_SOURCES = [
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
+// Macedonian counting plural: "1 ден" vs "2 дена".
+const mkPlural = (n, one, few) => (n % 10 === 1 && n % 100 !== 11 ? one : few);
+
+// Engaging relative time in Macedonian ("пред 3 дена"). Falls back to absolute
+// only for anything implausibly old.
+const timeAgo = (d) => {
+  if (!d) return '';
+  const diff = Date.now() - new Date(d).getTime();
+  if (diff < 60 * 1000) return 'штотуку';
+  const min = Math.floor(diff / 60000);
+  if (min < 60) return `пред ${min} ${mkPlural(min, 'минута', 'минути')}`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `пред ${hr} ${mkPlural(hr, 'час', 'часа')}`;
+  const day = Math.floor(hr / 24);
+  // Stay in days through the first two weeks so we never show "пред 1 недела".
+  if (day < 14) return `пред ${day} ${mkPlural(day, 'ден', 'дена')}`;
+  if (day < 35) { const w = Math.floor(day / 7); return `пред ${w} ${mkPlural(w, 'недела', 'недели')}`; }
+  if (day < 365) { const mo = Math.floor(day / 30); return `пред ${mo} ${mkPlural(mo, 'месец', 'месеци')}`; }
+  const yr = Math.floor(day / 365);
+  return `пред ${yr} ${mkPlural(yr, 'година', 'години')}`;
+};
+
 // Per-card user status (computed from signal + approval state).
 const ITEM_STATE = {
   OPEN:        { key: 'open',        label: 'Отворено',           cls: 's_open' },
@@ -184,18 +206,27 @@ export default function LeadsPage() {
             </div>
 
             <div className={styles.funnelGraphic} aria-hidden="true">
-              <svg className={styles.funnelSvg} viewBox="0 0 440 88" preserveAspectRatio="xMidYMid meet">
-                <line className={styles.funnelFeed} x1="30"  y1="6" x2="180" y2="42" />
-                <line className={styles.funnelFeed} x1="110" y1="6" x2="200" y2="42" />
-                <line className={styles.funnelFeed} x1="190" y1="6" x2="215" y2="42" />
-                <line className={styles.funnelFeed} x1="250" y1="6" x2="225" y2="42" />
-                <line className={styles.funnelFeed} x1="330" y1="6" x2="240" y2="42" />
-                <line className={styles.funnelFeed} x1="410" y1="6" x2="260" y2="42" />
-                <path className={styles.funnelShape}
-                      d="M40 42 L400 42 L250 74 Q220 82 190 74 Z" />
-                <path className={styles.funnelNeck} d="M206 80 L234 80 L228 88 L212 88 Z" />
+              <svg className={styles.funnelSvg} viewBox="0 0 440 96" preserveAspectRatio="xMidYMid meet">
+                {/* converging feeds from the source sites above */}
+                <path className={styles.funnelFeed} d="M28 4 Q140 20 200 38" />
+                <path className={styles.funnelFeed} d="M130 4 Q182 22 214 38" />
+                <path className={styles.funnelFeed} d="M220 4 L220 38" />
+                <path className={styles.funnelFeed} d="M310 4 Q258 22 226 38" />
+                <path className={styles.funnelFeed} d="M412 4 Q300 20 240 38" />
+
+                {/* funnel body + stem */}
+                <path className={styles.funnelShape} d="M36 40 L206 72 L234 72 L404 40 Z" />
+                <path className={styles.funnelNeck} d="M206 72 L234 72 L231 90 Q231 94 227 94 L213 94 Q209 94 209 90 Z" />
+
+                {/* elliptical mouth with a soft inner depression */}
+                <ellipse className={styles.funnelRim} cx="220" cy="40" rx="184" ry="6.5" />
+                <ellipse className={styles.funnelRimInner} cx="220" cy="40" rx="168" ry="4.5" />
+
+                {/* questions streaming down into the categories below */}
+                <circle className={`${styles.funnelDrop} ${styles.funnelDrop1}`} cx="220" cy="40" r="2.6" />
+                <circle className={`${styles.funnelDrop} ${styles.funnelDrop2}`} cx="220" cy="40" r="2.2" />
+                <circle className={`${styles.funnelDrop} ${styles.funnelDrop3}`} cx="220" cy="40" r="2.4" />
               </svg>
-              <span className={styles.funnelFilterPill}>✓ Рачно филтрирано</span>
             </div>
 
             {!loading && items.length > 0 && availableCategories.length > 0 && (
@@ -228,6 +259,15 @@ export default function LeadsPage() {
         {trial && (
           <div className={styles.sampleBanner}>
             Преглед — на пробната верзија гледате примерни картички. Активирајте план за пристап до вистинските барања.
+          </div>
+        )}
+
+        {!loading && catFilter && (
+          <div className={styles.resultBar}>
+            <span className={styles.resultCount}>{CATEGORY_LABEL[catFilter]}</span>
+            <button type="button" className={styles.clearFilter} onClick={() => setCatFilter('')}>
+              Сите области ✕
+            </button>
           </div>
         )}
 
@@ -309,7 +349,7 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
           )}
           <div className={styles.cardMeta}>
             {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
-            {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
+            {inquiry.postedAt && <span className={styles.cardMetaItem} title={fmt(inquiry.postedAt)}>📅 {timeAgo(inquiry.postedAt)}</span>}
           </div>
         </div>
         <div className={styles.previewOverlay}>
@@ -319,22 +359,31 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
     );
   }
 
+  const accent = inquiry.urgency === 'urgent'
+    ? styles.cardAccentUrgent
+    : (isNew ? styles.cardAccentNew : '');
+
   return (
-    <div className={`${styles.card} ${sample ? styles.sample : ''} ${isOld ? styles.cardOld : ''}`}>
+    <div className={`${styles.card} ${styles.cardClickable} ${accent} ${sample ? styles.sample : ''} ${isOld ? styles.cardOld : ''}`}
+         role="button" tabIndex={0}
+         onClick={onOpenDetail}
+         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(); } }}>
       <div className={styles.cardHead}>
         <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
-        {isNew && <span className={styles.chipNew}>Ново</span>}
-        {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
         <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
       </div>
 
+      {(isNew || inquiry.urgency === 'urgent') && (
+        <div className={styles.cardAccents}>
+          {isNew && <span className={styles.chipNew}>Ново</span>}
+          {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
+        </div>
+      )}
+
       {inquiry.summary && (
-        <>
+        <div className={styles.cardSummaryFade}>
           <div className={styles.cardSummaryClamp}>{inquiry.summary}</div>
-          <button type="button" className={styles.readMoreLink} onClick={onOpenDetail}>
-            Прочитај повеќе →
-          </button>
-        </>
+        </div>
       )}
 
       {(inquiry.categories || []).length > 0 && (
@@ -349,7 +398,8 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
 
       <div className={styles.cardMeta}>
         {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
-        {inquiry.postedAt && <span className={styles.cardMetaItem}>📅 {fmt(inquiry.postedAt)}</span>}
+        {inquiry.postedAt && <span className={styles.cardMetaItem} title={fmt(inquiry.postedAt)}>📅 {timeAgo(inquiry.postedAt)}</span>}
+        <span className={styles.cardOpenCue}>Отвори →</span>
       </div>
     </div>
   );
@@ -389,9 +439,9 @@ function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
 
         <div className={styles.detailMeta}>
           {inquiry.language && <span>🗣 {inquiry.language?.toUpperCase()}</span>}
-          {inquiry.postedAt && <span>📅 Објавено: {fmt(inquiry.postedAt)}</span>}
-          {signal?.createdAt && state.key === 'requested' && <span>Побарано: {fmt(signal.createdAt)}</span>}
-          {approval?.approvedAt && <span>Одобрено: {fmt(approval.approvedAt)}</span>}
+          {inquiry.postedAt && <span title={fmt(inquiry.postedAt)}>📅 Објавено: {timeAgo(inquiry.postedAt)}</span>}
+          {signal?.createdAt && state.key === 'requested' && <span title={fmt(signal.createdAt)}>Побарано: {timeAgo(signal.createdAt)}</span>}
+          {approval?.approvedAt && <span title={fmt(approval.approvedAt)}>Одобрено: {timeAgo(approval.approvedAt)}</span>}
         </div>
 
         {showContact && (

@@ -23,6 +23,18 @@
 .tab:hover { color: #0B1220; transform: none; box-shadow: none; }
 .tabActive { color: #0B1220; border-bottom-color: #1e4db7; }
 
+/* Result summary + active-filter reset, sits above the list. */
+.resultBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 12px; }
+.resultCount { font-size: 12.5px; font-weight: 600; color: #64748b; }
+.clearFilter {
+  appearance: none; cursor: pointer; box-shadow: none; min-height: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fff; border: 1px solid #e2e8f0; color: #1e4db7;
+  border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.clearFilter:hover { background: #f4f7ff; border-color: #c7d6f5; }
+
 .list { display: flex; flex-direction: column; gap: 12px; }
 .card {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
@@ -31,13 +43,46 @@
   display: flex; flex-direction: column; gap: 8px;
 }
 .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px -6px rgba(15,23,42,0.10); }
+/* Whole-card click target — opens the detail modal. */
+.cardClickable { cursor: pointer; }
+.cardClickable:hover { border-color: #b8c6e6; box-shadow: 0 6px 18px -8px rgba(30, 77, 183, 0.18); }
+.cardClickable:hover .readMoreLink { color: #163b8e; text-decoration: underline; }
+.cardClickable:focus-visible { outline: 2px solid #1e4db7; outline-offset: 2px; }
 /* Older than ~1 week — subtly muted so it reads as an older case (still clickable). */
 .cardOld { background: #f7f8fa; border-color: #e9ebef; }
 .cardOld .cardTitle { color: #475569; }
 .cardOld .cardSummaryClamp { color: #8a94a6; }
 .cardOld:hover { border-color: #d8dde4; }
-.cardHead { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.cardTitle { font-size: 15px; font-weight: 700; color: #0B1220; flex: 1 1 auto; min-width: 0; letter-spacing: -0.005em; }
+/* Left accent stripe — priority at a glance (urgent > new > none). */
+.cardAccentUrgent { border-left: 3px solid #ef4444; padding-left: 16px; }
+.cardAccentNew    { border-left: 3px solid #22c55e; padding-left: 16px; }
+/* Keep the stripe colored on hover (the hover rule repaints all borders). */
+.cardAccentUrgent:hover { border-left-color: #ef4444; }
+.cardAccentNew:hover    { border-left-color: #22c55e; }
+
+.cardHead { display: flex; align-items: flex-start; gap: 10px; }
+.cardTitle { font-size: 16px; font-weight: 700; color: #0B1220; flex: 1 1 auto; min-width: 0; letter-spacing: -0.01em; line-height: 1.35; }
+.cardHead .statusPill { flex: 0 0 auto; }
+/* Ново / Итно accents on their own row, below the title. */
+.cardAccents { display: flex; gap: 6px; flex-wrap: wrap; margin-top: -2px; }
+
+/* Summary with a soft fade at the bottom instead of a "read more" button. */
+.cardSummaryFade { position: relative; }
+.cardSummaryFade::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 92%);
+  pointer-events: none;
+}
+.cardOld .cardSummaryFade::after { background: linear-gradient(180deg, rgba(247,248,250,0) 0%, #f7f8fa 92%); }
+
+/* Hover cue — makes the whole-card click obvious. */
+.cardOpenCue {
+  margin-left: auto; font-weight: 700; color: #1e4db7;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.cardClickable:hover .cardOpenCue,
+.cardClickable:focus-visible .cardOpenCue { opacity: 1; transform: translateX(0); }
 .cardSummary { font-size: 13.5px; color: #475569; line-height: 1.5; }
 .cardMeta {
   display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
@@ -337,27 +382,50 @@
 .funnelGraphic {
   position: relative;
   width: 100%;
-  max-width: 460px;
-  margin: 2px 0 0;
+  max-width: 380px;
+  margin: 4px 0 0;
 }
 .funnelSvg { display: block; width: 100%; height: auto; }
 .funnelFeed {
-  stroke: #D7E2F6;
-  stroke-width: 2;
+  fill: none;
+  stroke: #C6D6F1;
+  stroke-width: 1.6;
   stroke-linecap: round;
-  stroke-dasharray: 3 5;
+  stroke-dasharray: 2 6;
+  animation: funnelFeedFlow 2.6s linear infinite;
 }
+@keyframes funnelFeedFlow { to { stroke-dashoffset: -16; } }
 .funnelShape {
-  fill: #F4F8FF;
+  fill: #E7F0FD;
   stroke: #9DB8E8;
-  stroke-width: 1.75;
+  stroke-width: 1.5;
   stroke-linejoin: round;
 }
 .funnelNeck {
-  fill: #E6EEFB;
+  fill: #CFDCF3;
   stroke: #9DB8E8;
-  stroke-width: 1.75;
+  stroke-width: 1.5;
   stroke-linejoin: round;
+}
+.funnelRim {
+  fill: #F5F9FF;
+  stroke: #9DB8E8;
+  stroke-width: 1.5;
+}
+.funnelRimInner { fill: #E3ECFA; }
+.funnelDrop { fill: #5b86d6; }
+.funnelDrop1 { animation: funnelDropFlow 2.6s ease-in infinite; }
+.funnelDrop2 { animation: funnelDropFlow 2.6s ease-in infinite; animation-delay: 0.9s; }
+.funnelDrop3 { animation: funnelDropFlow 2.6s ease-in infinite; animation-delay: 1.7s; }
+@keyframes funnelDropFlow {
+  0%   { transform: translateY(0);    opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { transform: translateY(50px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .funnelFeed { animation: none; }
+  .funnelDrop1, .funnelDrop2, .funnelDrop3 { animation: none; opacity: 0; }
 }
 .funnelFilterPill {
   position: absolute;

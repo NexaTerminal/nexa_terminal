@@ -303,10 +303,10 @@ class AuthController {
         role: intendedRole,
         intendedPlan: planChoice,
         ...(proVerification ? { proVerification } : {}),
-        // Password signups pick Basic/Pro on the signup form, so no first-login
-        // tier prompt is needed. (Google users get needsTierOnboarding=true and
-        // are asked once via TierOnboardingModal.)
-        needsTierOnboarding: false,
+        // Every new account is asked to confirm its type on first login via the
+        // TierOnboardingModal — regardless of signup method or storefront. The
+        // signup-form choice (if any) just pre-selects the modal.
+        needsTierOnboarding: true,
         referredBy: referredByCode,
         companyInfo: {
           companyName: '',

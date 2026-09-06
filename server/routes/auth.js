@@ -119,21 +119,21 @@ router.get('/google/callback',
         const st = user.subscription?.status;
         if (sub && (!st || st === 'none')) {
           const { isValidPlan } = require('../constants/roles');
-          // If the user picked an identity on the signup form, that choice rides
-          // in `state.plan` and wins. A plain Google click from the login tab
-          // carries no plan → default by domain now, and ask once on first entry
-          // via the TierOnboardingModal (needsTierOnboarding stays true).
+          // Provision a provisional plan (form choice in `state.plan` if present,
+          // else domain default). The user is ALWAYS asked to confirm on first
+          // login via the TierOnboardingModal — needsTierOnboarding stays true
+          // (set at account creation). If a Pro licence came from the form, stash
+          // it so the modal can prefill.
           const explicit = isValidPlan(chosenPlan);
           const plan = explicit ? chosenPlan : (sf === 'leads' ? 'pro' : 'basic');
           await sub.initTrial(user._id, { plan });
-          if (explicit) {
-            const patch = { needsTierOnboarding: false };
-            if (plan === 'pro') {
-              patch.proVerification = { license: String(lic || '').trim(), status: 'pending', submittedAt: new Date() };
-            }
+          if (plan === 'pro' && String(lic || '').trim()) {
             try {
-              await req.app.locals.db.collection('users').updateOne({ _id: user._id }, { $set: patch });
-            } catch (e) { console.error('google onboarding patch warning:', e.message); }
+              await req.app.locals.db.collection('users').updateOne(
+                { _id: user._id },
+                { $set: { proVerification: { license: String(lic).trim(), status: 'pending', submittedAt: new Date() } } }
+              );
+            } catch (e) { console.error('proVerification set (google) warning:', e.message); }
           }
           const UserService = require('../services/userService');
           const fresh = await new UserService(req.app.locals.db).findById(user._id);

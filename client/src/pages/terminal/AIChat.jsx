@@ -51,6 +51,17 @@ const AIChat = () => {
     fetchLimits();
   }, []);
 
+  // Handoff: prefill the question from ?q= (e.g. "Ask the AI" from an LHC finding).
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('q');
+      if (q) {
+        setQuestion(q);
+        textareaRef.current?.focus();
+      }
+    } catch (_) { /* no-op */ }
+  }, []);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();

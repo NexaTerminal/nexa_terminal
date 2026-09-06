@@ -7,6 +7,8 @@ import api from '../../../services/api';
 import usePrintReport from '../../../hooks/usePrintReport';
 import LhcDisclaimer from '../../../components/terminal/lhc/LhcDisclaimer';
 import LhcCoverageNote from '../../../components/terminal/lhc/LhcCoverageNote';
+import LhcAiNarrative from '../../../components/terminal/lhc/LhcAiNarrative';
+import LhcFindingActions from '../../../components/terminal/lhc/LhcFindingActions';
 
 const GDPRReport = () => {
   const { id } = useParams();
@@ -144,6 +146,9 @@ const GDPRReport = () => {
               <div className={styles['score-description']}><p>{bandDescription}</p></div>
             </div>
 
+            {/* AI advisory summary */}
+            <LhcAiNarrative assessmentId={assessment._id} />
+
             {/* Priority (critical) risks */}
             {criticalFailures.length > 0 && (
               <div className={styles['recommendations-section']}>
@@ -164,6 +169,7 @@ const GDPRReport = () => {
                       {cf.legalBasis && (
                         <div className={styles['finding-article']}><strong>Правна основа:</strong> {cf.legalBasis}</div>
                       )}
+                      <LhcFindingActions finding={cf} />
                     </div>
                   ))}
                 </div>
@@ -183,10 +189,13 @@ const GDPRReport = () => {
                       <div className={styles['recommendation-checkbox']}>
                         <input type="checkbox" id={`rec-${index}`} />
                       </div>
-                      <label htmlFor={`rec-${index}`} className={styles['recommendation-text']}>
-                        {r.critical ? '⚠ ' : '✶ '}{r.text}
-                        {r.legalBasis ? <span className={styles['recommendation-category-badge']}> · {r.legalBasis}</span> : null}
-                      </label>
+                      <div className={styles['recommendation-body']}>
+                        <label htmlFor={`rec-${index}`} className={styles['recommendation-text']}>
+                          {r.critical ? '⚠ ' : '✶ '}{r.text}
+                          {r.legalBasis ? <span className={styles['recommendation-category-badge']}> · {r.legalBasis}</span> : null}
+                        </label>
+                        <LhcFindingActions finding={r} />
+                      </div>
                     </div>
                   ))}
                 </div>

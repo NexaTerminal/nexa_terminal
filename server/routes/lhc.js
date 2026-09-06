@@ -109,6 +109,11 @@ router.post('/tax-general/evaluate', checkCredits(1), deductCredits('LHC_REPORT'
 router.get('/tax-general/history', taxGeneralController.getAssessmentHistory);
 router.get('/tax-general/assessment/:id', taxGeneralController.getAssessmentById);
 
+// AI narrative for any stored assessment (generic — works across all modules).
+// Generates once, caches on the assessment, returns cached thereafter.
+const lhcNarrativeController = require('../controllers/lhc/lhcNarrativeController');
+router.post('/narrative/:assessmentId', lhcNarrativeController.generate);
+
 // Future routes for other categories
 // router.get('/trade/questions', tradeController.getQuestions);
 // router.get('/mobbing/questions', mobbingController.getQuestions);

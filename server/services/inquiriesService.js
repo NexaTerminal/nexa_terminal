@@ -168,19 +168,21 @@ class InquiriesService {
 
     // Map the user's declared practiceAreas (kebab-case legal subcategories
     // from roles.js — 'labor-law', 'tax-accounting', etc.) onto the inquiry
-    // category enum (snake_case service buckets from inquiryEnums.js —
-    // 'legal', 'accounting', 'hr', etc.). Without this mapping, the two
-    // taxonomies share no values and the `$in` filter returns nothing for
-    // any user that has practiceAreas configured.
+    // category enum (from inquiryEnums.js — 'labor', 'company', 'residence',
+    // etc.). Without this mapping, the two taxonomies share no values and the
+    // `$in` filter returns nothing for any user that has practiceAreas configured.
     const PA_TO_INQUIRY_CATEGORY = {
-      'consumer-legal':       ['legal'],
-      'immigration':          ['legal'],
-      'citizenship':          ['legal'],
-      'company-registration': ['legal'],
-      'ip-law':               ['legal'],
-      'general-legal':        ['legal'],
-      'labor-law':            ['legal', 'hr'],
-      'tax-accounting':       ['accounting', 'tax']
+      'consumer-legal':       ['company', 'property', 'other_legal'],
+      'immigration':          ['residence'],
+      'citizenship':          ['citizenship'],
+      'company-registration': ['company'],
+      'ip-law':               ['ip', 'other_legal'],
+      // A general practitioner sees the whole board.
+      'general-legal':        ['labor', 'property', 'insurance', 'company', 'citizenship',
+                               'residence', 'tax', 'family', 'inheritance', 'ip',
+                               'administrative', 'other_legal', 'legal_questions'],
+      'labor-law':            ['labor'],
+      'tax-accounting':       ['tax', 'company']
     };
     const rawPracticeAreas = user.superUser?.practiceAreas || [];
     const categories = Array.from(new Set(

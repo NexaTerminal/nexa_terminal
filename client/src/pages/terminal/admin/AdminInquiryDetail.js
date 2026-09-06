@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import { CATEGORY_LABEL, CATEGORY_OPTIONS } from '../../../config/inquiryCategories';
 import styles from '../Inquiries.module.css';
 
 const STATUS_LABEL = {
@@ -11,10 +12,6 @@ const STATUS_LABEL = {
 };
 const SIGNAL_LABEL = {
   pending: 'Чека одлука', approved: 'Одобрено', acknowledged: 'Не избран'
-};
-const CATEGORY_LABEL = {
-  legal: 'Правен', accounting: 'Сметководство', tax: 'Даноци', insurance: 'Осигурување',
-  real_estate: 'Недвижности', hr: 'HR', marketing: 'Маркетинг', translation: 'Превод', other: 'Друго'
 };
 const PROFESSION_LABEL = {
   lawyer: 'Адвокат', accountant: 'Сметководител', tax_advisor: 'Даночен советник',
@@ -69,6 +66,8 @@ export default function AdminInquiryDetailPage() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
   const [readyTo, setReadyTo] = useState(null); // { approval, member }
+  const [editingCats, setEditingCats] = useState(false);
+  const [catDraft, setCatDraft] = useState([]);
 
   const refresh = () => {
     setLoading(true);
@@ -89,6 +88,25 @@ export default function AdminInquiryDetailPage() {
       const member = signal.member;
       setReadyTo({ approval: res.data?.approval, member });
       setToast({ type: 'ok', text: 'Одобрен. Прегледајте го прозорот „Подготвено за претставување" десно.' });
+      refresh();
+    } catch (e) {
+      setToast({ type: 'error', text: e.response?.data?.message || e.message });
+    } finally { setBusy(false); }
+  };
+
+  const startEditCats = () => {
+    setCatDraft(inquiry?.categories || []);
+    setEditingCats(true);
+  };
+  const toggleDraftCat = (v) =>
+    setCatDraft(cats => cats.includes(v) ? cats.filter(c => c !== v) : [...cats, v]);
+  const saveCats = async () => {
+    if (catDraft.length === 0) { setToast({ type: 'error', text: 'Изберете барем една категорија.' }); return; }
+    setBusy(true); setToast(null);
+    try {
+      await axios.put(`/api/admin/inquiries/${id}`, { categories: catDraft }, auth);
+      setEditingCats(false);
+      setToast({ type: 'ok', text: 'Категориите се зачувани.' });
       refresh();
     } catch (e) {
       setToast({ type: 'error', text: e.response?.data?.message || e.message });
@@ -155,11 +173,36 @@ export default function AdminInquiryDetailPage() {
             <div className={styles.panel}>
               <div className={styles.panelHead}>Анонимизирано резиме (видно на табла)</div>
               <div style={{ fontSize: 13.5, lineHeight: 1.6, color: '#1e293b' }}>{inquiry.summary}</div>
-              <div className={styles.chipsRow}>
-                {(inquiry.categories || []).map(c => (
-                  <span key={c} className={styles.chip}>{CATEGORY_LABEL[c] || c}</span>
-                ))}
-              </div>
+              {!editingCats ? (
+                <div className={styles.chipsRow}>
+                  {(inquiry.categories || []).map(c => (
+                    <span key={c} className={styles.chip}>{CATEGORY_LABEL[c] || c}</span>
+                  ))}
+                  <button type="button" className={styles.btnGhost} onClick={startEditCats}>
+                    Уреди категории
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className={styles.catPicker}>
+                    {CATEGORY_OPTIONS.map(v => (
+                      <button key={v} type="button"
+                              className={`${styles.catOption} ${catDraft.includes(v) ? styles.catOptionActive : ''}`}
+                              onClick={() => toggleDraftCat(v)}>
+                        {CATEGORY_LABEL[v]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.actionRow}>
+                    <button type="button" className={styles.btnSecondary} onClick={() => setEditingCats(false)} disabled={busy}>
+                      Откажи
+                    </button>
+                    <button type="button" className={styles.btnPrimary} onClick={saveCats} disabled={busy}>
+                      {busy ? 'Се зачувува…' : 'Зачувај'}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className={styles.cardMeta}>
                 <span>Град: {inquiry.city}</span>
                 <span>Јазик: {inquiry.language?.toUpperCase()}</span>

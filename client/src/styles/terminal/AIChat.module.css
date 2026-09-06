@@ -45,6 +45,14 @@
   margin-bottom: var(--spacing-2, 0.5rem);
 }
 
+/* Right-side header cluster: persona chip + weekly-limit badge. */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3, 0.75rem);
+  flex-shrink: 0;
+}
+
 .title {
   font-size: var(--font-size-xl, 1.25rem);
   font-weight: 700;

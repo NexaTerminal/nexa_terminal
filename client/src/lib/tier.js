@@ -13,6 +13,8 @@
  * from the parent's plan for gating, but never see B-only surfaces).
  */
 
+import { activeProduct } from './storefront';
+
 // Gated statuses: the user has an account but no live paid access yet. There is
 // no auto-trial anymore — a fresh account is 'none' (locked) until a code or
 // paid plan activates it. 'pending_approval' waits on admin payment confirmation.
@@ -104,6 +106,20 @@ export function visibleTier(user) {
 export function planProduct(user) {
   const v = visibleTier(user);
   return v === 'B' || v === 'ADMIN' ? v : 'A';
+}
+
+/**
+ * Which product SHELL to render for the person in front of us.
+ *
+ * Correctness must not depend on the user being on the "right" domain: a Pro
+ * lawyer who lands on nexa.mk (or whose cross-domain login redirect hasn't
+ * fired yet) still needs her Pro cockpit + Случаи/Предмети. So when a user is
+ * signed in we follow their ENTITLEMENT; only when logged out (marketing shell)
+ * do we fall back to the DOMAIN. The login-time canonical redirect still aligns
+ * the URL afterwards — but it's now cosmetic, not load-bearing.
+ */
+export function interiorProduct(user) {
+  return user ? planProduct(user) : activeProduct();
 }
 
 // ─── action predicates ─────────────────────────────────────────────────────

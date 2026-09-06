@@ -22,11 +22,25 @@ const { QdrantClient } = require('@qdrant/js-client-rest');
  * 6. Creates embeddings, rebuilds the Qdrant collection, adds full-text index
  * 7. Tracks processed documents in MongoDB
  *
- * NOTE: This is a FULL REBUILD every run. The previous incremental mode had a
- * destructive bug: it deleted the whole Qdrant collection but re-uploaded only
- * the chunks of *changed* files, silently dropping every unchanged document.
- * With a ~60-doc corpus a full rebuild costs ~$0.10 in embeddings — correctness
- * is worth far more than the delta.
+ * INGESTION MODE (default: MERGE-SAFE):
+ *   The collection is NEVER dropped. For each file in `legal sources/` we
+ *   delete only THAT document's existing points (matched by `documentName`)
+ *   and re-upsert its fresh chunks. Chunk point IDs are deterministic UUIDs
+ *   derived from `documentName + chunkIndex`, so re-processing a file replaces
+ *   its own chunks in place and cannot collide with points ingested by any
+ *   other pipeline.
+ *
+ *   WHY THIS MATTERS: a large part of the live corpus (recovered case law,
+ *   newer laws, commentary) exists ONLY in Qdrant and is NOT in the
+ *   `legal sources/` folder. The old behavior deleted the whole collection and
+ *   rebuilt only from the folder, silently destroying every chunk that wasn't
+ *   on disk. Merge-safe ingestion lets the corpus GROW (add ЗЗЛП, БЗР, tax
+ *   laws, etc.) without ever wiping what's already there.
+ *
+ * HARD REBUILD (opt-in, destructive):
+ *   Run with `--hard-rebuild` to drop and recreate the collection from ONLY the
+ *   folder contents. Use this only for a deliberate clean slate — it will
+ *   delete any chunk not present on disk. You will be warned and must confirm.
  */
 
 // Configuration
@@ -104,6 +118,29 @@ async function connectToQdrant() {
 async function calculateFileHash(filePath) {
   const fileBuffer = await fs.readFile(filePath);
   return crypto.createHash('md5').update(fileBuffer).digest('hex');
+}
+
+/**
+ * Deterministic point ID (UUID string) for a chunk, derived from its source
+ * document name and its index within that document. Re-processing the same file
+ * yields the SAME ids, so an upsert replaces the file's own chunks in place;
+ * different documents (and foreign-pipeline chunks) can never collide.
+ */
+function pointIdFor(documentName, chunkIndex) {
+  const h = crypto.createHash('md5').update(`${documentName}#${chunkIndex}`).digest('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`;
+}
+
+/**
+ * Delete all existing points for a single document (by `documentName` payload),
+ * so a re-process replaces the file's chunks without touching any other source.
+ * Safe to call for a document that has no points yet.
+ */
+async function deleteDocumentPoints(collectionName, documentName) {
+  await qdrantClient.delete(collectionName, {
+    wait: true,
+    filter: { must: [{ key: 'documentName', match: { value: documentName } }] },
+  });
 }
 
 /**
@@ -299,7 +336,9 @@ async function processDocument(filePath) {
         { $set: { fileName, status: 'excluded_stale', docYear: year, processedAt: new Date() } },
         { upsert: true }
       );
-      return null;
+      // Signal exclusion so the caller can purge any previously-ingested chunks
+      // for this file (merge-safe mode). Returning null would hide it.
+      return { excluded: true, fileName };
     }
   }
 
@@ -368,6 +407,7 @@ async function processAllDocuments() {
   console.log(`Found ${documentFiles.length} documents to process:\n`);
 
   const allChunks = [];
+  const excludedFileNames = []; // stale brochures whose old chunks must be purged
   let processedCount = 0;
   let skippedCount = 0;
 
@@ -375,10 +415,13 @@ async function processAllDocuments() {
     const filePath = path.join(LEGAL_SOURCES_FOLDER, file);
 
     try {
-      const chunks = await processDocument(filePath);
+      const result = await processDocument(filePath);
 
-      if (chunks) {
-        allChunks.push(...chunks);
+      if (result && result.excluded) {
+        excludedFileNames.push(result.fileName);
+        skippedCount++;
+      } else if (Array.isArray(result) && result.length > 0) {
+        allChunks.push(...result);
         processedCount++;
       } else {
         skippedCount++;
@@ -396,113 +439,186 @@ async function processAllDocuments() {
   console.log(`   ⏭️  Skipped: ${skippedCount} documents`);
   console.log(`   📄 Total chunks: ${allChunks.length}\n`);
 
-  return allChunks;
+  return { allChunks, excludedFileNames };
 }
 
 /**
- * Create embeddings and save to Qdrant
+ * Embed all chunk texts, with a cost estimate. Returns the vector array.
  */
-async function createVectorStore(documents) {
-  console.log('🔮 Creating embeddings and saving to Qdrant...\n');
-
-  // Initialize OpenAI embeddings
+async function embedChunks(documents) {
   const embeddings = new OpenAIEmbeddings({
     openAIApiKey: process.env.OPENAI_API_KEY,
     modelName: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
   });
 
-  const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
-
   console.log(`  Using model: ${process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'}`);
-  console.log(`  Processing ${documents.length} chunks...`);
-  console.log(`  Target collection: ${collectionName}\n`);
+  console.log(`  Embedding ${documents.length} chunks...`);
 
-  // Estimate cost
   const totalChars = documents.reduce((sum, doc) => sum + doc.pageContent.length, 0);
-  const estimatedTokens = Math.ceil(totalChars / 4); // Rough estimate: 1 token ≈ 4 chars
+  const estimatedTokens = Math.ceil(totalChars / 4); // ~1 token ≈ 4 chars
   const estimatedCost = (estimatedTokens / 1000000) * 0.02; // $0.02 per 1M tokens
+  console.log(`  Estimated tokens: ${estimatedTokens.toLocaleString()}  (~$${estimatedCost.toFixed(4)})`);
 
-  console.log(`  Estimated tokens: ${estimatedTokens.toLocaleString()}`);
-  console.log(`  Estimated cost: $${estimatedCost.toFixed(4)}\n`);
-
-  // Create embeddings for all document chunks
-  console.log('  Creating embeddings... (this may take a minute)');
   const texts = documents.map(doc => doc.pageContent);
   const vectors = await embeddings.embedDocuments(texts);
-
   console.log('  ✓ Embeddings created\n');
+  return vectors;
+}
 
-  // Check if collection exists, if not create it
-  console.log('  📦 Setting up Qdrant collection...');
+/**
+ * Ensure the collection exists (create if missing — NEVER drop) and that the
+ * payload indexes the chatbot relies on are present:
+ *   - pageContent (text)     → hybrid keyword search
+ *   - documentName (keyword) → per-document delete/replace + filtered retrieval
+ * createPayloadIndex is safe to call when the index already exists.
+ */
+async function ensureCollectionAndIndexes(collectionName, vectorSize) {
+  let exists = true;
   try {
     await qdrantClient.getCollection(collectionName);
-    console.log(`  ✓ Collection "${collectionName}" exists`);
-
-    // Delete all existing points
-    console.log('  🗑️  Clearing old vectors from Qdrant...');
-    await qdrantClient.deleteCollection(collectionName);
-    console.log('  ✓ Deleted old collection');
-  } catch (error) {
-    console.log(`  ℹ️  Collection "${collectionName}" doesn't exist yet (will create)`);
+    console.log(`  ✓ Collection "${collectionName}" exists (merge-safe: not dropping it)`);
+  } catch (e) {
+    exists = false;
   }
 
-  // Create fresh collection
-  await qdrantClient.createCollection(collectionName, {
-    vectors: {
-      size: vectors[0].length, // 1536 for text-embedding-3-small
-      distance: 'Cosine',
-    },
-  });
-  console.log(`  ✓ Created collection with vector size ${vectors[0].length}\n`);
+  if (!exists) {
+    console.log(`  ℹ️  Collection "${collectionName}" not found — creating it`);
+    await qdrantClient.createCollection(collectionName, {
+      vectors: { size: vectorSize, distance: 'Cosine' },
+    });
+    console.log(`  ✓ Created collection with vector size ${vectorSize}`);
+  }
 
-  // Prepare points for Qdrant
-  const points = documents.map((doc, index) => ({
-    id: index + 1,
-    vector: vectors[index],
+  const ensureIndex = async (field, schema) => {
+    try {
+      await qdrantClient.createPayloadIndex(collectionName, {
+        field_name: field, field_schema: schema, wait: true,
+      });
+      console.log(`  ✓ Payload index ensured: ${field}`);
+    } catch (e) {
+      console.log(`  ℹ️  Payload index ${field} already present (${e.message.slice(0, 60)})`);
+    }
+  };
+  await ensureIndex('pageContent', { type: 'text', tokenizer: 'word', lowercase: true });
+  await ensureIndex('documentName', 'keyword');
+  console.log('');
+}
+
+/** Build a Qdrant point for a chunk with a deterministic per-document id. */
+function toPoint(doc, vector, chunkIndexWithinDoc) {
+  return {
+    id: pointIdFor(doc.metadata.documentName, chunkIndexWithinDoc),
+    vector,
     payload: {
       pageContent: doc.pageContent,
       documentName: doc.metadata.documentName,
       pageCount: doc.metadata.pageCount,
       processedAt: doc.metadata.processedAt,
-      // Include article metadata if available (for legal documents)
       article: doc.metadata.article || null,
       chunkType: doc.metadata.chunkType || 'standard',
       docYear: doc.metadata.docYear || null,
       isBrochure: doc.metadata.isBrochure || false,
     },
-  }));
+  };
+}
 
-  // Full-text index on pageContent — REQUIRED for the chatbot's keyword
-  // search (Qdrant text-match filters need it; without it the hybrid search
-  // silently degrades to vector-only).
-  console.log('  🔠 Creating full-text payload index on pageContent...');
-  await qdrantClient.createPayloadIndex(collectionName, {
-    field_name: 'pageContent',
-    field_schema: { type: 'text', tokenizer: 'word', lowercase: true },
-    wait: true,
+/** Build points for all documents with per-document (stable) chunk indexes. */
+function buildPoints(documents, vectors) {
+  const perDocIndex = new Map();
+  return documents.map((doc, i) => {
+    const name = doc.metadata.documentName;
+    const idx = perDocIndex.get(name) || 0;
+    perDocIndex.set(name, idx + 1);
+    return toPoint(doc, vectors[i], idx);
   });
-  console.log('  ✓ Full-text index created\n');
+}
 
-  // Upload to Qdrant in batches (to avoid request size limits)
+/** Upload points to Qdrant in batches. */
+async function upsertPoints(collectionName, points) {
   console.log('  💾 Uploading vectors to Qdrant in batches...');
-  const batchSize = 100; // Upload 100 vectors at a time
+  const batchSize = 100;
   const totalBatches = Math.ceil(points.length / batchSize);
-
   for (let i = 0; i < points.length; i += batchSize) {
     const batch = points.slice(i, i + batchSize);
     const batchNum = Math.floor(i / batchSize) + 1;
-
     console.log(`    Uploading batch ${batchNum}/${totalBatches} (${batch.length} vectors)...`);
-
-    await qdrantClient.upsert(collectionName, {
-      wait: true,
-      points: batch,
-    });
+    await qdrantClient.upsert(collectionName, { wait: true, points: batch });
   }
+  console.log(`  ✓ Uploaded ${points.length} vectors in ${totalBatches} batches\n`);
+}
 
-  console.log(`  ✓ Uploaded ${points.length} vectors to Qdrant in ${totalBatches} batches\n`);
+/**
+ * MERGE-SAFE ingestion (default). For each source document in the folder:
+ * delete only that document's existing points, then upsert its fresh chunks.
+ * Never touches points from documents not in the folder (recovered corpus).
+ * Also purges chunks of files that are now excluded as stale.
+ */
+async function mergeVectorStore(documents, excludedFileNames) {
+  console.log('🔮 Merge-safe ingestion — embedding new/updated chunks...\n');
+  const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+  console.log(`  Target collection: ${collectionName}\n`);
 
-  return { count: points.length, collectionName };
+  const vectors = await embedChunks(documents);
+  await ensureCollectionAndIndexes(collectionName, vectors[0].length);
+
+  // Purge stale-excluded files' old chunks (if any were ingested before).
+  for (const fileName of excludedFileNames) {
+    console.log(`  🧹 Purging stale-excluded document chunks: ${fileName}`);
+    await deleteDocumentPoints(collectionName, fileName);
+  }
+  if (excludedFileNames.length) console.log('');
+
+  const points = buildPoints(documents, vectors);
+
+  // Replace each folder document's chunks: delete-by-documentName, then upsert.
+  const docNames = [...new Set(documents.map(d => d.metadata.documentName))];
+  console.log(`  ♻️  Replacing chunks for ${docNames.length} folder document(s)...`);
+  for (const name of docNames) {
+    await deleteDocumentPoints(collectionName, name);
+  }
+  console.log('');
+
+  await upsertPoints(collectionName, points);
+  return { count: points.length, collectionName, mode: 'merge' };
+}
+
+/**
+ * HARD REBUILD (opt-in, destructive): drop the collection and rebuild from ONLY
+ * the folder. Deletes any chunk not present on disk. Requires --hard-rebuild.
+ */
+async function hardRebuildVectorStore(documents) {
+  console.log('💥 HARD REBUILD — dropping and recreating the collection...\n');
+  const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+
+  const vectors = await embedChunks(documents);
+
+  try {
+    await qdrantClient.deleteCollection(collectionName);
+    console.log(`  🗑️  Dropped existing collection "${collectionName}"`);
+  } catch (e) {
+    console.log(`  ℹ️  Collection "${collectionName}" did not exist`);
+  }
+  await qdrantClient.createCollection(collectionName, {
+    vectors: { size: vectors[0].length, distance: 'Cosine' },
+  });
+  console.log(`  ✓ Created fresh collection (vector size ${vectors[0].length})`);
+  await ensureCollectionAndIndexes(collectionName, vectors[0].length);
+
+  const points = buildPoints(documents, vectors);
+  await upsertPoints(collectionName, points);
+  return { count: points.length, collectionName, mode: 'hard-rebuild' };
+}
+
+/** Prompt the user for a y/N confirmation on stdin. */
+function confirm(question) {
+  const readline = require('readline');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(/^y(es)?$/i.test(answer.trim()));
+    });
+  });
 }
 
 /**
@@ -525,26 +641,51 @@ async function main() {
     // Connect to Qdrant (for vector storage)
     await connectToQdrant();
 
-    // Process all documents
-    const chunks = await processAllDocuments();
+    const hardRebuild = process.argv.includes('--hard-rebuild');
 
-    if (chunks.length === 0) {
-      console.log('⚠️  No new documents to process. Vector store unchanged.\n');
+    // A hard rebuild is destructive: it drops the whole collection and rebuilds
+    // ONLY from the folder, deleting any chunk (e.g. recovered case law) that is
+    // not on disk. Require an explicit confirmation before doing that.
+    if (hardRebuild) {
+      const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+      let existing = null;
+      try {
+        const c = await qdrantClient.getCollection(collectionName);
+        existing = c.points_count;
+      } catch (e) { /* collection may not exist yet */ }
+      console.log('⚠️  --hard-rebuild will DROP the entire collection and rebuild');
+      console.log('    from ONLY the `legal sources/` folder. Any chunk not on');
+      console.log('    disk (recovered case law, laws ingested elsewhere) will be');
+      console.log(`    PERMANENTLY DELETED.${existing != null ? ` Current points: ${existing}.` : ''}\n`);
+      const ok = process.argv.includes('--yes') || await confirm('    Type "yes" to proceed: ');
+      if (!ok) {
+        console.log('\n🛑 Aborted. No changes made.\n');
+        process.exit(0);
+      }
+    }
+
+    // Process all documents
+    const { allChunks, excludedFileNames } = await processAllDocuments();
+
+    if (allChunks.length === 0 && excludedFileNames.length === 0) {
+      console.log('⚠️  No documents to process. Vector store unchanged.\n');
       process.exit(0);
     }
 
-    // Create vector store
-    await createVectorStore(chunks);
+    // Ingest: merge-safe by default, hard rebuild only when explicitly asked.
+    const result = hardRebuild
+      ? await hardRebuildVectorStore(allChunks)
+      : await mergeVectorStore(allChunks, excludedFileNames);
 
     console.log('═══════════════════════════════════════════════════════');
-    console.log('   ✅ Document processing completed successfully!');
+    console.log(`   ✅ Document processing completed (${result.mode})!`);
     console.log('═══════════════════════════════════════════════════════\n');
 
     console.log('Next steps:');
-    console.log('1. Vectors are now stored in Qdrant Cloud (nexa_legal_docs collection)');
+    console.log(`1. ${result.count} vectors written to Qdrant (${result.collectionName})`);
     console.log('2. Restart your server to connect to Qdrant');
-    console.log('3. Ask questions in the chatbot');
-    console.log('4. Answers will now include citations from your legal documents!\n');
+    console.log('3. Run `node scripts/eval-rag.js` — the hit rate must not drop');
+    console.log('4. Ask questions in the chatbot; answers cite your legal documents\n');
 
     process.exit(0);
 

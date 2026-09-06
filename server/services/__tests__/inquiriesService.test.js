@@ -16,7 +16,7 @@ const ok = Svc.validateInquiryInput({
   source: 'immigration.mk',
   topic: 'Residence permit help',
   city: 'Skopje',
-  categories: ['legal', 'translation'],
+  categories: ['residence', 'citizenship'],
   summary: 'A long enough summary that exceeds the 40-char minimum threshold.',
   language: 'en',
   urgency: 'urgent',
@@ -26,7 +26,7 @@ const ok = Svc.validateInquiryInput({
 });
 assert.equal(ok.source, 'immigration.mk');
 assert.equal(ok.urgency, 'urgent');
-assert.deepEqual(ok.categories, ['legal', 'translation']);
+assert.deepEqual(ok.categories, ['residence', 'citizenship']);
 console.log('✓ validate normalizes valid input');
 
 // urgency default
@@ -35,8 +35,8 @@ assert.equal(Svc.validateInquiryInput({ ...inputNoUrgency }).urgency, 'standard'
 console.log('✓ validate defaults urgency to standard');
 
 // invalid category filtered out
-const filtered = Svc.validateInquiryInput({ ...ok, categories: ['legal', 'invented'] });
-assert.deepEqual(filtered.categories, ['legal']);
+const filtered = Svc.validateInquiryInput({ ...ok, categories: ['residence', 'invented'] });
+assert.deepEqual(filtered.categories, ['residence']);
 console.log('✓ validate filters invalid categories');
 
 // ── publicProjection strips private fields ───────────────────────────────

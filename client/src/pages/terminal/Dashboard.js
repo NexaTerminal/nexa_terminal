@@ -9,8 +9,7 @@ import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStat
 import FeatureTour from "../../components/terminal/FeatureTour";
 import LockedWelcome from "../../components/terminal/LockedWelcome";
 import ProHome from "./ProHome";
-import { isFunnelLockedAccount } from "../../lib/tier";
-import { activeProduct } from "../../lib/storefront";
+import { isFunnelLockedAccount, interiorProduct } from "../../lib/tier";
 import { PROMO_FLASH_KEY } from "../../components/PromoRedeemWatcher";
 
 const Dashboard = () => {
@@ -19,10 +18,10 @@ const Dashboard = () => {
   // get the full onboarding panel instead of the empty updates feed. It also
   // surfaces their public compliance-check result via ?result= / localStorage.
   const locked = isFunnelLockedAccount(currentUser);
-  // Domain-driven shell: on leads.nexa.mk (Product B) an active member gets the
-  // Pro cockpit (ProHome); on nexa.mk (Product A) they keep the SMB updates feed.
-  // Locked/never-activated accounts get the per-product LockedWelcome either way.
-  const isPro = activeProduct() === 'B';
+  // Entitlement-driven shell: a Pro member gets the Pro cockpit (ProHome) even on
+  // nexa.mk; Basic members keep the SMB updates feed. Locked/never-activated
+  // accounts get the per-product LockedWelcome either way.
+  const isPro = interiorProduct(currentUser) === 'B';
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -7,6 +7,7 @@ import ExpressInterestModal from '../../components/terminal/ExpressInterestModal
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
 import useTermsGate from '../../hooks/useTermsGate';
 import { canExpressInterest, openSubscriptionGate } from '../../lib/tier';
+import { CATEGORY_LABEL } from '../../config/inquiryCategories';
 import styles from './ProHome.module.css';
 
 /**
@@ -21,10 +22,6 @@ import styles from './ProHome.module.css';
  * endpoints; every fetch is best-effort so one failure never blanks the page.
  */
 
-const CATEGORY_LABEL = {
-  legal: 'Правен', accounting: 'Сметководство', tax: 'Даноци', insurance: 'Осигурување',
-  real_estate: 'Недвижности', hr: 'HR', marketing: 'Маркетинг', translation: 'Превод', other: 'Друго'
-};
 
 const fmt = (d) => d
   ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' })

@@ -83,4 +83,27 @@ console.log('✓ validate throws on freeNote > 300 chars');
 assert.doesNotThrow(() => Svc.validate({ freeNote: 'x'.repeat(300) }), 'exactly 300 chars is valid');
 console.log('✓ validate accepts exactly 300-char freeNote');
 
+// ── personas ─────────────────────────────────────────────────────────────────
+
+// validate only touches persona when the key is present (so saving granular
+// stance from the full page never wipes a chosen persona).
+assert.ok(!('persona' in Svc.validate({ riskPosture: 'balanced' })), 'persona untouched when key absent');
+assert.equal(Svc.validate({ persona: 'direct' }).persona, 'direct', 'valid persona accepted');
+assert.equal(Svc.validate({ persona: null }).persona, null, 'persona clearable with null');
+assert.throws(() => Svc.validate({ persona: 'lawyer' }), /Invalid value for persona/, 'bad persona rejected');
+console.log('✓ validate handles persona (present-only, enum-checked, clearable)');
+
+// buildPrefix emits the persona voice block with its label + character.
+const withPersona = Svc.buildPrefix({ ...Svc.EMPTY, persona: 'direct' });
+assert.ok(withPersona.includes('[Активна персона: Директен]'), 'persona label rendered');
+assert.ok(withPersona.includes('Ајде сега'), 'direct persona character voice present');
+assert.ok(!Svc.buildPrefix({ ...Svc.EMPTY }).includes('Активна персона'), 'no persona block when unset');
+console.log('✓ buildPrefix renders persona voice block');
+
+// Every persona has the required shape.
+for (const [key, p] of Object.entries(Svc.PERSONAS)) {
+  assert.ok(p.label && p.blurb && p.character && p.preset, `persona ${key} fully defined`);
+}
+console.log('✓ all personas fully defined');
+
 console.log('\nAll stance-preference assertions pass.');

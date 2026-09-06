@@ -3,6 +3,7 @@ const { PromptTemplate } = require('@langchain/core/prompts');
 const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
+const OpenAI = require('openai');
 const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
 
@@ -37,6 +38,47 @@ function extractKeywords(question, max = 6) {
   return [...new Set(keywords)].slice(0, max);
 }
 
+// Institutional brochures/flyers/prospects are GUIDANCE, not law. They cite
+// rates/procedures that go stale and — because keyword hits get a flat score —
+// they crowd real statute chunks out of the top results. We detect them by
+// document name (same signal as the ingestion pipeline) and, at retrieval time,
+// drop stale ones and rank the rest below actual laws/case law.
+const BROCHURE_NAME_RE = /brosura|brošura|flaer|flyer|prospekt|informativen|isbn|^\s*\d{2}[-_]\d+/i;
+function isBrochureName(name) {
+  return BROCHURE_NAME_RE.test(name || '');
+}
+// Best-effort publication year from a document name (last 20xx found).
+function yearFromName(name) {
+  const m = String(name || '').match(/20\d{2}/g);
+  return m ? parseInt(m[m.length - 1], 10) : null;
+}
+
+// Clearly non-legal artifacts that may have been ingested (data dumps, scripts,
+// internal exports) — usable as background, never citable.
+const NON_LEGAL_ARTIFACT_RE = /\.(json|csv|txt|xlsx?|md)$|script|reprezent|export|dump/i;
+
+/**
+ * Is this source an OFFICIAL legal instrument the AI may CITE as authority?
+ * Only laws / by-laws / the constitution / official case law qualify.
+ * Brochures, flyers, prospects, scripts, JSON/CSV dumps and other unofficial
+ * documents are BACKGROUND ONLY — the model may use them to inform an answer
+ * but must never present them as a cited source. (User rule, 2026-09-06.)
+ */
+function isCitableSource(meta) {
+  if (!meta) return false;
+  // Authoritative tag from ingestion (source_class + citable on every point).
+  // Prefer it over any name heuristic when present.
+  if (typeof meta.citable === 'boolean') return meta.citable;
+  if (meta.external) return true;                      // LDH case law / EU with URL
+  if (meta.isBrochure) return false;                   // UJP guidance → background only
+  const name = (meta.documentName || '').toLowerCase();
+  if (NON_LEGAL_ARTIFACT_RE.test(name)) return false;  // danok.json, scripts, exports
+  if (meta.article) return true;                       // has „Член N" → statutory text (even if filename is messy)
+  if (/суд|судск|пресуда|врховен|апелационен|уставен|билтен/.test(name)) return true; // case law
+  if (/закон|законик|устав|правилник|кодекс|уредба|одлука|колективен договор/.test(name)) return true;
+  return false;                                        // unidentifiable / unofficial → not citable
+}
+
 /**
  * ChatBotService - Core RAG chatbot service for legal document Q&A
  *
@@ -51,7 +93,7 @@ class ChatBotService {
   constructor() {
     // Initialize OpenAI chat model
     this.chatModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || 'gpt-4o',
+      modelName: process.env.OPENAI_MODEL || 'gpt-5.1',
       temperature: parseFloat(process.env.CHATBOT_TEMPERATURE) || 0.2,
       // Cap output so the longer structured legal answers complete without
       // truncation. MK Cyrillic ≈ 2.5-3 tokens/word, so a 1000-word structured
@@ -83,6 +125,10 @@ class ChatBotService {
       apiKey: process.env.QDRANT_API_KEY,
     });
 
+    // Raw OpenAI client for the Responses API (native web_search tool) — used
+    // ONLY for the gap-triggered web fallback, not for normal answers.
+    this.openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
     this.collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
     this.vectorStore = null; // Will be set to true when Qdrant is verified
 
@@ -112,16 +158,18 @@ class ChatBotService {
 СЕКОГАШ одговарајте на МАКЕДОНСКИ јазик (кирилица), без оглед на јазикот на прашањето. Странски термини (GDPR, CJEU) може да останат во оригинал.
 
 ## ГЛАС И ТОН
-Зборувајте како доверлив правен советник — како адвокат што му објаснува на клиент:
+Зборувајте како доверлив правен советник — практичен адвокат што ЗАСТАПУВА и ГИ ШТИТИ интересите на корисникот што прашува (не сте неутрален предавач). Вашата цел е корисникот навистина да ЈА РАЗБЕРЕ својата ситуација и да заштити свои права:
+- **На страната на корисникот:** гледајте го проблемот низ неговиот интерес — што го штити, што може да го изложи на ризик, што да побара, а што да избегне. Кога има повеќе опции, препорачајте ја најбезбедната за него и кажете зошто.
 - **Директен:** почнете со одговорот, без "Одлично прашање!"
 - **Одлучен каде законот е јасен:** кога одредбата е изречна, кажете категорично — "мора", "должни сте", "рокот е 30 дена". НЕ разводнувајте јасни правила со "обично" или "може да се толкува". Оградувајте се САМО кога исходот навистина зависи од факти, докази или судско толкување — и тогаш кажете ТОЧНО од што зависи.
-- **Едукативен и практичен:** објаснете ЗОШТО законот е таков и ШТО конкретно да направи корисникот — ризици, трошоци, рокови, чекори.
+- **Едукативен и практичен:** објаснете ЗОШТО законот е таков и ШТО конкретно да направи корисникот — ризици, трошоци, рокови, чекори. Копајте подлабоко од буквалното прашање: адресирајте го вистинскиот проблем зад него.
 - **Искрен:** кога не знаете или законот е нејасен, кажете го тоа отворено.
 
 ## АДВОКАТСКИ ИНСТИНКТИ (вградете ги во СЕКОЈ одговор каде што имаат смисла)
 1. **Пример од пракса:** илустрирајте го правилото со кратко, конкретно сценарио (2-4 реченици) блиско до ситуацијата на корисникот, со реалистични детали („Да речеме, ваш вработен на неопределено време..."). Изберете пример што ја покажува ГРАНИЦАТА на правилото — кога важи, а кога не. Не измислувајте броеви на членови или износи во примерот.
-2. **Едно прашање за прецизирање:** ако клучен факт недостасува и одговорот би се променел според него, завршете го одговорот (пред disclaimer-от) со НАЈВАЖНОТО едно прашање: „**За попрецизен одговор:** дали договорот е на определено или неопределено време?" — и кратко кажете како одговорот зависи од тоа. Максимум едно прашање; не испрашувајте.
-3. **Внимавајте (замката):** каде што постои типична грешка или ризик што корисникот веројатно не го гледа (пропуштен рок, погрешна форма, изјава што може да се сфати како признание), предупредете со една реченица: „**Внимавајте:** ...". Само кога навистина постои замка — не како украс.
+2. **Правно расудување (за РАЗБИРАЊЕ, не само правило):** објаснете ја ЛОГИКАТА зад одговорот со кратко правно расудување каде помага — argumentum a contrario („ако законот бара X само за Y, тогаш за Z не важи"), a fortiori, lex specialis derogat generali, целта на нормата (телеолошко толкување), in dubio pro operario кај работни спорови. Целта е корисникот да ја СФАТИ логиката и да умее сам да расудува во слична ситуација, а не само да запамети заклучок. Користете го и во кратки одговори кога прави работата појасна.
+3. **Прашања за да разберете подобро:** ако клучен факт недостасува и одговорот суштински би се променил според него, сепак дајте корисен одговор под јасно наведени претпоставки, па завршете (пред disclaimer-от) со најважното(ите) прашање(а) за прецизирање: „**За попрецизен одговор:** дали договорот е на определено или неопределено време?" — и кратко кажете КАКО одговорот зависи од секое. Најмногу 1–2 вистински одлучувачки прашања; не испрашувајте и не барајте очигледни детали.
+4. **Внимавајте (замката):** каде што постои типична грешка или ризик што корисникот веројатно не го гледа (пропуштен рок, погрешна форма, изјава што може да се сфати како признание), предупредете со една реченица: „**Внимавајте:** ...". Само кога навистина постои замка — не како украс.
 
 ## УПАТУВАЊЕ КОН ФУНКЦИИ НА ПЛАТФОРМАТА (само кога директно помага)
 
@@ -152,11 +200,15 @@ Nexa Terminal има функции што решаваат дел од проб
 
 **Хиерархија на извори за вашиот одговор:**
 1. **Контекст од документите (подолу)** — примарен извор. Закони (име содржи „Закон", „Законик", „УСТАВ") се цитираат како закони. Брошури/флаери/прospekti од УЈП и институции НЕ СЕ ЗАКОНИ — тие се упатства; кажете „според упатството на УЈП...", никогаш не изведувајте име на закон од име на документ. Ако брошурата е постара (наведена година), предупредете дека износите/стапките можеби се променети.
+
+**ШТО СМЕЕ ДА СЕ ЦИТИРА (СТРОГО ПРАВИЛО):** Цитирајте ИСКЛУЧИВО официјални правни извори — закони, подзаконски акти (правилници, уредби), Устав и судска пракса. Извори означени во контекстот со „[Позадина ... НЕ ЦИТИРАЈ]" (брошури, флаери, скрипти, .json, неофицијални документи) МОЖЕТЕ да ги користите за да го обликувате одговорот, но НИКОГАШ не смеете да ги наведете или именувате како извор — без „според документот X", без наслов на брошура/фајл. Ако едно тврдење се потпира само на таков позадински извор, изнесете го како општа практика и упатете на проверка во соодветниот закон/Службен весник.
 2. **Ваше општо знаење за македонското право** — ДОЗВОЛЕНО кога контекстот не го покрива прашањето, НО со задолжителна ознака во одговорот: „Напомена: Овој дел од одговорот се базира на општо правно знаење, а не на верифициран извор — препорачувам да го проверите актуелниот текст во Службен весник или со адвокат." Одговорете корисно и конкретно, само јасно означете што е верифицирано, а што не.
+3. **Интернет извор (означен со „[Интернет извор … НЕОФИЦИЈАЛНО/НЕПРОВЕРЕНО]")** — се појавува само кога немало закон во базата. Смеете да го искористите за да дадете корисен одговор и да го споменете линкот, но СЕКОГАШ со јасна ограда дека е непроверена интернет-информација и дека мора да се потврди во Службен весник или со адвокат. НЕ го претставувајте како обврзувачки закон и не измислувајте број на член од него.
 
 **Апсолутни забрани (важат за ДВАТА извора):**
 - НИКОГАШ не измислувајте број на член. Цитирајте конкретен член САМО ако во контекстот стои ознака „ВЕРИФИЦИРАН ЧЛЕН: ..." — тогаш цитирајте го точно. Инаку: „во соодветниот член на [законот]" + проверка во Службен весник.
 - НИКОГАШ не измислувајте износи, стапки, рокови или казни. Ако бројката не е во контекстот, кажете дека треба да се провери — не претпоставувајте.
+- **СПЕЦИФИЧНИ БРОЈКИ (денови/месеци за рокови, проценти, прагови, износи):** наведувајте конкретна бројка САМО ако буквално стои во дадениот контекст. Ако прашањето бара конкретен рок/износ/скала, а бројката ЈА НЕМА во контекстот — објаснете го општото правило и КАЖЕТЕ ОТВОРЕНО дека точната бројка/скала зависи од конкретниот член и мора да се провери (пр. „должината на отказниот рок зависи од стажот и е утврдена во соодветниот член на ЗРО — проверете ја точната скала"). НЕ наведувајте конкретни денови/месеци/проценти од меморија, ниту „обично е X". Подобро искрено „зависи и се проверува" отколку убедлива погрешна бројка.
 - ЦИТИРАЈТЕ ВЕРБАТИМ (во наводници) само текст што навистина стои во контекстот; инаку парафразирајте.
 - НЕ споменувајте имиња на внатрешни фајлови/документи. ИСКЛУЧОЦИ: (а) извори означени со [EXTERNAL] (судска пракса, EU) цитирајте ги природно во текстот со URL-то; (б) судски одлуки и билтени од контекстот (пр. „Апелационен суд Скопје, РОЖ-293-24") цитирајте ги со суд и број на предмет — тоа е правилен начин на цитирање судска пракса и ЗНАЧИТЕЛНО го зајакнува одговорот кога постои релевантна одлука.
 
@@ -166,7 +218,7 @@ Nexa Terminal има функции што решаваат дел од проб
 
 **Прилагодете ја структурата на прашањето:**
 
-**ЕДНОСТАВНО ФАКТИЧКО ПРАШАЊЕ** („Колку е отказниот рок?") → краток природен тек, 150-350 зборови, БЕЗ секции: директен одговор, законска основа (закон + член ако е верифициран), кратко зошто, краток пример од пракса, конкретен практичен совет, и (ако клучен факт недостасува) едно прашање за прецизирање.
+**ЕДНОСТАВНО ФАКТИЧКО ПРАШАЊЕ** („Колку е отказниот рок?") → краток природен тек, 150-350 зборови, БЕЗ секции: директен одговор, законска основа (закон + член ако е верифициран), кратко зошто со логика (нпр. a contrario каде помага), краток пример од пракса, конкретен практичен совет што го штити корисникот, и (ако клучен факт недостасува) 1–2 прашања за прецизирање.
 
 **КОНКРЕТЕН СЛУЧАЈ или СЛОЖЕНО ПРАШАЊЕ** (корисникот опишува своја ситуација) → полна структура, 500-1000 зборови, со овие ## секции по редослед (испуштете САМО навистина нерелевантни):
 - ## ПРАВНА ОБЛАСТ И КЛУЧНО ПРАШАЊЕ
@@ -262,8 +314,8 @@ Nexa Terminal има функции што решаваат дел од проб
 2. Тип на прашање? → едноставно = краток тек; конкретен случај/сложено = полна структура.
 3. Членови и бројки → само верифицирани; ништо измислено.
 4. Дали ПРИМЕНУВАМ закон на фактите и завршувам со конкретен акциски план?
-5. Адвокатски инстинкти → има ли пример од пракса; ако клучен факт недостасува — едно прашање за прецизирање; ако постои типична замка — „Внимавајте". (Прашањето за прецизирање е ВО одговорот, пред disclaimer-от — различно од трите [SUGGESTIONS] предлози на крајот.)
-6. Дали одговорот е на македонски, јасен за не-правник, и одлучен таму каде што законот е јасен?
+5. Адвокатски инстинкти → има ли пример од пракса; објаснив ли ја ЛОГИКАТА со правно расудување (a contrario/a fortiori/цел на нормата) каде помага; ако клучен факт недостасува — 1–2 одлучувачки прашања за прецизирање; ако постои типична замка — „Внимавајте". (Прашањата за прецизирање се ВО одговорот, пред disclaimer-от — различно од трите [SUGGESTIONS] предлози на крајот.)
+6. Дали одговорот го ШТИТИ интересот на корисникот, е на македонски, јасен за не-правник, и одлучен таму каде што законот е јасен?
 
 Ако контекстот не го покрива прашањето — НЕ одбивајте: одговорете од општо правно знаење со задолжителната напомена дека изворот не е верифициран. Ако навистина не знаете — кажете отворено дека не знаете.`;
 
@@ -522,7 +574,7 @@ Nexa Terminal има функции што решаваат дел од проб
           await this.conversationService.saveMessage(conversationId, {
             type: 'ai',
             content: cleanResponse,
-            sources: relevantDocs.map(doc => ({
+            sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
               documentName: doc.metadata?.documentName || 'Unknown',
               confidence: doc.metadata?.score || 0,
               pageNumber: doc.metadata?.pageNumber || null,
@@ -541,7 +593,7 @@ Nexa Terminal има функции што решаваат дел од проб
       const result = {
         answer: cleanResponse,
         suggestions,
-        sources: relevantDocs.map(doc => ({
+        sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
           documentName: doc.metadata?.documentName || 'Unknown',
           confidence: doc.metadata?.score || 0,
           pageNumber: doc.metadata?.pageNumber || null,
@@ -579,7 +631,9 @@ Nexa Terminal има функции што решаваат дел од проб
       vector: questionEmbedding,
       limit,
       with_payload: true,
-      score_threshold: 0.25,
+      // Cosine similarity floor. Raised from 0.25 → 0.35 (env-overridable) to
+      // cut weakly-related chunks that diluted the context. Gated by eval-rag.
+      score_threshold: parseFloat(process.env.CHATBOT_SCORE_THRESHOLD) || 0.35,
     });
     const searchTime = Date.now() - searchStartTime;
     console.log(`✓ [RAG DEBUG] Vector search completed in ${searchTime}ms - ${searchResult.length} results`);
@@ -588,17 +642,24 @@ Nexa Terminal има функции што решаваат дел од проб
     // { content, filename } instead of { pageContent, documentName }. An
     // undefined pageContent used to throw deep in RRF and silently killed the
     // ENTIRE retrieval (LLM answered with zero context) — never again.
-    return searchResult.map(result => ({
-      pageContent: result.payload.pageContent || result.payload.content || '',
-      metadata: {
-        documentName: result.payload.documentName || result.payload.filename || 'Unknown',
-        pageCount: result.payload.pageCount,
-        processedAt: result.payload.processedAt,
-        score: result.score,
-        article: result.payload.article || null,
-        chunkType: result.payload.chunkType || 'standard',
-      },
-    })).filter(doc => doc.pageContent.length > 0);
+    return searchResult.map(result => {
+      const name = result.payload.documentName || result.payload.filename || 'Unknown';
+      return {
+        pageContent: result.payload.pageContent || result.payload.content || '',
+        metadata: {
+          documentName: name,
+          pageCount: result.payload.pageCount,
+          processedAt: result.payload.processedAt,
+          score: result.score,
+          article: result.payload.article || null,
+          chunkType: result.payload.chunkType || 'standard',
+          isBrochure: result.payload.isBrochure ?? isBrochureName(name),
+          docYear: result.payload.docYear ?? yearFromName(name),
+          citable: result.payload.citable,          // authoritative ingestion tag
+          sourceClass: result.payload.source_class, // law|case_law|bylaw|constitution|background
+        },
+      };
+    }).filter(doc => doc.pageContent.length > 0);
   }
 
   /**
@@ -652,17 +713,27 @@ Nexa Terminal има функции што решаваат дел од проб
     const points = scrollResult.points || [];
     console.log(`✓ [RAG DEBUG] Keyword search completed in ${searchTime}ms - ${points.length} results`);
 
-    return points.map(point => ({
-      pageContent: point.payload.pageContent || point.payload.content || '',
-      metadata: {
-        documentName: point.payload.documentName || point.payload.filename || 'Unknown',
-        pageCount: point.payload.pageCount,
-        processedAt: point.payload.processedAt,
-        score: 0.5, // Default score for keyword matches (no vector similarity)
-        article: point.payload.article || null,
-        chunkType: point.payload.chunkType || 'standard',
-      },
-    })).filter(doc => doc.pageContent.length > 0);
+    return points.map(point => {
+      const name = point.payload.documentName || point.payload.filename || 'Unknown';
+      return {
+        pageContent: point.payload.pageContent || point.payload.content || '',
+        metadata: {
+          documentName: name,
+          pageCount: point.payload.pageCount,
+          processedAt: point.payload.processedAt,
+          // Nominal score for keyword-only matches. Kept BELOW the vector
+          // threshold so a pure keyword hit never masquerades as a strong
+          // (0.5+) semantic match in the displayed confidence / ranking.
+          score: 0.3,
+          article: point.payload.article || null,
+          chunkType: point.payload.chunkType || 'standard',
+          isBrochure: point.payload.isBrochure ?? isBrochureName(name),
+          docYear: point.payload.docYear ?? yearFromName(name),
+          citable: point.payload.citable,          // authoritative ingestion tag
+          sourceClass: point.payload.source_class, // law|case_law|bylaw|constitution|background
+        },
+      };
+    }).filter(doc => doc.pageContent.length > 0);
   }
 
   /**
@@ -807,6 +878,161 @@ Nexa Terminal има функции што решаваат дел од проб
    * @param {string} question - User's question
    * @returns {Promise<Array>} - Array of relevant document chunks
    */
+  /**
+   * Order sources so official law/case law comes first and unofficial
+   * background (brochures, data dumps) fills only leftover slots. Runs BEFORE
+   * the top-k slice so a background keyword-hit can never push a relevant
+   * statute out of context. Nothing is cited from here — citation eligibility is
+   * enforced separately by isCitableSource() at format/return time.
+   *
+   * - Diversity cap: one document may occupy at most `maxPerDoc` slots (stops a
+   *   heavily-chunked judgment or JSON dump from flooding the whole context).
+   * - Background (non-citable) sources are kept — they can inform the answer —
+   *   but ranked after citable law and capped so context isn't mostly guidance.
+   */
+  prioritizeSources(docs) {
+    const maxBackground = parseInt(process.env.CHATBOT_MAX_BACKGROUND || '3', 10);
+    const maxPerDoc = parseInt(process.env.CHATBOT_MAX_CHUNKS_PER_DOC || '2', 10);
+
+    // Diversity cap per document (preserves order).
+    const perDoc = new Map();
+    const diverse = docs.filter(d => {
+      const name = d.metadata?.documentName || '?';
+      const n = perDoc.get(name) || 0;
+      if (n >= maxPerDoc) return false;
+      perDoc.set(name, n + 1);
+      return true;
+    });
+
+    // Stable partition: citable legal sources first, then capped background.
+    const citable = diverse.filter(d => isCitableSource(d.metadata));
+    const background = diverse.filter(d => !isCitableSource(d.metadata)).slice(0, maxBackground);
+    const dropped = docs.length - (citable.length + background.length);
+    if (dropped > 0) {
+      console.log(`🧹 [RAG DEBUG] Source prioritization: ${citable.length} citable + ${background.length} background, dropped ${dropped} (dupe/excess)`);
+    }
+    return [...citable, ...background];
+  }
+
+  /**
+   * Rerank candidate chunks by true relevance to the question using the cheap
+   * utility model (gpt-4o-mini), returning the best `topN` in relevance order.
+   *
+   * WHY: vector/keyword scores get the right DOCUMENT into the candidate pool,
+   * but the exact article that answers the question is often not the top-scored
+   * chunk — it gets buried under near-duplicates or broadly-similar text. The
+   * answer model then can't see the verified article and starts guessing
+   * (measured: article_accuracy was the weakest criterion). A lightweight rerank
+   * surfaces the precise chunk so the model cites instead of inventing.
+   *
+   * Fails open: on any error / disabled flag / small pool, returns docs.slice(0, topN).
+   */
+  async rerankChunks(question, docs, topN) {
+    if (docs.length <= topN) return docs;
+    if (process.env.CHATBOT_RERANK === 'off') return docs.slice(0, topN);
+
+    try {
+      const list = docs.map((d, i) => {
+        const m = d.metadata || {};
+        const tag = m.article ? ` [${m.article}]` : '';
+        const snip = (d.pageContent || '').replace(/\s+/g, ' ').slice(0, 300);
+        return `[${i}] ${m.documentName || '?'}${tag}: ${snip}`;
+      }).join('\n');
+
+      const prompt = PromptTemplate.fromTemplate(
+        `Прашање: {question}
+
+Подолу се парчиња правен текст (кандидати), секое со реден број во [загради].
+Избери ги ТОЧНО оние што најдиректно помагаат да се одговори прашањето — најмногу {n}, подредени од најрелевантно кон помалку. Предност на конкретни членови од закони што директно го уредуваат прашањето.
+Врати ИСКЛУЧИВО JSON низа од редни броеви, без друг текст. Пример: [3,0,7]
+
+Кандидати:
+{list}`
+      );
+      const chain = RunnableSequence.from([prompt, this.utilityModel, new StringOutputParser()]);
+      const out = await chain.invoke({ question, n: topN, list });
+
+      const match = out.match(/\[[\d,\s]*\]/);
+      if (!match) return docs.slice(0, topN);
+      const order = JSON.parse(match[0])
+        .filter(i => Number.isInteger(i) && i >= 0 && i < docs.length);
+      if (order.length === 0) return docs.slice(0, topN);
+
+      const seen = new Set();
+      const ranked = [];
+      for (const i of order) {
+        if (seen.has(i)) continue;
+        seen.add(i);
+        ranked.push(docs[i]);
+        if (ranked.length >= topN) break;
+      }
+      // Backfill from original order if the model returned fewer than topN.
+      for (let i = 0; i < docs.length && ranked.length < topN; i++) {
+        if (!seen.has(i)) { ranked.push(docs[i]); seen.add(i); }
+      }
+      console.log(`🎯 [RAG DEBUG] Reranked ${docs.length} → top ${ranked.length} (order: ${order.slice(0, topN).join(',')})`);
+      return ranked;
+    } catch (e) {
+      console.warn('⚠️ [RAG DEBUG] Rerank failed, using pre-rerank order:', e.message);
+      return docs.slice(0, topN);
+    }
+  }
+
+  /**
+   * Gap-triggered WEB SEARCH fallback (OpenAI native web_search via Responses
+   * API). Called ONLY when local retrieval surfaced no citable legal source, so
+   * verified MK law always wins when we have it. Results are UNOFFICIAL: they're
+   * returned as a single background chunk (citable=false, sourceClass='web'),
+   * biased toward official domains, and the prompt is told to present them with
+   * a reservation + link and never as binding legal authority.
+   *
+   * Fails open: returns null on disabled flag / no access / any error.
+   */
+  async webSearchFallback(question) {
+    if (process.env.CHATBOT_WEB_SEARCH === 'off') return null;
+    try {
+      const model = process.env.CHATBOT_WEB_MODEL || process.env.OPENAI_MODEL || 'gpt-5.1';
+      const resp = await this.openaiClient.responses.create({
+        model,
+        tools: [{ type: 'web_search' }],
+        input:
+          `Пребарај на интернет за да одговориш на правно прашање за Република Северна Македонија. ` +
+          `Дај предност на официјални извори: slvesnik.com.mk (Службен весник), pravda.gov.mk, ujp.gov.mk, finance.gov.mk. ` +
+          `Врати краток фактички извадок на македонски (најмногу 6 реченици) и наведи ги конкретните извори со URL. ` +
+          `Ако не најдеш веродостоен извор, кажи го тоа отворено.\n\nПрашање: ${question}`,
+      });
+
+      const text = (resp.output_text || '').trim();
+      if (!text) return null;
+
+      // Collect any URL citations the tool attached.
+      const urls = [];
+      for (const item of resp.output || []) {
+        for (const c of item.content || []) {
+          for (const a of c.annotations || []) {
+            if (a.type === 'url_citation' && a.url) urls.push(a.url);
+          }
+        }
+      }
+      const uniqueUrls = [...new Set(urls)].slice(0, 4);
+      console.log(`🌍 [RAG DEBUG] Web fallback used — ${text.length} chars, ${uniqueUrls.length} source url(s)`);
+
+      return {
+        pageContent: text.slice(0, 1800),
+        metadata: {
+          documentName: 'Интернет пребарување',
+          sourceClass: 'web',
+          citable: false,          // background only — never cited as binding law
+          score: 0.2,
+          url: uniqueUrls.join(' | ') || null,
+        },
+      };
+    } catch (e) {
+      console.warn('⚠️ [RAG DEBUG] Web search fallback failed (continuing without it):', e.message);
+      return null;
+    }
+  }
+
   async retrieveRelevantDocuments(question) {
     if (!this.vectorStore) {
       console.warn('⚠️  Vector store not initialized. Using placeholder context.');
@@ -831,10 +1057,10 @@ Nexa Terminal има функции што решаваат дел од проб
         const queries = await this.decomposeQuery(question);
         console.log(`🧠 [RAG DEBUG] Decomposed into ${queries.length} queries:`, queries.map(q => q.substring(0, 60)));
 
-        // Run hybrid search for each sub-query (5 results each to avoid too many)
+        // Run hybrid search for each sub-query (6 results each to feed the reranker)
         const allResults = [];
         const searchPromises = queries.map(q =>
-          Promise.allSettled([this.vectorSearch(q, 5), this.keywordSearch(q, 5)])
+          Promise.allSettled([this.vectorSearch(q, 6), this.keywordSearch(q, 6)])
         );
         const settledResults = await Promise.all(searchPromises);
 
@@ -858,12 +1084,14 @@ Nexa Terminal има функции што решаваат дел од проб
         });
 
         console.log(`🧠 [RAG DEBUG] Multi-query: ${allResults.length} total → ${topResults.length} unique results`);
-        topResults = topResults.slice(0, 10); // Slightly more for complex
+        // Rank laws/case law above guidance and cap per-doc; keep the WIDE pool
+        // (the reranker trims to the final set below).
+        topResults = this.prioritizeSources(topResults);
       } else {
-        // Simple question: single hybrid search
+        // Simple question: single hybrid search — wide pool for the reranker.
         const [vectorResults, keywordResults] = await Promise.allSettled([
-          this.vectorSearch(question, 8),
-          this.keywordSearch(question, 8),
+          this.vectorSearch(question, 12),
+          this.keywordSearch(question, 12),
         ]);
 
         const vectors = vectorResults.status === 'fulfilled' ? vectorResults.value : [];
@@ -886,25 +1114,62 @@ Nexa Terminal има функции што решаваат дел од проб
           console.log(`📋 [RAG DEBUG] Using ${vectors.length > 0 ? 'vector' : 'keyword'}-only results`);
         }
 
-        topResults = topResults.slice(0, 8);
+        topResults = this.prioritizeSources(topResults);
       }
 
-      // Supplement with Legal Data Hunter: always query MK case law,
-      // and EU only when the question genuinely involves foreign law.
+      // Rerank the wide candidate pool down to the final context set — surfaces
+      // the precise article chunk so the answer model cites instead of guessing.
+      const finalLimit = isComplex
+        ? parseInt(process.env.CHATBOT_FINAL_CHUNKS_COMPLEX || '8', 10)
+        : parseInt(process.env.CHATBOT_FINAL_CHUNKS || '6', 10);
+      topResults = await this.rerankChunks(question, topResults, finalLimit);
+
+      // Supplement with Legal Data Hunter. MK case law is queried only when the
+      // local corpus is WEAK on this question (best local score below threshold)
+      // — when we already have a strong statute match, the extra call added
+      // latency, timeouts and case-number noise for no gain. EU is queried only
+      // when the question genuinely involves foreign law.
       try {
         const wantsIntl = legalDataHunter.hasInternationalScope(question);
-        const ldhCalls = [legalDataHunter.searchMK(question, 3)];
+        // Use the BEST score across the final set (rerank reorders by relevance,
+        // not by score, so [0] is no longer necessarily the highest-scored).
+        const topLocalScore = topResults.reduce((m, r) => Math.max(m, r.metadata?.score || 0), 0);
+        const minLocal = parseFloat(process.env.LDH_MIN_LOCAL_SCORE) || 0.55;
+        const weakLocal = topLocalScore < minLocal;
+
+        const ldhCalls = [];
+        if (weakLocal) {
+          console.log(`🌐 [RAG DEBUG] Local top score ${(topLocalScore * 100).toFixed(0)}% < ${(minLocal * 100).toFixed(0)}% → querying LDH MK case law`);
+          ldhCalls.push(legalDataHunter.searchMK(question, 3));
+        }
         if (wantsIntl) {
           console.log('🌐 [RAG DEBUG] Foreign-law signal detected → also querying LDH EU');
           ldhCalls.push(legalDataHunter.searchEU(question, 3));
         }
-        const ldhResults = (await Promise.all(ldhCalls)).flat();
-        if (ldhResults.length > 0) {
-          console.log(`🌐 [RAG DEBUG] LDH supplementary results: ${ldhResults.length}`);
-          topResults = topResults.concat(ldhResults);
+        if (ldhCalls.length > 0) {
+          const ldhResults = (await Promise.all(ldhCalls)).flat();
+          if (ldhResults.length > 0) {
+            console.log(`🌐 [RAG DEBUG] LDH supplementary results: ${ldhResults.length}`);
+            topResults = topResults.concat(ldhResults);
+          }
         }
       } catch (ldhError) {
         console.warn('⚠️ [RAG DEBUG] LDH supplementary search failed (continuing with local results):', ldhError.message);
+      }
+
+      // Gap-triggered web fallback: fires only when the corpus has no *concrete*
+      // answer — i.e. no citable law with a real relevance score. Weak keyword-
+      // only citable hits (score ~0.3) don't count as an answer, so they still
+      // trigger the fallback; a genuine statute match (vector score ≥ threshold)
+      // suppresses it, so verified law always wins when we actually have it.
+      const webGapScore = parseFloat(process.env.CHATBOT_WEB_GAP_SCORE) || 0.5;
+      const hasStrongCitable = topResults.some(
+        d => isCitableSource(d.metadata) && (d.metadata?.score || 0) >= webGapScore
+      );
+      if (!hasStrongCitable) {
+        console.log(`🌍 [RAG DEBUG] No strong citable law (≥${webGapScore}) → trying web search fallback`);
+        const web = await this.webSearchFallback(question);
+        if (web) topResults = topResults.concat(web);
       }
 
       // Log results
@@ -959,6 +1224,19 @@ Nexa Terminal има функции што решаваат дел од проб
           const court = doc.metadata.court ? `\nCourt: ${doc.metadata.court}` : '';
           const date = doc.metadata.date ? `\nDate: ${doc.metadata.date}` : '';
           return `[Source ${index + 1} — EXTERNAL] ${docName}${court}${date}${url}\n${doc.pageContent}`;
+        }
+        // Web fallback: unofficial internet info used only when no law was
+        // found. The model MAY reference it with an explicit reservation + link,
+        // but never as binding legal authority.
+        if (doc.metadata?.sourceClass === 'web') {
+          const url = doc.metadata.url ? `\nИзвори: ${doc.metadata.url}` : '';
+          return `[Интернет извор ${index + 1} — НЕОФИЦИЈАЛНО/НЕПРОВЕРЕНО: смее да се спомене со ограда и линк, но НЕ како обврзувачки закон; секогаш упати на проверка во Службен весник/адвокат]${url}\n${doc.pageContent}`;
+        }
+        // Background (non-citable) sources — brochures, data dumps, unofficial
+        // docs — are given to the model to INFORM the answer, but explicitly
+        // marked so it never cites them as legal authority (user rule).
+        if (!isCitableSource(doc.metadata)) {
+          return `[Позадина ${index + 1} — НЕ ЦИТИРАЈ (неофицијален извор, само за контекст)] ${docName}:\n${doc.pageContent}`;
         }
         // Surface the VERIFIED article number (from metadata) so the model can cite it
         // accurately instead of guessing. This is a confirmed citation, safe to use.
@@ -1037,7 +1315,7 @@ Nexa Terminal има функции што решаваат дел од проб
       const context = this.formatContext(relevantDocs);
 
       // Send sources event first
-      const sources = relevantDocs.map(doc => ({
+      const sources = relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
         documentName: doc.metadata?.documentName || 'Unknown',
         confidence: doc.metadata?.score || 0,
         article: doc.metadata?.article || null,
@@ -1093,7 +1371,7 @@ Nexa Terminal има функции што решаваат дел од проб
           const aiMsg = await this.conversationService.saveMessage(conversationId, {
             type: 'ai',
             content: cleanResponse,
-            sources: relevantDocs.map(doc => ({
+            sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
               documentName: doc.metadata?.documentName || 'Unknown',
               confidence: doc.metadata?.score || 0,
               snippet: doc.pageContent?.substring(0, 200) || ''
@@ -1128,7 +1406,7 @@ Nexa Terminal има функции што решаваат дел од проб
   getHealthStatus() {
     return {
       status: 'operational',
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
+      model: process.env.OPENAI_MODEL || 'gpt-5.1',
       temperature: parseFloat(process.env.CHATBOT_TEMPERATURE) || 0.2,
       vectorStoreInitialized: this.vectorStore !== null,
       timestamp: new Date(),

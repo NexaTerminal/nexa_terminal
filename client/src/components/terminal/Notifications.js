@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBell, 
-  faCheck, 
-  faHeart, 
-  faComment, 
-  faFileText, 
-  faTrendingUp,
-  faTimes,
-  faCheckCircle
-} from '@fortawesome/free-solid-svg-icons';
 import styles from '../../styles/terminal/Notifications.module.css';
+
+// Inline SVG icons (stroke-only, currentColor) — the app avoids icon-font deps
+// and uses inline SVGs everywhere (see Header/Sidebar). `name` maps to a glyph.
+const Icon = ({ name }) => {
+  const c = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'bell':    return (<svg {...c}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>);
+    case 'check':   return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg>);
+    case 'x':       return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M15 9l-6 6M9 9l6 6" /></svg>);
+    case 'close':   return (<svg {...c}><path d="M18 6L6 18M6 6l12 12" /></svg>);
+    case 'trend':   return (<svg {...c}><path d="M3 17l6-6 4 4 7-7" /><path d="M17 8h4v4" /></svg>);
+    default:        return (<svg {...c}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>);
+  }
+};
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -122,19 +125,16 @@ const Notifications = () => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'post_liked':
-        return faHeart;
-      case 'new_comment':
-        return faComment;
-      case 'new_post':
-        return faFileText;
       case 'verification_approved':
+      case 'subscription_approved':
+        return 'check';
       case 'verification_rejected':
-        return faCheckCircle;
+      case 'subscription_rejected':
+        return 'x';
       case 'investment':
-        return faTrendingUp;
+        return 'trend';
       default:
-        return faBell;
+        return 'bell';
     }
   };
 
@@ -147,10 +147,13 @@ const Notifications = () => {
       case 'new_post':
         return 'var(--color-success)';
       case 'verification_approved':
+      case 'subscription_approved':
         return 'var(--color-success)';
       case 'verification_rejected':
+      case 'subscription_rejected':
         return 'var(--color-error)';
       case 'investment':
+      case 'subscription_requested':
         return 'var(--color-warning)';
       default:
         return 'var(--color-text-secondary)';
@@ -162,10 +165,10 @@ const Notifications = () => {
     const time = new Date(timestamp);
     const diffInMinutes = Math.floor((now - time) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    if (diffInMinutes < 1) return 'сега';
+    if (diffInMinutes < 60) return `пред ${diffInMinutes} мин`;
+    if (diffInMinutes < 1440) return `пред ${Math.floor(diffInMinutes / 60)} ч`;
+    return `пред ${Math.floor(diffInMinutes / 1440)} дена`;
   };
 
   const handleNotificationClick = (notification) => {
@@ -186,7 +189,7 @@ const Notifications = () => {
         onClick={() => setIsOpen(!isOpen)}
         data-unread={unreadCount > 0}
       >
-        <FontAwesomeIcon icon={faBell} />
+        <Icon name="bell" />
         {unreadCount > 0 && (
           <span className={styles.unreadBadge}>
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -197,22 +200,22 @@ const Notifications = () => {
       {isOpen && (
         <div className={styles.notificationsDropdown}>
           <div className={styles.notificationsHeader}>
-            <h3>Notifications</h3>
+            <h3>Известувања</h3>
             <div className={styles.headerActions}>
               {unreadCount > 0 && (
-                <button 
+                <button
                   onClick={markAllAsRead}
                   disabled={loading}
                   className={styles.markAllRead}
                 >
-                  {loading ? 'Marking...' : 'Mark all read'}
+                  {loading ? 'Означувам...' : 'Означи ги сите'}
                 </button>
               )}
               <button 
                 onClick={() => setIsOpen(false)}
                 className={styles.closeButton}
               >
-                <FontAwesomeIcon icon={faTimes} />
+                <Icon name="close" />
               </button>
             </div>
           </div>
@@ -220,8 +223,8 @@ const Notifications = () => {
           <div className={styles.notificationsList}>
             {notifications.length === 0 ? (
               <div className={styles.emptyState}>
-                <FontAwesomeIcon icon={faBell} className={styles.emptyIcon} />
-                <p>No notifications yet</p>
+                <span className={styles.emptyIcon}><Icon name="bell" /></span>
+                <p>Нема известувања</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -234,10 +237,15 @@ const Notifications = () => {
                     className={styles.notificationIcon}
                     style={{ color: getNotificationColor(notification.type) }}
                   >
-                    <FontAwesomeIcon icon={getNotificationIcon(notification.type)} />
+                    <Icon name={getNotificationIcon(notification.type)} />
                   </div>
                   
                   <div className={styles.notificationContent}>
+                    {notification.title && (
+                      <p className={styles.notificationTitle}>
+                        {notification.title}
+                      </p>
+                    )}
                     <p className={styles.notificationMessage}>
                       {notification.message}
                     </p>
@@ -254,13 +262,6 @@ const Notifications = () => {
             )}
           </div>
 
-          {notifications.length > 0 && (
-            <div className={styles.notificationsFooter}>
-              <button className={styles.viewAllButton}>
-                View All Notifications
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

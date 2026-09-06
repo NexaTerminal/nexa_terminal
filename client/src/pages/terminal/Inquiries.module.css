@@ -52,6 +52,15 @@
 }
 .chipHit { background: #ECFDF5; color: #15803D; border-color: #BBF7D0; }
 .chipUrgent { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+/* Fresh lead (≤ 15 days) — vivid, high-contrast so new cases pop against the
+   muted look of older ones (.cardOld). */
+.chipNew {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; border: 1px solid transparent;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: #fff;
+  box-shadow: 0 3px 8px -4px rgba(22, 163, 74, 0.6);
+}
 .chipsRow { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .statusPill {
@@ -113,6 +122,52 @@
 .radioRow, .checkboxRow { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
 .checkboxCell { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: #0B1220; }
 .actionRow { display: flex; gap: 10px; padding-top: 6px; border-top: 1px solid #f1f5f9; }
+
+/* Category picker — pill toggles (multi-select). */
+.catPicker { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.catOption {
+  appearance: none; cursor: pointer; box-shadow: none; min-height: 0;
+  border: 1px solid #d8dee9; background: #fff; color: #334155;
+  border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 600;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.catOption:hover { border-color: #1e4db7; color: #0B1220; transform: none; }
+.catOptionActive, .catOptionActive:hover { background: #1e4db7; border-color: #1e4db7; color: #fff; }
+
+/* Board category filter — the funnel's output band. Cases exit the terminal
+   and spread into area chips, mirroring the source bubbles at the top so the
+   whole block reads as one continuous funnel. */
+.funnelOutput {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px dashed #E5ECFA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.catFilterBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+.catFilterChip {
+  appearance: none; cursor: pointer; box-shadow: none; min-height: 0;
+  display: inline-flex; align-items: center;
+  padding: 5px 14px; border-radius: 999px;
+  background: #F5F8FF; border: 1px solid #E5ECFA; color: #3a63c0;
+  font-size: 12.5px; font-weight: 600;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+.catFilterChip:hover { background: #E9F0FE; color: #2b4fa0; transform: translateY(-1px); }
+.catFilterChipActive, .catFilterChipActive:hover {
+  background: linear-gradient(135deg, #4f7bcf 0%, #6f9ae0 100%);
+  border-color: transparent; color: #fff; transform: none;
+  box-shadow: 0 8px 20px -12px rgba(79, 123, 207, 0.6);
+}
 
 /* ── admin detail ────────────────────────────────────────────────────── */
 .detail { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; }
@@ -177,132 +232,213 @@
 .s_not_chosen { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
 
 /* ────────────────────────────────────────────────────────────────────
-   Commercial explanation block (Case Board "Како функционира" card)
+   Case funnel — visual hero: questions from the network → hand-filtered
+   → converge into one Nexa Terminal, with the leads listed below.
    ──────────────────────────────────────────────────────────────────── */
-.commercialNote {
-  margin-top: 18px;
+.caseFunnel {
+  position: relative;
+  overflow: hidden;
+  margin-top: 14px;
+  padding: 12px 16px 11px;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
-  background: linear-gradient(135deg, #F8FAFF 0%, #FFFFFF 60%);
-  border: 1px solid #E5EAF4;
-  border-radius: 14px;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 8px 24px -16px rgba(30, 77, 183, 0.12);
-  max-width: 860px;
-}
-
-/* Compact explainer — keeps the page focused on the case cards below. */
-.leadsIntro {
-  margin-top: 12px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #F8FAFF 0%, #FFFFFF 70%);
-  border: 1px solid #E5EAF4;
-  border-radius: 12px;
-}
-.leadsIntroLead { margin: 0 0 10px; font-size: 0.88rem; line-height: 1.5; color: #475569; max-width: 80ch; }
-.leadsScrutiny {
-  display: inline-block; margin-right: 8px;
-  font-size: 0.76rem; font-weight: 700; letter-spacing: 0.01em;
-  color: #15803D; background: #F0FDF4; border: 1px solid #BBF7D0;
-  padding: 1px 8px; border-radius: 999px; vertical-align: 1px;
-}
-
-/* Visual process flow: numbered icon circles connected by a line. */
-.leadsFlow { display: flex; align-items: flex-start; margin-bottom: 12px; }
-.leadsFlowStep {
-  flex: 1 1 0; min-width: 150px;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  position: relative; padding: 0 6px;
-}
-.leadsFlowStep:not(:last-child)::after {
-  content: ''; position: absolute; top: 21px;
-  left: calc(50% + 26px); width: calc(100% - 52px); height: 2px;
-  background: linear-gradient(90deg, #c7d6f5, #e5eaf4);
-}
-.leadsFlowIcon {
-  position: relative; z-index: 1;
-  width: 44px; height: 44px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #2456c6 0%, #1e4db7 100%); color: #fff;
-  box-shadow: 0 6px 14px -6px rgba(30, 77, 183, 0.6);
-}
-.leadsFlowNum {
-  position: absolute; top: -4px; right: -4px;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #f59e0b; color: #fff; font-size: 11px; font-weight: 800;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 2px solid #fff;
-}
-.leadsFlowTitle { margin-top: 10px; font-size: 0.86rem; font-weight: 700; color: #0B1220; }
-.leadsFlowDesc { margin-top: 4px; font-size: 0.78rem; line-height: 1.45; color: #64748b; max-width: 24ch; }
-@media (max-width: 600px) {
-  .leadsFlow { flex-direction: column; gap: 14px; align-items: flex-start; }
-  .leadsFlowStep { flex-direction: row; align-items: center; text-align: left; gap: 12px; min-width: 0; width: 100%; }
-  .leadsFlowStep:not(:last-child)::after { display: none; }
-  .leadsFlowDesc { max-width: none; }
-}
-
-.commercialNoteIcon {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #EEF4FF, #DCE7FF);
-  color: #1e4db7;
+  text-align: center;
+  background: linear-gradient(180deg, #FBFCFF 0%, #FFFFFF 78%);
+  border: 1px solid #EDF1F9;
+  border-radius: 14px;
 }
-.commercialNoteBody { flex: 1 1 auto; min-width: 0; }
-.commercialNoteEyebrow {
-  display: inline-block;
+/* Keep the real funnel content above the falling "?" backdrop. */
+.caseFunnel > *:not(.funnelRain) { position: relative; z-index: 1; }
+
+/* Slow "?" rain — questions drifting from the network sites down into the
+   funnel. Purely decorative; disabled for reduced-motion users. */
+.funnelRain { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.rainQ {
+  position: absolute; top: -8%;
+  color: #cbd8f0; font-weight: 800; line-height: 1;
+  opacity: 0;
+  animation-name: qFall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+.rainQ:nth-child(1) { left: 6%;  font-size: 13px; animation-duration: 7.5s;  animation-delay: 0s;   }
+.rainQ:nth-child(2) { left: 18%; font-size: 16px; animation-duration: 9s;    animation-delay: 1.6s; }
+.rainQ:nth-child(3) { left: 30%; font-size: 12px; animation-duration: 8.2s;  animation-delay: 3s;   }
+.rainQ:nth-child(4) { left: 42%; font-size: 15px; animation-duration: 10s;   animation-delay: 0.8s; }
+.rainQ:nth-child(5) { left: 54%; font-size: 13px; animation-duration: 8.8s;  animation-delay: 2.4s; }
+.rainQ:nth-child(6) { left: 66%; font-size: 17px; animation-duration: 9.6s;  animation-delay: 4s;   }
+.rainQ:nth-child(7) { left: 78%; font-size: 12px; animation-duration: 7.8s;  animation-delay: 1.2s; }
+.rainQ:nth-child(8) { left: 88%; font-size: 15px; animation-duration: 9.2s;  animation-delay: 3.4s; }
+.rainQ:nth-child(9) { left: 48%; font-size: 11px; animation-duration: 11s;   animation-delay: 5s;   }
+@keyframes qFall {
+  0%   { transform: translateY(0)     rotate(-8deg); opacity: 0; }
+  12%  { opacity: 0.75; }
+  80%  { opacity: 0.5; }
+  100% { transform: translateY(180px) rotate(8deg);  opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rainQ { animation: none; opacity: 0; }
+}
+.funnelBandLabel {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #1e4db7;
-  margin-bottom: 4px;
-}
-.commercialNoteText {
-  margin: 0;
-  font-size: 13.5px;
-  color: #334155;
-  line-height: 1.6;
+  color: #a9b4c6;
+  margin-bottom: 7px;
 }
 
-.commercialSources {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed #E5EAF4;
+/* Top band: question bubbles, one per network source — single spread row. */
+.funnelSources {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px 10px;
-  font-size: 12px;
+  gap: 8px;
+  width: 100%;
+  max-width: 900px;
 }
-.commercialSourcesLabel {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #94a3b8;
-  margin-right: 2px;
-}
-.commercialSourceLink {
-  color: #1e4db7;
-  text-decoration: none;
-  padding: 2px 8px;
+.funnelBubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 5px;
   border-radius: 999px;
-  background: #EEF4FF;
-  border: 1px solid #DCE7FF;
-  font-weight: 500;
-  transition: background-color 120ms ease, color 120ms ease;
-}
-.commercialSourceLink:hover {
-  background: #DCE7FF;
-  color: #163b8e;
+  background: #F5F8FF;
+  border: 1px solid #E5ECFA;
+  color: #3a63c0;
   text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.funnelBubble:hover {
+  background: #E9F0FE;
+  color: #2b4fa0;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+.funnelBubbleQ {
+  flex: 0 0 auto;
+  width: 21px;
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7aa0e0 0%, #5b86d6 100%);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  box-shadow: 0 3px 8px -5px rgba(91, 134, 214, 0.8);
+}
+.funnelBubbleHost { white-space: nowrap; }
+
+/* Middle band: converging SVG funnel + manual-filter pill. */
+.funnelGraphic {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 2px 0 0;
+}
+.funnelSvg { display: block; width: 100%; height: auto; }
+.funnelFeed {
+  stroke: #D7E2F6;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 3 5;
+}
+.funnelShape {
+  fill: #F4F8FF;
+  stroke: #9DB8E8;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+.funnelNeck {
+  fill: #E6EEFB;
+  stroke: #9DB8E8;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+.funnelFilterPill {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #4a9d6a;
+  background: #F4FDF7;
+  border: 1px solid #CFEEDA;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px -4px rgba(74, 157, 106, 0.5);
+}
+
+/* Bottom band: the single terminal node + payoff caption. */
+.funnelTerminal {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px 7px 7px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f7bcf 0%, #6f9ae0 100%);
+  box-shadow: 0 8px 20px -12px rgba(79, 123, 207, 0.6);
+}
+.funnelTerminalMark {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.funnelTerminalName {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.funnelCaption {
+  margin: 9px 0 0;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: #64748b;
+  max-width: 56ch;
+}
+.funnelChevron {
+  display: block;
+  margin-top: 2px;
+  font-size: 18px;
+  line-height: 1;
+  color: #6f9ae0;
+  animation: funnelChevronBob 1.8s ease-in-out infinite;
+}
+@keyframes funnelChevronBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@media (max-width: 680px) {
+  /* Let the single row scroll horizontally instead of stacking. */
+  .funnelSources {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .funnelBubble { flex: 0 0 auto; }
+  .funnelGraphic { max-width: 320px; }
+  .funnelBubbleHost { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .funnelChevron { animation: none; }
 }
 
 /* ────────────────────────────────────────────────────────────────────
@@ -408,8 +544,6 @@
 }
 
 @media (max-width: 640px) {
-  .commercialNote { padding: 14px; gap: 10px; }
-  .commercialNoteIcon { width: 32px; height: 32px; }
   .detailModal { padding: 22px 18px 18px; max-height: calc(100vh - 24px); }
   .detailBackdrop { padding: 12px; align-items: flex-start; padding-top: 24px; }
 }

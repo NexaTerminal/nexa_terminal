@@ -79,7 +79,8 @@ class SettingsManager {
         contractAnalysis: features.contractAnalysis,
         admin: true, // Always enabled for admin functionality
         verification: true, // Always enabled for company verification
-        contact: true // Always enabled for public contact / request-access form
+        contact: true, // Always enabled for public contact / request-access form
+        notifications: true // Always enabled — in-app bell (admin↔user updates)
       },
       // Map features to collections automatically
       database: {
@@ -169,7 +170,8 @@ class SettingsManager {
         contractAnalysis: true,
         admin: true,  // Enable admin routes
         verification: true,  // Enable verification routes
-        contact: true  // Enable public contact / request-access route
+        contact: true,  // Enable public contact / request-access route
+        notifications: true  // In-app bell (admin↔user updates)
       },
       middleware: {
         authentication: true,

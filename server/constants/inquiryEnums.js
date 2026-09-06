@@ -17,8 +17,19 @@ const INQUIRY_SOURCES = Object.freeze([
 ]);
 
 const INQUIRY_CATEGORIES = Object.freeze([
-  'legal', 'accounting', 'tax', 'insurance',
-  'real_estate', 'hr', 'marketing', 'translation', 'other'
+  'labor',          // Работни односи
+  'property',       // Сопственост и недвижности
+  'insurance',      // Осигурување
+  'company',        // Фирми
+  'citizenship',    // Државјанство
+  'residence',      // Регулирање на престој
+  'tax',            // Даноци
+  'family',         // Семејно право
+  'inheritance',    // Наследување
+  'ip',             // Авторско право и интелектуална сопственост
+  'administrative',  // Административни постапки
+  'other_legal',     // Друго (правно)
+  'legal_questions'  // Друго - правни прашања
 ]);
 
 const INQUIRY_CITIES = Object.freeze([

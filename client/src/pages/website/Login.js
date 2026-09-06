@@ -19,8 +19,14 @@ const Login = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const isLeadsStore = isLeadsStorefront(); // leads.nexa.mk → lawyer-facing copy
-  // Trial plan is chosen by the storefront: Pro on leads.nexa.mk, Basic on nexa.mk.
-  const intendedPlan = isLeadsStore ? 'pro' : 'basic';
+  // Identity is CHOSEN by the user at signup, not inferred from the domain — a
+  // lawyer landing on nexa.mk must still be able to sign up as Pro. The domain
+  // only decides the DEFAULT selection; the chooser below can override it.
+  const [accountType, setAccountType] = useState(isLeadsStore ? 'pro' : 'basic');
+  // Pro (Адвокат) signups submit a licence number or ЕМБС so the admin can
+  // confirm they really are a lawyer before/at approval.
+  const [proLicense, setProLicense] = useState('');
+  const intendedPlan = accountType;
 
   // A campaign link stashes a promo code before bouncing here. Its presence is
   // what unlocks the signup form (the user was invited). Read once on mount.
@@ -117,7 +123,11 @@ const Login = () => {
           throw new Error('Внесете валидна е-пошта.');
         }
 
-        const result = await registerSimple(username, password, intendedPlan || 'basic', email);
+        if (accountType === 'pro' && !proLicense.trim()) {
+          throw new Error('Внесете број на лиценца или ЕМБС за да потврдиме дека сте адвокат.');
+        }
+
+        const result = await registerSimple(username, password, intendedPlan || 'basic', email, proLicense.trim());
         if (result.success && result.requireEmailVerification) {
           setVerifyUserId(result.userId);
           setVerifyEmailAddr(result.email);
@@ -166,6 +176,12 @@ const Login = () => {
 
   // Handle Google OAuth login
   const handleGoogleLogin = () => {
+    // On the signup tab, a Pro (Адвокат) choice needs the licence/ЕМБС before we
+    // hand off to Google (we can't collect it after the OAuth redirect).
+    if (!isLogin && accountType === 'pro' && !proLicense.trim()) {
+      setError('Внесете број на лиценца или ЕМБС за да продолжите како адвокат.');
+      return;
+    }
     const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
@@ -173,6 +189,11 @@ const Login = () => {
     // the 8-day trial for the right plan (Pro on leads.nexa.mk, Basic on nexa.mk).
     const state = new URLSearchParams();
     state.set('sf', getStorefront());
+    // Carry the chosen identity (and lawyer licence, if Pro) through OAuth so a
+    // new Google account is provisioned as the plan the user actually picked —
+    // not the plan implied by the domain.
+    state.set('plan', accountType);
+    if (accountType === 'pro' && proLicense.trim()) state.set('lic', proLicense.trim());
     // Return to the SAME host we started from (e.g. leads.localhost:3000) so the
     // OAuth round-trip doesn't drop the storefront subdomain and land the user
     // on the wrong product shell.
@@ -273,6 +294,50 @@ const Login = () => {
             <RequestAccessPanel styles={styles} onSwitchToLogin={() => setMode(true)} />
           ) : (
             <>
+              {/* Identity chooser — signup only. Drives the plan for BOTH the
+                  password and Google flows (rendered above the buttons so a Pro
+                  can fill the licence before clicking Google). */}
+              {!isLogin && (
+                <div className={styles.accountType}>
+                  <p className={styles.accountTypeTitle}>Како ќе го користите Nexa?</p>
+                  <div className={styles.accountTypeOptions}>
+                    <button
+                      type="button"
+                      className={`${styles.accountTypeOption} ${accountType === 'basic' ? styles.accountTypeOptionActive : ''}`}
+                      onClick={() => setAccountType('basic')}
+                      aria-pressed={accountType === 'basic'}
+                    >
+                      <span className={styles.accountTypeName}>За мојата фирма</span>
+                      <span className={styles.accountTypeDesc}>Документи, усогласеност и деловни алатки</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.accountTypeOption} ${accountType === 'pro' ? styles.accountTypeOptionActive : ''}`}
+                      onClick={() => setAccountType('pro')}
+                      aria-pressed={accountType === 'pro'}
+                    >
+                      <span className={styles.accountTypeName}>Адвокат</span>
+                      <span className={styles.accountTypeDesc}>Ќе го користам за да најдам клиенти и за да поедноставам услуги за нив</span>
+                    </button>
+                  </div>
+
+                  {accountType === 'pro' && (
+                    <div className={styles.field}>
+                      <label htmlFor="proLicense" className={styles.label}>Број на лиценца или ЕМБС</label>
+                      <input
+                        type="text"
+                        id="proLicense"
+                        className={styles.input}
+                        value={proLicense}
+                        onChange={(e) => setProLicense(e.target.value)}
+                        placeholder="пр. број на адвокатска лиценца или ЕМБС"
+                      />
+                      <p className={styles.hint}>Го користиме само за да потврдиме дека сте адвокат пред да го одобриме пристапот.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Google OAuth first — lowest-friction path */}
               <button
                 className={styles.google}

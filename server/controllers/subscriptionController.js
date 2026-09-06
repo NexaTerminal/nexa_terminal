@@ -14,6 +14,7 @@ const Joi = require('joi');
 const subscriptionEmails = require('../emails/subscriptionEmails');
 const { bodyToHtml } = require('../emails/emailBody');
 const { ALL_PLANS, isValidPlan } = require('../constants/roles');
+const userNotifications = require('../services/userNotificationService');
 
 // Pacing for cold-invite sends. Resend's default rate limit is 2 requests/sec;
 // we send one invite every INVITE_SEND_INTERVAL_MS to stay safely under it (and
@@ -502,10 +503,19 @@ class SubscriptionController {
         userEmail: updated.email,
         userName:  updated.fullName || updated.username,
         plan: value.plan,
-        cycle: value.cycle
+        cycle: value.cycle,
+        license: updated.proVerification?.license || null
       }, 'mk');
       this.emailService.sendEmail(process.env.ADMIN_EMAIL || 'info@nexa.mk', adminTpl.subject, adminTpl.html)
         .catch(e => console.error('admin notify failed:', e.message));
+
+      // In-app: acknowledge to the user that their request was received.
+      userNotifications.notify(req.app.locals.db, req.user._id, {
+        type: 'subscription_requested',
+        title: 'Барањето е примено',
+        message: 'Го примивме вашето барање за пристап. Ќе ве известиме штом ќе биде одобрено.',
+        actionUrl: '/terminal/subscription'
+      }, req.app.locals.io);
 
       res.json({
         success: true,
@@ -608,6 +618,13 @@ class SubscriptionController {
       this.emailService.sendEmail(updated.email, tpl.subject, tpl.html)
         .catch(e => console.error('approve-email failed:', e.message));
 
+      userNotifications.notify(req.app.locals.db, updated._id, {
+        type: 'subscription_approved',
+        title: 'Пристапот е одобрен',
+        message: 'Вашата претплата е активна. Добредојдовте!',
+        actionUrl: '/terminal'
+      }, req.app.locals.io);
+
       if (this.auditLoggingService?.log) {
         try {
           await this.auditLoggingService.log({
@@ -634,6 +651,17 @@ class SubscriptionController {
       );
       this.emailService.sendEmail(updated.email, tpl.subject, tpl.html)
         .catch(e => console.error('reject-email failed:', e.message));
+
+      userNotifications.notify(req.app.locals.db, updated._id, {
+        type: 'subscription_rejected',
+        title: 'Барањето е одбиено',
+        message: value?.reason
+          ? `Вашето барање не е одобрено: ${value.reason}`
+          : 'Вашето барање не е одобрено. Контактирајте нè за повеќе информации.',
+        actionUrl: '/terminal/subscription',
+        severity: 'warning'
+      }, req.app.locals.io);
+
       res.json({ success: true, user: this._projectUser(updated) });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });

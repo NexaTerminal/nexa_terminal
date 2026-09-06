@@ -22,7 +22,48 @@ const ENUMS = Object.freeze({
   reviewTone:         ['cautious',     'pragmatic']
 });
 
+/**
+ * Personas = one-click presets the user picks in the AI chat. Each carries:
+ *  - label:     MK display name (shown on the chat chip)
+ *  - blurb:     one-line description (shown in the picker)
+ *  - preset:    stance-dimension values applied on selection (so the existing
+ *               buildPrefix bullets stay coherent with the chosen voice)
+ *  - character: the VOICE instruction injected into the prompt — this is what
+ *               gives each persona its distinct tone and answer intro.
+ * The base "practical protective lawyer" behavior lives in each AI service's
+ * own system prompt; the persona only tunes voice/depth/tone on top.
+ */
+const PERSONAS = Object.freeze({
+  practical: {
+    label: 'Практичен советник',
+    blurb: 'Јасно, балансирано и право на суштина.',
+    preset: { riskPosture: 'balanced', contractRelation: 'balanced', detailLevel: 'balanced', commercialPriority: 'balanced', reviewTone: 'pragmatic' },
+    character: 'Гласот е на смирен, балансиран практичен адвокат. Почни ги одговорите директно и по потреба со кратка воведна реченица во тој дух (пр. „Да го средиме ова чекор по чекор."). Оди право на суштина, без драма и без непотребно оградување.'
+  },
+  protector: {
+    label: 'Заштитник',
+    blurb: 'Максимална заштита — те чува од секој ризик.',
+    preset: { riskPosture: 'conservative', contractRelation: 'long_term', detailLevel: 'detailed', commercialPriority: 'commercial', reviewTone: 'cautious' },
+    character: 'Гласот е на претпазлив адвокат-заштитник чиј приоритет е безбедноста на корисникот. Отвори со кратка заштитничка воведна реченица (пр. „Ајде прво да те заштитиме тебе."). Изнеси ги сите ризици и најлоши сценарија, предупреди на секој пропуштен рок и форма, и секогаш препорачај ја најбезбедната опција.'
+  },
+  direct: {
+    label: 'Директен',
+    blurb: 'Брутално искрен, кус и без изговори.',
+    preset: { riskPosture: 'balanced', contractRelation: 'balanced', detailLevel: 'general', commercialPriority: 'balanced', reviewTone: 'pragmatic' },
+    character: 'Гласот е на брутално искрен, директен ментор што не толерира изговори — строг, но добронамерен. Отвори со предизвикувачка воведна реченица во разговорен тон и користи фрази како „Ајде сега, ова и сам го знаеш…", „Можеш и подобро од ова.", „Да бидеме искрени…", „Нема око за размислување тука.". Кажи ја вистината в лице, кратко и без разводнување, но остани ТОЧЕН во правото и КОНКРЕТЕН. Предизвикувај, не понижувај — без навреди и без непристоен јазик.'
+  },
+  mentor: {
+    label: 'Ментор',
+    blurb: 'Објаснува зошто — со логика и примери.',
+    preset: { riskPosture: 'balanced', contractRelation: 'balanced', detailLevel: 'detailed', commercialPriority: 'balanced', reviewTone: 'pragmatic' },
+    character: 'Гласот е на трпелив ментор-едукатор. Отвори со топла, охрабрувачка воведна реченица (пр. „Добро прашање — да разбереш зошто, не само што."). Објасни ја ЛОГИКАТА зад правилото (argumentum a contrario, целта на нормата), дај примери и научи го корисникот сам да расудува во слични ситуации.'
+  }
+});
+
+const PERSONA_KEYS = Object.keys(PERSONAS);
+
 const EMPTY = Object.freeze({
+  persona:            null,
   riskPosture:        null,
   contractRelation:   null,
   detailLevel:        null,
@@ -59,6 +100,7 @@ class StancePreferencesService {
     const doc = await this.col.findOne({ userId: uid });
     if (!doc) return { ...EMPTY };
     return {
+      persona:            doc.persona            ?? null,
       riskPosture:        doc.riskPosture        ?? null,
       contractRelation:   doc.contractRelation   ?? null,
       detailLevel:        doc.detailLevel        ?? null,
@@ -79,6 +121,18 @@ class StancePreferencesService {
       throw err;
     }
     const clean = StancePreferencesService.validate(input);
+    // Picking a persona seeds its stance preset for any dimension the caller did
+    // not set explicitly — so the chat modal can send just { persona } and the
+    // bullets stay coherent with the chosen voice.
+    if (clean.persona && PERSONAS[clean.persona]) {
+      const preset = PERSONAS[clean.persona].preset;
+      for (const k of Object.keys(preset)) {
+        const provided = input?.[k];
+        if (provided === undefined || provided === null || provided === '') {
+          clean[k] = preset[k];
+        }
+      }
+    }
     const now = new Date();
     await this.col.updateOne(
       { userId: uid },
@@ -107,6 +161,20 @@ class StancePreferencesService {
       }
       return val;
     };
+    // persona: only touched when the caller sends the key, so saving granular
+    // stance from the full page never wipes a previously-chosen persona.
+    if (input && 'persona' in input) {
+      const p = input.persona;
+      if (p === null || p === '') {
+        out.persona = null;
+      } else if (PERSONA_KEYS.includes(p)) {
+        out.persona = p;
+      } else {
+        const err = new Error(`Invalid value for persona: ${p}`);
+        err.code = 'INVALID_ENUM';
+        throw err;
+      }
+    }
     out.riskPosture        = checkEnum('riskPosture',        input?.riskPosture);
     out.contractRelation   = checkEnum('contractRelation',   input?.contractRelation);
     out.detailLevel        = checkEnum('detailLevel',        input?.detailLevel);
@@ -148,15 +216,33 @@ class StancePreferencesService {
     if (prefs.freeNote && prefs.freeNote.trim().length > 0) {
       lines.push(`- Additional note: "${prefs.freeNote.trim().replace(/"/g, '\\"')}"`);
     }
-    if (lines.length === 0) return '';
-    return [
-      '[User stance preferences]',
-      ...lines,
-      '',
-      'Apply these preferences to your response style, level of detail, and the way you frame tradeoffs. Do not mention these preferences explicitly to the user.',
-      '[End user stance preferences]',
-      ''
-    ].join('\n');
+
+    const persona = prefs.persona && PERSONAS[prefs.persona] ? PERSONAS[prefs.persona] : null;
+    if (!persona && lines.length === 0) return '';
+
+    const blocks = [];
+    if (persona) {
+      // The persona VOICE block. It shapes tone and the answer's opening, but
+      // must never be announced to the user, and never overrides the accuracy /
+      // anti-hallucination rules of the base prompt.
+      blocks.push(
+        `[Активна персона: ${persona.label}]`,
+        persona.character,
+        'Примени го овој глас и тон, вклучително во воведот на одговорот. НЕ ја објавувај персоната и НЕ ги жртвувај точноста, правните правила и правилата против халуцинации заради тонот.',
+        ''
+      );
+    }
+    if (lines.length > 0) {
+      blocks.push(
+        '[User stance preferences]',
+        ...lines,
+        '',
+        'Apply these preferences to your response style, level of detail, and the way you frame tradeoffs. Do not mention these preferences explicitly to the user.',
+        '[End user stance preferences]',
+        ''
+      );
+    }
+    return blocks.join('\n');
   }
 
   /** Fetch + build in one call. Returns '' for users with no preferences. */
@@ -183,5 +269,6 @@ StancePreferencesService.COLLECTION = COLLECTION;
 StancePreferencesService.FREE_NOTE_MAX = FREE_NOTE_MAX;
 StancePreferencesService.ENUMS = ENUMS;
 StancePreferencesService.EMPTY = EMPTY;
+StancePreferencesService.PERSONAS = PERSONAS;
 
 module.exports = StancePreferencesService;

@@ -111,6 +111,59 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
 }
 
+/* ---- Account-type (identity) chooser — signup only ---- */
+.accountType {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.accountTypeTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nx-ink, #0B1220);
+}
+.accountTypeOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.accountTypeOption {
+  appearance: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--nx-bg-soft, #F7F8FA);
+  border: 1.5px solid var(--nx-line, #E6E8EC);
+  border-radius: 12px;
+  font-family: inherit;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.accountTypeOption:hover { border-color: var(--nx-line-strong, #D1D5DB); }
+.accountTypeOptionActive,
+.accountTypeOptionActive:hover {
+  background: #FFFFFF;
+  border-color: var(--nx-primary-500, #1E4DB7);
+  box-shadow: 0 0 0 3px rgba(30, 77, 183, 0.12);
+}
+.accountTypeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nx-ink, #0B1220);
+}
+.accountTypeDesc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--nx-muted, #6B7280);
+}
+@media (max-width: 420px) {
+  .accountTypeOptions { grid-template-columns: 1fr; }
+}
+
 /* ---- Google (primary, above the form) ---- */
 .google {
   width: 100%;

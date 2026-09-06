@@ -69,6 +69,11 @@ class AuthController {
       parentSuperUserId: user.parentSuperUserId || null,
       intendedPlan: user.intendedPlan || null,
       needsTierOnboarding: user.needsTierOnboarding === true,
+      // Lawyer licence / ЕМБС captured at Pro onboarding — lets the modal
+      // prefill and the admin verify. Never exposes anything sensitive.
+      proVerification: user.proVerification
+        ? { license: user.proVerification.license || '', status: user.proVerification.status || 'pending' }
+        : null,
       // One-free-document state (master-plan Phase 1.2) — lib/tier.js
       // hasFreeDocPass() and LockedWelcome read this.
       freeDocUsed: user.freeDocUsed === true,
@@ -185,7 +190,7 @@ class AuthController {
   // Register new user
   register = async (req, res) => {
     try {
-      const { username, password, referralCode, intendedPlan, email } = req.body;
+      const { username, password, referralCode, intendedPlan, email, proLicense } = req.body;
 
       // Basic field validation
       if (!username || !password) {
@@ -283,6 +288,12 @@ class AuthController {
       const intendedRole = roleForPlan(planChoice);
       const intendedSeats = seatsForPlan(planChoice);
 
+      // Pro (Адвокат) signups submit a licence number / ЕМБС so the admin can
+      // confirm they are a lawyer before approving. Stored pending review.
+      const proVerification = planChoice === 'pro'
+        ? { license: String(proLicense || '').trim(), status: 'pending', submittedAt: new Date() }
+        : null;
+
       // Create new user with minimal required information
       const userData = {
         username: username.trim().toLowerCase(),
@@ -291,9 +302,11 @@ class AuthController {
         emailVerified: false,
         role: intendedRole,
         intendedPlan: planChoice,
-        // First-look modal asks the user which tier they want to evaluate during
-        // the trial. Set on every new signup; cleared once the modal is dismissed.
-        needsTierOnboarding: true,
+        ...(proVerification ? { proVerification } : {}),
+        // Password signups pick Basic/Pro on the signup form, so no first-login
+        // tier prompt is needed. (Google users get needsTierOnboarding=true and
+        // are asked once via TierOnboardingModal.)
+        needsTierOnboarding: false,
         referredBy: referredByCode,
         companyInfo: {
           companyName: '',
@@ -361,6 +374,65 @@ class AuthController {
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  /**
+   * POST /api/auth/choose-account-type  { plan: 'basic'|'pro', license? }
+   *
+   * First-login onboarding choice. Google users never see the signup-form
+   * chooser, so we ask once and set the plan/role accordingly. Guarded to run
+   * only while needsTierOnboarding is true — this is NOT a general Basic↔Pro
+   * switcher (that stays admin-controlled to protect lead quality).
+   */
+  chooseAccountType = async (req, res) => {
+    try {
+      const { plan, license } = req.body || {};
+      const { canonicalPlan, roleForPlan, seatsForPlan } = require('../constants/roles');
+      const planKey = canonicalPlan(plan);
+      if (!planKey) return res.status(400).json({ message: 'Невалиден избор на тип на сметка.' });
+
+      if (req.user.needsTierOnboarding !== true) {
+        return res.status(403).json({ code: 'ONBOARDING_DONE', message: 'Изборот на тип на сметка е веќе завршен.' });
+      }
+      if (planKey === 'pro' && !String(license || '').trim()) {
+        return res.status(400).json({ message: 'Внесете број на лиценца или ЕМБС за да продолжите како адвокат.' });
+      }
+
+      const db = req.app.locals.db;
+      const users = db.collection('users');
+      const user = req.user;
+      const newRole = roleForPlan(planKey);
+      const newSeats = seatsForPlan(planKey);
+
+      const set = {
+        role: newRole,
+        intendedPlan: planKey,
+        needsTierOnboarding: false,
+        updatedAt: new Date()
+      };
+      // Only relabel an existing subscription's plan — preserve status + endsAt
+      // (the trial window started at signup; we don't restart it).
+      if (user.subscription) set['subscription.plan'] = planKey;
+
+      if (planKey === 'pro') {
+        set.proVerification = { license: String(license).trim(), status: 'pending', submittedAt: new Date() };
+        set.superUser = {
+          seatLimit: newSeats,
+          practiceAreas: user.superUser?.practiceAreas || [],
+          cities: user.superUser?.cities || [],
+          topicsSlotsPerQuarter: user.superUser?.topicsSlotsPerQuarter ?? 2,
+          blogPostsPerMonth: user.superUser?.blogPostsPerMonth ?? 1,
+          lastAssignedAt: user.superUser?.lastAssignedAt ?? null
+        };
+      }
+
+      await users.updateOne({ _id: user._id }, { $set: set });
+      const fresh = await new UserService(db).findById(user._id.toString());
+      return res.json({ success: true, user: this.formatUserResponse(fresh) });
+    } catch (error) {
+      console.error('chooseAccountType error:', error.message);
+      return res.status(400).json({ message: error.message });
     }
   }
 

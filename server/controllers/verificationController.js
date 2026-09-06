@@ -6,6 +6,7 @@ const UserService = require('../services/userService');
 const emailService = require('../services/emailService');
 const MarketplaceService = require('../services/marketplaceService');
 const settingsManager = require('../config/settingsManager');
+const userNotifications = require('../services/userNotificationService');
 
 class VerificationController {
   constructor() {
@@ -268,6 +269,24 @@ class VerificationController {
         }
       }
 
+      // Tell the user — in-app bell + email.
+      try {
+        userNotifications.notify(db, verification.userId, {
+          type: 'verification_approved',
+          title: 'Фирмата е верификувана',
+          message: 'Вашата компанија е успешно верификувана на Nexa Terminal.',
+          actionUrl: '/terminal/verification'
+        }, req.app.locals.io);
+
+        const targetUser = await userService.findById(verification.userId.toString());
+        if (targetUser?.email) {
+          const subject = 'Nexa — Вашата фирма е верификувана';
+          const html = `<p>Здраво,</p><p>Вашата компанија е успешно верификувана на Nexa Terminal.</p>${reviewComments ? `<p>Коментар: ${reviewComments}</p>` : ''}<p>Поздрав,<br/>Тимот на Nexa</p>`;
+          emailService.sendEmail(targetUser.email, subject, html)
+            .catch(e => console.error('verify-approve email failed:', e.message));
+        }
+      } catch (e) { console.error('verify-approve notify failed:', e.message); }
+
       const response = { message: 'Verification approved successfully' };
       if (serviceProviderCreated) {
         response.message = 'Verification approved and service provider profile created';
@@ -327,6 +346,27 @@ class VerificationController {
         'rejected',
         false
       );
+
+      // Tell the user — in-app bell + email.
+      try {
+        userNotifications.notify(db, verification.userId, {
+          type: 'verification_rejected',
+          title: 'Верификацијата е одбиена',
+          message: reviewComments
+            ? `Вашата верификација не е одобрена: ${reviewComments}`
+            : 'Вашата верификација не е одобрена. Проверете ги податоците и обидете се повторно.',
+          actionUrl: '/terminal/verification',
+          severity: 'warning'
+        }, req.app.locals.io);
+
+        const targetUser = await userService.findById(verification.userId.toString());
+        if (targetUser?.email) {
+          const subject = 'Nexa — Верификацијата не е одобрена';
+          const html = `<p>Здраво,</p><p>Вашата верификација не е одобрена.</p>${reviewComments ? `<p>Причина: ${reviewComments}</p>` : ''}<p>Проверете ги податоците и обидете се повторно, или контактирајте нè на info@nexa.mk.</p><p>Поздрав,<br/>Тимот на Nexa</p>`;
+          emailService.sendEmail(targetUser.email, subject, html)
+            .catch(e => console.error('verify-reject email failed:', e.message));
+        }
+      } catch (e) { console.error('verify-reject notify failed:', e.message); }
 
       res.json({ message: 'Verification rejected successfully' });
     } catch (error) {

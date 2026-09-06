@@ -1,0 +1,156 @@
+/* PersonaControl — chat header chip + first-use persona picker modal. */
+
+/* ── Chip ───────────────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full, 999px);
+  background: var(--color-neutral-50, #f8f9fa);
+  color: var(--color-neutral-700, #374151);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.chip:hover {
+  border-color: var(--color-accent, #2563eb);
+  background: var(--color-accent-soft, #eff6ff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+.chipIcon { font-size: 1rem; line-height: 1; }
+.chipLabel { white-space: nowrap; }
+.chipEdit {
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--color-accent, #2563eb);
+}
+.chip:hover .chipEdit { opacity: 1; }
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.15s ease;
+}
+.modal {
+  width: 100%;
+  max-width: 640px;
+  background: #fff;
+  border-radius: var(--border-radius-xl, 16px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  padding: 24px;
+  animation: popIn 0.18s ease;
+}
+.modalHeader { margin-bottom: 18px; text-align: center; }
+.modalTitle {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-dark, #111827);
+}
+.modalSubtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-neutral-600, #6b7280);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-lg, 12px);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.card:hover {
+  border-color: var(--color-accent, #2563eb);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px);
+}
+.card:disabled { opacity: 0.6; cursor: default; transform: none; }
+.cardActive {
+  border-color: var(--color-accent, #2563eb);
+  background: var(--color-accent-soft, #eff6ff);
+}
+.cardIcon { font-size: 1.6rem; line-height: 1; }
+.cardLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-dark, #111827);
+}
+.cardBlurb {
+  font-size: 0.85rem;
+  color: var(--color-neutral-600, #6b7280);
+  line-height: 1.35;
+}
+.cardBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-accent, #2563eb);
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full, 999px);
+  border: 1px solid var(--color-accent, #2563eb);
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.advancedLink {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent, #2563eb);
+  text-decoration: none;
+}
+.advancedLink:hover { text-decoration: underline; }
+.laterBtn {
+  padding: 8px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md, 8px);
+  background: #fff;
+  color: var(--color-neutral-700, #374151);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.laterBtn:hover { background: var(--color-neutral-100, #f3f4f6); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; }
+  .chipLabel { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+}

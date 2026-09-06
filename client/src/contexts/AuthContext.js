@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Simple registration with just username and password
-  const registerSimple = async (username, password, intendedPlan = 'basic', email = '') => {
+  const registerSimple = async (username, password, intendedPlan = 'basic', email = '', proLicense = '') => {
     setError(null);
 
     try {
@@ -219,7 +219,7 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ username, password, intendedPlan, email }),
+        body: JSON.stringify({ username, password, intendedPlan, email, proLicense }),
         credentials: 'include',
       });
 

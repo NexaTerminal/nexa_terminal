@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import i18n from '../../i18n/i18n';
 import SubscriptionGate from '../terminal/SubscriptionGate';
+import TierOnboardingModal from '../terminal/TierOnboardingModal';
 import { planProduct } from '../../lib/tier';
 import { canonicalRedirectTarget } from '../../lib/storefront';
 
@@ -68,6 +69,7 @@ const PrivateRoute = ({ children }) => {
   return (
     <>
       {children}
+      <TierOnboardingModal />
       <SubscriptionGate />
     </>
   );

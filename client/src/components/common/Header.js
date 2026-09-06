@@ -4,8 +4,8 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
-import { showsSubUsers, showsMarketing, showsLeads, showsTopicsQA } from '../../lib/tier';
-import { activeProduct } from '../../lib/storefront';
+import { showsSubUsers, showsMarketing, showsLeads, showsTopicsQA, interiorProduct } from '../../lib/tier';
+import Notifications from '../terminal/Notifications';
 
 // Inline SVG icons matching the sidebar style (stroke-only, currentColor).
 const DropdownIcon = ({ name }) => {
@@ -276,6 +276,9 @@ const Header = ({ isTerminal = false }) => {
   const renderNavLinks = () => {
     return isTerminal ? (
       <div className={styles['profile-section']}>
+        {/* Notification bell — admin↔user updates (approvals, verification, …) */}
+        <Notifications />
+
         {/* Credit Badge - Always visible credit counter */}
         {!creditsLoading && credits && (
           <button
@@ -334,7 +337,7 @@ const Header = ({ isTerminal = false }) => {
               Сметководство
             </Link>
             {/* Корисници + AI преференци are Basic-only; hidden on the Pro shell. */}
-            {activeProduct() !== 'B' && showsSubUsers(currentUser) && (
+            {interiorProduct(currentUser) !== 'B' && showsSubUsers(currentUser) && (
               <Link
                 to="/terminal/team"
                 className={styles['dropdown-item']}
@@ -344,7 +347,7 @@ const Header = ({ isTerminal = false }) => {
                 Корисници
               </Link>
             )}
-            {activeProduct() !== 'B' && (
+            {interiorProduct(currentUser) !== 'B' && (
               <Link
                 to="/terminal/ai/stance"
                 className={styles['dropdown-item']}
@@ -516,12 +519,12 @@ const Header = ({ isTerminal = false }) => {
           <Link to={isTerminal ? '/terminal' : '/'} className={`${styles.logo} ${isTerminal ? styles.logoTerminal : ''}`}>
             <img
               src="/nexa-logo-navbar.png"
-              alt={activeProduct() === 'B' ? 'Nexa за правници' : 'Nexa Terminal'}
+              alt={interiorProduct(currentUser) === 'B' ? 'Nexa за правници' : 'Nexa Terminal'}
               className={styles['logo-image']}
             />
             {/* Product B (leads.nexa.mk) wordmark badge — makes the Pro shell read
                 as a distinct product without a second logo asset. */}
-            {activeProduct() === 'B' && (
+            {interiorProduct(currentUser) === 'B' && (
               <span className={styles['brand-badge']}>pro</span>
             )}
           </Link>
@@ -654,12 +657,12 @@ const Header = ({ isTerminal = false }) => {
             <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметководство</span>
             </Link>
-            {activeProduct() !== 'B' && (
+            {interiorProduct(currentUser) !== 'B' && (
               <Link to="/terminal/ai/stance" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
                 <span>AI преференци</span>
               </Link>
             )}
-            {activeProduct() !== 'B' && showsSubUsers(currentUser) && (
+            {interiorProduct(currentUser) !== 'B' && showsSubUsers(currentUser) && (
               <Link to="/terminal/team" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
                 <span>Корисници</span>
               </Link>

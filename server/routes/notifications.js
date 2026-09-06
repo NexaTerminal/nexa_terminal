@@ -1,132 +1,56 @@
+/**
+ * User notification bell API.
+ *
+ *   GET    /api/notifications          → { notifications, unreadCount }
+ *   PUT    /api/notifications/:id/read → mark one read
+ *   PUT    /api/notifications/read-all → mark all read
+ *
+ * Backed by services/userNotificationService (Mongo `user_notifications`).
+ * Lifecycle code (subscription approve/reject, verification, …) creates
+ * notifications via userNotificationService.notify().
+ */
+
 const express = require('express');
 const router = express.Router();
 const { authenticateJWT } = require('../middleware/auth');
-const { cacheMiddleware } = require('../middleware/cache');
+const notifications = require('../services/userNotificationService');
 
-// In-memory notification store (in production, use Redis or database)
-const notifications = new Map();
-
-// Add notification
-const addNotification = (userId, notification) => {
-  if (!notifications.has(userId)) {
-    notifications.set(userId, []);
-  }
-  
-  const userNotifications = notifications.get(userId);
-  userNotifications.unshift({
-    id: Date.now().toString(),
-    ...notification,
-    createdAt: new Date().toISOString(),
-    read: false
-  });
-  
-  // Keep only last 50 notifications per user
-  if (userNotifications.length > 50) {
-    userNotifications.splice(50);
-  }
-};
-
-// Get user notifications
+// GET all notifications for the current user
 router.get('/', authenticateJWT, async (req, res) => {
   try {
-    const userId = req.user._id.toString();
-    const userNotifications = notifications.get(userId) || [];
-    
-    res.json({
-      notifications: userNotifications,
-      unreadCount: userNotifications.filter(n => !n.read).length
-    });
+    const db = req.app.locals.db;
+    const result = await notifications.list(db, req.user._id);
+    res.json(result);
   } catch (error) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({ message: 'Error fetching notifications' });
   }
 });
 
-// Mark notification as read
-router.put('/:id/read', authenticateJWT, async (req, res) => {
-  try {
-    const userId = req.user._id.toString();
-    const notificationId = req.params.id;
-    
-    const userNotifications = notifications.get(userId) || [];
-    const notification = userNotifications.find(n => n.id === notificationId);
-    
-    if (notification) {
-      notification.read = true;
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ message: 'Notification not found' });
-    }
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    res.status(500).json({ message: 'Error updating notification' });
-  }
-});
-
-// Mark all notifications as read
+// Mark all as read — registered BEFORE /:id/read so 'read-all' isn't captured
+// as an :id.
 router.put('/read-all', authenticateJWT, async (req, res) => {
   try {
-    const userId = req.user._id.toString();
-    const userNotifications = notifications.get(userId) || [];
-    
-    userNotifications.forEach(notification => {
-      notification.read = true;
-    });
-    
-    res.json({ success: true });
+    const db = req.app.locals.db;
+    const modified = await notifications.markAllRead(db, req.user._id);
+    res.json({ success: true, modified });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
     res.status(500).json({ message: 'Error updating notifications' });
   }
 });
 
-// Helper function to create different types of notifications
-const createNotification = {
-  newPost: (postId, authorName) => ({
-    type: 'new_post',
-    message: `${authorName} shared a new post`,
-    actionUrl: `/social/posts/${postId}`,
-    icon: 'post'
-  }),
-  
-  postLiked: (postId, likerName) => ({
-    type: 'post_liked',
-    message: `${likerName} liked your post`,
-    actionUrl: `/social/posts/${postId}`,
-    icon: 'heart'
-  }),
-  
-  newComment: (postId, commenterName) => ({
-    type: 'new_comment',
-    message: `${commenterName} commented on your post`,
-    actionUrl: `/social/posts/${postId}`,
-    icon: 'comment'
-  }),
-  
-  verificationApproved: (companyName) => ({
-    type: 'verification_approved',
-    message: `Your company "${companyName}" has been verified!`,
-    actionUrl: '/terminal/verification',
-    icon: 'check'
-  }),
-  
-  verificationRejected: (companyName, reason) => ({
-    type: 'verification_rejected',
-    message: `Your company verification was rejected. Reason: ${reason}`,
-    actionUrl: '/terminal/verification',
-    icon: 'x'
-  }),
-  
-  newInvestmentOpportunity: (title) => ({
-    type: 'investment',
-    message: `New investment opportunity: ${title}`,
-    actionUrl: '/investments',
-    icon: 'trending-up'
-  })
-};
+// Mark one notification as read
+router.put('/:id/read', authenticateJWT, async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const ok = await notifications.markRead(db, req.user._id, req.params.id);
+    if (!ok) return res.status(404).json({ message: 'Notification not found' });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ message: 'Error updating notification' });
+  }
+});
 
 module.exports = router;
-
-// Export additional functions for use in other modules
-module.exports.addNotification = addNotification;
-module.exports.createNotification = createNotification;

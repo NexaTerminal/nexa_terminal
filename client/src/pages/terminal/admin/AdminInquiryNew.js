@@ -3,21 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import { CATEGORY_LABEL, CATEGORY_OPTIONS } from '../../../config/inquiryCategories';
 import styles from '../Inquiries.module.css';
 
 const SOURCES = ['samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk', 'company.nexa.mk', 'iplaw.nexa.mk', 'tax.nexa.mk', 'other'];
 const CITIES = ['Skopje', 'Bitola', 'Kumanovo', 'Prilep', 'Tetovo', 'Veles', 'Štip', 'Ohrid', 'Strumica', 'Gostivar', 'Kavadarci', 'Kočani', 'Other', 'Anywhere'];
-const CATEGORIES = [
-  { v: 'legal',        label: 'Правен' },
-  { v: 'accounting',   label: 'Сметководство' },
-  { v: 'tax',          label: 'Даноци' },
-  { v: 'insurance',    label: 'Осигурување' },
-  { v: 'real_estate',  label: 'Недвижности' },
-  { v: 'hr',           label: 'HR' },
-  { v: 'marketing',    label: 'Маркетинг' },
-  { v: 'translation',  label: 'Превод' },
-  { v: 'other',        label: 'Друго' }
-];
 const LANGS = [{ v: 'mk', label: 'Македонски' }, { v: 'en', label: 'English' }, { v: 'tr', label: 'Türkçe' }, { v: 'other', label: 'Друго' }];
 
 export default function AdminInquiryNewPage() {
@@ -101,12 +91,13 @@ export default function AdminInquiryNewPage() {
 
           <div className={styles.field}>
             <label className={styles.label}>Категории *</label>
-            <div className={styles.checkboxRow}>
-              {CATEGORIES.map(({ v, label }) => (
-                <label key={v} className={styles.checkboxCell}>
-                  <input type="checkbox" checked={categories.includes(v)} onChange={() => toggleCat(v)} />
-                  {label}
-                </label>
+            <div className={styles.catPicker}>
+              {CATEGORY_OPTIONS.map(v => (
+                <button key={v} type="button"
+                        className={`${styles.catOption} ${categories.includes(v) ? styles.catOptionActive : ''}`}
+                        onClick={() => toggleCat(v)}>
+                  {CATEGORY_LABEL[v]}
+                </button>
               ))}
             </div>
             <span className={styles.help}>Едно барање може да биде релевантно за повеќе профили.</span>

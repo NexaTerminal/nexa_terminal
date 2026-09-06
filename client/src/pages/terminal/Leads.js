@@ -5,6 +5,7 @@ import TerminalShell from '../../components/terminal/TerminalShell';
 import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import ExpressInterestModal from '../../components/terminal/ExpressInterestModal';
 import { isTrial, canExpressInterest, visibleTier, trialPreview, openSubscriptionGate } from '../../lib/tier';
+import { CATEGORY_LABEL } from '../../config/inquiryCategories';
 import styles from './Inquiries.module.css';
 
 // Sample cards used for the trial-period masked preview.
@@ -13,14 +14,14 @@ const SAMPLE_CARDS = [
     _id: 'sample-1',
     topic: 'Сразмерен преглед — државјанство по потекло',
     summary: 'Граѓанин од Австралија со македонско потекло сака да аплицира за државјанство. Бара адвокат во Скопје.',
-    city: 'Skopje', categories: ['legal', 'translation'], language: 'mk',
+    city: 'Skopje', categories: ['citizenship'], language: 'mk',
     urgency: 'standard', status: 'open', postedAt: new Date().toISOString()
   },
   {
     _id: 'sample-2',
     topic: 'Сразмерен преглед — итна дозвола за престој',
     summary: 'Турски државјанин со склучен брак во Скопје. Бара дозвола за престој со рок од 2 недели.',
-    city: 'Skopje', categories: ['legal'], language: 'tr',
+    city: 'Skopje', categories: ['residence'], language: 'tr',
     urgency: 'urgent', status: 'open', postedAt: new Date().toISOString()
   }
 ];
@@ -31,10 +32,6 @@ const CASE_SOURCES = [
   'company.nexa.mk', 'iplaw.nexa.mk', 'osiguran.mk'
 ];
 
-const CATEGORY_LABEL = {
-  legal: 'Правен', accounting: 'Сметководство', tax: 'Даноци', insurance: 'Осигурување',
-  real_estate: 'Недвижности', hr: 'HR', marketing: 'Маркетинг', translation: 'Превод', other: 'Друго'
-};
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
 // Per-card user status (computed from signal + approval state).
@@ -46,24 +43,10 @@ const ITEM_STATE = {
 };
 
 // Compact "how it works" — line icons (no emojis).
-const lSvg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };
-const IconFlag = () => (<svg {...lSvg}><path d="M4 21V4" /><path d="M4 4h13l-2 4 2 4H4" /></svg>);
-const IconFunnel = () => (<svg {...lSvg}><path d="M3 4h18l-7 8v6l-4 2v-8z" /></svg>);
-const IconMail = () => (<svg {...lSvg}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>);
-
-const FlowStep = ({ n, icon, title, desc }) => (
-  <div className={styles.leadsFlowStep}>
-    <span className={styles.leadsFlowIcon} aria-hidden>
-      {icon}
-      <span className={styles.leadsFlowNum}>{n}</span>
-    </span>
-    <span className={styles.leadsFlowTitle}>{title}</span>
-    <span className={styles.leadsFlowDesc}>{desc}</span>
-  </div>
-);
-
-// A lead older than this (ms) is visually muted as an "older case".
-const OLD_LEAD_MS = 7 * 24 * 60 * 60 * 1000;
+// A lead older than this (ms) is visually muted as an "older case"; anything
+// newer is highlighted with a colored "Ново" tag.
+const OLD_LEAD_MS = 15 * 24 * 60 * 60 * 1000;
+const isFresh = (postedAt) => postedAt && (Date.now() - new Date(postedAt).getTime() <= OLD_LEAD_MS);
 
 export default function LeadsPage() {
   const { token, currentUser } = useAuth();
@@ -81,6 +64,7 @@ export default function LeadsPage() {
   const [modalFor, setModalFor] = useState(null);
   const [detailItem, setDetailItem] = useState(null);
   const [toast, setToast] = useState(null);
+  const [catFilter, setCatFilter] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -144,6 +128,23 @@ export default function LeadsPage() {
     });
   }, [board, claims, engagements]);
 
+  // Categories actually present on the board — drives the filter bar. We keep
+  // only keys in the current taxonomy so legacy tags (e.g. 'legal') never show
+  // up as dead filter chips. Each entry carries its live count.
+  const availableCategories = useMemo(() => {
+    const counts = new Map();
+    items.forEach(it => (it.inquiry?.categories || []).forEach(c => {
+      if (CATEGORY_LABEL[c]) counts.set(c, (counts.get(c) || 0) + 1);
+    }));
+    return Array.from(counts.entries())
+      .map(([key, count]) => ({ key, count }))
+      .sort((a, b) => CATEGORY_LABEL[a.key].localeCompare(CATEGORY_LABEL[b.key], 'mk'));
+  }, [items]);
+
+  const visibleItems = useMemo(() => (
+    catFilter ? items.filter(it => (it.inquiry?.categories || []).includes(catFilter)) : items
+  ), [items, catFilter]);
+
   const onExpress = (inq) => {
     if (trial) return;
     if (!canExpressInterest(currentUser).allowed) return;
@@ -165,19 +166,57 @@ export default function LeadsPage() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Случаи</span>
 
-          <div className={styles.leadsIntro}>
-            <p className={styles.leadsIntroLead}>
-              <span className={styles.leadsScrutiny}>✓ Проверени</span>
-              Секој случај доаѓа од реален клиент преку нашата мрежа и е филтриран
-              рачно пред да стигне до Вас — без спам, само сериозни намери.
-            </p>
-            <div className={styles.commercialSources}>
-              <span className={styles.commercialSourcesLabel}>Од мрежата:</span>
-              {CASE_SOURCES.map((host) => (
-                <a key={host} href={`https://${host}`} target="_blank" rel="noopener noreferrer"
-                   className={styles.commercialSourceLink}>{host}</a>
+          <div className={styles.caseFunnel}>
+            <div className={styles.funnelRain} aria-hidden="true">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <span key={i} className={styles.rainQ}>?</span>
               ))}
             </div>
+            <span className={styles.funnelBandLabel}>Прашања од посетителите на веб страните од мрежата</span>
+            <div className={styles.funnelSources}>
+              {CASE_SOURCES.map((host) => (
+                <a key={host} href={`https://${host}`} target="_blank" rel="noopener noreferrer"
+                   className={styles.funnelBubble}>
+                  <span className={styles.funnelBubbleQ} aria-hidden="true">?</span>
+                  <span className={styles.funnelBubbleHost}>{host}</span>
+                </a>
+              ))}
+            </div>
+
+            <div className={styles.funnelGraphic} aria-hidden="true">
+              <svg className={styles.funnelSvg} viewBox="0 0 440 88" preserveAspectRatio="xMidYMid meet">
+                <line className={styles.funnelFeed} x1="30"  y1="6" x2="180" y2="42" />
+                <line className={styles.funnelFeed} x1="110" y1="6" x2="200" y2="42" />
+                <line className={styles.funnelFeed} x1="190" y1="6" x2="215" y2="42" />
+                <line className={styles.funnelFeed} x1="250" y1="6" x2="225" y2="42" />
+                <line className={styles.funnelFeed} x1="330" y1="6" x2="240" y2="42" />
+                <line className={styles.funnelFeed} x1="410" y1="6" x2="260" y2="42" />
+                <path className={styles.funnelShape}
+                      d="M40 42 L400 42 L250 74 Q220 82 190 74 Z" />
+                <path className={styles.funnelNeck} d="M206 80 L234 80 L228 88 L212 88 Z" />
+              </svg>
+              <span className={styles.funnelFilterPill}>✓ Рачно филтрирано</span>
+            </div>
+
+            {!loading && items.length > 0 && availableCategories.length > 0 && (
+              <div className={styles.funnelOutput}>
+                <span className={styles.funnelBandLabel}>Разгледајте ги случаите по област</span>
+                <div className={styles.catFilterBar} role="tablist" aria-label="Филтер по категорија">
+                  <button type="button" role="tab" aria-selected={catFilter === ''}
+                          className={`${styles.catFilterChip} ${catFilter === '' ? styles.catFilterChipActive : ''}`}
+                          onClick={() => setCatFilter('')}>
+                    Сите
+                  </button>
+                  {availableCategories.map(({ key }) => (
+                    <button key={key} type="button" role="tab" aria-selected={catFilter === key}
+                            className={`${styles.catFilterChip} ${catFilter === key ? styles.catFilterChipActive : ''}`}
+                            onClick={() => setCatFilter(key)}>
+                      {CATEGORY_LABEL[key]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
@@ -196,9 +235,11 @@ export default function LeadsPage() {
           <div className={styles.spinner}>Се вчитува…</div>
         ) : items.length === 0 ? (
           <div className={styles.emptyState}>Во моментов нема активни барања во Вашата област.</div>
+        ) : visibleItems.length === 0 ? (
+          <div className={styles.emptyState}>Нема барања во избраната категорија.</div>
         ) : (
           <div className={styles.list}>
-            {items.map(item => (
+            {visibleItems.map(item => (
               <Card key={item.inquiry._id}
                     item={item}
                     sample={trial}
@@ -239,7 +280,8 @@ export default function LeadsPage() {
 
 function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
   const { inquiry, state } = item;
-  const isOld = inquiry.postedAt && (Date.now() - new Date(inquiry.postedAt).getTime() > OLD_LEAD_MS);
+  const isNew = isFresh(inquiry.postedAt);
+  const isOld = inquiry.postedAt && !isNew;
   const isHit = (c) => userCategories?.includes(c);
 
   // Trial-preview card: the whole card is a clickable overlay that opens
@@ -252,6 +294,7 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpenDetail(); }}>
         <div className={styles.cardHead}>
           <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
+          {isNew && <span className={styles.chipNew}>Ново</span>}
           {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
           <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
         </div>
@@ -280,6 +323,7 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
     <div className={`${styles.card} ${sample ? styles.sample : ''} ${isOld ? styles.cardOld : ''}`}>
       <div className={styles.cardHead}>
         <div className={styles.cardTitle}>{inquiry.topic || '(без наслов)'}</div>
+        {isNew && <span className={styles.chipNew}>Ново</span>}
         {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
         <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
       </div>
@@ -313,6 +357,7 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
 
 function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
   const { inquiry, signal, approval, state } = item;
+  const isNew = isFresh(inquiry.postedAt);
   const isHit = (c) => userCategories?.includes(c);
   const showActionButton = state.key === 'open';
   const showContact = state.key === 'approved' && (inquiry.inquirerName || inquiry.inquirerEmail || inquiry.inquirerPhone);
@@ -323,6 +368,7 @@ function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
         <button type="button" className={styles.detailClose} onClick={onClose} aria-label="Затвори">×</button>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+          {isNew && <span className={styles.chipNew}>Ново</span>}
           {inquiry.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
           <span className={`${styles.statusPill} ${styles[state.cls]}`}>{state.label}</span>
         </div>

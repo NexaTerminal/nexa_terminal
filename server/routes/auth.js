@@ -45,6 +45,11 @@ router.get('/validate', authenticateJWT, authController.validateToken);
 // Update user profile
 router.put('/update-profile', authenticateJWT, authController.updateProfile);
 
+// First-login onboarding: choose Basic vs Pro. Google users never see the
+// signup-form chooser, so we ask once on first terminal entry. Runs only while
+// needsTierOnboarding is true (not a general account-type switcher).
+router.post('/choose-account-type', authenticateJWT, authController.chooseAccountType);
+
 // Password Reset Routes
 router.post('/forgot-password', RateLimitingService.createPasswordResetLimiter(), authController.forgotPassword);
 router.get('/validate-reset-token', RateLimitingService.createTokenValidationLimiter(), authController.validateResetToken);
@@ -80,11 +85,15 @@ router.get('/google/callback',
       let redirect = '';
       let sf = 'main';
       let origin = '';
+      let chosenPlan = '';   // identity the user picked in the signup UI
+      let lic = '';          // lawyer licence / ЕМБС (Pro signups only)
       if (rawState.includes('sf=') || rawState.includes('redirect=') || rawState.includes('origin=')) {
         const sp = new URLSearchParams(rawState);
         redirect = sp.get('redirect') || '';
         sf = sp.get('sf') || 'main';
         origin = sp.get('origin') || '';
+        chosenPlan = sp.get('plan') || '';
+        lic = sp.get('lic') || '';
       } else {
         redirect = rawState;
       }
@@ -109,8 +118,23 @@ router.get('/google/callback',
         const sub = req.app.locals.subscriptionService;
         const st = user.subscription?.status;
         if (sub && (!st || st === 'none')) {
-          const plan = sf === 'leads' ? 'pro' : 'basic';
+          const { isValidPlan } = require('../constants/roles');
+          // If the user picked an identity on the signup form, that choice rides
+          // in `state.plan` and wins. A plain Google click from the login tab
+          // carries no plan → default by domain now, and ask once on first entry
+          // via the TierOnboardingModal (needsTierOnboarding stays true).
+          const explicit = isValidPlan(chosenPlan);
+          const plan = explicit ? chosenPlan : (sf === 'leads' ? 'pro' : 'basic');
           await sub.initTrial(user._id, { plan });
+          if (explicit) {
+            const patch = { needsTierOnboarding: false };
+            if (plan === 'pro') {
+              patch.proVerification = { license: String(lic || '').trim(), status: 'pending', submittedAt: new Date() };
+            }
+            try {
+              await req.app.locals.db.collection('users').updateOne({ _id: user._id }, { $set: patch });
+            } catch (e) { console.error('google onboarding patch warning:', e.message); }
+          }
           const UserService = require('../services/userService');
           const fresh = await new UserService(req.app.locals.db).findById(user._id);
           if (fresh) user = fresh;

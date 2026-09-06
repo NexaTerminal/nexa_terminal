@@ -19,14 +19,14 @@
  * A section with `label:null` renders as an always-open, unlabeled group.
  */
 
-import { activeProduct } from '../lib/storefront';
 import {
   showsMarketing,
   showsLeads,
   showsTopicsQA,
   showsFair,
   showsSourcing,
-  showsSalesFunnel
+  showsSalesFunnel,
+  interiorProduct
 } from '../lib/tier';
 
 // ── Item catalog (defined once, composed into per-product layouts below) ────
@@ -147,14 +147,13 @@ const proSections = [
 ];
 
 /**
- * Return the ordered sidebar sections for the current PRODUCT.
+ * Return the ordered sidebar sections for this USER.
  *
- * The shell is driven by the DOMAIN (leads.nexa.mk → Product B layout, nexa.mk →
- * Product A layout), not the user's tier — a signed-in user is redirected to the
- * host matching their plan at login (see PrivateRoute), so domain == plan for
- * real users. The per-item `visible()` predicates still gate by entitlement.
- * `user` is retained for signature compatibility with the Sidebar renderer.
+ * Driven by the user's ENTITLEMENT (interiorProduct), not the domain: a Pro
+ * lawyer sees the lawyer layout (with Случаи/Предмети) even if she signed up on
+ * nexa.mk. Logged-out fallback is the domain. The per-item `visible()`
+ * predicates still gate individual entries by entitlement.
  */
-export function buildSidebarSections(user) { // eslint-disable-line no-unused-vars
-  return activeProduct() === 'B' ? proSections : smbSections;
+export function buildSidebarSections(user) {
+  return interiorProduct(user) === 'B' ? proSections : smbSections;
 }

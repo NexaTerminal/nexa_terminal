@@ -102,6 +102,17 @@ class UserService {
     // Google ID, when present (set by Google OAuth strategy).
     if (userData.googleId) user.googleId = userData.googleId;
 
+    // Onboarding / plan-intent fields — persist when provided. Without these the
+    // first-login tier prompt never fires (needsTierOnboarding), the trial tier
+    // resolver loses its hint (intendedPlan), the lawyer licence is dropped
+    // (proVerification), and Pro seat limits aren't seeded (superUser).
+    if (userData.intendedPlan) user.intendedPlan = userData.intendedPlan;
+    if (userData.needsTierOnboarding !== undefined) {
+      user.needsTierOnboarding = userData.needsTierOnboarding === true;
+    }
+    if (userData.proVerification) user.proVerification = userData.proVerification;
+    if (userData.superUser) user.superUser = userData.superUser;
+
     const result = await this.collection.insertOne(user);
     return { ...user, _id: result.insertedId };
   }

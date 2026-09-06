@@ -22,10 +22,27 @@ module.exports = Object.freeze({
   BANK_OPEN_HOUR: 8,
   BANK_CLOSE_HOUR: 14,
 
-  // Reminder stages, by days remaining before subscription.endsAt. The most
-  // urgent unsent stage wins on each run. Keep ordered most→least days.
+  // Payment "offer" stages, by days remaining before subscription.endsAt. The
+  // most urgent unsent stage wins on each run. Keep ordered most→least days.
+  // `audience` scopes who receives each proforma:
+  //   'promo' → 30-day code-redeemed users only
+  //   'trial' → 8-day self-serve trial users only
+  //   'all'   → both
+  // offer_d7 fires ~day 1 of an 8-day window (too early, and it collides with the
+  // education drip), so it is scoped to promo codes; the 8-day trial's single
+  // payment nudge is offer_d2 near the end.
   STAGES: [
-    { key: 'offer_d7', daysLeft: 7 }, // ~1 week left
-    { key: 'offer_d2', daysLeft: 2 }  // final nudge
+    { key: 'offer_d7', daysLeft: 7, audience: 'promo' },
+    { key: 'offer_d2', daysLeft: 2, audience: 'all' }
+  ],
+
+  // Feature-education emails for self-serve trial users (subscription.trial),
+  // keyed by ELAPSED days since subscription.startedAt (not days remaining).
+  // Forward-only: on each run the earliest unsent stage whose `sendOnDay` has
+  // arrived is sent, so a stage is never skipped even if the bank-hours cron
+  // misses a day (weekend). No proforma is attached — these are informational.
+  EDUCATION_STAGES: [
+    { key: 'edu_documents', sendOnDay: 2 }, // automated documents + AI contract check
+    { key: 'edu_lhc', sendOnDay: 3 }        // Legal Health Check / compliance
   ]
 });

@@ -187,11 +187,20 @@
   min-width: 0;
 }
 
+.notificationTitle {
+  margin: 0 0 0.15rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-color);
+  word-wrap: break-word;
+}
+
 .notificationMessage {
   margin: 0 0 0.25rem 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1.4;
-  color: var(--text-color);
+  color: var(--text-secondary, var(--text-color));
   word-wrap: break-word;
 }
 

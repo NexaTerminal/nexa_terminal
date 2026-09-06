@@ -427,10 +427,14 @@ const promoEnded = ({ name, plan = 'pro' }, language = 'mk') => {
 
 // ---------- admin notification ----------
 
-const adminApprovalNeeded = ({ userEmail, userName, plan, cycle }, language = 'mk') => {
+const adminApprovalNeeded = ({ userEmail, userName, plan, cycle, license }, language = 'mk') => {
   const lang = language === 'en' ? 'en' : 'mk';
   const title = lang === 'mk' ? 'Ново барање за одобрување' : 'New subscription pending approval';
+  const licenseLine = license
+    ? `<p>${lang === 'mk' ? 'Лиценца / ЕМБС (за потврда дека е адвокат)' : 'Licence / ЕМБС (lawyer check)'}: <strong>${license}</strong></p>`
+    : '';
   const body = `<p>${userName || userEmail} — <strong>${planLabel(plan, lang)}</strong> (${cycleLabel(cycle, lang)})</p>
+${licenseLine}
 <p>${lang === 'mk' ? 'Прегледајте во админ контролната табла.' : 'Review in the admin dashboard.'}</p>`;
   return { subject: title, html: wrap(lang, title, body, `${PORTAL_URL}/terminal/admin/subscriptions`, lang === 'mk' ? 'Отвори опашка' : 'Open queue') };
 };

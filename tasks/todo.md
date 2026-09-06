@@ -1,44 +1,39 @@
-# Contact Lists + Daily Drip Sender
+# Task: Categorize leads (inquiries) + user-facing category filter
 
-Mailchimp-style audiences (editable, unlimited) that feed a daily drip sender:
-40 Basic + 40 Pro = 80/day at 08:30 Europe/Skopje. Reuses promo codes, saved
-cold-email copy, and the invited-prospects ledger. Stops when empty, resumes on
-add. Ships DISABLED by default.
+## Context
+- "leads.nexa.mk/leads" = `/terminal/leads` (`Leads.js`) — user-facing Inquiry Board.
+- Admin enters leads at `/terminal/admin/inquiries/new` (`AdminInquiryNew.js`) → `inquiries` collection.
+- Taxonomy `INQUIRY_CATEGORIES` (server/constants/inquiryEnums.js): keep as-is per user.
+- Backend `PUT /api/admin/inquiries/:id` → `inquiriesService.update` already accepts `categories`.
+  No backend change needed.
 
-## Data model (namespaced `outreach_*`; `contacts` is taken by the contact form)
-- `outreach_lists`    { name, type:'basic'|'pro', createdBy, contactCount, ts }
-- `outreach_contacts` { listId, email(lc), name?, company?, status, sentAt?, ts }
-- `outreach_drip_settings` (singleton) { basic:{code,templateId,language,perDay},
-                                          pro:{...}, enabled }
-
-## Backend
-- [ ] config/dripConfig.js — defaults (40/type, 08:30, TZ Skopje, interval, ENABLED env)
-- [ ] services/contactListService.js — list+contact CRUD, bulk paste import
-- [ ] services/dripSettingsService.js — get/set singleton
-- [ ] services/dripSendService.js — runOnce(now): count-today → top-up → send → mark+ledger
-- [ ] services/dripScheduler.js — node-cron 30 8 * * * (Skopje) + runNow()
-- [ ] controllers/outreachController.js — admin endpoints
-- [ ] routes/outreach.js — /api/admin/outreach (authenticateJWT + isAdmin)
-- [ ] server.js — wire services + scheduler, reuse existing service instances
-
-## Frontend
-- [ ] pages/terminal/admin/ContactLists.js (+ .module.css)
-- [ ] App.js route /terminal/admin/contact-lists
-- [ ] Sidebar.js — link "Контакт листи" under Корисници (users-admin)
-
-## Verify
-- [ ] node -c syntax on new server files
-- [ ] client build compiles
+## Plan
+- [x] Explore leads vs cases vs inquiries; confirm scope with user (keep taxonomy; add edit + filter).
+- [x] Admin edit categories on existing lead — `AdminInquiryDetail.js`: edit toggle → checkbox grid → Save via PUT.
+- [x] User category filter on board — `Leads.js`: `.tabs` filter bar derived from categories present; filter `items`.
+- [x] Reuse existing CSS classes (.tabs/.tab/.tabActive, .checkboxCell, .btnPrimary/.btnGhost); no new inline styles.
+- [x] Verify client lint (eslint clean on both files; CSS classes confirmed present).
 
 ## Review
-DONE — all backend files node -c pass + require-load OK; client build compiles.
-- Pause/resume: `enabled` flag in outreach_drip_settings, checked every runOnce;
-  UI Паузирај/Активирај button toggles it, effective on the next run.
-- Restart-safe: runOnce counts today's sent per bucket and only tops up to perDay.
-- Dedup: contacts already in invited_prospects are skipped (parked 'unsubscribed').
-- Ships PAUSED (enabled defaults false); scheduler fires 08:30 Skopje but no-ops.
-- Fixed: /codes + /invite-templates return `items` (not codes/templates).
-
-## Not built (v1 scope notes)
-- Resend bounce/unsubscribe webhook — statuses are manual flips for now.
-- No commit/push yet (per multi-agent coordination; awaiting user go-ahead).
+- No backend changes: `PUT /api/admin/inquiries/:id` → `inquiriesService.update` already
+  whitelists `categories` (filtered against `INQUIRY_CATEGORIES`).
+- `AdminInquiryDetail.js`: category chips now have an "Уреди категории" button → checkbox grid
+  (`CATEGORY_OPTIONS`) → Зачувај (PUT) / Откажи. Guards against empty selection. Works for
+  existing AND new leads.
+- `Leads.js`: added `.tabs` filter bar ("Сите" + one tab per category present on the board),
+  `catFilter` state, `visibleItems` derived filter, and an empty-state for a filtered-out category.
+  Filter options derive from categories actually on the board so no dead tabs.
+## Update 2 — replaced taxonomy with 6 categories
+New taxonomy (key → MK label): labor→Работни односи, property→Сопственост и недвижности,
+insurance→Осигурување, company→Фирми, citizenship→Државјанство, residence→Регулирање на престој.
+- `server/constants/inquiryEnums.js` — INQUIRY_CATEGORIES replaced (drives create/update validation).
+- `server/services/inquiriesService.js` — PA_TO_INQUIRY_CATEGORY remapped so member visibility still
+  works with the new keys; stale comment fixed.
+- Label maps updated in: Leads.js, ProHome.js, AdminInquiries.js, AdminInquiryDetail.js,
+  AdminInquiryNew.js (create checkbox list). SAMPLE_CARDS keys updated (citizenship/residence).
+- Test `inquiriesService.test.js` updated to new keys — passes.
+- `Leads.js` funnel band label → "Прашања од посетителите на веб страните од мрежата".
+- Admin edit (Update 1) works on existing AND new leads: re-tag each current case via
+  "Уреди категории" on the inquiry detail page. Old category values on legacy docs render as raw
+  keys until re-tagged, and are stripped server-side on the next save.
+- Verified: server test green, eslint clean on all 5 client files.

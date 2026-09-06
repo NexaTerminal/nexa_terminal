@@ -6,6 +6,7 @@ import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
+import PersonaControl from '../../components/chatbot/PersonaControl';
 import ChatbotApiService from '../../services/chatbotApi';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
@@ -365,16 +366,19 @@ const AIChat = () => {
                   Поставувајте прашања за правни документи и постапки
                 </p>
               </div>
-              <div className={styles.limitsBadge}>
-                <span className={styles.limitsCount}>
-                  {limits.remaining}/{limits.total}
-                </span>
-                <span className={styles.limitsLabel}>прашања</span>
-                {limits.resetDate && (
-                  <span className={styles.resetInfo}>
-                    · {formatResetDate(limits.resetDate)}
+              <div className={styles.headerActions}>
+                <PersonaControl />
+                <div className={styles.limitsBadge}>
+                  <span className={styles.limitsCount}>
+                    {limits.remaining}/{limits.total}
                   </span>
-                )}
+                  <span className={styles.limitsLabel}>прашања</span>
+                  {limits.resetDate && (
+                    <span className={styles.resetInfo}>
+                      · {formatResetDate(limits.resetDate)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

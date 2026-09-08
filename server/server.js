@@ -187,6 +187,10 @@ app.use('/api/seo', require('./routes/seo'));
 // (no auth, no CSRF; general /api/ rate limit applies). Master-plan Phase 1.
 app.use('/api/public/screening', require('./routes/publicScreening'));
 
+// Public „Проверен работодавач" badge funnel + verify/asset endpoints (no auth;
+// same public posture as screening, before CSRF).
+app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
+
 // Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
 // page pings this with the prospect id so we can measure invited → clicked.
 app.get('/api/invite/click', async (req, res) => {

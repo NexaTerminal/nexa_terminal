@@ -8,6 +8,9 @@ import Home from './pages/website/Home';
 import LeadsHome from './pages/website/LeadsHome';
 import { getStorefront } from './lib/storefront';
 import Proverka from './pages/website/Proverka';
+import EmployerBadgeCheck from './pages/website/EmployerBadgeCheck';
+import BadgeVerify from './pages/website/BadgeVerify';
+import BadgeClaim from './pages/terminal/BadgeClaim';
 import Accountants from './pages/website/Accountants';
 import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
@@ -246,6 +249,8 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/redeem" element={<Redeem />} />
       <Route path="/proverka" element={<Proverka />} />
+      <Route path="/proverka-rabotodavac" element={<EmployerBadgeCheck />} />
+      <Route path="/badge/:token" element={<BadgeVerify />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -284,6 +289,7 @@ function App() {
       {/* Legacy/stale link safety net — the dashboard lives at /terminal, not /terminal/dashboard. */}
       <Route path="/terminal/dashboard" element={<Navigate to="/terminal" replace />} />
       <Route path="/terminal/complete-profile" element={<PrivateRoute><CompanyVerificationSingle /></PrivateRoute>} />
+      <Route path="/terminal/badge-claim" element={<PrivateRoute><BadgeClaim /></PrivateRoute>} />
       <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
       {/* Договори — Contract Management System (master-plan Phase 2) */}
       <Route path="/terminal/contracts" element={<PrivateRoute><VerificationRequired><Contracts /></VerificationRequired></PrivateRoute>} />

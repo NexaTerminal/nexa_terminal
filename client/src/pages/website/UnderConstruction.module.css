@@ -1,0 +1,42 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(160deg, #f5f8ff 0%, #ffffff 60%);
+  color: #0f2a6b;
+}
+.logo {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: 6px;
+  font-size: 2rem;
+  color: #1e4db7;
+  margin-bottom: 1.5rem;
+}
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+  max-width: 620px;
+}
+.lead {
+  font-size: 1.05rem;
+  color: #4b5563;
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+}
+.contact {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+.contact a {
+  color: #1e4db7;
+  font-weight: 600;
+  text-decoration: none;
+}
+.contact a:hover { text-decoration: underline; }

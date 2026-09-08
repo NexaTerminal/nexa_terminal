@@ -7,6 +7,8 @@ import Login from './pages/website/Login';
 import Home from './pages/website/Home';
 import LeadsHome from './pages/website/LeadsHome';
 import { getStorefront } from './lib/storefront';
+import { UNDER_CONSTRUCTION } from './config/construction';
+import UnderConstruction from './pages/website/UnderConstruction';
 import Proverka from './pages/website/Proverka';
 import EmployerBadgeCheck from './pages/website/EmployerBadgeCheck';
 import BadgeVerify from './pages/website/BadgeVerify';
@@ -240,6 +242,13 @@ function App() {
   useEffect(() => {
     trackPageView(location.pathname + location.search);
   }, [location]);
+
+  // SITE MODE: nexa.mk (main storefront) under construction — hides everything
+  // incl. login/signup. leads.nexa.mk (Pro) is unaffected. Flip the flag in
+  // config/construction.js to go back live.
+  if (UNDER_CONSTRUCTION && getStorefront() !== 'leads') {
+    return <UnderConstruction />;
+  }
 
   return (
     <>

@@ -11,6 +11,10 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
 
 export default function BadgeSharePanel({ token }) {
   const [copied, setCopied] = useState('');
+  const copy = useCallback((text, key) => {
+    try { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(''), 1800); } catch (_) { /* ignore */ }
+  }, []);
+
   if (!token) return null;
 
   const verifyUrl = `${window.location.origin}/badge/${token}`;
@@ -18,10 +22,6 @@ export default function BadgeSharePanel({ token }) {
   const certUrl = `${API_BASE}/public/employer-badge/verify/${token}/certificate.pdf`;
   const embed = `<a href="${verifyUrl}" target="_blank" rel="noopener"><img src="${sealUrl}" width="140" height="140" alt="Nexa Проверен работодавач" /></a>`;
   const linkedin = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}`;
-
-  const copy = useCallback((text, key) => {
-    try { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(''), 1800); } catch (_) { /* ignore */ }
-  }, []);
 
   return (
     <>

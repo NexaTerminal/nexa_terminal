@@ -72,6 +72,10 @@ const screening = {
   ]
 };
 
+// „Проверен работодавач" — the shareable employer badge; users re-open/re-share
+// it here anytime (it's attached to their account).
+const myBadge = { key: 'my-badge', icon: 'people', label: 'Мојата значка', path: '/terminal/moja-znachka' };
+
 const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 const marketingAi       = { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' };
@@ -105,7 +109,7 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, employees, contracts, legalAi, screening]
+    items: [documents, employees, contracts, legalAi, screening, myBadge]
   },
   {
     key: 'procurement', label: 'Набавки',

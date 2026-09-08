@@ -171,6 +171,32 @@ router.post('/result/:id/claim', authenticateJWT, async (req, res) => {
   }
 });
 
+// The signed-in user's own badge (to re-open / re-share it from the terminal).
+router.get('/mine', authenticateJWT, async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const userId = req.user._id || req.user.id;
+    const b = await db.collection(BADGES).findOne({ userId, module: MODULE, revoked: { $ne: true } });
+    if (!b) return res.json({ success: true, badge: null });
+    res.json({
+      success: true,
+      badge: {
+        token: b.token,
+        ratingTier: b.ratingTier,
+        ratingLabel: b.ratingLabel,
+        companyName: b.companyName,
+        verified: !!b.verified,
+        issuedAt: b.issuedAt,
+        expiresAt: b.expiresAt,
+        status: badgeStatus(b),
+      },
+    });
+  } catch (err) {
+    console.error('Employer badge /mine error:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
 // ── Public verify + assets ───────────────────────────────────────────────
 async function loadBadge(db, token) {
   if (!token || !/^[a-f0-9]{16,64}$/i.test(token)) return null;

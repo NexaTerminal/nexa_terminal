@@ -73,7 +73,7 @@ export default function MyBadge() {
                 Статус: {STATUS_LABEL[badge.status] || badge.status} · Издадено: {fmt(badge.issuedAt)} · Важи до: {fmt(badge.expiresAt)}
               </p>
 
-              <BadgeSharePanel token={badge.token} />
+              <BadgeSharePanel token={badge.token} tier={badge.ratingTier} verified={badge.verified} />
 
               {badge.status === 'expired' && (
                 <div className={s.verifyCta}>

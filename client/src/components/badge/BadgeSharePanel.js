@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import s from '../../pages/website/EmployerBadge.module.css';
+import BadgeSeal from './BadgeSeal';
 
 /**
  * Reusable badge seal + share panel (embed snippet, copy verify link, LinkedIn,
@@ -9,7 +10,7 @@ import s from '../../pages/website/EmployerBadge.module.css';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
 
-export default function BadgeSharePanel({ token }) {
+export default function BadgeSharePanel({ token, tier = 'A', verified = false }) {
   const [copied, setCopied] = useState('');
   const copy = useCallback((text, key) => {
     try { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(''), 1800); } catch (_) { /* ignore */ }
@@ -26,7 +27,7 @@ export default function BadgeSharePanel({ token }) {
   return (
     <>
       <div className={s.sealWrap}>
-        <img src={sealUrl} alt="Nexa Проверен работодавач" />
+        <BadgeSeal tier={tier} verified={verified} size={160} />
       </div>
 
       <div className={s.sharePanel}>

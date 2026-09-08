@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
+import BadgeSeal from '../../components/badge/BadgeSeal';
 import s from './EmployerBadge.module.css';
 
 /**
@@ -67,7 +68,7 @@ export default function BadgeVerify() {
               <>
                 {st && <span className={`${s.statusBadge} ${s[st.cls]}`}>{st.label}</span>}
                 <div className={s.sealWrap}>
-                  <img src={`${API_BASE}/public/employer-badge/verify/${token}/image.svg`} alt="Nexa Проверен работодавач" />
+                  <BadgeSeal tier={data.ratingTier} verified={data.verified} size={170} />
                 </div>
                 <h1 className={s.verifyCompany}>{data.companyName}</h1>
                 <p className={s.verifySub}>

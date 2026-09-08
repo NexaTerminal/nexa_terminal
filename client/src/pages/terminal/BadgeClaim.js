@@ -22,6 +22,7 @@ export default function BadgeClaim() {
   const [state, setState] = useState('loading'); // loading | ready | notEligible | error
   const [token, setToken] = useState(null);
   const [tier, setTier] = useState(null);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     const resultId = getResultId();
@@ -35,7 +36,7 @@ export default function BadgeClaim() {
       .then((d) => {
         if (!d.success) { setState('error'); return; }
         if (!d.eligible) { setState('notEligible'); return; }
-        setToken(d.token); setTier(d.ratingTier); setState('ready');
+        setToken(d.token); setTier(d.ratingTier); setVerified(!!d.verified); setState('ready');
         try { localStorage.removeItem(BADGE_RESULT_KEY); } catch (_) { /* ignore */ }
       })
       .catch(() => setState('error'));
@@ -69,7 +70,7 @@ export default function BadgeClaim() {
           {state === 'ready' && token && (
             <>
               <span className={`${s.statusBadge} ${s.statusValid}`}>Значката е издадена · рејтинг {tier}</span>
-              <BadgeSharePanel token={token} />
+              <BadgeSharePanel token={token} tier={tier} verified={verified} />
               <p className={s.verifyMeta}>
                 Значката е зачувана на вашиот профил — секогаш ја наоѓате под „Мојата значка“.
               </p>

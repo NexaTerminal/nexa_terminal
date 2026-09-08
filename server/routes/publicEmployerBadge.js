@@ -164,7 +164,7 @@ router.post('/result/:id/claim', authenticateJWT, async (req, res) => {
       { $set: { registeredUserId: userId, badgeToken: token, claimedAt: now } }
     );
 
-    res.json({ success: true, eligible: true, token, ratingTier: badgeDoc.ratingTier });
+    res.json({ success: true, eligible: true, token, ratingTier: badgeDoc.ratingTier, verified: badgeDoc.verified });
   } catch (err) {
     console.error('Employer badge claim error:', err);
     res.status(500).json({ success: false });

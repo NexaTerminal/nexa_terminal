@@ -1,60 +1,85 @@
 import React, { useId } from 'react';
 
 /**
- * Inline circular „Проверен работодавач" seal (React SVG) — mirrors the server's
- * badgeService.sealSVG. Rendered inline on Nexa's own pages so the seal ALWAYS
- * shows, independent of the badge image endpoint / cross-origin caching. The
- * backend SVG endpoint is still used for the portable embed snippet (external
- * sites). `useId` keeps the internal defs ids unique when several seals render.
+ * „Проверен работодавач" — modern GOLD award-medal seal (React SVG). The rating
+ * (A / A+ / A++) is the hero in the centre. Rendered inline on Nexa pages;
+ * mirrored on the server (badgeService.sealSVG) for the embeddable image + PDF.
+ * `useId` keeps gradient/arc ids unique across instances.
  */
 
-const C = {
-  ink: '#0F2A6B', brand: '#1E4DB7', gold: '#C9A227', goldLight: '#E7C65A',
-  green: '#16A34A', paper: '#FFFFFF', gray: '#6B7280',
-};
-
-export default function BadgeSeal({ tier = 'A', verified = false, size = 160 }) {
+export default function BadgeSeal({ tier = 'A', verified = false, size = 190 }) {
   const uid = useId().replace(/:/g, '');
-  const arcTop = `arcTop-${uid}`;
-  const arcBot = `arcBot-${uid}`;
-  const ring = `ring-${uid}`;
+  const id = (n) => `${n}-${uid}`;
+  const cx = 120;
+  const cy = 112;
 
+  // Fluted medal edge — a ring of small gold beads.
+  const beads = Array.from({ length: 40 }, (_, i) => {
+    const a = (i / 40) * 2 * Math.PI;
+    return { x: cx + 104 * Math.cos(a), y: cy + 104 * Math.sin(a) };
+  });
+
+  const navy = '#1E3A6E';
   return (
-    <svg viewBox="0 0 240 240" width={size} height={size} role="img"
+    <svg viewBox="0 0 240 272" width={size} height={(size * 272) / 240} role="img"
          aria-label={`Nexa Проверен работодавач — рејтинг ${tier}`}>
       <defs>
-        <path id={arcTop} d="M 44 120 A 76 76 0 0 1 196 120" />
-        <path id={arcBot} d="M 40 120 A 80 80 0 0 0 200 120" />
-        <linearGradient id={ring} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={C.goldLight} />
-          <stop offset="1" stopColor={C.gold} />
+        <radialGradient id={id('face')} cx="38%" cy="32%" r="75%">
+          <stop offset="0" stopColor="#FCEFB4" />
+          <stop offset="0.55" stopColor="#E8C24A" />
+          <stop offset="1" stopColor="#B67E12" />
+        </radialGradient>
+        <linearGradient id={id('rim')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#F7E39A" />
+          <stop offset="1" stopColor="#C8971F" />
         </linearGradient>
+        <radialGradient id={id('ivory')} cx="50%" cy="40%" r="70%">
+          <stop offset="0" stopColor="#FFFFFF" />
+          <stop offset="1" stopColor="#F3E9CC" />
+        </radialGradient>
+        <linearGradient id={id('ribbon')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2A4C93" />
+          <stop offset="1" stopColor="#16295C" />
+        </linearGradient>
+        <path id={id('arcTop')} d="M 34 112 A 86 86 0 0 1 206 112" />
+        <path id={id('arcBot')} d="M 36 112 A 84 84 0 0 0 204 112" />
       </defs>
 
-      <circle cx="120" cy="120" r="116" fill={C.paper} />
-      <circle cx="120" cy="120" r="116" fill="none" stroke={`url(#${ring})`} strokeWidth="6" />
-      <circle cx="120" cy="120" r="104" fill="none" stroke={C.brand} strokeWidth="2" />
-      <circle cx="120" cy="120" r="88" fill={C.brand} />
+      {/* Ribbon tails (behind the medal) */}
+      <polygon points="88,150 122,150 108,268 92,254 74,264" fill={`url(#${id('ribbon')})`} stroke="#C8971F" strokeWidth="1.5" />
+      <polygon points="152,150 118,150 132,268 148,254 166,264" fill={`url(#${id('ribbon')})`} stroke="#C8971F" strokeWidth="1.5" />
 
-      <text fontFamily="Arial, sans-serif" fontWeight="700" letterSpacing="3" fontSize="15" fill={C.ink}>
-        <textPath href={`#${arcTop}`} startOffset="50%" textAnchor="middle">N E X A</textPath>
+      {/* Fluted gold edge */}
+      {beads.map((b, i) => <circle key={i} cx={b.x} cy={b.y} r="4" fill={`url(#${id('rim')})`} />)}
+
+      {/* Medal body */}
+      <circle cx={cx} cy={cy} r="100" fill={`url(#${id('face')})`} stroke="#A56E0E" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r="88" fill="none" stroke="#A56E0E" strokeWidth="1" opacity="0.5" />
+      <circle cx={cx} cy={cy} r="80" fill={`url(#${id('ivory')})`} stroke={`url(#${id('rim')})`} strokeWidth="3" />
+
+      {/* Engraved ring text on the gold band */}
+      <text fontFamily="Georgia, 'Times New Roman', serif" fontWeight="700" letterSpacing="2.5" fontSize="13" fill={navy}>
+        <textPath href={`#${id('arcTop')}`} startOffset="50%" textAnchor="middle">ПРОВЕРЕН РАБОТОДАВАЧ</textPath>
       </text>
-      <text fontFamily="Arial, sans-serif" fontWeight="600" letterSpacing="1.5" fontSize="10.5" fill={C.gray}>
-        <textPath href={`#${arcBot}`} startOffset="50%" textAnchor="middle">самопроценка · важи 1 година</textPath>
+      <text fontFamily="Georgia, 'Times New Roman', serif" fontWeight="700" letterSpacing="4" fontSize="12" fill={navy}>
+        <textPath href={`#${id('arcBot')}`} startOffset="50%" textAnchor="middle">N E X A</textPath>
       </text>
 
-      <path d="M120 58 l26 9 v20 c0 20 -13 33 -26 40 c-13 -7 -26 -20 -26 -40 v-20 z" fill={C.paper} opacity="0.14" />
-      <path d="M108 96 l9 9 l17 -18" fill="none" stroke={C.goldLight} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Star above the hero rating */}
+      <path d="M120 58 l4.7 9.5 10.5 1.5 -7.6 7.4 1.8 10.4 -9.4 -4.9 -9.4 4.9 1.8 -10.4 -7.6 -7.4 10.5 -1.5 z"
+            fill={`url(#${id('rim')})`} stroke="#A56E0E" strokeWidth="0.6" />
 
-      <text x="120" y="150" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="15" fill={C.paper} letterSpacing="0.5">ПРОВЕРЕН</text>
-      <text x="120" y="167" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="15" fill={C.paper} letterSpacing="0.5">РАБОТОДАВАЧ</text>
+      {/* HERO rating */}
+      <text x={cx} y="146" textAnchor="middle" fontFamily="Georgia, 'Times New Roman', serif" fontWeight="800"
+            fontSize="58" fill={`url(#${id('rim')})`} stroke="#8A5A0A" strokeWidth="0.8">{tier}</text>
 
-      <circle cx="120" cy="192" r="17" fill={C.gold} />
-      <text x="120" y="198" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="15" fill={C.ink}>{tier}</text>
+      {/* Honest note (small) */}
+      <text x={cx} y="172" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="8" letterSpacing="0.5" fill="#8A6D2F">самопроценка · важи 1 година</text>
+
       {verified && (
         <>
-          <circle cx="150" cy="192" r="7" fill={C.green} />
-          <path d="M147 192 l2 2 l4 -5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="182" cy="60" r="13" fill="#16A34A" stroke="#fff" strokeWidth="2" />
+          <path d="M176 60 l4 4 8 -9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
         </>
       )}
     </svg>

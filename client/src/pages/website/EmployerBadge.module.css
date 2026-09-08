@@ -57,25 +57,34 @@
   white-space: pre;
   color: #111827;
 }
-.shareRow { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-.shareBtn {
+.shareRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  justify-content: center;
+}
+/* Elegant, light-weight buttons — no solid fills. */
+.shareBtn,
+.shareBtnGhost {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 16px;
-  border-radius: 8px;
+  padding: 9px 18px;
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   text-decoration: none;
   cursor: pointer;
-  border: 1px solid var(--color-primary, #1E4DB7);
-  background: var(--color-primary, #1E4DB7);
-  color: #fff;
-}
-.shareBtnGhost {
-  border: 1px solid var(--color-primary, #1E4DB7);
-  background: #fff;
+  border: 1px solid var(--color-border, #dbe3f0);
+  background: var(--color-neutral-50, #f7f9fc);
   color: var(--color-primary, #1E4DB7);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.shareBtn:hover,
+.shareBtnGhost:hover {
+  background: var(--color-accent-light, #eef3ff);
+  border-color: var(--color-primary, #1E4DB7);
 }
 
 /* Public verify page */

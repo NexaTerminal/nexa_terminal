@@ -57,41 +57,52 @@ function fmtDate(d) {
  * and the „самопроценка" caption.
  */
 function sealSVG({ tier = 'A', verified = false } = {}) {
-  const ringGap = verified ? '' : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Nexa Проверен работодавач — рејтинг ${esc(tier)}">
+  const cx = 120, cy = 112, navy = '#1E3A6E';
+  let beads = '';
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * 2 * Math.PI;
+    beads += `<circle cx="${(cx + 104 * Math.cos(a)).toFixed(1)}" cy="${(cy + 104 * Math.sin(a)).toFixed(1)}" r="4" fill="url(#rim)"/>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 272" width="240" height="272" role="img" aria-label="Nexa Проверен работодавач — рејтинг ${esc(tier)}">
   <defs>
-    <path id="arcTop" d="M 44 120 A 76 76 0 0 1 196 120" />
-    <path id="arcBot" d="M 40 120 A 80 80 0 0 0 200 120" />
-    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${C.goldLight}"/>
-      <stop offset="1" stop-color="${C.gold}"/>
+    <radialGradient id="face" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#FCEFB4"/><stop offset="0.55" stop-color="#E8C24A"/><stop offset="1" stop-color="#B67E12"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7E39A"/><stop offset="1" stop-color="#C8971F"/>
     </linearGradient>
+    <radialGradient id="ivory" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F3E9CC"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A4C93"/><stop offset="1" stop-color="#16295C"/>
+    </linearGradient>
+    <path id="arcTop" d="M 34 112 A 86 86 0 0 1 206 112"/>
+    <path id="arcBot" d="M 36 112 A 84 84 0 0 0 204 112"/>
   </defs>
-  <circle cx="120" cy="120" r="116" fill="${C.paper}"/>
-  <circle cx="120" cy="120" r="116" fill="none" stroke="url(#ring)" stroke-width="6"/>
-  <circle cx="120" cy="120" r="104" fill="none" stroke="${C.brand}" stroke-width="2"/>
-  <circle cx="120" cy="120" r="88"  fill="${C.brand}"/>
 
-  <!-- arc texts on the gold ring -->
-  <text font-family="Arial, sans-serif" font-weight="700" letter-spacing="3" font-size="15" fill="${C.ink}">
-    <textPath href="#arcTop" startOffset="50%" text-anchor="middle">N E X A</textPath>
+  <polygon points="88,150 122,150 108,268 92,254 74,264" fill="url(#ribbon)" stroke="#C8971F" stroke-width="1.5"/>
+  <polygon points="152,150 118,150 132,268 148,254 166,264" fill="url(#ribbon)" stroke="#C8971F" stroke-width="1.5"/>
+
+  ${beads}
+
+  <circle cx="${cx}" cy="${cy}" r="100" fill="url(#face)" stroke="#A56E0E" stroke-width="1"/>
+  <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke="#A56E0E" stroke-width="1" opacity="0.5"/>
+  <circle cx="${cx}" cy="${cy}" r="80" fill="url(#ivory)" stroke="url(#rim)" stroke-width="3"/>
+
+  <text font-family="Georgia, 'Times New Roman', serif" font-weight="700" letter-spacing="2.5" font-size="13" fill="${navy}">
+    <textPath href="#arcTop" startOffset="50%" text-anchor="middle">ПРОВЕРЕН РАБОТОДАВАЧ</textPath>
   </text>
-  <text font-family="Arial, sans-serif" font-weight="600" letter-spacing="1.5" font-size="10.5" fill="${C.gray}">
-    <textPath href="#arcBot" startOffset="50%" text-anchor="middle">самопроценка · важи 1 година</textPath>
+  <text font-family="Georgia, 'Times New Roman', serif" font-weight="700" letter-spacing="4" font-size="12" fill="${navy}">
+    <textPath href="#arcBot" startOffset="50%" text-anchor="middle">N E X A</textPath>
   </text>
 
-  <!-- shield + check -->
-  <path d="M120 58 l26 9 v20 c0 20 -13 33 -26 40 c-13 -7 -26 -20 -26 -40 v-20 z" fill="${C.paper}" opacity="0.14"/>
-  <path d="M108 96 l9 9 l17 -18" fill="none" stroke="${C.goldLight}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M120 58 l4.7 9.5 10.5 1.5 -7.6 7.4 1.8 10.4 -9.4 -4.9 -9.4 4.9 1.8 -10.4 -7.6 -7.4 10.5 -1.5 z" fill="url(#rim)" stroke="#A56E0E" stroke-width="0.6"/>
 
-  <!-- label -->
-  <text x="120" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="15" fill="${C.paper}" letter-spacing="0.5">ПРОВЕРЕН</text>
-  <text x="120" y="167" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="15" fill="${C.paper}" letter-spacing="0.5">РАБОТОДАВАЧ</text>
+  <text x="${cx}" y="146" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="800" font-size="58" fill="url(#rim)" stroke="#8A5A0A" stroke-width="0.8">${esc(tier)}</text>
+  <text x="${cx}" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" letter-spacing="0.5" fill="#8A6D2F">самопроценка · важи 1 година</text>
 
-  <!-- rating chip -->
-  <circle cx="120" cy="192" r="17" fill="${C.gold}"/>
-  <text x="120" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="15" fill="${C.ink}">${esc(tier)}</text>
-  ${verified ? `<circle cx="150" cy="192" r="7" fill="${C.green}"/><path d="M147 192 l2 2 l4 -5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+  ${verified ? `<circle cx="182" cy="60" r="13" fill="${C.green}" stroke="#fff" stroke-width="2"/><path d="M176 60 l4 4 8 -9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
 </svg>`;
 }
 

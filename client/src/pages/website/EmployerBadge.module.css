@@ -119,3 +119,13 @@
   padding: 8px 14px;
   margin: 0 0 1rem;
 }
+
+/* Center the results-CTA paragraph as a symmetric block (aligns its centre with
+   the title above and the button below). Overrides the reused Proverka .ctaLead. */
+.ctaLeadCenter {
+  display: block;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}

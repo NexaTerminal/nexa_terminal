@@ -16,7 +16,7 @@ export default function UnderConstruction() {
         Ви благодариме на трпението.
       </p>
       <p className={styles.contact}>
-        За прашања: <a href="mailto:contact@nexa.mk">contact@nexa.mk</a>
+        За прашања: <a href="mailto:info@nexa.mk">info@nexa.mk</a>
       </p>
     </div>
   );

@@ -494,7 +494,7 @@ const testData = {
     companyDPOemail: 'dpo@nexa.mk',
     companyDPOphone: '070-123-456',
     responsibleDepartment: 'Правен оддел',
-    companyEmail: 'contact@nexa.mk',
+    companyEmail: 'info@nexa.mk',
     businessHours: '09:00 - 17:00',
     preferredContactLanguages: 'македонски, англиски',
     usesCentralizedRegistry: true,

@@ -851,6 +851,7 @@ function registerRoutes() {
     '/auth/validate',           // Token validation
     '/auth/create-admin',       // Admin creation
     '/auth/logout',             // User logout
+    '/auth/choose-account-type', // Tier onboarding (JWT protected; header auth, not CSRF-exploitable)
     /^\/contact\/public$/,      // Allow public contact form
     /^\/uploads\//,             // Static file uploads
     '/users/company',           // Exempt company profile update

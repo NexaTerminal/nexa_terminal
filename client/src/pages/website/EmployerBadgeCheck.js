@@ -117,7 +117,6 @@ export default function EmployerBadgeCheck() {
 
           {phase === 'quiz' && cur && (
             <div className={q.quiz}>
-              <p className={s.honestNote}>Одговарајте искрено — примерите покажуваат чести замки. Значката вреди само ако е вистинита.</p>
               <div className={q.progressRow}>
                 <span className={q.progressLabel}>Прашање {step + 1} / {questions.length}</span>
                 <div className={q.progressTrack}><div className={q.progressFill} style={{ width: `${progressPct}%` }} /></div>

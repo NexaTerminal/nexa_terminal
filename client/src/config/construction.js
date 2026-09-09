@@ -5,7 +5,7 @@
 //
 // Only affects the MAIN storefront (nexa.mk). leads.nexa.mk (Pro) is never
 // touched. To go back: flip this to false and push.
-export const UNDER_CONSTRUCTION = true;
+export const UNDER_CONSTRUCTION = false;
 
 // git add .
 // git commit -m "Website is live again"

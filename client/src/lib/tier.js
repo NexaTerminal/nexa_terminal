@@ -15,9 +15,12 @@
 
 import { activeProduct } from './storefront';
 
-// Gated statuses: the user has an account but no live paid access yet. There is
-// no auto-trial anymore — a fresh account is 'none' (locked) until a code or
-// paid plan activates it. 'pending_approval' waits on admin payment confirmation.
+// Gated statuses: the user has an account but no live paid access yet.
+// 'pending_approval' waits on admin payment confirmation. Note: a brand-new
+// account gets a 60-day self-serve free window (server initTrial → status
+// 'active', subscription.trial=true, endsAt≈now+60d), so it is NOT gated here
+// while live; when that window lapses the account drops to preview (see
+// previewMode below) until a code or paid plan activates it.
 const TIER_TRIAL_STATUSES = new Set(['pending_approval']);
 
 export function effectiveTier(user) {

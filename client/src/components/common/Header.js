@@ -17,6 +17,7 @@ const DropdownIcon = ({ name }) => {
     case 'users':    return (<svg {...c}><circle cx="9" cy="9" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 11a3 3 0 0 0 0-6"/><path d="M21 20a6 6 0 0 0-5-5.9"/></svg>);
     case 'logout':   return (<svg {...c}><path d="M10 17l-5-5 5-5"/><path d="M5 12h12"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg>);
     case 'sliders':  return (<svg {...c}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>);
+    case 'badge':    return (<svg {...c}><circle cx="12" cy="9" r="6"/><path d="M9 14.5 8 22l4-2.5L16 22l-1-7.5"/></svg>);
     default: return null;
   }
 };
@@ -28,6 +29,8 @@ const Header = ({ isTerminal = false }) => {
   const { credits, loading: creditsLoading } = useCredit();
   const navigate = useNavigate();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  // Best-effort „Проверен работодавач" badge summary for the profile micro-seal.
+  const [badge, setBadge] = useState(null); // { ratingTier, status } | null
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileOpenGroups, setMobileOpenGroups] = useState({});
@@ -45,6 +48,22 @@ const Header = ({ isTerminal = false }) => {
   const toggleProfileDropdown = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
   };
+
+  // Load the user's own „Проверен работодавач" badge (if any) so we can show a
+  // micro-seal on the profile button + dropdown. Best-effort: failures are silent.
+  useEffect(() => {
+    if (!isTerminal || !currentUser) { setBadge(null); return; }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    let cancelled = false;
+    fetch('/api/public/employer-badge/mine', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d?.success && d.badge) setBadge({ ratingTier: d.badge.ratingTier, status: d.badge.status }); })
+      .catch(() => { /* indicator is optional */ });
+    return () => { cancelled = true; };
+  }, [isTerminal, currentUser]);
+
+  const hasValidBadge = badge && badge.status === 'valid';
 
   const toggleCreditModal = () => {
     setCreditModalOpen(!creditModalOpen);
@@ -302,6 +321,11 @@ const Header = ({ isTerminal = false }) => {
             <span className={styles['profile-name']}>
               {currentUser?.companyInfo?.companyName || currentUser?.username || currentUser?.email}
             </span>
+            {hasValidBadge && (
+              <span className={styles['profile-badge']} title={`Проверен работодавач · рејтинг ${badge.ratingTier}`}>
+                {badge.ratingTier}
+              </span>
+            )}
             <span
               className={`${styles['dropdown-arrow']} ${profileDropdownOpen ? styles['dropdown-arrow-open'] : ''}`}
             >
@@ -335,6 +359,17 @@ const Header = ({ isTerminal = false }) => {
             >
               <span className={styles['dropdown-icon']}><DropdownIcon name="receipt" /></span>
               Сметководство
+            </Link>
+            <Link
+              to="/terminal/moja-znachka"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}><DropdownIcon name="badge" /></span>
+              Мојата значка
+              {hasValidBadge && (
+                <span className={styles['dropdown-badge']}>{badge.ratingTier}</span>
+              )}
             </Link>
             {/* Корисници + AI преференци are Basic-only; hidden on the Pro shell. */}
             {interiorProduct(currentUser) !== 'B' && showsSubUsers(currentUser) && (

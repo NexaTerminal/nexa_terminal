@@ -267,6 +267,30 @@
   color: var(--color-accent);
 }
 
+/* „Проверен работодавач" micro-seal — tier letter (A / A+ / A++) on the profile
+   button and the dropdown link. Compact, on-brand, mirrors the credit-badge feel. */
+.profile-badge,
+.dropdown-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, #4f7bcf 0%, #6f9ae0 100%);
+  box-shadow: 0 2px 6px -3px rgba(79, 123, 207, 0.7);
+}
+
+.dropdown-badge {
+  margin-left: auto; /* push the seal to the right edge of the menu row */
+}
+
 .dropdown-arrow {
   font-size: 0.7rem; /* Smaller arrow */
   transition: transform 0.2s ease;

@@ -26,11 +26,12 @@ module.exports = Object.freeze({
   // most urgent unsent stage wins on each run. Keep ordered most→least days.
   // `audience` scopes who receives each proforma:
   //   'promo' → 30-day code-redeemed users only
-  //   'trial' → 8-day self-serve trial users only
+  //   'trial' → 60-day self-serve trial users only
   //   'all'   → both
-  // offer_d7 fires ~day 1 of an 8-day window (too early, and it collides with the
-  // education drip), so it is scoped to promo codes; the 8-day trial's single
-  // payment nudge is offer_d2 near the end.
+  // offer_d7 fires ~1 week before the window ends. Historically it was scoped to
+  // promo codes only because the self-serve trial was just 8 days (d7 collided with
+  // the education drip); the self-serve window is now 60 days, so both offer stages
+  // land sensibly near the end regardless of audience.
   STAGES: [
     { key: 'offer_d7', daysLeft: 7, audience: 'promo' },
     { key: 'offer_d2', daysLeft: 2, audience: 'all' }

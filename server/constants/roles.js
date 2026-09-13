@@ -90,10 +90,11 @@ const DURATION_DAYS = Object.freeze({
 // (clicks Subscribe / Email-Invoice) but hasn't paid yet.
 const GRACE_DAYS = 3;
 
-// Self-serve free trial (days) granted to every brand-new account at signup —
-// full access to the product for their plan; auto-suspends when it lapses.
+// Self-serve free window (days) granted to every brand-new account at signup —
+// full access to the product for their plan for 60 days, then it auto-suspends and
+// the account drops to preview/locked (data stays, features require a paid plan).
 // One per email (enforced by the email-eligibility guard at registration).
-const TRIAL_DAYS = 8;
+const TRIAL_DAYS = 60;
 
 // EUR prices (Nexa 3.0). Each tier is now sold as a SINGLE annual offer:
 //   Basic (Product A, nexa.mk)      → €90 / year

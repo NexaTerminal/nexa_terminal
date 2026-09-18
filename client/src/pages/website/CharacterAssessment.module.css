@@ -1,0 +1,114 @@
+/* „Проценка на карактер" — respondent bipolar-scale widget + thank-you.
+   The 5-cell scale mirrors the reference: two opposing statements with a
+   5-point continuum shaded darker toward each pole, „Неутрално" in the middle. */
+
+.scaleCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 22px 20px 20px;
+  box-shadow: 0 8px 24px -18px rgba(15, 23, 42, 0.25);
+}
+
+.scaleHeadRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+.scaleEnd { color: #1e4db7; }
+.scaleMid { color: #94a3b8; }
+
+/* Five equal cells. Ends are more saturated, middle is light (neutral). */
+.scaleRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.scaleCell {
+  appearance: none;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  min-height: 54px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.scaleCell:hover { transform: translateY(-1px); border-color: #1e4db7; }
+.scaleCell:focus-visible { outline: 2px solid #1e4db7; outline-offset: 2px; }
+
+/* Pole shading (blue toward both ends, pale in the middle). */
+.lvl1 { background: #cdd9f2; }
+.lvl2 { background: #e3eafb; }
+.lvl3 { background: #f5f7fc; }
+.lvl4 { background: #e3eafb; }
+.lvl5 { background: #cdd9f2; }
+
+.scaleDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #9db1d8;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+.scaleCell:hover .scaleDot { border-color: #1e4db7; }
+
+/* Selected cell — filled brand dot + ring. */
+.scaleCellSel {
+  border-color: #1e4db7;
+  box-shadow: 0 0 0 2px rgba(30, 77, 183, 0.25) inset;
+}
+.scaleCellSel .scaleDot {
+  background: #1e4db7;
+  border-color: #1e4db7;
+  transform: scale(1.15);
+}
+
+.statementRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+.statementLeft,
+.statementRight {
+  flex: 1 1 0;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0B1220;
+  line-height: 1.4;
+}
+.statementRight { text-align: right; }
+
+@media (max-width: 560px) {
+  .statementLeft, .statementRight { font-size: 13.5px; }
+  .scaleCell { min-height: 48px; }
+  .scaleHeadRow { font-size: 11px; }
+}
+
+/* Thank-you / already-answered screens. */
+.thanks {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 24px 8px;
+}
+.thanksIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #15803D;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+}

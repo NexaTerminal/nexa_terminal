@@ -76,6 +76,10 @@ const screening = {
 // it here anytime (it's attached to their account).
 const myBadge = { key: 'my-badge', icon: 'people', label: 'Мојата значка', path: '/terminal/moja-znachka' };
 
+// „Проценка на карактер" — Big Five personality assessment the employer sends to a
+// candidate/employee; the profile report comes back to the owner. SMB HR tool.
+const characterCheck = { key: 'character-check', icon: 'people', label: 'Проценка на карактер', path: '/terminal/karakter' };
+
 const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 const marketingAi       = { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' };
@@ -109,7 +113,7 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, employees, contracts, legalAi, screening, myBadge]
+    items: [documents, employees, contracts, legalAi, screening, characterCheck, myBadge]
   },
   {
     key: 'procurement', label: 'Набавки',
@@ -142,7 +146,7 @@ const proSections = [
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening]
+    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening, characterCheck]
   },
   {
     key: 'education-sec', label: 'Едукација',

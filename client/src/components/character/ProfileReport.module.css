@@ -1,0 +1,92 @@
+/* Big Five profile report — radar + bars + interpretation cards. Print-friendly. */
+
+.report { color: #0B1220; }
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 18px;
+}
+.name { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.role { margin: 2px 0 0; font-size: 14px; color: #64748b; }
+.date { font-size: 12.5px; color: #94a3b8; white-space: nowrap; }
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 26px;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; gap: 18px; }
+}
+
+/* ── Radar ── */
+.radarWrap { display: flex; justify-content: center; }
+.radar { width: 100%; max-width: 320px; height: auto; overflow: visible; }
+.ring { fill: none; stroke: #e5e9f2; stroke-width: 1; }
+.axis { stroke: #e5e9f2; stroke-width: 1; }
+.area {
+  fill: rgba(30, 77, 183, 0.18);
+  stroke: #1e4db7;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.axisLabel { font-size: 10.5px; font-weight: 700; fill: #334155; }
+
+/* ── Bars ── */
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.barRow { display: flex; flex-direction: column; gap: 6px; }
+.barTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.barLabel { font-size: 13.5px; font-weight: 700; }
+.barBadge {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+  padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+}
+.barTrack { height: 10px; border-radius: 999px; background: #eef1f7; overflow: hidden; }
+.barFill { height: 100%; border-radius: 999px; transition: width 400ms ease; }
+
+/* ── Interpretation cards ── */
+.cards {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.cardHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.cardTitle { font-size: 14px; font-weight: 700; }
+.cardBadge { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.cardBlurb { margin: 0 0 8px; font-size: 12px; color: #94a3b8; line-height: 1.45; }
+.cardText { margin: 0; font-size: 13px; color: #334155; line-height: 1.55; }
+
+/* ── Band colors (shared by bars + badges + cards) ── */
+.bandHigh { background: #16a34a; color: #fff; }
+.bandMid  { background: #f59e0b; color: #fff; }
+.bandLow  { background: #94a3b8; color: #fff; }
+/* Badge variants need the tint background, not the solid fill — override for pills. */
+.barBadge.bandHigh, .cardBadge.bandHigh { background: #ECFDF5; color: #15803D; }
+.barBadge.bandMid,  .cardBadge.bandMid  { background: #FFFBEB; color: #B45309; }
+.barBadge.bandLow,  .cardBadge.bandLow  { background: #F1F5F9; color: #475569; }
+
+.disclaimer {
+  margin: 22px 0 0;
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.5;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 12px;
+}
+
+@media print {
+  .card, .report { break-inside: avoid; }
+}

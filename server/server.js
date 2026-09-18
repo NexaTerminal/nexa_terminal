@@ -191,6 +191,10 @@ app.use('/api/public/screening', require('./routes/publicScreening'));
 // same public posture as screening, before CSRF).
 app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
 
+// Public „Проценка на карактер" respondent funnel — a candidate/employee answers
+// the personality assessment via their link (no auth, before CSRF).
+app.use('/api/public/character-assessment', require('./routes/publicCharacterAssessment'));
+
 // Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
 // page pings this with the prospect id so we can measure invited → clicked.
 app.get('/api/invite/click', async (req, res) => {
@@ -946,6 +950,10 @@ function registerRoutes() {
     '/cases',
     /^\/cases\/.*$/,
     /^\/public\/cases\/.*$/,
+    // Проценка на карактер — owner API (JWT-Bearer) + public respondent funnel
+    '/character-assessments',
+    /^\/character-assessments\/.*$/,
+    /^\/public\/character-assessment\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -1124,6 +1132,16 @@ function registerRoutes() {
     console.log('✅ /api/cases + /api/public/cases mounted');
   } catch (error) {
     console.error('❌ /api/cases route error:', error.message);
+  }
+
+  // „Проценка на карактер" — Big Five candidate/employee assessment (owner side).
+  // Behind subscriptionGuard: Basic + Pro owners with active access. The public
+  // respondent funnel is mounted separately, before CSRF (see above).
+  try {
+    app.use('/api/character-assessments', subscriptionGuard, require('./routes/characterAssessments'));
+    console.log('✅ /api/character-assessments mounted');
+  } catch (error) {
+    console.error('❌ /api/character-assessments route error:', error.message);
   }
 
   // Credit System routes (always enabled)

@@ -37,10 +37,15 @@ function present(doc) {
     createdAt: doc.createdAt,
     invitedAt: doc.invitedAt || null,
     completedAt: doc.completedAt || null,
+    resultsEmailedTo: doc.resultsEmailedTo || null,
+    resultsEmailedAt: doc.resultsEmailedAt || null,
   };
   if (doc.status === 'completed' && doc.scores) {
+    const scored = score(doc.answers || {});
     base.scores = doc.scores;
-    base.report = score(doc.answers || {}).report;
+    base.report = scored.report;
+    base.ranked = scored.ranked;
+    base.overall = scored.overall;
     base.disclaimer = DISCLAIMER;
   }
   return base;

@@ -2,9 +2,9 @@ import s from './ProfileReport.module.css';
 
 /**
  * Big Five profile report — the "full visual graphic" the inviting owner sees.
- * Pure SVG (radar pentagon) + horizontal trait bars + per-dimension interpretation
- * cards. `report` is the array produced by server data/characterAssessmentQuestions
- * (score()): [{ dimension, label, blurb, score, band, bandLabel, interpretation }].
+ * Compact radar + trait bars for the at-a-glance, then a ranked, second-person
+ * "how it shows up" list (CliftonStrengths-style) strongest → weakest.
+ * `report`/`ranked`/`overall` come from server data/characterAssessmentQuestions.score().
  */
 
 const BAND_CLASS = { high: s.bandHigh, mid: s.bandMid, low: s.bandLow };
@@ -12,17 +12,17 @@ const SIZE = 260;
 const CENTER = SIZE / 2;
 const R = 96; // radius to the 100-score ring
 
-// Regular pentagon vertex (i of 5), scaled by frac (0..1). Start at top (−90°).
 function vertex(i, frac) {
   const ang = (-90 + i * 72) * (Math.PI / 180);
   return [CENTER + Math.cos(ang) * R * frac, CENTER + Math.sin(ang) * R * frac];
 }
 const toPoints = (fracs) => fracs.map((f, i) => vertex(i, f).join(',')).join(' ');
 
-export default function ProfileReport({ candidateName, role, report = [], disclaimer, completedAt }) {
+export default function ProfileReport({ candidateName, role, report = [], ranked, overall, disclaimer, completedAt }) {
   const dims = report.filter((d) => d.score != null);
   const fracs = dims.map((d) => Math.max(0.04, d.score / 100));
   const rings = [0.25, 0.5, 0.75, 1];
+  const rankedList = (ranked && ranked.length ? ranked : [...dims].sort((a, b) => b.score - a.score));
 
   const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'long', day: 'numeric' }) : '');
 
@@ -35,6 +35,10 @@ export default function ProfileReport({ candidateName, role, report = [], discla
         </div>
         {completedAt ? <span className={s.date}>Одговорено: {fmtDate(completedAt)}</span> : null}
       </header>
+
+      {overall && overall.text ? (
+        <p className={s.overall}><strong>Кратко:</strong> {overall.text}</p>
+      ) : null}
 
       <div className={s.grid}>
         {/* Radar pentagon */}
@@ -70,26 +74,30 @@ export default function ProfileReport({ candidateName, role, report = [], discla
                 <span className={`${s.barBadge} ${BAND_CLASS[d.band]}`}>{d.bandLabel} · {d.score}</span>
               </div>
               <div className={s.barTrack}>
-                <div className={`${s.barFill} ${BAND_CLASS[d.band]}`} style={{ width: `${d.score}%` }} />
+                <div className={s.barFill} style={{ width: `${d.score}%`, background: d.color?.accent }} />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Interpretation cards */}
-      <div className={s.cards}>
-        {dims.map((d) => (
-          <div key={d.dimension} className={s.card}>
-            <div className={s.cardHead}>
-              <span className={s.cardTitle}>{d.label}</span>
-              <span className={`${s.cardBadge} ${BAND_CLASS[d.band]}`}>{d.bandLabel}</span>
+      {/* Ranked, second-person "how it shows up" list */}
+      <h3 className={s.rankedTitle}>Еве како овие особини се пројавуваат:</h3>
+      <ol className={s.ranked}>
+        {rankedList.map((d, i) => (
+          <li key={d.dimension} className={s.rankRow}>
+            <span className={s.rankNum}>{i + 1}</span>
+            <span className={s.rankRule} style={{ background: d.color?.accent }} aria-hidden="true" />
+            <div className={s.rankBody}>
+              <div className={s.rankHead}>
+                <span className={s.rankLabel} style={{ background: d.color?.bg, color: d.color?.text }}>{d.label}</span>
+                <span className={s.rankScore} style={{ color: d.color?.accent }}>{d.bandLabel} · {d.score}</span>
+              </div>
+              <p className={s.rankText}>{d.narrative || d.interpretation}</p>
             </div>
-            <p className={s.cardBlurb}>{d.blurb}</p>
-            <p className={s.cardText}>{d.interpretation}</p>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
       {disclaimer ? <p className={s.disclaimer}>{disclaimer}</p> : null}
     </div>

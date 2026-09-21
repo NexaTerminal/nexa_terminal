@@ -471,6 +471,23 @@ async function initializeServices(database) {
     console.error('Cases module init failed:', e.message);
   }
 
+  // --- Регистар на набавки (procurement register + renewal reminders) ---
+  try {
+    await require('./controllers/procurementRegisterController').ensureIndexes(database);
+
+    const ProcurementReminderService = require('./services/procurementReminderService');
+    const ProcurementReminderScheduler = require('./services/procurementReminderScheduler');
+    const procurementReminderService = new ProcurementReminderService(database, require('./services/emailService'));
+    app.locals.procurementReminderService = procurementReminderService;
+
+    const procurementReminderScheduler = new ProcurementReminderScheduler(procurementReminderService);
+    procurementReminderScheduler.start();
+    app.locals.procurementReminderScheduler = procurementReminderScheduler;
+    console.log('✅ Регистар на набавки ready (регистар + потсетници за обнова)');
+  } catch (e) {
+    console.error('Регистар на набавки init failed:', e.message);
+  }
+
   // --- Credit System (initialized FIRST after userService because it
   //     is a core dependency for almost every premium route) ---
   try {
@@ -954,6 +971,9 @@ function registerRoutes() {
     '/character-assessments',
     /^\/character-assessments\/.*$/,
     /^\/public\/character-assessment\/.*$/,
+    // Регистар на набавки — owner API (JWT-Bearer)
+    '/procurement',
+    /^\/procurement\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled
@@ -1142,6 +1162,14 @@ function registerRoutes() {
     console.log('✅ /api/character-assessments mounted');
   } catch (error) {
     console.error('❌ /api/character-assessments route error:', error.message);
+  }
+
+  // Регистар на набавки — procurement register (offers + renewal reminders).
+  try {
+    app.use('/api/procurement', subscriptionGuard, require('./routes/procurementRegister'));
+    console.log('✅ /api/procurement mounted');
+  } catch (error) {
+    console.error('❌ /api/procurement route error:', error.message);
   }
 
   // Credit System routes (always enabled)

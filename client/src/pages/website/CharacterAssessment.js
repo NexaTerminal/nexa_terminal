@@ -28,6 +28,9 @@ export default function CharacterAssessment() {
   const [answers, setAnswers] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [emailedToInvite, setEmailedToInvite] = useState(false);
+  const [selfEmail, setSelfEmail] = useState('');
+  const [selfState, setSelfState] = useState(null); // null | 'sending' | 'sent' | 'error'
 
   useEffect(() => {
     let cancelled = false;
@@ -69,11 +72,28 @@ export default function CharacterAssessment() {
       const data = await res.json();
       if (res.status === 409) { setPhase('completed'); return; }
       if (!res.ok || !data.success) throw new Error(data.message || 'Грешка');
+      setEmailedToInvite(!!data.emailedToInvite);
       setPhase('done');
     } catch (ex) {
       setError(ex.message || 'Одговорите не може да се испратат. Обидете се повторно.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const sendMeResults = async () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selfEmail.trim())) { setSelfState('error'); return; }
+    setSelfState('sending');
+    try {
+      const res = await fetch(`${API_BASE}/public/character-assessment/${token}/email-results`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: selfEmail.trim() }),
+      });
+      const data = await res.json();
+      setSelfState(res.ok && data.success ? 'sent' : 'error');
+    } catch (_) {
+      setSelfState('error');
     }
   };
 
@@ -188,8 +208,33 @@ export default function CharacterAssessment() {
               <h1 className={q.title}>Ви благодариме!</h1>
               <p className={q.lead}>
                 Вашите одговори се успешно испратени. Резултатот ќе го добие работодавачот
-                што ве покани. Може да го затворите овој прозорец.
+                што ве покани.
+                {emailedToInvite && ' Копија од вашите резултати е испратена на вашата е-пошта.'}
               </p>
+
+              {selfState === 'sent' ? (
+                <p className={ca.selfOk}>✓ Резултатите се испратени на {selfEmail}.</p>
+              ) : (
+                <div className={ca.selfBox}>
+                  <label className={ca.selfLabel}>
+                    {emailedToInvite ? 'Сакате копија и на друга е-пошта?' : 'Сакате да ги добиете вашите резултати на е-пошта?'}
+                  </label>
+                  <div className={ca.selfRow}>
+                    <input
+                      className={ca.selfInput}
+                      type="email"
+                      placeholder="вашата@епошта.мк"
+                      value={selfEmail}
+                      onChange={(e) => { setSelfEmail(e.target.value); if (selfState === 'error') setSelfState(null); }}
+                      maxLength={160}
+                    />
+                    <button type="button" className="nexa-btn nexa-btn-accent" onClick={sendMeResults} disabled={selfState === 'sending'}>
+                      {selfState === 'sending' ? 'Се испраќа…' : 'Испрати ми'}
+                    </button>
+                  </div>
+                  {selfState === 'error' && <p className={q.error}>Внесете валидна е-пошта и обидете се повторно.</p>}
+                </div>
+              )}
             </div>
           )}
         </div>

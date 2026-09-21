@@ -51,7 +51,10 @@ const proDocuments = {
   ]
 };
 
-const employees = { key: 'employees', icon: 'people', label: 'Вработени', path: '/terminal/employees' };
+// Човечки ресурси section leaves: the employee registry, the character
+// assessment, and a shortcut into the labour-law document category.
+const employees   = { key: 'employees', icon: 'people', label: 'Вработени', path: '/terminal/employees' };
+const labourDocs  = { key: 'labour-docs', icon: 'doc', label: 'Работни односи', path: '/terminal/documents?cat=labourLaw' };
 
 const contracts = {
   key: 'contracts', icon: 'inbox', label: 'Договори',
@@ -81,6 +84,8 @@ const myBadge = { key: 'my-badge', icon: 'people', label: 'Мојата знач
 const characterCheck = { key: 'character-check', icon: 'people', label: 'Проценка на карактер', path: '/terminal/karakter' };
 
 const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing };
+// Регистар на набавки — log offers per type of purchase + renewal reminders.
+const procurementRegister = { key: 'procurement-register', icon: 'inbox', label: 'Регистар на набавки', path: '/terminal/nabavki', visible: showsSourcing };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 const marketingAi       = { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' };
 const marketingScreening = { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' };
@@ -113,11 +118,15 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, employees, contracts, legalAi, screening, characterCheck, myBadge]
+    items: [documents, contracts, legalAi, screening]
+  },
+  {
+    key: 'human-resources', label: 'Човечки ресурси',
+    items: [employees, characterCheck, labourDocs]
   },
   {
     key: 'procurement', label: 'Набавки',
-    items: [sourcing]
+    items: [sourcing, procurementRegister]
   },
   {
     // Случаи, Topics Q&A and Маркетинг live only in the Pro (leads.nexa.mk)
@@ -128,7 +137,9 @@ const smbSections = [
   {
     key: 'education-sec', label: 'Едукација',
     items: [education]
-  }
+  },
+  // Мојата значка — standalone leaf (no section header), below Едукација.
+  { key: 'badge-sec', label: null, items: [myBadge] }
 ];
 
 // ── Product B (Lawyers / Pro) — client-acquisition first ────────────────────

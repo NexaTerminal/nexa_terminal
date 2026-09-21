@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from '../../styles/terminal/DocumentGen.module.css';
 import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,6 +11,7 @@ import documentCategoriesData from '../../data/documentCategories.json';
 const DocumentGen = () => {
   const { currentUser, token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentStep, setCurrentStep] = useState('categories');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -80,6 +81,21 @@ const DocumentGen = () => {
   useEffect(() => {
     fetchDocuments();
   }, [token]);
+
+  // Deep-link support: a sidebar shortcut like /terminal/documents?cat=labourLaw
+  // jumps straight into that category (subcategory chooser or templates). The
+  // param is cleared afterwards so in-page navigation/back behaves normally.
+  useEffect(() => {
+    const cat = searchParams.get('cat');
+    if (!cat || !documentCategories[cat]) return;
+    setSelectedCategory(cat);
+    setSelectedSubcategory(null);
+    setSelectedTemplate(null);
+    setSearchTerm('');
+    setCurrentStep(documentCategories[cat].subcategories ? 'subcategories' : 'templates');
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const fetchDocuments = async () => {
     try {

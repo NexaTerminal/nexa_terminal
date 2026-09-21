@@ -199,9 +199,15 @@ export default function CharacterAssessments() {
                 {openId === item.id && (
                   <div className={s.reportPanel}>
                     {detail?.report
-                      ? <ProfileReport candidateName={detail.candidateName} role={detail.role}
-                                       report={detail.report} disclaimer={detail.disclaimer}
-                                       completedAt={detail.completedAt} />
+                      ? <>
+                          <ProfileReport candidateName={detail.candidateName} role={detail.role}
+                                         report={detail.report} ranked={detail.ranked}
+                                         overall={detail.overall} disclaimer={detail.disclaimer}
+                                         completedAt={detail.completedAt} />
+                          {detail.resultsEmailedAt && (
+                            <p className={s.emailedNote}>✓ Резултатите се испратени и до вработениот{detail.resultsEmailedTo ? ` (${detail.resultsEmailedTo})` : ''}.</p>
+                          )}
+                        </>
                       : <div className={s.empty}>Се вчитува извештајот…</div>}
                   </div>
                 )}

@@ -356,16 +356,14 @@ export const employmentAgreementConfig = {
         { value: '1', label: '1 месец' },
         { value: '2', label: '2 месеци' },
         { value: '3', label: '3 месеци' },
-        { value: '4', label: '4 месеци' },
-        { value: '5', label: '5 месеци' },
-        { value: '6', label: '6 месеци (законски максимум)' }
+        { value: '4', label: '4 месеци (максимум)' }
       ],
       required: false,
       condition: {
         field: 'probationPeriod',
         operator: 'truthy'
       },
-      helpText: 'Пробната работа може да трае најмногу 6 месеци.'
+      helpText: 'Пробната работа може да трае најмногу 4 месеци.'
     },
 
     // Remote work — Чл. 50 ЗРО

@@ -4,23 +4,22 @@ import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import styles from './AllUsers.module.css';
 
-const ROLE_LABEL = {
-  regular:        'Регистриран',
-  standard_user:  'Основен',
-  admin_user:     'Про',
-  sub_seat:       'Под-сметка',
-  admin:          'Платформа админ',
-  verified:       'Основен (стар)'
+// A user is either Basic or Pro (plus the non-customer account types). This
+// derives the ONE tier badge from the same precedence the gating engine uses
+// (subscription.plan first, role as fallback) so the admin UI never shows two
+// contradictory tags. Mirrors server tierService.effectiveTier / lib/tier.js.
+const packageOf = (user) => {
+  const role = user?.role;
+  if (role === 'admin')    return { label: 'Платформа админ', cls: 'role_admin' };
+  if (role === 'sub_seat') return { label: 'Под-сметка',      cls: 'role_sub_seat' };
+  if (role === 'regular')  return { label: 'Регистриран',     cls: 'role_regular' };
+  const plan = user?.subscription?.plan;
+  const isPro = plan === 'pro' || plan === 'admin_5' || plan === 'admin_10' || (role === 'admin_user' && !plan);
+  return isPro
+    ? { label: 'Про',     cls: 'role_admin_user' }
+    : { label: 'Основен', cls: 'role_standard_user' };
 };
-const PLAN_LABEL = {
-  basic: 'Основен',
-  pro:   'Про',
-  // legacy
-  standard: 'Основен',
-  admin_5:  'Про',
-  admin_10: 'Про',
-  admin:    'Про'
-};
+
 const SUB_STATUS_LABEL = {
   trial:            'Пробен',
   pending_approval: 'На чекање',
@@ -196,8 +195,7 @@ export default function AllUsers() {
               <thead>
                 <tr>
                   <th>Корисник</th>
-                  <th>Улога</th>
-                  <th>План</th>
+                  <th>Пакет</th>
                   <th>Претплата</th>
                   <th>Истекува</th>
                   <th>Регистриран</th>
@@ -218,11 +216,12 @@ export default function AllUsers() {
                         )}
                       </td>
                       <td>
-                        <span className={`${styles.roleTag} ${styles[`role_${u.role}`] || ''}`}>
-                          {ROLE_LABEL[u.role] || u.role || '—'}
-                        </span>
+                        {(() => { const pkg = packageOf(u); return (
+                          <span className={`${styles.roleTag} ${styles[pkg.cls] || ''}`}>
+                            {pkg.label}
+                          </span>
+                        ); })()}
                       </td>
-                      <td>{sub.plan ? (PLAN_LABEL[sub.plan] || sub.plan) : '—'}</td>
                       <td>
                         <span className={`${styles.statusTag} ${styles[`status_${sub.status}`] || ''}`}>
                           {SUB_STATUS_LABEL[sub.status] || sub.status || '—'}
@@ -565,7 +564,7 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
             </div>
 
             <div className={styles.kv}>
-              <span>Улога</span><strong>{ROLE_LABEL[data.user.role] || data.user.role}</strong>
+              <span>Пакет</span><strong>{packageOf(data.user).label}</strong>
               <span>Активна</span><strong>{data.user.isActive ? 'Да' : 'Не'}</strong>
               <span>Мора да смени лозинка</span><strong>{data.user.mustChangePassword ? 'Да' : 'Не'}</strong>
               <span>Регистриран</span><strong>{fmtDate(data.user.createdAt)}</strong>
@@ -598,7 +597,6 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
                 <h4 className={styles.subhead}>Претплата</h4>
                 <div className={styles.kv}>
                   <span>Статус</span><strong>{SUB_STATUS_LABEL[data.user.subscription.status] || data.user.subscription.status}</strong>
-                  <span>План</span><strong>{PLAN_LABEL[data.user.subscription.plan] || data.user.subscription.plan || '—'}</strong>
                   <span>Циклус</span><strong>{data.user.subscription.cycle || '—'}</strong>
                   <span>Истекува</span><strong>{fmtDate(data.user.subscription.endsAt)}</strong>
                   <span>Фактура</span><strong>{data.user.subscription.invoiceNumber || '—'}</strong>
@@ -662,7 +660,7 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
               )}
               {data.user.role !== 'admin' && data.user.role !== 'sub_seat' && (
                 <button className={styles.btnGhost} disabled={busy} onClick={() => setShowRoleForm(true)}>
-                  Промени улога
+                  Смени пакет (Основен/Про)
                 </button>
               )}
             </div>
@@ -687,20 +685,31 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
   );
 }
 
+// One control, one concept: пакетот е Основен или Про (плус „Регистриран" без
+// план). Selecting a package sends the matching role + plan; the backend moves
+// role / subscription.plan / intendedPlan together so nothing ends up split.
+const PKG_OPTIONS = [
+  { value: 'basic',   label: 'Основен',                 role: 'standard_user' },
+  { value: 'pro',     label: 'Про (до 25 под-сметки)',  role: 'admin_user' },
+  { value: 'regular', label: 'Регистриран (без план)',  role: 'regular' }
+];
+
 function RoleChangeForm({ user, token, onCancel, onDone }) {
-  const [newRole, setNewRole] = useState(user.role === 'admin_user' ? 'standard_user' : 'admin_user');
-  const [plan, setPlan] = useState('pro');
+  const currentPkg = packageOf(user).label === 'Про' ? 'pro'
+                   : user.role === 'regular' ? 'regular' : 'basic';
+  const [pkg, setPkg] = useState(currentPkg === 'basic' ? 'pro' : 'basic');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
   const submit = async () => {
     setBusy(true); setErr('');
     try {
-      const body = { newRole };
-      if (newRole === 'admin_user') body.plan = plan;
+      const opt = PKG_OPTIONS.find(o => o.value === pkg);
+      const body = { newRole: opt.role };
+      if (pkg === 'pro') body.plan = 'pro';
       await axios.post(`/api/admin/all-users/${user._id}/change-role`, body,
         { headers: { Authorization: `Bearer ${token}` } });
-      onDone(`Улогата е променета на ${ROLE_LABEL[newRole]}`);
+      onDone(`Пакетот е променет на ${opt.label}`);
     } catch (e) {
       setErr(e.response?.data?.message || e.message);
     } finally { setBusy(false); }
@@ -708,22 +717,13 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
 
   return (
     <div className={styles.roleForm}>
-      <h4 className={styles.subhead}>Промена на улога</h4>
-      <label className={styles.fieldLabel}>Нова улога</label>
-      <select value={newRole} onChange={e => setNewRole(e.target.value)}>
-        <option value="standard_user">Основен</option>
-        <option value="admin_user">Admin корисник (Про)</option>
-        <option value="regular">Регистриран (без план)</option>
+      <h4 className={styles.subhead}>Смени пакет</h4>
+      <label className={styles.fieldLabel}>Пакет</label>
+      <select value={pkg} onChange={e => setPkg(e.target.value)}>
+        {PKG_OPTIONS.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
       </select>
-
-      {newRole === 'admin_user' && (
-        <>
-          <label className={styles.fieldLabel}>План</label>
-          <select value={plan} onChange={e => setPlan(e.target.value)}>
-            <option value="pro">Про (до 25 под-сметки)</option>
-          </select>
-        </>
-      )}
 
       {err && <div className={styles.error}>{err}</div>}
 

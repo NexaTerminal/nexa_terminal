@@ -328,13 +328,23 @@ class AdminUsersController {
         }
       }
 
-      // Promote → admin_user: require a plan so we can seed seatLimit.
+      // A user is either Basic or Pro. That single fact is encoded in THREE
+      // places that must never disagree, or a promoted user "looks" Pro but is
+      // gated as Basic (or vice-versa):
+      //   • role              — account type + fallback tier
+      //   • subscription.plan — drives effectiveTier() → real feature gating
+      //   • intendedPlan      — drives the view while trial/pending_approval
+      // So every role change moves all three in lock-step.
       const updates = { role: newRole, updatedAt: new Date() };
+      let resolvedPlan = null;
+
       if (newRole === ROLES.ADMIN_USER) {
-        if (plan !== PLANS.PRO) {
+        // Promote → Pro
+        if (plan && plan !== PLANS.PRO) {
           return res.status(400).json({ success: false, message: 'При промовирање во Pro корисник, планот мора да биде „pro“.' });
         }
-        const resolvedSeats = typeof seatLimit === 'number' ? seatLimit : (PLAN_SEATS[plan] || 25);
+        resolvedPlan = PLANS.PRO;
+        const resolvedSeats = typeof seatLimit === 'number' ? seatLimit : (PLAN_SEATS[PLANS.PRO] || 25);
         updates.superUser = {
           ...(user.superUser || {}),
           seatLimit: resolvedSeats,
@@ -344,6 +354,19 @@ class AdminUsersController {
           blogPostsPerMonth:     user.superUser?.blogPostsPerMonth     ?? 1,
           lastAssignedAt:        user.superUser?.lastAssignedAt        ?? null
         };
+      } else if (newRole === ROLES.STANDARD_USER) {
+        // Demote → Basic (guardrail above already ensured no active sub-seats)
+        resolvedPlan = PLANS.BASIC;
+        updates.superUser = null;
+      }
+      // newRole === REGULAR: registered, no plan — leave subscription untouched.
+
+      if (resolvedPlan) {
+        const sub = { ...(user.subscription || {}) };
+        sub.plan = resolvedPlan;
+        if (!sub.status) sub.status = 'active';
+        updates.subscription = sub;
+        updates.intendedPlan = resolvedPlan;
       }
 
       await users.updateOne({ _id: user._id }, { $set: updates });
@@ -352,7 +375,7 @@ class AdminUsersController {
         try {
           await this.auditLoggingService.log({
             actorId: req.user._id, action: 'user.role_change',
-            targetUserId: user._id, meta: { from: currentRole, to: newRole, plan: plan || null }
+            targetUserId: user._id, meta: { from: currentRole, to: newRole, plan: resolvedPlan }
           });
         } catch (e) { /* non-critical */ }
       }

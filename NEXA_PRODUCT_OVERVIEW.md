@@ -21,14 +21,14 @@ The homepage tells this as a 3-act story:
 
 ## 2. Pricing model
 
-All prices in **EUR** (with an EUR/MKD toggle on the public page), using **9-ending psychological pricing**. **Two tiers** × three billing cycles. The public `/pricing` page is a two-tier chooser (Basic + Pro).
+All prices in **EUR**. The go-to-market offer is a **single annual price per tier**, and **prices are not shown on the public website** — they surface only inside the terminal buy flow (the SubscriptionGate). Legacy monthly/quarterly numbers remain in code for back-compat but are not the marketed offer.
 
-| Plan | Monthly | Quarterly | Yearly | Audience |
-|---|---:|---:|---:|---|
-| **Основен** (Basic) | €19 | €49 | €179 | SMBs (demand side) |
-| **Про** (Pro) | €39 | €99 | €359 | Service providers (supply side) |
+| Plan | Annual (GTM offer) | (legacy monthly / quarterly) | Audience |
+|---|---:|---:|---|
+| **Основен** (Basic) | **€90 / year** | €19 / €49 | SMBs (demand side) |
+| **Про** (Pro) | **€190 / year** | €39 / €99 | Service providers (supply side) |
 
-Quarterly ≈ 14–16% off three months; annual ≈ 22–24% off twelve months.
+Public pages sell value and drive to signup; the price is revealed in-app.
 
 ### What each plan includes
 
@@ -53,15 +53,20 @@ Quarterly ≈ 14–16% off three months; annual ≈ 22–24% off twelve months.
 - **Request for offers (tender side)** — respond to client requests
 - Editorial spot in the monthly newsletter for accepted blog posts
 
-### Onboarding & subscription lifecycle (code-first, no trial)
+### Onboarding & subscription lifecycle (60-day free window + code-first)
 
-There is **no free trial**. A brand-new account starts **LOCKED** (`subscription.status: 'none'`) and has no feature access until it is unlocked one of two ways:
+A brand-new signup is granted a **60-day free full-access window** (`initTrial`, `TRIAL_DAYS = 60`) to the product for its storefront's plan. When the window lapses the account **auto-suspends** (data preserved) and returns to a preview/locked state until the user subscribes or redeems a code. Outbound promo codes still run in parallel.
 
 ```
-register (locked) ──► redeem promo code (/redeem)  ──► active (€0, promo, time-boxed)
-                 └──► pick a plan → pro-forma invoice → bank transfer → active (paid)
+register ──► 60-day free window (active, paidVia:'promo', trial:true)
+   │                     │
+   │                     └─(60 days lapse)─► suspended/locked (preview) ──┐
+   │                                                                      │
+   ├──► redeem promo code (/redeem) ─────────► active (€0, time-boxed) ───┤
+   └──► pick a plan → pro-forma invoice → bank transfer → active (paid) ──┘
 ```
 
+- **Free window**: `initTrial` fires after Google signup and after email verification, activating the plan at €0 with `paidVia:'promo'` + `subscription.trial:true`, `endsAt ≈ now + 60d`. One per email.
 - **Code-first acquisition**: outbound sales issue per-prospect **promo codes** (typically a time-boxed Pro grant). A prospect redeems at `/redeem?code=…`, which activates the plan at €0 with `paidVia: 'promo'`. Google OAuth sign-in is wired (`/auth/callback`, `/auth/success`).
 - **Paid path**: the user picks a plan; the Terminal issues a **pro-forma invoice** by email; payment is by **manual bank transfer** (no card processing). On confirmed payment the platform admin approves and the account goes active.
 - **One-time 3-day grace**: the first time a locked/expired user shows intent (requests an invoice) without having paid, a race-safe 3-day grace window is auto-granted so access isn't interrupted while payment is in transit.
@@ -75,12 +80,13 @@ Defined in `server/constants/roles.js`. Canonical two-tier model with legacy key
 ```js
 const PLANS  = { BASIC: 'basic', PRO: 'pro' };
 const PLAN_PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 179 },
-  pro:   { monthly: 39, quarterly: 99, annual: 359 }
+  basic: { monthly: 19, quarterly: 49, annual: 90 },   // €90/yr is the GTM offer
+  pro:   { monthly: 39, quarterly: 99, annual: 190 }    // €190/yr is the GTM offer
 };
 const PLAN_SEATS = { basic: 3, pro: 25 };
 const PLAN_TO_ROLE = { basic: 'standard_user', pro: 'admin_user' };
 const PLAN_CURRENCY = 'EUR';
+const TRIAL_DAYS = 60;  // 60-day free window granted at signup
 ```
 
 `canonicalPlan()` normalizes legacy keys (`standard`→`basic`; `admin_5`/`admin_10`→`pro`). Same prices echo across `Pricing.js`, `SubscriptionGate.js`, `schemaGraph.js` (JSON-LD), payment-instruction emails, and i18n descriptors.
@@ -154,9 +160,13 @@ A large, structured questionnaire-and-report platform built on a **shared scorin
 
 Each check produces a prioritized, banded compliance report at `.../report/:id`.
 
-### HR module — Вработени (`/terminal/employees`)
+### Човечки ресурси — HR section
 
-An employee registry (clones the contracts pattern): list, create, detail, and edit employees. Provides **computed leave balances** and a daily **reminder cron** (e.g. contract/leave events). Employee data can prefill document generation.
+A dedicated sidebar section grouping three people-tools:
+
+- **Вработени** (`/terminal/employees`) — an employee registry (clones the contracts pattern): list, create, detail, and edit employees. Provides **computed leave balances** and a daily **reminder cron** (e.g. contract/leave events). Employee data can prefill document generation.
+- **Проценка на карактер** (`/terminal/karakter`, public `/karakter/:token`) — a **Big Five (OCEAN) personality assessment** an SMB sends to a candidate/employee. The owner creates a named assessment and shares a link (or emails it); the respondent answers **33 bipolar, one-trait-per-item questions** (with reverse-keyed items to cancel acquiescence bias); scoring is strictly server-side (`server/data/characterAssessmentQuestions.js`). The owner sees a **visual report** (SVG radar pentagon + trait bars + a ranked, second-person "how it shows up" narrative), and the **employee is emailed their own results** (auto to the invited address + an opt-in on the thank-you screen). The respondent only ever sees a thank-you on screen.
+- **Работни односи** — a deep-link shortcut into the labour-law document category (`/terminal/documents?cat=labourLaw`).
 
 ### Contracts registry (`/terminal/contracts`)
 
@@ -170,6 +180,8 @@ A registry of the company's contracts (list / new / detail / edit) with a **cont
 ### Ecosystem / two-sided features
 
 - **Sourcing — Request for offers** (`/terminal/sourcing`) — SMBs request quotes; providers respond (offer-requests).
+- **Регистар на набавки — Procurement Register** (`/terminal/nabavki`) — a demand-side companion to Sourcing, organized by **type of purchase** (insurance, hosting, accounting…). The SMB logs the offers it receives per need (supplier · price · terms · valid-until), the cheapest is auto-flagged, one is marked chosen, and a **renewal date** triggers a daily re-quote reminder email (`procurementReminderScheduler`, 11:00 Europe/Skopje) that links back to Sourcing. Backed by `procurementRegisterController` + `procurement_register` collection.
+- **„Проверен работодавач" — Verified-Employer badge** — a public employer maturity check at `/proverka-rabotodavac` → **A / A+ / A++** rating → sign up to claim a shareable **circular seal** (dynamic SVG) at `/badge/:token`; members re-open/re-share it from **„Мојата значка"** (`/terminal/moja-znachka`), with a micro-seal on the header profile button. A jobseeker-facing badge that doubles as a non-user acquisition funnel (`publicEmployerBadge.js` + `badgeService.js`).
 - **Find a lawyer** (`/terminal/find-lawyer`) — directory into the provider network.
 - **Virtual Fair** (`/terminal/fair`, `/terminal/fair/:id`) — booths with provider products/services; admin moderation.
 - **Investments** (`/terminal/investments`) — investment listings/detail.
@@ -305,20 +317,18 @@ In-app dashboard tile, email (Resend → Gmail fallback), and live Socket.io eve
 
 ## 10. Subscription & access enforcement
 
-### State machine (no trial)
+### State machine (60-day free window)
 
 ```
-none (locked) ──► pending_approval ──► active ──► renewal cycles
-     │                   │                 │
-     │                   └─► (reject) ──► suspended
-     │                                        ▲
-     └─► redeem promo ─► active (€0) ─────────┘  (on expiry)
-                                              │
-                                          cancelled
+register ─► 60-day free window (active, trial) ─► (lapse) ─► suspended
+     │              │                                            ▲
+     │              └─► pending_approval ─► active ─► renewal ───┤
+     │                        └─► (reject) ─► suspended          │
+     └─► redeem promo ─► active (€0) ──────────────────────────► ┘ (on expiry) → cancelled
 ```
 
 Implemented in `server/services/subscriptionService.js`:
-- **No auto-trial** — new accounts initialize LOCKED (`status: 'none'`); no feature access until a code is redeemed or a plan is paid.
+- **60-day free window** — `initTrial(userId, { plan, days: TRIAL_DAYS })` (`TRIAL_DAYS = 60`) fires at signup (Google + email-verify), activating the plan at €0 with `subscription.trial: true`, `endsAt ≈ now + 60d`. One per email. On lapse the daily cron suspends the account (data preserved) → preview/locked until the user subscribes or redeems a code. `initLocked` remains for edge/back-compat paths.
 - `requestApproval(userId, { plan, cycle })` — moves to `pending_approval`; if the user is post-activation and grace is unused, atomically grants the one-time 3-day grace (race-safe).
 - `redeemPromo(userId, { plan, cycle, code })` — free €0 activation with `paidVia: 'promo'`, time-boxed.
 - `activate` (shared by admin-approve and promo-redeem) — sets `active`, `endsAt` by cycle (30/90/365), preserves the platform admin, records `paidVia`.
@@ -332,7 +342,7 @@ Implemented in `server/services/subscriptionService.js`:
 
 ### Schedulers (node-cron)
 
-`subscriptionScheduler.js` (reminders + grace auto-grant + suspend transitions), `trialReminderScheduler.js` (promo/subscription-offer проформа nudges during MK bank hours), `contractReminderScheduler.js`, `hrReminderScheduler.js`, `creditScheduler.js`, `backupScheduler.js` (weekly DB backup → Google Drive), `fairScheduleService.js`.
+`subscriptionScheduler.js` (reminders + grace auto-grant + suspend transitions), `trialReminderScheduler.js` (promo/subscription-offer проформа nudges during MK bank hours), `contractReminderScheduler.js` (08:00), `caseReminderScheduler.js` (09:00), `hrReminderScheduler.js` (10:00), **`procurementReminderScheduler.js`** (11:00 — набавки renewal reminders), `creditScheduler.js`, `backupScheduler.js` (weekly DB backup → Google Drive), `fairScheduleService.js`.
 
 ---
 
@@ -385,8 +395,8 @@ Security: double-submit-cookie **CSRF** (`middleware/csrf.js`) with an `exemptCS
 
 Roughly in the order shipped:
 
-1. **Two-tier merge** — Standard / Admin·5 / Admin·10 collapsed to **Basic + Pro**; roles `basic→standard_user`, `pro→admin_user`; seats 3 / 25; new EUR pricing (19/49/179 · 39/99/359); legacy keys kept for back-compat via `canonicalPlan()`.
-2. **Code-first onboarding (trial removed)** — accounts start LOCKED; unlock via **promo code** (`/redeem`) or paid plan; **LockedWelcome** panel for never-activated users; Google OAuth sign-in; promo-expiry reminder cadence.
+1. **Two-tier merge** — Standard / Admin·5 / Admin·10 collapsed to **Basic + Pro**; roles `basic→standard_user`, `pro→admin_user`; seats 3 / 25; EUR pricing now a single annual offer (**€90 Basic / €190 Pro**); legacy keys kept for back-compat via `canonicalPlan()`.
+2. **Onboarding: 60-day free window** — new signups get a **60-day free full-access window** (`initTrial`, `TRIAL_DAYS = 60`) at Google/email-verify; on lapse the account suspends (data preserved) → subscribe or **redeem a promo code** (`/redeem`); code-first outbound sales run in parallel; Google OAuth sign-in. _(Supersedes the earlier "no trial, locked-on-signup" model.)_
 3. **LHC platform overhaul** — unified `lhcScoring.js` engine (fraction model, 4 bands, critical gates); Employment split into full + Parts 1–4; **Tax module** (General / Payroll / Profit / VAT); Archives, Protection & Rescue, Waste Management, Health & Safety, GDPR (a/b/c/d maturity), and a General cross-topic pool.
 4. **HR module** — `/terminal/employees` registry with computed leave balances + reminder cron; document prefill.
 5. **Contracts registry** — `/terminal/contracts` with renewal/expiry reminders.
@@ -398,6 +408,10 @@ Roughly in the order shipped:
 11. **Contract analysis** enrichment — commercial rating badge, structured JSON fields.
 12. **DB backup system** — `npm run backup` + admin endpoint + weekly cron → Google Drive.
 13. **CSRF fix** for blog edit/delete; case-insensitive sub-seat login; trial-backfill removal (locked model).
+14. **„Проверен работодавач" employer-badge funnel** — public employer check (`/proverka-rabotodavac`) → A/A+/A++ rating → shareable dynamic-SVG seal (`/badge/:token`); member re-share via „Мојата значка" + header micro-seal.
+15. **Проценка на карактер** — Big Five (OCEAN) HR assessment; owner creates + shares/emails a link, respondent answers 33 bipolar (reverse-keyed) questions, owner gets a visual radar + ranked second-person report, and the **employee is emailed their results**. `characterAssessmentController` / `publicCharacterAssessment` / `characterEmail.js`.
+16. **Регистар на набавки** — procurement register organized by type of purchase; log offers (supplier/price/terms/valid-until), flag cheapest, mark chosen, set a renewal date → **renewal-reminder cron** (11:00) that links back to Sourcing. `procurementRegisterController` + `procurementReminderService/Scheduler`.
+17. **Човечки ресурси** HR nav section (Вработени + Проценка на карактер + Работни односи shortcut); **Мојата значка** moved to a standalone sidebar item.
 
 ---
 
@@ -413,6 +427,9 @@ Roughly in the order shipped:
 | LHC scoring engine | `server/controllers/lhc/lhcScoring.js`, `lhcShared.js` |
 | LHC modules | `server/controllers/lhc/*Controller.js` (employment, tax, gdpr, etc.) |
 | HR / employees | `server/controllers/employeeController.js`, `server/routes/employees.js` |
+| Character assessment | `server/data/characterAssessmentQuestions.js`, `characterAssessmentController.js`, `routes/publicCharacterAssessment.js`, `services/characterEmail.js` |
+| Procurement register | `server/controllers/procurementRegisterController.js`, `routes/procurementRegister.js`, `services/procurementReminderService.js` |
+| Verified-employer badge | `server/routes/publicEmployerBadge.js`, `server/services/badgeService.js` |
 | Contracts registry | `server/controllers/contractController.js`, `server/routes/contracts.js` |
 | Auto-documents | `server/controllers/autoDocuments/*` (45 controllers) |
 | Schedulers | `server/services/*Scheduler.js` |
@@ -427,4 +444,4 @@ Roughly in the order shipped:
 
 ---
 
-*End of overview. Last updated: 2026-08-10.*
+*End of overview. Last updated: 2026-09-22.*

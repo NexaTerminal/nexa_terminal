@@ -1,6 +1,6 @@
 # Nexa Terminal — Full Concept Brief (for Marketing)
 
-_Last updated: 2026-08-21 · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
+_Last updated: 2026-09-22 · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
 
 > **How to use this document.** This is a complete, self-contained description of the Nexa
 > business, product, features, packaging, and go-to-market so an AI (or a marketer) can design
@@ -64,8 +64,11 @@ wedge (an accountant reselling Nexa compliance to all their clients).
 
 ## 4. The product surface — what a user actually sees
 
-The terminal is organized into three areas in the sidebar: **РАБОТА (Work / the tools)**,
-**МРЕЖА (Network / the two-sided features)**, and **РЕСУРСИ (Resources)**.
+Conceptually the terminal has three areas — **the tools (Work)**, **the network (two-sided
+features)**, and **resources** — used below to structure this brief. The live SMB sidebar is a
+product-aware, task-based layout with sections **Администрација · Човечки ресурси · Набавки ·
+Маркетинг и раст · Едукација** (plus a standalone „Мојата значка"); the Pro sidebar foregrounds the
+client-acquisition surfaces. The conceptual grouping and the literal nav don't map 1:1.
 
 ### 4.1 РАБОТА — the tools (this is the daily-use core)
 
@@ -118,13 +121,26 @@ document or AI answer that fixes it. Domains:
 ### 4.2 МРЕЖА — the network (the two-sided / Pro features)
 
 - **Virtual Fair (Виртуелен саем)** — a booth marketplace where providers present themselves.
-- **Sourcing / RFQ (Побарај понуда)** — a business requests quotes; routed to providers.
+- **Sourcing / RFQ (Барање за понуди)** — a business requests quotes; routed to providers. Its
+  companion **Регистар на набавки (Procurement Register)** is a demand-side retention tool: the SMB
+  keeps a register organized by *type of purchase* (insurance, hosting, accounting…), logs the
+  offers it receives per need (supplier · price · terms · valid-until), flags the cheapest, marks
+  the chosen one, and sets a **renewal date that fires a "time to re-quote" email reminder** — closing
+  the loop request → offers → compare → pick → remind → re-quote.
 - **Leads / Предмети (case management)** — inbound leads from Nexa's satellite sites, plus a Pro
   case-management module (cases + deadlines + timeline, 09:00 reminders, AI case brief, and a
   public redacted client-status link).
 - **Topics Q&A** — providers answer public legal questions → expert positioning + SEO.
 - **Blog publishing** — providers (and Basic, limited) publish articles → content/SEO placement;
   a newsletter ad-booking system exists for sponsored placement.
+- **„Проверен работодавач" badge (Verified-Employer funnel)** — a public, shareable **maturity
+  badge** aimed at jobseekers that doubles as a **non-user acquisition funnel**. A company runs a
+  ~20-question employer check at `/proverka-rabotodavac`, gets an **A / A+ / A++** rating, and signs
+  up to claim a shareable **circular seal** (dynamic server-generated SVG) hosted at `/badge/:token`.
+  Every seal placed on a job ad or website is a backlink + referral loop back to Nexa. Members
+  re-open/re-share it anytime from **„Мојата значка"** in the terminal (with a micro-seal on the
+  profile button). Framing is defensible **self-assessment / maturity level**, never "certified
+  compliant" (see §12).
 
 ### 4.3 РЕСУРСИ — resources
 
@@ -135,8 +151,17 @@ document or AI answer that fixes it. Domains:
 
 - **Team / Clients (sub-accounts).** Basic → up to **3 co-workers** (shared company). Pro → up to
   **25 client companies** (each its own company, vouched by the Pro — this is the accountant/agency
-  reseller engine). **HR module „Вработени"** — an employee registry with computed leave balances
-  and reminders, and document pre-fill from employee records.
+  reseller engine).
+- **Човечки ресурси (HR section).** A dedicated sidebar section grouping the people tools:
+  - **Вработени** — an employee registry with computed leave balances and reminders, and document
+    pre-fill from employee records.
+  - **Проценка на карактер (Character Assessment).** A **Big Five (OCEAN) personality assessment**
+    an SMB sends to a **candidate or employee** to "know who they're hiring/working with." The owner
+    creates a named assessment, shares a link or emails it; the respondent answers **33 bipolar
+    questions** (reverse-keyed for validity); the owner gets a **visual profile report** (radar +
+    a ranked, second-person "how it shows up" narrative), and the **employee is emailed their own
+    results**. A rare, sticky HR feature for the SMB segment.
+  - **Работни односи** — a shortcut into the labour-law document category.
 - Billing, subscription, credits, invite/referrals, and company verification screens.
 
 ---
@@ -185,10 +210,15 @@ side (supply side).**
   in-app.**
 - Currency: **EUR**. (Legacy monthly/quarterly numbers exist in code but the go-to-market offer is
   the annual price above.)
-- **Onboarding is code-first, no free trial.** A new signup account exists but is **locked** until
-  the user either pays or **redeems a promo code**. Outbound sales issues **per-prospect promo
-  codes** granting ~30 days of Pro access; redemption + Google OAuth already works. Redeemed-code
-  access is full paid access for its window.
+- **Onboarding now includes a 60-day free window.** A brand-new signup (Google or email-verify) is
+  granted a **60-day free full-access window** to the product for its storefront's plan. When the
+  60 days lapse the account **auto-suspends to a preview/locked state — data is preserved** — and
+  the user must **subscribe or redeem a promo code** to regain feature access. Marketing may say
+  **"60 дена бесплатно"** (60 days free), honestly. _(This replaces the earlier "no trial, locked
+  on signup" model.)_
+- **Code-first sales still run in parallel.** Outbound sales issues **per-prospect promo codes**
+  (typically a time-boxed Pro grant); redemption at `/redeem?code=…` + Google OAuth already works.
+  Redeemed-code access is full paid access for its window.
 - **Planned free public funnel** („Бесплатна проверка" at nexa.mk/proverka): a public,
   no-login compliance teaser (~10–15 questions) → score + top gaps → email capture → register →
   a teaser state with **one free document generation** to feel the value, then plan chooser / code.
@@ -205,9 +235,12 @@ side (supply side).**
    - Satellite legal micro-sites + published Topics/Blog content — SEO + authority.
    - Outbound (cold email + LinkedIn) linking **to the teaser funnel**, not the homepage, with
      per-prospect promo codes as the accelerant.
-2. **Activation:** register → teaser terminal → **one free generated document** (the "wow").
-3. **Conversion:** hit the value: run screenings → see gaps → generate the fixing document → the
-   plan chooser / code appears. Price revealed in-app.
+2. **Activation:** register → **60-day free window** (full access) → the "wow" is real usage
+   (generate a document, run a screening, send a character assessment, claim a „Проверен
+   работодавач" badge).
+3. **Conversion:** during/at the end of the free window, the value has landed (gaps found, documents
+   generated, renewals tracked) → the plan chooser / code appears; on lapse the terminal locks to a
+   preview state until they subscribe. Price revealed in-app.
 4. **Retention (why they keep paying):** the **Contract/Compliance Management System** — saved
    documents, expiry/renewal reminders (08:00 Europe/Skopje), recurring re-screening ("re-run your
    GDPR check quarterly"), a Macedonian **compliance calendar** of legal deadlines, and a
@@ -256,7 +289,10 @@ side (supply side).**
 ## 11. Product maturity & roadmap context
 
 - **Live/built:** all the tools in §4 (documents, screenings, AI, templates, network features,
-  sub-accounts, HR module, case management, DB backup system, subscription enforcement).
+  sub-accounts, HR module, case management, DB backup system, subscription enforcement). Recently
+  shipped: **„Проверен работодавач" employer-badge funnel**, **Проценка на карактер** (Big Five HR
+  assessment + employee results email), **Регистар на набавки** (procurement offer register +
+  renewal-reminder cron), the **Човечки ресурси** HR nav grouping, and the **60-day free window**.
 - **Status of the market:** **zero paying users yet (pre-PMF)** — every account today is demo/dummy.
   So marketing's job is **acquisition + conversion proof**, not scaling retention. Don't assume an
   existing customer base in testimonials/social proof (there aren't real paying references yet).
@@ -275,8 +311,9 @@ side (supply side).**
    Nexa provides tools and sourced information, not legal counsel. Trust = law citations + gazette
    numbers + update dates only. (Founder is not currently a licensed attorney.)
 2. **Don't put prices on the public site.** Value on the outside, price inside the terminal.
-3. **No "free forever" / misleading "free" promises** beyond the actual free path (public teaser +
-   one free document). Honesty pass is a standing rule.
+3. **Be honest about "free."** There is a genuine **60-day free window** (say "60 дена бесплатно")
+   plus the public teaser — but **no "free forever"** and no implying the paid tools stay free after
+   60 days. Honesty pass is a standing rule.
 4. **Two audiences, two storefronts, two promises** — nexa.mk (SMB/Basic) vs leads.nexa.mk
    (providers/Pro). Don't blend them or upsell SMBs into Pro.
 5. **Don't market empty marketplace surfaces** to demand-side users until supply exists.
@@ -291,10 +328,13 @@ side (supply side).**
 - **Product:** Bilingual (MK/EN) legal & compliance SaaS for Macedonian SMBs + a provider network.
 - **Core loop:** Screening → AI → Document → Tracking.
 - **Tiers:** Basic €90/yr (SMB, nexa.mk) · Pro €190/yr (providers, leads.nexa.mk). Prices in-app only.
-- **Onboarding:** Code-first, no trial; account locked until pay or redeem code; Google OAuth login.
+- **Onboarding:** **60-day free window** at signup → then subscribe or redeem a promo code (data
+  preserved); code-first outbound sales run in parallel; Google OAuth login.
 - **Headline features:** ~45+ document generators, BYO-template automation, multi-domain compliance
   screenings, Macedonian-law RAG AI + contract analysis, provider network (booth/leads/Topics/blog),
-  3 co-workers (Basic) / 25 client companies (Pro), courses.
+  **„Проверен работодавач" employer badge**, **Проценка на карактер** (Big Five HR assessment),
+  **Регистар на набавки** (procurement register + renewal reminders), 3 co-workers (Basic) / 25
+  client companies (Pro), courses.
 - **Moat:** MK legal localization + integrated loop + factual provenance + reseller model.
 - **Stage:** Pre-PMF, zero paying users; priority = acquisition + conversion via the free teaser funnel.
 - **Trust rule:** Cite the law; never claim lawyer review.

@@ -120,7 +120,8 @@ export default function LeadsHome() {
     { domain: 'macedoniancitizenship.mk', url: 'https://macedoniancitizenship.mk', tag: T('Државјанство', 'Citizenship') },
     { domain: 'company.nexa.mk', url: 'https://company.nexa.mk', tag: T('Основање фирма', 'Company setup') },
     { domain: 'iplaw.nexa.mk', url: 'https://iplaw.nexa.mk', tag: T('Интелектуална сопственост', 'IP law') },
-    { domain: 'osiguran.nexa.mk', url: 'https://osiguran.nexa.mk', tag: T('Осигурување', 'Insurance') }
+    { domain: 'osiguran.nexa.mk', url: 'https://osiguran.nexa.mk', tag: T('Осигурување', 'Insurance') },
+    { domain: 'properties.nexa.mk', url: 'https://properties.nexa.mk', tag: T('Недвижности', 'Real estate') }
   ];
 
   return (

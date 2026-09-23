@@ -29,7 +29,7 @@ const SAMPLE_CARDS = [
 // Satellite sites that feed the case pool. Keep in sync with LeadsHome.
 const CASE_SOURCES = [
   'samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk',
-  'company.nexa.mk', 'iplaw.nexa.mk', 'osiguran.mk'
+  'company.nexa.mk', 'iplaw.nexa.mk', 'osiguran.mk', 'properties.nexa.mk'
 ];
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';

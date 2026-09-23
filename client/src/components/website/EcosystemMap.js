@@ -33,6 +33,10 @@ const PROPERTIES = [
   {
     key: 'osiguran', href: 'https://osiguran.nexa.mk', external: true,
     image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    key: 'properties', href: 'https://properties.nexa.mk', external: true,
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80'
   }
 ];
 

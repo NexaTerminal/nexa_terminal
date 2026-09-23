@@ -35,7 +35,8 @@
     "company": { "name": "Company.nexa.mk", "desc": "Company registration (DOO/AD)" },
     "iplaw": { "name": "IPLaw.nexa.mk", "desc": "Trademarks, patents, IP" },
     "topics": { "name": "Topics", "desc": "Expert Q&A platform" },
-    "osiguran": { "name": "Osiguran", "desc": "Insurance rights and procedures" }
+    "osiguran": { "name": "Osiguran", "desc": "Insurance rights and procedures" },
+    "properties": { "name": "Properties.mk", "desc": "Real estate — buying and renting" }
   },
   "home": {
     "seoTitle": "Nexa — The business operations ecosystem for North Macedonia",

@@ -6,7 +6,7 @@ import TerminalShell from '../../../components/terminal/TerminalShell';
 import { CATEGORY_LABEL, CATEGORY_OPTIONS } from '../../../config/inquiryCategories';
 import styles from '../Inquiries.module.css';
 
-const SOURCES = ['samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk', 'company.nexa.mk', 'iplaw.nexa.mk', 'tax.nexa.mk', 'other'];
+const SOURCES = ['samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk', 'company.nexa.mk', 'iplaw.nexa.mk', 'properties.nexa.mk', 'tax.nexa.mk', 'other'];
 const CITIES = ['Skopje', 'Bitola', 'Kumanovo', 'Prilep', 'Tetovo', 'Veles', 'Štip', 'Ohrid', 'Strumica', 'Gostivar', 'Kavadarci', 'Kočani', 'Other', 'Anywhere'];
 const LANGS = [{ v: 'mk', label: 'Македонски' }, { v: 'en', label: 'English' }, { v: 'tr', label: 'Türkçe' }, { v: 'other', label: 'Друго' }];
 

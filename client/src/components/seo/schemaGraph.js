@@ -25,7 +25,8 @@ export const NEXA_ORG = {
     'https://company.nexa.mk',
     'https://iplaw.nexa.mk',
     'https://topics.nexa.mk',
-    'https://osiguran.nexa.mk'
+    'https://osiguran.nexa.mk',
+    'https://properties.nexa.mk'
   ]
 };
 

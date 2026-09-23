@@ -9,7 +9,8 @@ const SATELLITES = [
   { href: 'https://company.nexa.mk', key: 'company' },
   { href: 'https://iplaw.nexa.mk', key: 'iplaw' },
   { href: 'https://topics.nexa.mk', key: 'topics' },
-  { href: 'https://osiguran.nexa.mk', key: 'osiguran' }
+  { href: 'https://osiguran.nexa.mk', key: 'osiguran' },
+  { href: 'https://properties.nexa.mk', key: 'properties' }
 ];
 
 export default function PublicFooterV2() {

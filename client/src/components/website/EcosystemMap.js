@@ -23,6 +23,10 @@ const PROPERTIES = [
     image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80'
   },
   {
+    key: 'tax', href: 'https://tax.nexa.mk', external: true,
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
     key: 'iplaw', href: 'https://iplaw.nexa.mk', external: true,
     image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80'
   },

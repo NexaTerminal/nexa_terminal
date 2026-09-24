@@ -387,16 +387,28 @@ class AuthController {
    */
   chooseAccountType = async (req, res) => {
     try {
-      const { plan, license } = req.body || {};
+      const { plan, license, providerType } = req.body || {};
       const { canonicalPlan, roleForPlan, seatsForPlan } = require('../constants/roles');
       const planKey = canonicalPlan(plan);
       if (!planKey) return res.status(400).json({ message: 'Невалиден избор на тип на сметка.' });
 
+      // Provider vertical → the practice area that drives Inquiry Board matching.
+      const PROVIDER_TYPE_TO_AREA = {
+        lawyer:      'general-legal',
+        accountant:  'tax-accounting',
+        real_estate: 'real-estate',
+        insurance:   'insurance',
+        consulting:  'consulting'
+      };
+
       if (req.user.needsTierOnboarding !== true) {
         return res.status(403).json({ code: 'ONBOARDING_DONE', message: 'Изборот на тип на сметка е веќе завршен.' });
       }
+      if (planKey === 'pro' && !PROVIDER_TYPE_TO_AREA[providerType]) {
+        return res.status(400).json({ message: 'Изберете тип на давател на услуги за да продолжите.' });
+      }
       if (planKey === 'pro' && !String(license || '').trim()) {
-        return res.status(400).json({ message: 'Внесете број на лиценца или ЕМБС за да продолжите како адвокат.' });
+        return res.status(400).json({ message: 'Внесете број на лиценца или ЕМБС за да продолжите.' });
       }
 
       const db = req.app.locals.db;
@@ -416,10 +428,19 @@ class AuthController {
       if (user.subscription) set['subscription.plan'] = planKey;
 
       if (planKey === 'pro') {
-        set.proVerification = { license: String(license).trim(), status: 'pending', submittedAt: new Date() };
+        // Seed the provider's practice area from their chosen vertical so the
+        // Inquiry Board matches them immediately; they can refine it later in
+        // their provider profile. Preserve any areas they already declared.
+        const seedArea = PROVIDER_TYPE_TO_AREA[providerType];
+        const existingAreas = user.superUser?.practiceAreas || [];
+        const practiceAreas = existingAreas.length
+          ? existingAreas
+          : (seedArea ? [seedArea] : []);
+        set.proVerification = { license: String(license).trim(), status: 'pending', submittedAt: new Date(), providerType };
         set.superUser = {
           seatLimit: newSeats,
-          practiceAreas: user.superUser?.practiceAreas || [],
+          providerType,
+          practiceAreas,
           cities: user.superUser?.cities || [],
           topicsSlotsPerQuarter: user.superUser?.topicsSlotsPerQuarter ?? 2,
           blogPostsPerMonth: user.superUser?.blogPostsPerMonth ?? 1,

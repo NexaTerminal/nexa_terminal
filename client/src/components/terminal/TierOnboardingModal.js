@@ -7,16 +7,27 @@ import styles from '../../styles/terminal/TierOnboardingModal.module.css';
  * First-login identity prompt.
  *
  * Google users (and any account flagged needsTierOnboarding) never saw the
- * signup-form chooser, so we ask once here: business (Basic) vs lawyer (Pro).
- * The choice sets plan + role via /auth/choose-account-type. The modal is not
- * dismissible without choosing — it's a required onboarding step.
+ * signup-form chooser, so we ask once here: business (Basic) vs service provider
+ * (Pro). Pro users additionally pick their vertical (lawyer, accountant, real
+ * estate, insurance, consulting) which seeds their Inquiry Board matching. The
+ * choice sets plan + role via /auth/choose-account-type. Not dismissible.
  */
+// Provider verticals — value must match PROVIDER_TYPE_TO_AREA in authController.
+const PROVIDER_TYPES = [
+  { value: 'lawyer',      label: 'Адвокат / Правни услуги' },
+  { value: 'accountant',  label: 'Сметководител' },
+  { value: 'real_estate', label: 'Агент за недвижен имот' },
+  { value: 'insurance',   label: 'Осигурување' },
+  { value: 'consulting',  label: 'Консалтинг' }
+];
+
 const TierOnboardingModal = () => {
   const { currentUser, setCurrentUser } = useAuth();
   // Pre-select the user's CURRENT identity so existing users just confirm (and a
-  // correctly-classified lawyer can't accidentally downgrade to Basic).
+  // correctly-classified provider can't accidentally downgrade to Basic).
   const currentIsPro = currentUser?.role === 'admin_user' || currentUser?.subscription?.plan === 'pro';
   const [plan, setPlan] = useState(currentIsPro ? 'pro' : 'basic');
+  const [providerType, setProviderType] = useState(currentUser?.superUser?.providerType || currentUser?.proVerification?.providerType || '');
   const [license, setLicense] = useState(currentUser?.proVerification?.license || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,15 +36,19 @@ const TierOnboardingModal = () => {
 
   const submit = async () => {
     setError('');
+    if (plan === 'pro' && !providerType) {
+      setError('Изберете тип на давател на услуги.');
+      return;
+    }
     if (plan === 'pro' && !license.trim()) {
-      setError('Внесете број на лиценца или ЕМБС за да продолжите како адвокат.');
+      setError('Внесете број на лиценца или ЕМБС за да продолжите.');
       return;
     }
     setLoading(true);
     try {
       const res = await ApiService.request('/auth/choose-account-type', {
         method: 'POST',
-        body: JSON.stringify({ plan, license: license.trim() })
+        body: JSON.stringify({ plan, providerType: plan === 'pro' ? providerType : undefined, license: license.trim() })
       });
       if (res && res.user) {
         setCurrentUser(res.user);
@@ -70,24 +85,42 @@ const TierOnboardingModal = () => {
             onClick={() => setPlan('pro')}
             aria-pressed={plan === 'pro'}
           >
-            <span className={styles.optionName}>Адвокат</span>
+            <span className={styles.optionName}>Давател на услуги</span>
             <span className={styles.optionDesc}>Ќе го користам за да најдам клиенти и за да поедноставам услуги за нив</span>
           </button>
         </div>
 
         {plan === 'pro' && (
-          <div className={styles.field}>
-            <label htmlFor="onb-license" className={styles.label}>Број на лиценца или ЕМБС</label>
-            <input
-              id="onb-license"
-              type="text"
-              className={styles.input}
-              value={license}
-              onChange={(e) => setLicense(e.target.value)}
-              placeholder="пр. број на адвокатска лиценца или ЕМБС"
-            />
-            <p className={styles.hint}>Го користиме само за да потврдиме дека сте адвокат пред да го одобриме пристапот.</p>
-          </div>
+          <>
+            <div className={styles.field}>
+              <label htmlFor="onb-provider-type" className={styles.label}>Тип на давател на услуги</label>
+              <select
+                id="onb-provider-type"
+                className={styles.input}
+                value={providerType}
+                onChange={(e) => setProviderType(e.target.value)}
+              >
+                <option value="" disabled>Изберете…</option>
+                {PROVIDER_TYPES.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+              <p className={styles.hint}>Ова одредува кои барања ги гледате на таблата „Случаи".</p>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="onb-license" className={styles.label}>Број на лиценца или ЕМБС</label>
+              <input
+                id="onb-license"
+                type="text"
+                className={styles.input}
+                value={license}
+                onChange={(e) => setLicense(e.target.value)}
+                placeholder="пр. број на лиценца или ЕМБС"
+              />
+              <p className={styles.hint}>Го користиме само за да ве потврдиме пред да го одобриме пристапот.</p>
+            </div>
+          </>
         )}
 
         {error && <p className={styles.error}>{error}</p>}

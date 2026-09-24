@@ -33,6 +33,7 @@
     "immigration": { "name": "Immigration.mk", "desc": "Immigration to North Macedonia" },
     "citizenship": { "name": "Macedonian Citizenship", "desc": "Citizenship applications" },
     "company": { "name": "Company.nexa.mk", "desc": "Company registration (DOO/AD)" },
+    "tax": { "name": "Tax.nexa.mk", "desc": "Tax and accounting" },
     "iplaw": { "name": "IPLaw.nexa.mk", "desc": "Trademarks, patents, IP" },
     "topics": { "name": "Topics", "desc": "Expert Q&A platform" },
     "osiguran": { "name": "Osiguran", "desc": "Insurance rights and procedures" },

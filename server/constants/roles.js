@@ -153,6 +153,9 @@ const capForArea = (area) => {
 };
 
 // Practice areas enum — must match satellite-site contract (NEXA_2.0_CONTEXT.md §11).
+// The first block are legal practice areas (satellite lead contract). The second
+// block are non-legal provider verticals added for the multi-vertical Inquiry Board
+// (real estate, insurance, consulting) so those Pro members get precise board matching.
 const PRACTICE_AREAS = Object.freeze([
   'consumer-legal',
   'immigration',
@@ -161,7 +164,11 @@ const PRACTICE_AREAS = Object.freeze([
   'ip-law',
   'tax-accounting',
   'labor-law',
-  'general-legal'
+  'general-legal',
+  // Non-legal provider verticals
+  'real-estate',
+  'insurance',
+  'consulting'
 ]);
 
 // ---- Helpers ----

@@ -3,9 +3,23 @@ import SubmitConsent from './SubmitConsent';
 import MACEDONIAN_CITIES from '../../data/macedonianCities';
 import styles from './ExpressInterestModal.module.css';
 
+// Profession labels — keys mirror PROFESSIONS in server/constants/inquiryEnums.js.
+const PROFESSION_OPTIONS = [
+  { value: 'lawyer',          label: 'Адвокат / Адвокатско друштво' },
+  { value: 'accountant',      label: 'Сметководител' },
+  { value: 'tax_advisor',     label: 'Даночен советник' },
+  { value: 'insurance_broker', label: 'Осигурителен брокер / агент' },
+  { value: 'real_estate',     label: 'Агент за недвижен имот' },
+  { value: 'hr_consultant',   label: 'HR консултант' },
+  { value: 'marketing',       label: 'Маркетинг' },
+  { value: 'translator',      label: 'Преведувач' },
+  { value: 'other',           label: 'Друго' }
+];
+
 export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defaultProfession }) {
-  // Every member here is a lawyer — profession is fixed (no picker), still sent.
-  const [profession] = useState(defaultProfession || 'lawyer');
+  // Members span multiple verticals now — they declare their profession per signal
+  // so the editorial team can verify and route correctly.
+  const [profession, setProfession] = useState(defaultProfession || 'lawyer');
   const [providerName, setProviderName] = useState('');
   const [providerCity, setProviderCity] = useState('');
   const [freeTalkOffered, setFreeTalkOffered] = useState(true);
@@ -17,7 +31,7 @@ export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defau
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!providerName.trim()) { setError('Внесете име на адвокат или адвокатско друштво.'); return; }
+    if (!providerName.trim()) { setError('Внесете име или назив на провајдер.'); return; }
     if (!providerCity) { setError('Изберете град.'); return; }
     if (!helpDescription.trim()) { setError('Потребен е опис.'); return; }
     setBusy(true); setError(null);
@@ -48,14 +62,27 @@ export default function ExpressInterestModal({ inquiry, onClose, onSubmit, defau
 
         <form className={styles.form} onSubmit={submit}>
           <div className={styles.field}>
-            <label className={styles.label}>Адвокат / Адвокатско друштво</label>
+            <label className={styles.label}>Тип на провајдер</label>
+            <select
+              className={styles.select}
+              value={profession}
+              onChange={(e) => setProfession(e.target.value)}
+            >
+              {PROFESSION_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Име / Назив</label>
             <input
               className={styles.input}
               type="text"
               value={providerName}
               maxLength={120}
               onChange={(e) => setProviderName(e.target.value)}
-              placeholder="Име и презиме на адвокат или назив на адвокатско друштво"
+              placeholder="Име и презиме или назив на друштво"
               required
             />
           </div>

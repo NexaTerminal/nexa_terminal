@@ -13,7 +13,10 @@ const AREA_LABELS = {
   'ip-law':               'Интелектуална сопственост',
   'tax-accounting':       'Данок и сметководство',
   'labor-law':            'Работно право',
-  'general-legal':        'Општо правно'
+  'general-legal':        'Општо правно',
+  'real-estate':          'Недвижен имот',
+  'insurance':            'Осигурување',
+  'consulting':           'Консалтинг'
 };
 
 /**

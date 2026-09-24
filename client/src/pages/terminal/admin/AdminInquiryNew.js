@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import { CATEGORY_LABEL, CATEGORY_OPTIONS } from '../../../config/inquiryCategories';
+import { PROCEDURE_OPTIONS, PROCEDURES } from '../../../config/procedures';
 import styles from '../Inquiries.module.css';
 
 const SOURCES = ['samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk', 'company.nexa.mk', 'iplaw.nexa.mk', 'properties.nexa.mk', 'tax.nexa.mk', 'other'];
@@ -17,6 +18,7 @@ export default function AdminInquiryNewPage() {
   const [source, setSource] = useState('immigration.mk');
   const [topic, setTopic] = useState('');
   const [city, setCity] = useState('Skopje');
+  const [procedureType, setProcedureType] = useState('');
   const [categories, setCategories] = useState([]);
   const [summary, setSummary] = useState('');
   const [language, setLanguage] = useState('mk');
@@ -32,12 +34,19 @@ export default function AdminInquiryNewPage() {
 
   const toggleCat = (v) => setCategories(cats => cats.includes(v) ? cats.filter(c => c !== v) : [...cats, v]);
 
+  // Choosing a procedure pre-fills the categories it touches (still editable).
+  const onProcedureChange = (v) => {
+    setProcedureType(v);
+    const proc = PROCEDURES[v];
+    if (proc) setCategories(Array.from(new Set(proc.categories)));
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true); setErr(null);
     try {
       const res = await axios.post('/api/admin/inquiries', {
-        source, topic, city, categories, summary, language, urgency,
+        source, topic, city, procedureType: procedureType || null, categories, summary, language, urgency,
         internalNotes, inquirerName, inquirerEmail, inquirerPhone, originalEmailBody
       }, { headers: { Authorization: `Bearer ${token}` } });
       navigate(`/terminal/admin/inquiries/${res.data?.inquiry?._id || ''}`);
@@ -87,6 +96,15 @@ export default function AdminInquiryNewPage() {
               {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <span className={styles.help}>Изберете „Anywhere" ако клиентот е флексибилен.</span>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Постапка (опционално)</label>
+            <select className={styles.select} value={procedureType} onChange={(e) => onProcedureChange(e.target.value)}>
+              <option value="">— Без постапка —</option>
+              {PROCEDURE_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+            <span className={styles.help}>Изберете постапка за автоматски да се означат поврзаните категории (пр. Имиграција → престој, недвижности, осигурување). Членовите гледаат предлог зошто барањето е релевантно за нив.</span>
           </div>
 
           <div className={styles.field}>

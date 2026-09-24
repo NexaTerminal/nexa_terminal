@@ -245,6 +245,15 @@ function CaseModal({ inquiry, onExpress, onClose }) {
 
         {inquiry.summary && <p className={styles.modalSummary}>{inquiry.summary}</p>}
 
+        {inquiry.procedure?.suggestions?.length > 0 && (
+          <div className={styles.modalProcedure}>
+            {inquiry.procedure.label && <span className={styles.modalProcedureTag}>{inquiry.procedure.label}</span>}
+            <ul>
+              {inquiry.procedure.suggestions.map((s, i) => <li key={i}>{s.text}</li>)}
+            </ul>
+          </div>
+        )}
+
         <div className={styles.modalNote}>
           Контактот на клиентот се открива откако уредничкиот тим ќе го одобри Вашиот интерес.
         </div>

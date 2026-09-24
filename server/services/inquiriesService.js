@@ -23,6 +23,9 @@ const {
   INQUIRY_SOURCES, INQUIRY_CATEGORIES, INQUIRY_CITIES, INQUIRY_LANGUAGES,
   INQUIRY_URGENCY, PROFESSIONS, INQUIRY_STATUS, SIGNAL_STATUS, QUOTAS, FIRST_LOOK_HOURS
 } = require('../constants/inquiryEnums');
+const {
+  isValidProcedure, procedureLabel, suggestionFor, categoriesForProcedure, getProcedureTemplate
+} = require('../config/procedureTemplates');
 
 const INQUIRIES = 'inquiries';
 const SIGNALS = 'inquiry_interest_signals';
@@ -90,6 +93,9 @@ class InquiriesService {
     if (Array.isArray(input?.categories)) {
       const cats = input.categories.filter(c => INQUIRY_CATEGORIES.includes(c));
       if (cats.length > 0) patch.categories = Array.from(new Set(cats));
+    }
+    if (input?.procedureType !== undefined) {
+      patch.procedureType = isValidProcedure(input.procedureType) ? input.procedureType : null;
     }
     await this.col.updateOne({ _id: oid }, { $set: patch });
     return this.col.findOne({ _id: oid });
@@ -182,7 +188,11 @@ class InquiriesService {
                                'residence', 'tax', 'family', 'inheritance', 'ip',
                                'administrative', 'other_legal', 'legal_questions'],
       'labor-law':            ['labor'],
-      'tax-accounting':       ['tax', 'company']
+      'tax-accounting':       ['tax', 'company'],
+      // Non-legal provider verticals → the inquiry categories they serve.
+      'real-estate':          ['property'],
+      'insurance':            ['insurance'],
+      'consulting':           ['company', 'tax', 'administrative']
     };
     const rawPracticeAreas = user.superUser?.practiceAreas || [];
     const categories = Array.from(new Set(
@@ -220,7 +230,40 @@ class InquiriesService {
     // new inquiries the moment they're posted. FIRST_LOOK_HOURS is still
     // exported in case the product policy changes again.
 
-    return docs.map(InquiriesService.publicProjection);
+    // Attach procedure suggestion hints tailored to THIS member. For an inquiry
+    // tagged with a procedure, we show the suggestion line(s) for the categories
+    // the member matches on (or, if the member has no declared categories and
+    // sees the whole board, every category the procedure touches).
+    const lang = (user && user.language) || 'mk';
+    return docs.map((doc) => {
+      const projected = InquiriesService.publicProjection(doc);
+      projected.procedure = this._procedureHintFor(doc, categories, lang);
+      return projected;
+    });
+  }
+
+  /**
+   * Build the procedure hint payload for a member viewing an inquiry.
+   * Returns null when the inquiry has no procedure. `memberCategories` is the
+   * member's mapped INQUIRY_CATEGORIES (empty = sees whole board).
+   */
+  _procedureHintFor(doc, memberCategories, lang = 'mk') {
+    if (!doc || !doc.procedureType || !isValidProcedure(doc.procedureType)) return null;
+    const docCats = Array.isArray(doc.categories) ? doc.categories : [];
+    const relevant = (memberCategories && memberCategories.length)
+      ? docCats.filter(c => memberCategories.includes(c))
+      : categoriesForProcedure(doc.procedureType).filter(c => docCats.includes(c));
+    const tmpl = getProcedureTemplate(doc.procedureType);
+    const suggestions = relevant.map(category => ({
+      category,
+      isPrimary: !!tmpl && category === tmpl.primary,
+      text: suggestionFor(doc.procedureType, category, lang)
+    }));
+    return {
+      type: doc.procedureType,
+      label: procedureLabel(doc.procedureType, lang),
+      suggestions
+    };
   }
 
   /** Get an inquiry for a member — sanitized projection. */
@@ -507,9 +550,15 @@ class InquiriesService {
     const language = INQUIRY_LANGUAGES.includes(input?.language) ? input.language : null;
     const urgency  = INQUIRY_URGENCY.includes(input?.urgency) ? input.urgency : 'standard';
     const summary  = String(input?.summary || '').trim().slice(0, 1200);
-    const categories = Array.isArray(input?.categories)
+    // A procedure pre-fills categories; the operator may still edit them after.
+    const procedureType = isValidProcedure(input?.procedureType) ? input.procedureType : null;
+    let categories = Array.isArray(input?.categories)
       ? Array.from(new Set(input.categories.filter(c => INQUIRY_CATEGORIES.includes(c))))
       : [];
+    // If a procedure is chosen but no categories were supplied, derive them.
+    if (procedureType && categories.length === 0) {
+      categories = categoriesForProcedure(procedureType).filter(c => INQUIRY_CATEGORIES.includes(c));
+    }
     const internalNotes = String(input?.internalNotes || '').slice(0, 4000);
     const inquirerName  = String(input?.inquirerName  || '').trim().slice(0, 240);
     const inquirerEmail = String(input?.inquirerEmail || '').trim().slice(0, 240);
@@ -533,7 +582,7 @@ class InquiriesService {
       throw e;
     }
     return {
-      source, topic, city, language, urgency, summary, categories, internalNotes,
+      source, topic, city, language, urgency, summary, categories, procedureType, internalNotes,
       inquirerName, inquirerEmail, inquirerPhone, originalEmailBody
     };
   }

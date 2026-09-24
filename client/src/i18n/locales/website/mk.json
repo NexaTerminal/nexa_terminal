@@ -33,6 +33,7 @@
     "immigration": { "name": "Immigration.mk", "desc": "Имиграција во Северна Македонија" },
     "citizenship": { "name": "Македонско државјанство", "desc": "Аплицирање за државјанство" },
     "company": { "name": "Company.nexa.mk", "desc": "Регистрација на компанија (ДОО/АД)" },
+    "tax": { "name": "Tax.nexa.mk", "desc": "Данок и сметководство" },
     "iplaw": { "name": "IPLaw.nexa.mk", "desc": "Заштитни знаци, патенти, ИС" },
     "topics": { "name": "Topics", "desc": "Експертски П&О платформа" },
     "osiguran": { "name": "Осигуран", "desc": "Осигурување — права и постапки" },

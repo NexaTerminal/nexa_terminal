@@ -183,7 +183,7 @@ export function OrganizationSchema() {
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "Customer Service",
-      "email": "contact@nexa.mk",
+      "email": "info@nexa.mk",
       "availableLanguage": ["Macedonian", "English"]
     }
   };

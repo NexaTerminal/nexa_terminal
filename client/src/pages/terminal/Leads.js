@@ -396,6 +396,13 @@ function Card({ item, sample, blurred, userCategories, onOpenDetail }) {
         </div>
       )}
 
+      {inquiry.procedure?.suggestions?.length > 0 && (
+        <div className={styles.procedureHint}>
+          {inquiry.procedure.label && <span className={styles.procedureTag}>{inquiry.procedure.label}</span>}
+          <span className={styles.procedureHintText}>{inquiry.procedure.suggestions[0].text}</span>
+        </div>
+      )}
+
       <div className={styles.cardMeta}>
         {inquiry.language && <span className={styles.cardMetaItem}>🗣 {inquiry.language?.toUpperCase()}</span>}
         {inquiry.postedAt && <span className={styles.cardMetaItem} title={fmt(inquiry.postedAt)}>📅 {timeAgo(inquiry.postedAt)}</span>}
@@ -436,6 +443,22 @@ function DetailModal({ item, userCategories, disabled, onExpress, onClose }) {
         )}
 
         {inquiry.summary && <p className={styles.detailSummary}>{inquiry.summary}</p>}
+
+        {inquiry.procedure?.suggestions?.length > 0 && (
+          <div className={styles.procedureBlock}>
+            {inquiry.procedure.label && (
+              <div className={styles.procedureBlockHead}>
+                <span className={styles.procedureTag}>{inquiry.procedure.label}</span>
+                <span className={styles.procedureBlockCaption}>Поврзана постапка — можеби е релевантна за вашата услуга</span>
+              </div>
+            )}
+            <ul className={styles.procedureList}>
+              {inquiry.procedure.suggestions.map((s, i) => (
+                <li key={i} className={s.isPrimary ? styles.procedurePrimary : ''}>{s.text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className={styles.detailMeta}>
           {inquiry.language && <span>🗣 {inquiry.language?.toUpperCase()}</span>}

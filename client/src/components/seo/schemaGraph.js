@@ -23,6 +23,7 @@ export const NEXA_ORG = {
     'https://immigration.mk',
     'https://macedoniancitizenship.mk',
     'https://company.nexa.mk',
+    'https://tax.nexa.mk',
     'https://iplaw.nexa.mk',
     'https://topics.nexa.mk',
     'https://osiguran.nexa.mk',

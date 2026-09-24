@@ -7,6 +7,7 @@ const SATELLITES = [
   { href: 'https://immigration.mk', key: 'immigration' },
   { href: 'https://macedoniancitizenship.mk', key: 'citizenship' },
   { href: 'https://company.nexa.mk', key: 'company' },
+  { href: 'https://tax.nexa.mk', key: 'tax' },
   { href: 'https://iplaw.nexa.mk', key: 'iplaw' },
   { href: 'https://topics.nexa.mk', key: 'topics' },
   { href: 'https://osiguran.nexa.mk', key: 'osiguran' },

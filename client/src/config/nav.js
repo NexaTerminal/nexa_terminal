@@ -83,12 +83,26 @@ const myBadge = { key: 'my-badge', icon: 'people', label: 'Мојата знач
 // candidate/employee; the profile report comes back to the owner. SMB HR tool.
 const characterCheck = { key: 'character-check', icon: 'people', label: 'Проценка на карактер', path: '/terminal/karakter' };
 
+// „Интервјуа" — send editable interview questionnaires to a candidate (scan) or a
+// departing employee (exit); answers + AI summary come back to the owner. SMB HR tool.
+const interviews = {
+  key: 'interviews', icon: 'qa', label: 'Интервјуа',
+  children: [
+    { path: '/terminal/interviews/scan', label: 'Интервју скен' },
+    { path: '/terminal/interviews/exit', label: 'Излезно интервју' },
+  ],
+};
+
 const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing };
 // Регистар на набавки — log offers per type of purchase + renewal reminders.
 const procurementRegister = { key: 'procurement-register', icon: 'inbox', label: 'Регистар на набавки', path: '/terminal/nabavki', visible: showsSourcing };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 const marketingAi       = { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' };
 const marketingScreening = { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' };
+// Банер во билтенот — book a banner slot in the monthly Nexa newsletter. Deep-links
+// straight to the banner tab; the Blog tab of the hub stays a Pro surface, so Basic
+// sees only banner (MarketingHub hides Блог for tier A). Hidden for sub-seats.
+const newsletterBanner  = { key: 'newsletter-banner', icon: 'inbox', label: 'Банер во билтенот', path: '/terminal/marketing-hub?tab=banner', visible: showsMarketing };
 const fair              = { key: 'fair', icon: 'store', label: 'Виртуелен саем', path: '/terminal/fair', visible: showsFair };
 const leads             = { key: 'leads', icon: 'inbox', label: 'Случаи', path: '/terminal/leads', visible: showsLeads };
 const topicsqa = { key: 'topicsqa', icon: 'qa', label: 'Теми', path: '/terminal/topics-qa', visible: showsTopicsQA };
@@ -122,7 +136,7 @@ const smbSections = [
   },
   {
     key: 'human-resources', label: 'Човечки ресурси',
-    items: [employees, characterCheck, labourDocs]
+    items: [employees, characterCheck, interviews, labourDocs]
   },
   {
     key: 'procurement', label: 'Набавки',
@@ -132,7 +146,7 @@ const smbSections = [
     // Случаи, Topics Q&A and Маркетинг live only in the Pro (leads.nexa.mk)
     // layout — they are the lawyer/provider surfaces. Basic keeps the rest.
     key: 'growth', label: 'Маркетинг и раст',
-    items: [sales, marketingAi, marketingScreening, fair]
+    items: [sales, marketingAi, marketingScreening, newsletterBanner, fair]
   },
   {
     key: 'education-sec', label: 'Едукација',
@@ -157,7 +171,7 @@ const proSections = [
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening, characterCheck]
+    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening, characterCheck, interviews]
   },
   {
     key: 'education-sec', label: 'Едукација',

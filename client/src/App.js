@@ -16,6 +16,8 @@ import BadgeClaim from './pages/terminal/BadgeClaim';
 import MyBadge from './pages/terminal/MyBadge';
 import CharacterAssessment from './pages/website/CharacterAssessment';
 import CharacterAssessments from './pages/terminal/CharacterAssessments';
+import InterviewForm from './pages/website/InterviewForm';
+import Interviews from './pages/terminal/Interviews';
 import ProcurementRegister from './pages/terminal/ProcurementRegister';
 import Accountants from './pages/website/Accountants';
 import ContactPublic from './pages/website/Contact';
@@ -265,6 +267,7 @@ function App() {
       <Route path="/proverka-rabotodavac" element={<EmployerBadgeCheck />} />
       <Route path="/badge/:token" element={<BadgeVerify />} />
       <Route path="/karakter/:token" element={<CharacterAssessment />} />
+      <Route path="/interview/:token" element={<InterviewForm />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -306,6 +309,8 @@ function App() {
       <Route path="/terminal/badge-claim" element={<PrivateRoute><BadgeClaim /></PrivateRoute>} />
       <Route path="/terminal/moja-znachka" element={<PrivateRoute><MyBadge /></PrivateRoute>} />
       <Route path="/terminal/karakter" element={<PrivateRoute><CharacterAssessments /></PrivateRoute>} />
+      <Route path="/terminal/interviews/scan" element={<PrivateRoute><Interviews type="scan" /></PrivateRoute>} />
+      <Route path="/terminal/interviews/exit" element={<PrivateRoute><Interviews type="exit" /></PrivateRoute>} />
       <Route path="/terminal/nabavki" element={<PrivateRoute><ProcurementRegister /></PrivateRoute>} />
       <Route path="/terminal/documents" element={<PrivateRoute><VerificationRequired><DocumentGen /></VerificationRequired></PrivateRoute>} />
       {/* Договори — Contract Management System (master-plan Phase 2) */}

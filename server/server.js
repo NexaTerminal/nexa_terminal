@@ -195,6 +195,10 @@ app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
 // the personality assessment via their link (no auth, before CSRF).
 app.use('/api/public/character-assessment', require('./routes/publicCharacterAssessment'));
 
+// Public „Интервјуа" respondent funnel — a candidate/employee answers an
+// interview scan or exit interview via their link (no auth, before CSRF).
+app.use('/api/public/interview', require('./routes/publicInterview'));
+
 // Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
 // page pings this with the prospect id so we can measure invited → clicked.
 app.get('/api/invite/click', async (req, res) => {
@@ -971,6 +975,10 @@ function registerRoutes() {
     '/character-assessments',
     /^\/character-assessments\/.*$/,
     /^\/public\/character-assessment\/.*$/,
+    // Интервјуа — owner API (JWT-Bearer) + public respondent funnel
+    '/hr-interviews',
+    /^\/hr-interviews\/.*$/,
+    /^\/public\/interview\/.*$/,
     // Регистар на набавки — owner API (JWT-Bearer)
     '/procurement',
     /^\/procurement\/.*$/,
@@ -1162,6 +1170,16 @@ function registerRoutes() {
     console.log('✅ /api/character-assessments mounted');
   } catch (error) {
     console.error('❌ /api/character-assessments route error:', error.message);
+  }
+
+  // „Интервјуа" — interview scan + exit interview (owner side). Behind
+  // subscriptionGuard: Basic + Pro owners. Public respondent funnel is mounted
+  // separately, before CSRF (see above).
+  try {
+    app.use('/api/hr-interviews', subscriptionGuard, require('./routes/hrInterviews'));
+    console.log('✅ /api/hr-interviews mounted');
+  } catch (error) {
+    console.error('❌ /api/hr-interviews route error:', error.message);
   }
 
   // Регистар на набавки — procurement register (offers + renewal reminders).

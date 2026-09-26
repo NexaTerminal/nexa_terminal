@@ -75,6 +75,19 @@ function QuestionEditor({ questions, setQuestions }) {
                 <button type="button" className={s.iconBtnDanger} onClick={() => remove(i)} aria-label="Избриши">✕</button>
               </div>
             </div>
+            {/* Preview of how a rating question looks to the respondent, so the
+                owner sees the 1–5 scale the moment they switch to „Оценка". */}
+            {q.kind === 'rating' && (
+              <div className={s.ratingPreview}>
+                <span className={s.ratingPreviewLabel}>Вработениот ќе избере оценка:</span>
+                <div className={s.ratingPreviewScale}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <span key={n} className={s.ratingPreviewBtn}>{n}</span>
+                  ))}
+                  <span className={s.ratingPreviewHint}>1 = најмалку · 5 = најмногу</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ))}

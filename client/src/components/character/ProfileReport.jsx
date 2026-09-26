@@ -11,6 +11,10 @@ const BAND_CLASS = { high: s.bandHigh, mid: s.bandMid, low: s.bandLow };
 const SIZE = 260;
 const CENTER = SIZE / 2;
 const R = 96; // radius to the 100-score ring
+// Horizontal breathing room so the side labels (esp. long ones like
+// „Емоционална стабилност") sit inside the SVG box instead of spilling into the
+// bars column. The pentagon stays centered; only the viewBox widens.
+const PAD_X = 46;
 
 function vertex(i, frac) {
   const ang = (-90 + i * 72) * (Math.PI / 180);
@@ -43,7 +47,7 @@ export default function ProfileReport({ candidateName, role, report = [], ranked
       <div className={s.grid}>
         {/* Radar pentagon */}
         <div className={s.radarWrap}>
-          <svg className={s.radar} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label="Профил (радар)">
+          <svg className={s.radar} viewBox={`${-PAD_X} 0 ${SIZE + PAD_X * 2} ${SIZE}`} role="img" aria-label="Профил (радар)">
             {rings.map((r, i) => (
               <polygon key={i} className={s.ring} points={toPoints(dims.map(() => r))} />
             ))}
@@ -54,11 +58,18 @@ export default function ProfileReport({ candidateName, role, report = [], ranked
             <polygon className={s.area} points={toPoints(fracs)} />
             {dims.map((d, i) => {
               const [x, y] = vertex(i, 1.16);
+              const anchor = x < CENTER - 4 ? 'end' : x > CENTER + 4 ? 'start' : 'middle';
+              // Wrap multi-word labels (e.g. „Емоционална стабилност") onto two
+              // lines so they don't run wide and clip / overlap the bars.
+              const words = d.label.split(' ');
               return (
                 <text key={d.dimension} className={s.axisLabel} x={x} y={y}
-                      textAnchor={x < CENTER - 4 ? 'end' : x > CENTER + 4 ? 'start' : 'middle'}
-                      dominantBaseline="middle">
-                  {d.label}
+                      textAnchor={anchor} dominantBaseline="middle">
+                  {words.length > 1
+                    ? words.map((w, wi) => (
+                        <tspan key={wi} x={x} dy={wi === 0 ? `${-(words.length - 1) * 0.6}em` : '1.2em'}>{w}</tspan>
+                      ))
+                    : d.label}
                 </text>
               );
             })}

@@ -71,7 +71,22 @@
   font-size: 12px; font-weight: 600; padding: 5px 11px;
 }
 .kindBtn:not(:last-child) { border-right: 1px solid #e2e8f0; }
-.kindActive { background: #1e4db7; color: #fff; }
+.kindActive { background: #eef4ff; color: #1e4db7; }
+
+/* Rating-question preview — shows the owner the 1–5 scale the respondent sees. */
+.ratingPreview {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 4px; padding: 8px 10px; background: #f8fafc;
+  border: 1px dashed #dbe3f1; border-radius: 8px;
+}
+.ratingPreviewLabel { font-size: 12px; font-weight: 600; color: #64748b; }
+.ratingPreviewScale { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ratingPreviewBtn {
+  width: 28px; height: 28px; border-radius: 7px; border: 1px solid #d8dee9;
+  background: #fff; color: #334155; font-size: 13px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ratingPreviewHint { font-size: 11.5px; color: #94a3b8; margin-left: 4px; }
 .qMove { display: flex; gap: 6px; }
 .iconBtn, .iconBtnDanger {
   appearance: none; cursor: pointer; width: 28px; height: 28px; border-radius: 7px;

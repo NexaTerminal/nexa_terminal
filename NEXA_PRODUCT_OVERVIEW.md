@@ -195,7 +195,7 @@ A registry of the company's contracts (list / new / detail / edit) with a **cont
 
 Visible to `role: 'admin_user'` (Pro):
 - **Dashboard** — seat usage, recent leads, subscription state
-- **Leads inbox** (`/terminal/admin-user/leads`) — leads matching the provider's practice area + city, **first-to-claim** atomic semantics (`unclaimed → offered → claimed | dismissed`)
+- **Leads inbox / Inquiry Board** (`/terminal/admin-user/leads`, `ProHome.js`) — the canonical **tag-and-express-interest** board. Multi-vertical: shows inquiries matching the provider's practice area(s) + city, with a per-member **procedure hint** (only the viewer's matched categories from procedure templates — immigration / company_formation / property_purchase). Providers express interest via `ExpressInterestModal` (with a profession picker, no longer lawyer-hardcoded). Legacy first-to-claim lead routing (`unclaimed → offered → claimed | dismissed`) still underpins satellite-site leads.
 - **Team** (`/terminal/team`) — sub-seat / client-account management
 
 ### Platform admin features (`/terminal/admin/*`)
@@ -220,7 +220,7 @@ SEO + GEO optimized properties that (a) provide independent value to searchers a
 
 ### Practice-area routing enum
 
-`PRACTICE_AREAS` in `roles.js`: `consumer-legal`, `immigration`, `citizenship`, `company-registration`, `ip-law`, `tax-accounting`, `labor-law`, `general-legal`.
+`PRACTICE_AREAS` in `roles.js`: `consumer-legal`, `immigration`, `citizenship`, `company-registration`, `ip-law`, `tax-accounting`, `labor-law`, `general-legal`, plus **non-legal provider verticals** `real-estate`, `insurance`, `consulting` — so Pro is no longer lawyers-only. New Pro signups pick a provider type in onboarding, which maps to a practice area and seeds `superUser.practiceAreas` for immediate board matching.
 
 ### The satellite properties
 
@@ -228,10 +228,13 @@ SEO + GEO optimized properties that (a) provide independent value to searchers a
 - **`immigration.mk`** — residence permits for foreigners. High commercial intent, often urgent.
 - **`macedoniancitizenship.mk`** — diaspora & descendants seeking citizenship. Long-cycle, high-ticket case work.
 - **`company.nexa.mk`** — company registration (ДОО/ДООЕЛ/АД, Central Registry, ownership changes, branches). Pairs the lead with a lawyer + accountant.
+- **`tax.nexa.mk`** — accounting / tax niche; routes to `tax-accounting` providers.
 - **`iplaw.nexa.mk`** — intellectual property (trademarks, patents, copyright, licensing). Lower volume, high value.
-- **`osiguran.nexa.mk`** — insurance niche (added mid-2026).
+- **`osiguran.nexa.mk`** — insurance niche (added mid-2026); routes to `insurance` providers.
+- **`properties.nexa.mk`** — real-estate / недвижности niche (added Sept 2026); routes to `real-estate` providers.
+- **`topics.nexa.mk`** — the public Topics Q&A property (expert answers, SEO/GEO surface).
 
-> Satellite sites are hardcoded across several files and copy strings; grep `iplaw` / satellite domains to find every reference before adding a new one.
+> Satellite sites are hardcoded across several files and copy strings (`EcosystemMap.js`, `PublicFooterV2.js`, `schemaGraph.js` sameAs, `LeadsHome.js` case sources, `Leads.js` `CASE_SOURCES`, website `mk/en` locales); grep `iplaw` / satellite domains to find every reference before adding a new one.
 
 ### /proverka — public compliance teaser
 
@@ -412,6 +415,8 @@ Roughly in the order shipped:
 15. **Проценка на карактер** — Big Five (OCEAN) HR assessment; owner creates + shares/emails a link, respondent answers 33 bipolar (reverse-keyed) questions, owner gets a visual radar + ranked second-person report, and the **employee is emailed their results**. `characterAssessmentController` / `publicCharacterAssessment` / `characterEmail.js`.
 16. **Регистар на набавки** — procurement register organized by type of purchase; log offers (supplier/price/terms/valid-until), flag cheapest, mark chosen, set a renewal date → **renewal-reminder cron** (11:00) that links back to Sourcing. `procurementRegisterController` + `procurementReminderService/Scheduler`.
 17. **Човечки ресурси** HR nav section (Вработени + Проценка на карактер + Работни односи shortcut); **Мојата значка** moved to a standalone sidebar item.
+18. **Real-estate + accounting satellite sites** — `properties.nexa.mk` (недвижности) and `tax.nexa.mk` (accounting) added to `EcosystemMap`, footer network, `schemaGraph` sameAs, website mk/en locales, and the terminal case-source lists.
+19. **Multi-vertical Inquiry Board** — Pro expanded beyond lawyers to a multi-vertical provider network on the tag-and-express-interest board. `PRACTICE_AREAS` gained `real-estate`, `insurance`, `consulting`; **procedure templates** (`server/config/procedureTemplates.js`: immigration / company_formation / property_purchase) pre-fill inquiry categories + per-category MK/EN suggestion lines; `inquiriesService.listBoardFor` attaches a per-member procedure hint; `ExpressInterestModal` got a profession picker; the `TierOnboardingModal` Pro option is now **„Давател на услуги"** with a provider-type picker that seeds `practiceAreas`; admin `AdminInquiryNew` has a procedure dropdown that pre-fills category chips.
 
 ---
 
@@ -424,6 +429,8 @@ Roughly in the order shipped:
 | Promo codes / referrals | `server/services/promoCodeService.js`, `referralService.js` |
 | Sub-seat lifecycle | `server/services/subSeatService.js` |
 | Lead routing | `server/services/leadRoutingService.js` (+ tests) |
+| Inquiry Board / procedures | `server/services/inquiriesService.js`, `server/config/procedureTemplates.js`, `client/src/pages/terminal/Leads.js` + `ProHome.js`, `ExpressInterestModal.js`, `TierOnboardingModal.js` |
+| Satellite sites / ecosystem | `client/src/components/website/EcosystemMap.js`, `PublicFooterV2.js`, `schemaGraph.js` (sameAs), `client/src/pages/website/LeadsHome.js` |
 | LHC scoring engine | `server/controllers/lhc/lhcScoring.js`, `lhcShared.js` |
 | LHC modules | `server/controllers/lhc/*Controller.js` (employment, tax, gdpr, etc.) |
 | HR / employees | `server/controllers/employeeController.js`, `server/routes/employees.js` |
@@ -444,4 +451,4 @@ Roughly in the order shipped:
 
 ---
 
-*End of overview. Last updated: 2026-09-22.*
+*End of overview. Last updated: 2026-09-26.*

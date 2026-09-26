@@ -1,6 +1,6 @@
 # Nexa Terminal — Full Concept Brief (for Marketing)
 
-_Last updated: 2026-09-22 · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
+_Last updated: 2026-09-26 · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
 
 > **How to use this document.** This is a complete, self-contained description of the Nexa
 > business, product, features, packaging, and go-to-market so an AI (or a marketer) can design
@@ -52,10 +52,14 @@ micro and small companies (ДОО/ДООЕЛ), startups, shops, agencies. They w
 compliance and paperwork cheaply and correctly. This is the mass market and the acquisition engine.
 
 ### Product B — Pro (the supply side) → **leads.nexa.mk**
-The **service providers**: lawyers, accountants, bookkeeping firms, consultants, agencies. They
-want **inbound leads**, a professional presence, expert positioning, and a way to **manage their
-own book of client companies** from one account. Pro is the higher-value tier and the B2B2B growth
-wedge (an accountant reselling Nexa compliance to all their clients).
+The **service providers** — now a **multi-vertical provider network, no longer lawyers-only**:
+lawyers, accountants, bookkeeping firms, consultants, agencies, plus non-legal verticals like
+**real-estate agents, insurance brokers, and business consultants** (practice areas `real-estate`,
+`insurance`, `consulting`). They want **inbound leads/inquiries**, a professional presence, expert
+positioning, and a way to **manage their own book of client companies** from one account. Pro is the
+higher-value tier and the B2B2B growth wedge (an accountant reselling Nexa compliance to all their
+clients). New Pro signups pick a **provider type** in onboarding („Давател на услуги"), which maps to
+a practice area so they match relevant inquiries immediately.
 
 > Strategic note: the same codebase powers both, split by storefront + navigation + a provider cap.
 > Marketing should treat them as **two campaigns with two promises**, not one blended message.
@@ -127,9 +131,14 @@ document or AI answer that fixes it. Domains:
   offers it receives per need (supplier · price · terms · valid-until), flags the cheapest, marks
   the chosen one, and sets a **renewal date that fires a "time to re-quote" email reminder** — closing
   the loop request → offers → compare → pick → remind → re-quote.
-- **Leads / Предмети (case management)** — inbound leads from Nexa's satellite sites, plus a Pro
-  case-management module (cases + deadlines + timeline, 09:00 reminders, AI case brief, and a
-  public redacted client-status link).
+- **Inquiry Board / Leads / Предмети (case management)** — the canonical **tag-and-express-interest
+  board** where inbound inquiries from Nexa's satellite sites surface to matching providers. Now
+  **multi-vertical** (lawyers, accountants, real-estate, insurance, consultants): providers see
+  inquiries matched to their practice area(s) + city and **express interest** (with a profession
+  picker). **Procedure templates** (immigration / company-formation / property-purchase) pre-fill
+  inquiry categories and give each viewer a per-category suggestion hint. Plus a Pro
+  case-management module (cases + deadlines + timeline, 09:00 reminders, AI case brief, and a public
+  redacted client-status link).
 - **Topics Q&A** — providers answer public legal questions → expert positioning + SEO.
 - **Blog publishing** — providers (and Basic, limited) publish articles → content/SEO placement;
   a newsletter ad-booking system exists for sponsored placement.
@@ -174,8 +183,12 @@ Nexa's credibility is built on **factual provenance only**, never on lawyer endo
   requires no license; claiming legal review currently does not apply and would be false.
 - A partner law-firm endorsement can be added **later** if one signs on.
 
-The satellite/network sites (e.g. topic-specific legal micro-sites like `osiguran.nexa.mk`,
-`iplaw.*`, etc.) feed leads and SEO and reinforce authority through published, sourced content.
+The satellite/network sites — topic-specific micro-sites like `samodaprasham.mk`, `immigration.mk`,
+`macedoniancitizenship.mk`, `company.nexa.mk`, `tax.nexa.mk` (accounting), `iplaw.nexa.mk`,
+`osiguran.nexa.mk` (insurance), `properties.nexa.mk` (real estate, added Sept 2026), and
+`topics.nexa.mk` — feed leads and SEO and reinforce authority through published, sourced content.
+The satellite roster now spans legal *and* non-legal verticals, matching the multi-vertical Pro
+provider network.
 
 ---
 
@@ -186,7 +199,7 @@ side (supply side).**
 
 | | **Basic** (nexa.mk) | **Pro** (leads.nexa.mk) |
 |---|---|---|
-| **Who** | SMBs that *consume* legal services | Providers who *sell* legal/accounting services |
+| **Who** | SMBs that *consume* legal services | Multi-vertical providers who *sell* services — lawyers, accountants, real-estate agents, insurance brokers, consultants |
 | **Core tools** | All ~45 document generators, My Templates, all compliance screenings, Nexa AI (Legal/Marketing/Contract Analysis), courses, dashboard | Everything in Basic |
 | **Network** | Request-an-offer (demand side), virtual fair (view) | + Provider booth, Leads/case routing, Topics Q&A, blog authoring, RFQ bidding, B2B network |
 | **Sub-accounts** | Up to **3 co-workers** (shared company) | Up to **25 client companies** (each own company, vouched) |
@@ -292,7 +305,10 @@ side (supply side).**
   sub-accounts, HR module, case management, DB backup system, subscription enforcement). Recently
   shipped: **„Проверен работодавач" employer-badge funnel**, **Проценка на карактер** (Big Five HR
   assessment + employee results email), **Регистар на набавки** (procurement offer register +
-  renewal-reminder cron), the **Човечки ресурси** HR nav grouping, and the **60-day free window**.
+  renewal-reminder cron), the **Човечки ресурси** HR nav grouping, the **60-day free window**, the
+  **multi-vertical Inquiry Board** (Pro opened beyond lawyers to real-estate/insurance/consulting,
+  with procedure templates + provider-type onboarding), and two new satellite sites —
+  **`properties.nexa.mk`** (real estate) and **`tax.nexa.mk`** (accounting).
 - **Status of the market:** **zero paying users yet (pre-PMF)** — every account today is demo/dummy.
   So marketing's job is **acquisition + conversion proof**, not scaling retention. Don't assume an
   existing customer base in testimonials/social proof (there aren't real paying references yet).

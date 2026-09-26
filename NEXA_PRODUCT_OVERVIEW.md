@@ -166,6 +166,7 @@ A dedicated sidebar section grouping three people-tools:
 
 - **Вработени** (`/terminal/employees`) — an employee registry (clones the contracts pattern): list, create, detail, and edit employees. Provides **computed leave balances** and a daily **reminder cron** (e.g. contract/leave events). Employee data can prefill document generation.
 - **Проценка на карактер** (`/terminal/karakter`, public `/karakter/:token`) — a **Big Five (OCEAN) personality assessment** an SMB sends to a candidate/employee. The owner creates a named assessment and shares a link (or emails it); the respondent answers **33 bipolar, one-trait-per-item questions** (with reverse-keyed items to cancel acquiescence bias); scoring is strictly server-side (`server/data/characterAssessmentQuestions.js`). The owner sees a **visual report** (SVG radar pentagon + trait bars + a ranked, second-person "how it shows up" narrative), and the **employee is emailed their own results** (auto to the invited address + an opt-in on the thank-you screen). The respondent only ever sees a thank-you on screen.
+- **Интервјуа** (`/terminal/interviews/scan`, `/terminal/interviews/exit`) — a two-child nav group for **qualitative** interviews (distinct from the scored character assessment): **Интервју скен** (candidate soft-skill screen) and **Излезно интервју** (departing-employee exit interview). The owner gets **editable suggested questions** (behavioral/character bank biased by `companyInfo.industry` + role, capped 10–15; each question toggles **text** or **1–5 rating**; add/remove/reorder), can **save a reusable default template per type** (`hr_interview_templates`), then shares a link or emails it. The respondent answers on a public page (`/interview/:token`, mixed free-text + ratings, honeypot + idempotent submit); on completion the owner sees a **transcript + best-effort AI summary** (soft-skill signals for scan, retention themes for exit) and is emailed the results. Server-side scoring/summary only; `hr_interviews` collection, `module: 'interview_v1'`. Basic + Pro via `subscriptionGuard`.
 - **Работни односи** — a deep-link shortcut into the labour-law document category (`/terminal/documents?cat=labourLaw`).
 
 ### Contracts registry (`/terminal/contracts`)
@@ -188,7 +189,7 @@ A registry of the company's contracts (list / new / detail / edit) with a **cont
 - **Sales funnel** (`/terminal/sales`) — provider sales pipeline.
 - **Blog publishing** — submit (`/terminal/blogs/submit`), my submissions, published, with admin moderation of pending submissions.
 - **Topics Q&A** (`/terminal/topics-qa`) — Pro members answer public questions; admin worklist assigns/curates.
-- **Newsletter ad booking** (`NewsletterAdBooking`) — banner slots in the Nexa newsletter (bookable, limited slots).
+- **Newsletter ad booking** (`NewsletterAdBooking`) — banner slots in the Nexa newsletter (3 slots/month, 1 booking/quarter, image upload + optional link). Surfaced to **Basic** via a dedicated **„Банер во билтенот"** nav item in Маркетинг и раст (`/terminal/marketing-hub?tab=banner`); `MarketingHub` hides the Блог tab for tier A so Basic gets banner-only, while Pro reaches the same hub through „Блог". Backend is tier-agnostic (any active subscriber) behind `subscriptionGuard`; gated by the `newsletterAds` feature flag.
 - **Credits / Billing / Subscription** (`/terminal/credits`, `/terminal/billing`, `/terminal/subscription`).
 
 ### Pro-user features (`/terminal/admin-user/*`)
@@ -417,6 +418,8 @@ Roughly in the order shipped:
 17. **Човечки ресурси** HR nav section (Вработени + Проценка на карактер + Работни односи shortcut); **Мојата значка** moved to a standalone sidebar item.
 18. **Real-estate + accounting satellite sites** — `properties.nexa.mk` (недвижности) and `tax.nexa.mk` (accounting) added to `EcosystemMap`, footer network, `schemaGraph` sameAs, website mk/en locales, and the terminal case-source lists.
 19. **Multi-vertical Inquiry Board** — Pro expanded beyond lawyers to a multi-vertical provider network on the tag-and-express-interest board. `PRACTICE_AREAS` gained `real-estate`, `insurance`, `consulting`; **procedure templates** (`server/config/procedureTemplates.js`: immigration / company_formation / property_purchase) pre-fill inquiry categories + per-category MK/EN suggestion lines; `inquiriesService.listBoardFor` attaches a per-member procedure hint; `ExpressInterestModal` got a profession picker; the `TierOnboardingModal` Pro option is now **„Давател на услуги"** with a provider-type picker that seeds `practiceAreas`; admin `AdminInquiryNew` has a procedure dropdown that pre-fills category chips.
+20. **Newsletter banner for Basic** — the newsletter ad-slot booking (already tier-agnostic on the backend) is now discoverable for Basic via a dedicated **„Банер во билтенот"** item in Маркетинг и раст; `MarketingHub` shows the Блог tab only for Pro/admin, so Basic gets banner-only.
+21. **HR Interviews („Интервјуа")** — a new qualitative HR tool cloning the character-assessment pattern: **Интервју скен** + **Излезно интервју** under one nav group, owner-editable question templates (text/1–5 rating, suggested by business type + role, saveable default per type), public respondent funnel, best-effort **AI summary** (openai) + owner results email on completion. `hr_interviews` + `hr_interview_templates` collections; Basic + Pro via `subscriptionGuard`.
 
 ---
 
@@ -435,6 +438,8 @@ Roughly in the order shipped:
 | LHC modules | `server/controllers/lhc/*Controller.js` (employment, tax, gdpr, etc.) |
 | HR / employees | `server/controllers/employeeController.js`, `server/routes/employees.js` |
 | Character assessment | `server/data/characterAssessmentQuestions.js`, `characterAssessmentController.js`, `routes/publicCharacterAssessment.js`, `services/characterEmail.js` |
+| HR Interviews | `server/data/interviewQuestions.js`, `controllers/hrInterviewController.js`, `routes/hrInterviews.js` + `routes/publicInterview.js`, `services/interviewEmail.js` + `interviewSummary.js`, `client/src/pages/terminal/Interviews.js`, `client/src/pages/website/InterviewForm.js` |
+| Newsletter banner | `client/src/pages/terminal/NewsletterAdBooking.js` + `MarketingHub.js`, `server/services/newsletterAdsService.js`, `server/routes/newsletterAds.js` |
 | Procurement register | `server/controllers/procurementRegisterController.js`, `routes/procurementRegister.js`, `services/procurementReminderService.js` |
 | Verified-employer badge | `server/routes/publicEmployerBadge.js`, `server/services/badgeService.js` |
 | Contracts registry | `server/controllers/contractController.js`, `server/routes/contracts.js` |
@@ -451,4 +456,4 @@ Roughly in the order shipped:
 
 ---
 
-*End of overview. Last updated: 2026-09-26.*
+*End of overview. Last updated: 2026-09-26 (rev 2).*

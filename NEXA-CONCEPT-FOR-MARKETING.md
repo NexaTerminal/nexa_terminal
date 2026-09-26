@@ -1,6 +1,6 @@
 # Nexa Terminal — Full Concept Brief (for Marketing)
 
-_Last updated: 2026-09-26 · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
+_Last updated: 2026-09-26 (rev 2) · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
 
 > **How to use this document.** This is a complete, self-contained description of the Nexa
 > business, product, features, packaging, and go-to-market so an AI (or a marketer) can design
@@ -140,8 +140,11 @@ document or AI answer that fixes it. Domains:
   case-management module (cases + deadlines + timeline, 09:00 reminders, AI case brief, and a public
   redacted client-status link).
 - **Topics Q&A** — providers answer public legal questions → expert positioning + SEO.
-- **Blog publishing** — providers (and Basic, limited) publish articles → content/SEO placement;
-  a newsletter ad-booking system exists for sponsored placement.
+- **Blog publishing** — providers (and Basic, limited) publish articles → content/SEO placement.
+- **Newsletter banner (Банер во билтенот)** — book a banner slot in the monthly Nexa newsletter
+  (upload an image + optional link; 3 slots/month, 1/quarter). Available to **Basic too** — surfaced
+  in Маркетинг и раст as its own entry (banner-only; the Блог tab stays a Pro surface). A cheap,
+  self-serve promotion channel for SMBs, not just providers.
 - **„Проверен работодавач" badge (Verified-Employer funnel)** — a public, shareable **maturity
   badge** aimed at jobseekers that doubles as a **non-user acquisition funnel**. A company runs a
   ~20-question employer check at `/proverka-rabotodavac`, gets an **A / A+ / A++** rating, and signs
@@ -170,6 +173,16 @@ document or AI answer that fixes it. Domains:
     questions** (reverse-keyed for validity); the owner gets a **visual profile report** (radar +
     a ranked, second-person "how it shows up" narrative), and the **employee is emailed their own
     results**. A rare, sticky HR feature for the SMB segment.
+  - **Интервјуа (Interviews).** A qualitative counterpart to the character test — one
+    nav group with two flows: **Интервју скен** (a behavioral/soft-skill screen you
+    send a **candidate** before hiring) and **Излезно интервју** (a structured **exit
+    interview** for a departing employee). The employer gets **AI-suggested questions**
+    tuned to the business type + role (behavior/character focused, 10–15 max), can
+    **edit them freely** and **save a reusable default template**, then shares a link or
+    emails it. The respondent answers with free-text + 1–5 ratings; the owner gets the
+    transcript plus a short **AI summary** (soft-skill signals for a candidate; the "why
+    they're leaving" + retention themes for exits). A sticky, high-value HR feature; exit
+    interviews especially double as a **retention insight** engine.
   - **Работни односи** — a shortcut into the labour-law document category.
 - Billing, subscription, credits, invite/referrals, and company verification screens.
 
@@ -307,8 +320,10 @@ side (supply side).**
   assessment + employee results email), **Регистар на набавки** (procurement offer register +
   renewal-reminder cron), the **Човечки ресурси** HR nav grouping, the **60-day free window**, the
   **multi-vertical Inquiry Board** (Pro opened beyond lawyers to real-estate/insurance/consulting,
-  with procedure templates + provider-type onboarding), and two new satellite sites —
-  **`properties.nexa.mk`** (real estate) and **`tax.nexa.mk`** (accounting).
+  with procedure templates + provider-type onboarding), two new satellite sites —
+  **`properties.nexa.mk`** (real estate) and **`tax.nexa.mk`** (accounting) — the **newsletter
+  banner opened to Basic**, and **HR Interviews** („Интервју скен" + „Излезно интервју": editable
+  AI-suggested questions, mixed free-text/ratings, AI summary + owner results email).
 - **Status of the market:** **zero paying users yet (pre-PMF)** — every account today is demo/dummy.
   So marketing's job is **acquisition + conversion proof**, not scaling retention. Don't assume an
   existing customer base in testimonials/social proof (there aren't real paying references yet).
@@ -349,8 +364,9 @@ side (supply side).**
 - **Headline features:** ~45+ document generators, BYO-template automation, multi-domain compliance
   screenings, Macedonian-law RAG AI + contract analysis, provider network (booth/leads/Topics/blog),
   **„Проверен работодавач" employer badge**, **Проценка на карактер** (Big Five HR assessment),
-  **Регистар на набавки** (procurement register + renewal reminders), 3 co-workers (Basic) / 25
-  client companies (Pro), courses.
+  **Интервјуа** (interview scan + exit interview with editable AI-suggested questions + AI summary),
+  **Регистар на набавки** (procurement register + renewal reminders), newsletter banner (now Basic too),
+  3 co-workers (Basic) / 25 client companies (Pro), courses.
 - **Moat:** MK legal localization + integrated loop + factual provenance + reseller model.
 - **Stage:** Pre-PMF, zero paying users; priority = acquisition + conversion via the free teaser funnel.
 - **Trust rule:** Cite the law; never claim lawyer review.

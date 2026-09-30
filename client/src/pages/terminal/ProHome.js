@@ -154,7 +154,7 @@ export default function ProHome() {
             <span className={styles.brandTag}>topics.nexa.mk · SEO</span>
             <span className={styles.brandTitle}>Одговарајте на прашања</span>
             <span className={styles.brandDesc}>
-              Секој одговор се објавува под Ваше име и Ве наоѓаат клиенти кои токму сега бараат правник на Google.
+              Секој одговор се објавува под Ваше име и Ве наоѓаат клиенти кои токму сега бараат стручно лице на Google.
             </span>
             <span className={styles.brandCta}>Одговори →</span>
           </Link>

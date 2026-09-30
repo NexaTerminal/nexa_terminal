@@ -554,7 +554,7 @@ const Header = ({ isTerminal = false }) => {
           <Link to={isTerminal ? '/terminal' : '/'} className={`${styles.logo} ${isTerminal ? styles.logoTerminal : ''}`}>
             <img
               src="/nexa-logo-navbar.png"
-              alt={interiorProduct(currentUser) === 'B' ? 'Nexa за правници' : 'Nexa Terminal'}
+              alt={interiorProduct(currentUser) === 'B' ? 'Nexa за професионалци' : 'Nexa Terminal'}
               className={styles['logo-image']}
             />
             {/* Product B (leads.nexa.mk) wordmark badge — makes the Pro shell read

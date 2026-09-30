@@ -13,6 +13,36 @@ import { getPromotedToolById } from '../../config/promotedTools';
 import didYouKnowFacts from '../../data/didYouKnowFacts.json';
 import styles from '../../styles/website/BlogPost.module.css';
 
+// Canonical author profile for Мартин Бошкоски — kept in sync with samodaprasham.mk.
+// Used so his legal posts show the full bio instead of a bare "martin".
+const MARTIN_PROFILE = {
+  name: 'Мартин Бошкоски',
+  tagline: 'Поранешен адвокат · магистер по право (LL.M.), со положен правосуден испит',
+  photoUrl: '/assets/martin-boshkoski.jpg',
+  bio: 'Мартин Бошкоски е правник со работно искуство повеќе од 15 години, пред сè во граѓанското и корпоративното право.',
+  extendedBio: 'Авторот беше основач и партнер во адвокатско друштво (2017–2025), со работа во работните односи, граѓанско право и стопански спорови. Пред овој ангажман, работел подолг период и во друго адвокатско друштво. Завршил магистерски студии по граѓанско право и граѓанска постапка на Правниот факултет „Јустинијан Први“ во Скопје и го положил правосудниот испит. Денес овие текстови ги пишува за да го направи македонското право појасно и подостапно за сите.',
+  credentials: [
+    'LL.M. — граѓанско материјално право и граѓанска постапка',
+    'Положен правосуден испит',
+    '15+ години правно искуство',
+    'Корпоративно право, работните односи, граѓанско право',
+  ],
+};
+
+// The author card (with its legal disclaimer) is only shown on legal posts.
+function isLegalCategory(category) {
+  if (!category) return false;
+  const c = category.toString().toUpperCase();
+  return c === 'LEGAL' || c === 'COMPLIANCE';
+}
+
+// Detect Мартин's posts so we can swap in the full canonical profile.
+function isMartinAuthor(author) {
+  const n = (author?.name || '').trim().toLowerCase();
+  if (!n) return false;
+  return n === 'martin' || n.includes('бошкоски') || n.includes('boshkoski') || n.includes('мартин');
+}
+
 export default function BlogPost() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -420,26 +450,31 @@ export default function BlogPost() {
           />
         )}
 
-        {/* Author card — the expert who wrote this post */}
-        {post.author && (post.author.name || post.author.photoUrl) && (
+        {/* Author card — only on legal posts; Мартин's posts show his full canonical profile */}
+        {isLegalCategory(post.category) && (() => {
+          const author = isMartinAuthor(post.author)
+            ? { ...post.author, ...MARTIN_PROFILE }
+            : post.author;
+          if (!author || !(author.name || author.photoUrl)) return null;
+          return (
           <section className={styles.authorCard}>
             <div className={styles.authorHead}>
-              {post.author.photoUrl
-                ? <img src={post.author.photoUrl} alt={post.author.name || 'author'} className={styles.authorPhoto} />
+              {author.photoUrl
+                ? <img src={author.photoUrl} alt={author.name || 'author'} className={styles.authorPhoto} />
                 : <div className={styles.authorPhotoFallback}>
-                    {(post.author.name || '?').trim().charAt(0).toUpperCase()}
+                    {(author.name || '?').trim().charAt(0).toUpperCase()}
                   </div>}
               <div className={styles.authorHeadText}>
                 <div className={styles.authorEyebrow}>За авторот</div>
-                <div className={styles.authorName}>{post.author.name}</div>
-                {post.author.tagline && <div className={styles.authorTagline}>{post.author.tagline}</div>}
+                <div className={styles.authorName}>{author.name}</div>
+                {author.tagline && <div className={styles.authorTagline}>{author.tagline}</div>}
               </div>
             </div>
 
             <div className={styles.authorBody}>
-              {post.author.bio && <p className={styles.authorBio}>{post.author.bio}</p>}
+              {author.bio && <p className={styles.authorBio}>{author.bio}</p>}
 
-              {(post.author.extendedBio || (Array.isArray(post.author.credentials) && post.author.credentials.length > 0)) && (
+              {(author.extendedBio || (Array.isArray(author.credentials) && author.credentials.length > 0)) && (
                 <>
                   <button
                     type="button"
@@ -453,10 +488,10 @@ export default function BlogPost() {
 
                   {authorExpanded && (
                     <div className={styles.authorMore}>
-                      {post.author.extendedBio && <p className={styles.authorExtendedBio}>{post.author.extendedBio}</p>}
-                      {Array.isArray(post.author.credentials) && post.author.credentials.length > 0 && (
+                      {author.extendedBio && <p className={styles.authorExtendedBio}>{author.extendedBio}</p>}
+                      {Array.isArray(author.credentials) && author.credentials.length > 0 && (
                         <div className={styles.authorChips}>
-                          {post.author.credentials.map((c, i) => (
+                          {author.credentials.map((c, i) => (
                             <span key={i} className={styles.authorChip}>{c}</span>
                           ))}
                         </div>
@@ -466,11 +501,11 @@ export default function BlogPost() {
                 </>
               )}
 
-              {(post.author.linkedinUrl || post.author.website || post.author.contactEmail) && (
+              {(author.linkedinUrl || author.website || author.contactEmail) && (
                 <div className={styles.authorLinks}>
-                  {post.author.linkedinUrl && <a href={post.author.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}
-                  {post.author.website && <a href={post.author.website} target="_blank" rel="noopener noreferrer">Веб-страница ↗</a>}
-                  {post.author.contactEmail && <a href={`mailto:${post.author.contactEmail}`}>Е-пошта</a>}
+                  {author.linkedinUrl && <a href={author.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>}
+                  {author.website && <a href={author.website} target="_blank" rel="noopener noreferrer">Веб-страница ↗</a>}
+                  {author.contactEmail && <a href={`mailto:${author.contactEmail}`}>Е-пошта</a>}
                 </div>
               )}
 
@@ -482,7 +517,8 @@ export default function BlogPost() {
               </p>
             </div>
           </section>
-        )}
+          );
+        })()}
       </article>
 
       {/* Sidebar - Did You Know Facts */}

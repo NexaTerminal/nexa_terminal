@@ -11,9 +11,9 @@ const activeSiteUrl = () => (isLeads() ? LEADS_URL : SITE_URL);
 // that don't pass explicit meta don't render the SMB brand. Explicit props win.
 const DEFAULT_TITLE = {
   main:  'Nexa — Деловниот екосистем за Северна Македонија',
-  leads: 'Nexa за правници — нови клиенти од нашата мрежа'
+  leads: 'Nexa за професионалци — нови клиенти од нашата мрежа'
 };
-const DEFAULT_SITE_NAME = { main: 'Nexa', leads: 'Nexa за правници' };
+const DEFAULT_SITE_NAME = { main: 'Nexa', leads: 'Nexa за професионалци' };
 
 export default function SEOHelmet({
   title,

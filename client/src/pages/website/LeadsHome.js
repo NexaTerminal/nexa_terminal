@@ -9,7 +9,7 @@ import { getStorefront, otherStorefrontUrl } from '../../lib/storefront';
 import styles from './LeadsHome.module.css';
 
 /**
- * leads.nexa.mk — Product B storefront (Nexa for Lawyers).
+ * leads.nexa.mk — Product B storefront (Nexa for professionals).
  * Single-viewport, no-scroll login page: 2/3 explanation + 1/3 login. Its own
  * lean top bar carries the essential links (main site, blog, contact, legal).
  */
@@ -73,15 +73,15 @@ export default function LeadsHome() {
       label: T('Клиенти', 'Clients'),
       hook: T('Ние имаме клиенти. Вие имате експертиза.',
               'We have the clients. You have the expertise.'),
-      sub: T('Луѓе со правни потреби нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги случаите од Вашата област и град.',
-             'People with legal needs reach us every day through our network of sites. Take the cases from your practice area and city.')
+      sub: T('Луѓе и бизниси со потреба од стручна помош нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги барањата од Вашата област и град.',
+             'People and businesses that need professional help reach us every day through our network of sites. Take the requests from your field and city.')
     },
     {
       label: T('Стручни одговори', 'Expert answers'),
       hook: T('Луѓето треба да знаат за Вас.',
               'People need to know you exist.'),
-      sub: T('Одговарајте на реални правни прашања и градете репутација како експерт пред публика што веќе бара токму такво знаење.',
-             'Answer real legal questions and build a reputation as the expert in front of an audience already looking for exactly that.')
+      sub: T('Одговарајте на реални стручни прашања и градете репутација како експерт пред публика што веќе бара токму такво знаење.',
+             'Answer real professional questions and build a reputation as the expert in front of an audience already looking for exactly that.')
     },
     {
       label: T('Блог', 'Blog'),
@@ -99,7 +99,7 @@ export default function LeadsHome() {
     },
     {
       label: T('Алатки', 'Tools'),
-      hook: T('Целата Ваша канцеларија на едно место.',
+      hook: T('Целата Ваша работа на едно место.',
               'Your whole practice, in one place.'),
       sub: T('Автоматизирани документи, анализа на договори, правни проверки и AI помошник — подготвени за секој случај.',
              'Automated documents, contract analysis, compliance checks and an AI assistant — ready for every case.')
@@ -127,19 +127,19 @@ export default function LeadsHome() {
   return (
     <div className={styles.page}>
       <SEOHelmet
-        title={T('Nexa за правници — нови клиенти од нашата мрежа', 'Nexa for Lawyers — new clients from our network')}
+        title={T('Nexa за професионалци — нови клиенти од нашата мрежа', 'Nexa for professionals — new clients from our network')}
         description={T('Насочени случаи од специјализирани сајти по област и град, плус видливост како експерт. Ограничени места по област.',
                        'Routed cases from specialized sites by area and city, plus visibility as an expert. Limited seats per area.')}
         canonical="/"
         locale={isMk ? 'mk_MK' : 'en_US'}
         altLocale={isMk ? 'en_US' : 'mk_MK'}
-        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa for Lawyers', description: T('Нови клиенти за правници.', 'New clients for lawyers.'), language: lang })]}
+        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa for professionals', description: T('Нови клиенти за професионалци.', 'New clients for professionals.'), language: lang })]}
       />
 
       {/* ── Left side: brand · pitch · footer ───────────────────────────── */}
       <div className={styles.pitchSide}>
       <header className={styles.topBar}>
-        <Link to="/" className={styles.brand} aria-label="Nexa за правници">
+        <Link to="/" className={styles.brand} aria-label="Nexa за професионалци">
           <img src="/nexa-logo-navbar.png" alt="Nexa" className={styles.brandLogo} />
         </Link>
         <nav className={styles.topNav}>

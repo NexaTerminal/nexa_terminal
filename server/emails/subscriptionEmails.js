@@ -73,13 +73,13 @@ const tierWord = (plan, lang) => {
   return lang === 'mk' ? 'Про' : 'Pro';
 };
 
-// Nexa 3.0 EUR prices — must match server/constants/roles.js PLAN_PRICES.
+// Nexa 3.1 EUR prices — must match server/constants/roles.js PLAN_PRICES.
 const PLAN_PRICES = {
-  basic: { monthly: 19, quarterly: 49,  annual: 90 },
-  pro:   { monthly: 39, quarterly: 99,  annual: 190 },
+  basic: { monthly: 15, quarterly: 40,  annual: 149 },
+  pro:   { monthly: 39, quarterly: 105, annual: 390 },
   // legacy
-  standard: { monthly: 19, quarterly: 49,  annual: 179 },
-  admin_5:  { monthly: 39, quarterly: 99,  annual: 359 },
+  standard: { monthly: 15, quarterly: 40,  annual: 149 },
+  admin_5:  { monthly: 39, quarterly: 105, annual: 390 },
   admin_10: { monthly: 59, quarterly: 149, annual: 549 }
 };
 const priceOf = (plan, cycle) => PLAN_PRICES[plan]?.[cycle] ?? null;

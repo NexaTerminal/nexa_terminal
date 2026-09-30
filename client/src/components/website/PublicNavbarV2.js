@@ -12,21 +12,21 @@ export default function PublicNavbarV2() {
   const isMk = lang === 'mk';
   const switchLang = (lng) => i18n.changeLanguage(lng);
 
-  // Both storefronts are intentionally minimal: Landing (logo) · Blog · Contact.
-  // Pricing/About live inside the flow (contact + login), not the marketing nav.
+  // Storefronts stay minimal: Landing (logo) · Цени · Blog · Contact.
   const links = [
+    { to: '/pricing', label: isMk ? 'Цени' : 'Pricing' },
     { to: '/blog', label: t('nav.blog') },
     { to: '/contact', label: t('nav.contact') }
   ];
 
   // Cross-product link so the two sibling sites stay reachable from each other
   // (and the logo always returns to THIS site's home). On leads.nexa.mk it
-  // points to the SMB site; on nexa.mk it points to the lawyers' site.
+  // points to the SMB site; on nexa.mk it points to the professionals' site.
   const onLeads = isLeadsStorefront();
   const crossHref = otherStorefrontUrl('/');
   const crossLabel = onLeads
     ? (isMk ? 'Nexa за бизниси' : 'Nexa for business')
-    : (isMk ? 'Nexa за правници' : 'Nexa for lawyers');
+    : (isMk ? 'Nexa за професионалци' : 'Nexa for professionals');
 
   return (
     <nav className={styles.navbar} aria-label="Primary">

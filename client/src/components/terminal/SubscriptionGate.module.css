@@ -279,6 +279,41 @@
   justify-content: space-between;
   gap: 16px;
 }
+/* Monthly / annual segmented toggle — light tint active state, no solid fill. */
+.cycleToggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.cycleBtn {
+  flex: 1;
+  appearance: none;
+  cursor: pointer;
+  border: 1px solid var(--color-primary-200, #c7e2ff);
+  background: #FFFFFF;
+  color: #475569;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.cycleBtn:hover { background: #f5f8fe; }
+.cycleActive {
+  background: var(--color-primary-50, #f0f7ff);
+  border-color: var(--color-primary, #1E4DB7);
+  color: var(--color-primary, #1E4DB7);
+}
+.cycleSave {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #15803D;
+  letter-spacing: 0.01em;
+}
 .offerName {
   font-size: 17px;
   font-weight: 700;

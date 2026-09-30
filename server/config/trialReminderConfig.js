@@ -26,14 +26,16 @@ module.exports = Object.freeze({
   // most urgent unsent stage wins on each run. Keep ordered most→least days.
   // `audience` scopes who receives each proforma:
   //   'promo' → 30-day code-redeemed users only
-  //   'trial' → 60-day self-serve trial users only
+  //   'trial' → 8-day self-serve trial users only
   //   'all'   → both
-  // offer_d7 fires ~1 week before the window ends. Historically it was scoped to
-  // promo codes only because the self-serve trial was just 8 days (d7 collided with
-  // the education drip); the self-serve window is now 60 days, so both offer stages
-  // land sensibly near the end regardless of audience.
+  // The self-serve free window is 8 days, so trial offers must land inside it:
+  //   offer_d7 (promo only) fires ~1 week before a 30-day promo window ends and
+  //     would be day 1 of an 8-day trial — too early — so it stays promo-scoped.
+  //   offer_d4 (trial only) is the mid-window nudge for 8-day trial users (~day 4).
+  //   offer_d2 (all) is the final nudge ~2 days before the window ends.
   STAGES: [
     { key: 'offer_d7', daysLeft: 7, audience: 'promo' },
+    { key: 'offer_d4', daysLeft: 4, audience: 'trial' },
     { key: 'offer_d2', daysLeft: 2, audience: 'all' }
   ],
 
@@ -42,6 +44,7 @@ module.exports = Object.freeze({
   // Forward-only: on each run the earliest unsent stage whose `sendOnDay` has
   // arrived is sent, so a stage is never skipped even if the bank-hours cron
   // misses a day (weekend). No proforma is attached — these are informational.
+  // Both land early in the 8-day window (days 2–3), before the offer stages.
   EDUCATION_STAGES: [
     { key: 'edu_documents', sendOnDay: 2 }, // automated documents + AI contract check
     { key: 'edu_lhc', sendOnDay: 3 }        // Legal Health Check / compliance

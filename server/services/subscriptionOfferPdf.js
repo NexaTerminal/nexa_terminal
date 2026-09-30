@@ -2,8 +2,9 @@
 
 /**
  * Render an A4 "subscription offer" pro-invoice (MK, Cyrillic, MKD) that lists
- * ALL THREE billing cycles for the buyer's signed-up tier, so the trial user
- * can pick a period and pay by bank transfer immediately. Returns Promise<Buffer>.
+ * the offered billing cycles (monthly + annual) for the buyer's signed-up tier,
+ * so the trial user can pick a period and pay by bank transfer immediately.
+ * Returns Promise<Buffer>. The options are supplied by the caller (offer.options).
  *
  * Unlike proInvoicePdf.js this does NOT consume an official invoice number —
  * the binding фактура is issued after payment, once the cycle is known.

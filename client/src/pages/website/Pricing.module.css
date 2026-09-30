@@ -1,0 +1,58 @@
+.wrap { padding-top: 40px; }
+
+.head { text-align: center; max-width: 680px; margin: 0 auto 36px; }
+.title { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; color: #0B1220; margin: 16px 0 10px; }
+.lead { font-size: 16px; line-height: 1.6; color: #475569; margin: 0 0 22px; }
+
+/* Monthly / annual toggle — light tint active, no solid fill. */
+.cycleToggle {
+  display: inline-flex; gap: 6px; padding: 5px; border-radius: 12px;
+  background: #f1f5f9; border: 1px solid #e5e9f2;
+}
+.cycleBtn {
+  appearance: none; cursor: pointer; border: 1px solid transparent; background: transparent;
+  color: #475569; font-size: 14px; font-weight: 600; padding: 8px 18px; border-radius: 9px;
+  display: inline-flex; align-items: center; gap: 8px; transition: all 120ms ease;
+}
+.cycleBtn:hover { color: #1e4db7; }
+.cycleActive { background: #fff; border-color: #c7d6f5; color: #1e4db7; box-shadow: 0 1px 2px rgba(15,23,42,0.06); }
+.cycleSave {
+  font-size: 11px; font-weight: 700; color: #15803D; background: #ECFDF5;
+  border: 1px solid #BBF7D0; border-radius: 999px; padding: 2px 8px;
+}
+
+/* Plan cards */
+.grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px;
+  max-width: 860px; margin: 0 auto;
+}
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  position: relative; background: #fff; border: 1px solid #e5e7eb; border-radius: 18px;
+  padding: 28px 26px; display: flex; flex-direction: column;
+}
+.cardFeatured { border: 2px solid #1e4db7; box-shadow: 0 12px 34px rgba(30,77,183,0.12); }
+.badge {
+  position: absolute; top: -12px; left: 26px; background: #1e4db7; color: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 999px;
+}
+.cardName { font-size: 20px; font-weight: 800; color: #0B1220; }
+.cardTagline { font-size: 13.5px; line-height: 1.5; color: #64748b; margin: 6px 0 16px; min-height: 40px; }
+.priceRow { display: flex; align-items: baseline; gap: 6px; }
+.priceNum { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: #0B1220; line-height: 1; }
+.priceUnit { font-size: 15px; color: #64748b; font-weight: 500; }
+.priceMkd { font-size: 12.5px; color: #94a3b8; margin: 6px 0 18px; }
+
+.cardCta { width: 100%; justify-content: center; margin-bottom: 20px; }
+
+.features { list-style: none; margin: 0; padding: 16px 0 0; border-top: 1px solid #eef2f7; display: flex; flex-direction: column; gap: 11px; }
+.feature { display: flex; align-items: flex-start; gap: 9px; font-size: 13.8px; line-height: 1.45; color: #334155; }
+.feature svg { flex: none; color: #15803D; margin-top: 2px; }
+.feature:first-child { font-weight: 700; color: #0B1220; }
+
+.finePrint {
+  max-width: 680px; margin: 30px auto 0; text-align: center;
+  font-size: 12px; line-height: 1.6; color: #94a3b8;
+}

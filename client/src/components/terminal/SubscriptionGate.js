@@ -5,15 +5,16 @@ import { planProduct } from '../../lib/tier';
 import styles from './SubscriptionGate.module.css';
 
 // EUR prices (two-tier model). Match server/constants/roles.js PLAN_PRICES.
-// Each tier is a SINGLE annual offer: Basic €90/yr, Pro €190/yr.
+// Basic €15/mo · €149/yr · Pro €39/mo · €390/yr.
 const PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 90 },
-  pro:   { monthly: 39, quarterly: 99, annual: 190 }
+  basic: { monthly: 15, annual: 149 },
+  pro:   { monthly: 39, annual: 390 }
 };
-// Cycles offered at checkout per plan — both tiers are annual-only.
+// Cycles offered at checkout per plan — monthly + annual (annual is the default,
+// listed last; ~2 months free). Quarterly is retired from the buy flow.
 const PLAN_CYCLES = {
-  basic: ['annual'],
-  pro:   ['annual']
+  basic: ['monthly', 'annual'],
+  pro:   ['monthly', 'annual']
 };
 // The single plan a user may buy is decided by their PRODUCT: Pro (Product B,
 // leads.nexa.mk) sells 'pro'; everyone else (Product A, nexa.mk) sells 'basic'.
@@ -77,8 +78,12 @@ export default function SubscriptionGate() {
     const sub = blockedInfo?.subscription || {};
     // Single-plan model: the user's product dictates the only plan they can buy.
     const defaultPlan = sellablePlanFor(currentUser);
-    const allowed = PLAN_CYCLES[defaultPlan] || ['monthly'];
-    const seedCycle = sub.cycle && allowed.includes(sub.cycle) ? sub.cycle : allowed[0];
+    const allowed = PLAN_CYCLES[defaultPlan] || ['annual'];
+    // Default to annual (best value + fewer manual invoices) unless the user
+    // already had a cycle on file.
+    const seedCycle = sub.cycle && allowed.includes(sub.cycle)
+      ? sub.cycle
+      : (allowed.includes('annual') ? 'annual' : allowed[0]);
     setCycle(seedCycle);
     setPlan(defaultPlan);
     setEmail(currentUser?.email || '');
@@ -290,7 +295,7 @@ export default function SubscriptionGate() {
                 : 'Ќе Ви испратиме инструкции за уплата и автоматски ќе Ви дадеме 3 дена дополнителен пристап.'}
             </p>
 
-            {/* ============ SINGLE-OFFER SUMMARY (one plan, annual-only) ======= */}
+            {/* ============ OFFER SUMMARY (one plan, monthly/annual toggle) ==== */}
             <div className={styles.offerCard}>
               <div className={styles.offerHead}>
                 <div>
@@ -298,9 +303,24 @@ export default function SubscriptionGate() {
                   {PLAN_SHORT[plan] && <div className={styles.offerShort}>{PLAN_SHORT[plan]}</div>}
                 </div>
                 <div className={styles.offerPrice}>
-                  <span className={styles.offerPriceNum}>€{PRICES[plan]?.annual}</span>
-                  <span className={styles.offerPriceUnit}>/ година</span>
+                  <span className={styles.offerPriceNum}>€{price}</span>
+                  <span className={styles.offerPriceUnit}>{cycleSuffix}</span>
                 </div>
+              </div>
+              <div className={styles.cycleToggle} role="tablist" aria-label="Период на претплата">
+                {(PLAN_CYCLES[plan] || ['annual']).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="tab"
+                    aria-selected={cycle === c}
+                    className={`${styles.cycleBtn} ${cycle === c ? styles.cycleActive : ''}`}
+                    onClick={() => setCycle(c)}
+                  >
+                    {c === 'monthly' ? 'Месечно' : 'Годишно'}
+                    {c === 'annual' && <span className={styles.cycleSave}>2 месеци гратис</span>}
+                  </button>
+                ))}
               </div>
             </div>
 

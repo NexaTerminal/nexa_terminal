@@ -20,6 +20,7 @@ import InterviewForm from './pages/website/InterviewForm';
 import Interviews from './pages/terminal/Interviews';
 import ProcurementRegister from './pages/terminal/ProcurementRegister';
 import Accountants from './pages/website/Accountants';
+import Pricing from './pages/website/Pricing';
 import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
@@ -269,6 +270,7 @@ function App() {
       <Route path="/karakter/:token" element={<CharacterAssessment />} />
       <Route path="/interview/:token" element={<InterviewForm />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />

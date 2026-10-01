@@ -64,7 +64,12 @@ const contracts = {
   ]
 };
 
-const legalAi = { key: 'legal-ai', icon: 'ai', label: 'Правен AI', path: '/terminal/ai-chat' };
+const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/terminal/ai-team' };
+
+// „Моите барања" — the requester side of Ask-a-Pro (consults + document reviews).
+const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Моите барања', path: '/terminal/requests' };
+// „Барања" — the assigned-to-me side for Pro providers.
+const proRequests = { key: 'pro-requests', icon: 'inbox', label: 'Барања', path: '/terminal/pro/requests', visible: showsLeads };
 
 const screening = {
   key: 'screening', icon: 'check', label: 'Проверки',
@@ -74,10 +79,6 @@ const screening = {
     { path: '/terminal/cyber-screening', label: 'Сајбер безбедност' }
   ]
 };
-
-// „Проверен работодавач" — the shareable employer badge; users re-open/re-share
-// it here anytime (it's attached to their account).
-const myBadge = { key: 'my-badge', icon: 'people', label: 'Мојата значка', path: '/terminal/moja-znachka' };
 
 // „Проценка на карактер" — Big Five personality assessment the employer sends to a
 // candidate/employee; the profile report comes back to the owner. SMB HR tool.
@@ -97,7 +98,6 @@ const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање �
 // Регистар на набавки — log offers per type of purchase + renewal reminders.
 const procurementRegister = { key: 'procurement-register', icon: 'inbox', label: 'Регистар на набавки', path: '/terminal/nabavki', visible: showsSourcing };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
-const marketingAi       = { key: 'marketing-ai', icon: 'ai', label: 'Маркетинг AI', path: '/terminal/marketing-ai' };
 const marketingScreening = { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' };
 // Банер во билтенот — book a banner slot in the monthly Nexa newsletter. Deep-links
 // straight to the banner tab; the Blog tab of the hub stays a Pro surface, so Basic
@@ -132,7 +132,7 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, contracts, legalAi, screening]
+    items: [documents, contracts, myRequests, screening]
   },
   {
     key: 'human-resources', label: 'Човечки ресурси',
@@ -146,14 +146,14 @@ const smbSections = [
     // Случаи, Topics Q&A and Маркетинг live only in the Pro (leads.nexa.mk)
     // layout — they are the lawyer/provider surfaces. Basic keeps the rest.
     key: 'growth', label: 'Маркетинг и раст',
-    items: [sales, marketingAi, marketingScreening, newsletterBanner, fair]
+    items: [sales, marketingScreening, newsletterBanner, fair]
   },
   {
     key: 'education-sec', label: 'Едукација',
     items: [education]
   },
-  // Мојата значка — standalone leaf (no section header), below Едукација.
-  { key: 'badge-sec', label: null, items: [myBadge] }
+  // AI Тим — standalone leaf below (not within) Едукација.
+  { key: 'ai-team-sec', label: null, items: [legalAi] }
 ];
 
 // ── Product B (Lawyers / Pro) — client-acquisition first ────────────────────
@@ -167,16 +167,18 @@ const proSections = [
   // Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [leads, topicsqa, proBlog, proClients]
+    items: [leads, proRequests, topicsqa, proBlog, proClients]
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, legalAi, cases, legalScreening, characterCheck, interviews]
+    items: [proDocuments, contractAnalysis, myRequests, cases, legalScreening, characterCheck, interviews]
   },
   {
     key: 'education-sec', label: 'Едукација',
     items: [education]
-  }
+  },
+  // AI Тим — standalone leaf below (not within) Едукација.
+  { key: 'ai-team-sec', label: null, items: [legalAi] }
 ];
 
 /**

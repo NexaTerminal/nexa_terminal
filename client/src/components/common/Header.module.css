@@ -490,6 +490,34 @@
   }
 }
 
+/* „Проверен работодавач" badge shortcut — sits beside the notification bell.
+   Muted by default; turns golden once the user has earned a valid badge. */
+.badge-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary, #6b7280);
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.badge-link:hover {
+  color: var(--color-accent);
+  background-color: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+/* Earned state — golden badge. */
+.badge-link-earned {
+  color: #f0b100;
+}
+
+.badge-link-earned:hover {
+  color: #d99e00;
+}
+
 /* ============ CREDIT MODAL STYLES ============ */
 
 .modal-overlay {

@@ -151,8 +151,12 @@ import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
 import UserSubscription from './pages/terminal/UserSubscription';
 import UserBilling      from './pages/terminal/UserBilling';
 import AIChat from './pages/terminal/AIChat';
+import AITeamHome from './pages/terminal/AITeamHome';
+import { ChatDockProvider } from './contexts/ChatDockContext';
+import AgentChatDock from './components/chatbot/AgentChatDock';
 import MarketingAIChat from './pages/terminal/MarketingAIChat';
 import ContractAnalysis from './pages/terminal/ContractAnalysis';
+import RequestsPage from './pages/terminal/proRequests/RequestsPage';
 // import CompleteProfile from './pages/terminal/CompleteProfile';
 import SimpleCompleteProfile from './pages/terminal/SimpleCompleteProfile';
 import Education from './pages/terminal/Education';
@@ -257,7 +261,7 @@ function App() {
   }
 
   return (
-    <>
+    <ChatDockProvider>
     <PromoRedeemWatcher />
     <Routes>
       {/* Public Routes — de-merge Phase 3: '/' resolves per storefront host. */}
@@ -387,9 +391,14 @@ function App() {
       <Route path="/terminal/my-templates/history" element={<PrivateRoute><VerificationRequired><TemplateHistory /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/my-templates/:templateId/bulk" element={<PrivateRoute><VerificationRequired><TemplateBulkGenerate /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/template-marketplace" element={<PrivateRoute><VerificationRequired><TemplateMarketplace /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/ai-team" element={<PrivateRoute><VerificationRequired><AITeamHome /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/ai-chat" element={<PrivateRoute><VerificationRequired><AIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/marketing-ai" element={<PrivateRoute><VerificationRequired><MarketingAIChat /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contract-analysis" element={<PrivateRoute><VerificationRequired><ContractAnalysis /></VerificationRequired></PrivateRoute>} />
+      {/* Ask-a-Pro / Queries (Барања) — role-aware single component */}
+      <Route path="/terminal/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="mine" /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/pro/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="assigned" /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/admin-user/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="admin" /></VerificationRequired></PrivateRoute>} />
       {/* Parked scope (master-plan Phase 0.4): Investments and FindLawyer are
           off-strategy surfaces — old links redirect into the core product. */}
       <Route path="/terminal/investments" element={<Navigate to="/terminal" replace />} />
@@ -523,7 +532,8 @@ function App() {
       <Route path="/terminal/admin/topics/submissions"        element={<PrivateRoute><AdminTopicsSubmissionsPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
     </Routes>
-    </>
+    <AgentChatDock />
+    </ChatDockProvider>
   );
 }
 

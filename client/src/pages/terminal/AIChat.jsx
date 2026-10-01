@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
 import PersonaControl from '../../components/chatbot/PersonaControl';
+import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAnalysisPanel';
+import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
+import ProRequestsApiService from '../../services/proRequestsApi';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
+import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
+import useTermsGate from '../../hooks/useTermsGate';
+import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from '../../styles/terminal/AIChat.module.css';
 
 /**
@@ -24,6 +30,16 @@ const AIChat = () => {
   // const { user } = useAuth(); // Not needed for this component
   const { refreshCredits } = useCredit();
   const { handleCreditOperation, showInsufficientModal, modalConfig, closeModal } = useCreditHandler();
+  const navigate = useNavigate();
+
+  // Active AI Team agent (legal RAG engine). Marketing agent lives on its own page.
+  const [agent, setAgent] = useState(DEFAULT_AGENT_KEY);
+  const activeAgent = getAgent(agent);
+  // Contract-review panel (corporate agent only).
+  const [showContract, setShowContract] = useState(false);
+  // Ask-a-Pro handoff
+  const { requireTerms, termsModal } = useTermsGate();
+  const [proNotice, setProNotice] = useState(null);
 
   // State management
   const [question, setQuestion] = useState('');
@@ -51,10 +67,21 @@ const AIChat = () => {
     fetchLimits();
   }, []);
 
-  // Handoff: prefill the question from ?q= (e.g. "Ask the AI" from an LHC finding).
+  // Handoff: prefill the question from ?q= (e.g. "Ask the AI" from an LHC finding)
+  // and optionally preselect an agent via ?agent= (legal RAG agents only).
   useEffect(() => {
     try {
-      const q = new URLSearchParams(window.location.search).get('q');
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const a = params.get('agent');
+      if (a) {
+        const picked = getAgent(a);
+        if (picked && picked.engine === 'legal') {
+          setAgent(picked.key);
+          // ?review=1 from the Team page opens the contract panel for НОВА.
+          if (params.get('review') && picked.hasContractReview) setShowContract(true);
+        }
+      }
       if (q) {
         setQuestion(q);
         textareaRef.current?.focus();
@@ -104,6 +131,36 @@ const AIChat = () => {
     setMessages([]);
     setCurrentConversationId(null);
     setError(null);
+  };
+
+  /**
+   * Ask-a-Pro handoff: create a `consult` pro request from the current chat.
+   * Uses the last user question (or the input box) + a short transcript excerpt;
+   * gated behind the proRequest terms (data-sharing consent).
+   */
+  const handleAskPro = () => {
+    const lastUser = [...messages].reverse().find((m) => m.type === 'user');
+    const q = (lastUser?.content || question).trim();
+    if (!q) { setError('Прво напишете или поставете прашање.'); return; }
+    const excerpt = messages
+      .slice(-6)
+      .map((m) => `${m.type === 'user' ? 'Јас' : activeAgent.name}: ${m.content}`)
+      .join('\n\n');
+    requireTerms('proRequest', async () => {
+      setProNotice(null);
+      try {
+        const res = await ProRequestsApiService.create({
+          type: 'consult',
+          subject: q.slice(0, 120),
+          agent,
+          context: { question: q, conversationId: currentConversationId, transcriptExcerpt: excerpt },
+          consentVersion: CURRENT_VERSIONS.proRequest,
+        });
+        if (res.success) {
+          setProNotice('Барањето е испратено. Ќе биде прегледано и доделено на професионалец — следете го во „Моите барања".');
+        } else setError(res.message || 'Грешка при испраќање на барањето.');
+      } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
+    });
   };
 
   /**
@@ -247,7 +304,7 @@ const AIChat = () => {
           setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
           setIsStreaming(false);
         },
-      });
+      }, agent);
 
     } catch (err) {
       console.error('Error asking question:', err);
@@ -261,7 +318,7 @@ const AIChat = () => {
 
         let conversationId = currentConversationId;
         const data = await handleCreditOperation(
-          async () => ChatbotApiService.sendMessage(conversationId, questionText),
+          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent),
           'AI прашање',
           1
         );
@@ -371,13 +428,47 @@ const AIChat = () => {
           <div className={styles.container}>
           <div className={styles.header}>
             <div className={styles.titleRow}>
-              <div>
-                <h1 className={styles.title}>AI Правен Асистент</h1>
-                <p className={styles.subtitle}>
-                  Поставувајте прашања за правни документи и постапки
-                </p>
+              <div className={styles.titleMain}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={() => navigate('/terminal/ai-team')}
+                  title="Назад кон AI Тим"
+                  aria-label="Назад кон AI Тим"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                </button>
+                {activeAgent.photo && (
+                  <span className={styles.avatarWrap2}>
+                    <img src={activeAgent.photo} alt={activeAgent.name} className={styles.titleAvatar} />
+                    <span className={styles.onlineDot} aria-hidden="true" />
+                  </span>
+                )}
+                <div>
+                  <h1 className={styles.title}>{activeAgent.name}</h1>
+                  <p className={styles.roleLine}>
+                    {activeAgent.role} · <span className={styles.onlineText}>достапен</span>
+                  </p>
+                </div>
               </div>
               <div className={styles.headerActions}>
+                {activeAgent.hasContractReview && (
+                  <button
+                    type="button"
+                    className={styles.contractToggle}
+                    onClick={() => setShowContract((v) => !v)}
+                  >
+                    📄 {showContract ? 'Затвори преглед' : 'Преглед на договор'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={styles.askProBtn}
+                  onClick={handleAskPro}
+                  title="Испрати го прашањето на професионалец"
+                >
+                  🧑‍⚖️ Прашај професионалец
+                </button>
                 <PersonaControl />
                 <div className={styles.limitsBadge}>
                   <span className={styles.limitsCount}>
@@ -395,7 +486,7 @@ const AIChat = () => {
 
             {/* Disclaimer */}
             <p className={styles.disclaimer}>
-              Овој асистент не е лиценциран адвокат. За специфични правни прашања, консултирајте се со{' '}
+              {activeAgent.name} не е лиценциран адвокат. За специфични правни прашања, консултирајте се со{' '}
               <a
                 href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati"
                 target="_blank"
@@ -407,20 +498,33 @@ const AIChat = () => {
             </p>
           </div>
 
+          {/* Contract review panel (Елена only) */}
+          {activeAgent.hasContractReview && showContract && (
+            <div className={styles.contractPanel}>
+              <ContractAnalysisPanel />
+            </div>
+          )}
+
           {/* Chat messages area */}
           <div className={styles.messagesContainer}>
             {messages.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>💬</div>
-                <h3>Започнете разговор</h3>
-                <p>Поставете прашање за правни документи, процедури или барајте совети.</p>
-                <div className={styles.exampleQuestions}>
-                  <p className={styles.examplesTitle}>Примери на прашања:</p>
-                  <ul>
-                    <li>Кои се основните елементи на договор за вработување?</li>
-                    <li>Какви се правата на вработените при отказ од деловни причини?</li>
-                    <li>Што треба да содржи согласноста за обработка на лични податоци?</li>
-                  </ul>
+              <div className={styles.welcome}>
+                {activeAgent.photo && (
+                  <img src={activeAgent.photo} alt={activeAgent.name} className={styles.welcomeAvatar} />
+                )}
+                <h3 className={styles.welcomeTitle}>Здраво, јас сум {activeAgent.name}</h3>
+                <p className={styles.welcomeBio}>{activeAgent.bio}</p>
+                <div className={styles.starters}>
+                  {(activeAgent.starters || []).map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={styles.starterChip}
+                      onClick={() => handleSuggestionClick(s)}
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
@@ -428,81 +532,93 @@ const AIChat = () => {
                 {messages.map((message, index) => (
                   <div
                     key={index}
-                    className={`${styles.message} ${
-                      message.type === 'user' ? styles.userMessage : styles.aiMessage
+                    className={`${styles.messageRow} ${
+                      message.type === 'user' ? styles.rowUser : styles.rowAi
                     }`}
                   >
-                    <div className={styles.messageHeader}>
-                      <span className={styles.messageAuthor}>
-                        {message.type === 'user' ? 'Вие' : 'NexaAI'}
-                      </span>
-                      <span className={styles.messageTime}>
-                        {message.timestamp.toLocaleTimeString('mk-MK', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-
-                    <div className={`${styles.messageContent} ${message.type === 'ai' ? styles.markdownContent : ''}`}>
-                      {message.type === 'ai' ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.content}
-                        </ReactMarkdown>
-                      ) : (
-                        message.content
-                      )}
-                      {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
-                    </div>
-
-                    {/* Feedback buttons for AI messages (not during streaming) */}
-                    {message.type === 'ai' && !message.isStreaming && message.content && (
-                      <div className={styles.feedbackRow}>
-                        <button
-                          className={`${styles.feedbackBtn} ${message.feedback?.rating === 'up' ? styles.feedbackActive : ''}`}
-                          onClick={() => handleFeedback(index, 'up')}
-                          title="Корисен одговор"
-                        >
-                          👍
-                        </button>
-                        <button
-                          className={`${styles.feedbackBtn} ${message.feedback?.rating === 'down' ? styles.feedbackActive : ''}`}
-                          onClick={() => handleFeedback(index, 'down')}
-                          title="Некорисен одговор"
-                        >
-                          👎
-                        </button>
-                      </div>
+                    {message.type === 'ai' && (
+                      activeAgent.photo
+                        ? <img src={activeAgent.photo} alt={activeAgent.name} className={styles.msgAvatar} />
+                        : <span className={styles.msgAvatarFallback}>{activeAgent.icon}</span>
                     )}
 
-                    {/* Suggestion chips for AI messages */}
-                    {message.type === 'ai' && !message.isStreaming && message.suggestions && message.suggestions.length > 0 && (
-                      <div className={styles.suggestionsRow}>
-                        {message.suggestions.map((suggestion, sIdx) => (
+                    <div className={styles.bubbleCol}>
+                      <div className={styles.messageHeader}>
+                        <span className={styles.messageAuthor}>
+                          {message.type === 'user' ? 'Вие' : activeAgent.name}
+                        </span>
+                        <span className={styles.messageTime}>
+                          {message.timestamp.toLocaleTimeString('mk-MK', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+
+                      <div className={`${styles.bubble} ${message.type === 'user' ? styles.bubbleUser : styles.bubbleAi} ${message.type === 'ai' ? styles.markdownContent : ''}`}>
+                        {message.type === 'ai' ? (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
+                        ) : (
+                          message.content
+                        )}
+                        {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
+                      </div>
+
+                      {/* Feedback buttons for AI messages (not during streaming) */}
+                      {message.type === 'ai' && !message.isStreaming && message.content && (
+                        <div className={styles.feedbackRow}>
                           <button
-                            key={sIdx}
-                            className={styles.suggestionChip}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            disabled={isLoading || isStreaming}
+                            className={`${styles.feedbackBtn} ${message.feedback?.rating === 'up' ? styles.feedbackActive : ''}`}
+                            onClick={() => handleFeedback(index, 'up')}
+                            title="Корисен одговор"
                           >
-                            {suggestion}
+                            👍
                           </button>
-                        ))}
-                      </div>
-                    )}
+                          <button
+                            className={`${styles.feedbackBtn} ${message.feedback?.rating === 'down' ? styles.feedbackActive : ''}`}
+                            onClick={() => handleFeedback(index, 'down')}
+                            title="Некорисен одговор"
+                          >
+                            👎
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Suggestion chips for AI messages */}
+                      {message.type === 'ai' && !message.isStreaming && message.suggestions && message.suggestions.length > 0 && (
+                        <div className={styles.suggestionsRow}>
+                          {message.suggestions.map((suggestion, sIdx) => (
+                            <button
+                              key={sIdx}
+                              className={styles.suggestionChip}
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              disabled={isLoading || isStreaming}
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
 
                 {/* Loading indicator */}
                 {isLoading && (
-                  <div className={`${styles.message} ${styles.aiMessage}`}>
-                    <div className={styles.messageHeader}>
-                      <span className={styles.messageAuthor}>NexaAI</span>
-                    </div>
-                    <div className={styles.loadingIndicator}>
-                      <span className={styles.dot}></span>
-                      <span className={styles.dot}></span>
-                      <span className={styles.dot}></span>
+                  <div className={`${styles.messageRow} ${styles.rowAi}`}>
+                    {activeAgent.photo
+                      ? <img src={activeAgent.photo} alt={activeAgent.name} className={styles.msgAvatar} />
+                      : <span className={styles.msgAvatarFallback}>{activeAgent.icon}</span>}
+                    <div className={styles.bubbleCol}>
+                      <div className={`${styles.bubble} ${styles.bubbleAi}`}>
+                        <div className={styles.loadingIndicator}>
+                          <span className={styles.dot}></span>
+                          <span className={styles.dot}></span>
+                          <span className={styles.dot}></span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -511,6 +627,13 @@ const AIChat = () => {
               </div>
             )}
           </div>
+
+          {/* Ask-a-Pro confirmation */}
+          {proNotice && (
+            <div className={styles.proNotice}>
+              ✓ {proNotice}
+            </div>
+          )}
 
           {/* Error message */}
           {error && (
@@ -577,6 +700,9 @@ const AIChat = () => {
         requiredCredits={modalConfig.requiredCredits}
         actionName={modalConfig.actionName}
       />
+
+      {/* Ask-a-Pro consent */}
+      {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
   );
 };

@@ -1162,6 +1162,16 @@ function registerRoutes() {
     console.error('❌ /api/cases route error:', error.message);
   }
 
+  // Pro Requests (Барања) — "Ask a Pro" bridge: AI handoff → admin approval →
+  // assigned Pro ↔ requester thread. Serves Basic (create/own) + Pro (assigned)
+  // + admin, so it sits behind subscriptionGuard like the chatbot.
+  try {
+    app.use('/api/pro-requests', subscriptionGuard, require('./routes/proRequests'));
+    console.log('✅ /api/pro-requests mounted');
+  } catch (error) {
+    console.error('❌ /api/pro-requests route error:', error.message);
+  }
+
   // „Проценка на карактер" — Big Five candidate/employee assessment (owner side).
   // Behind subscriptionGuard: Basic + Pro owners with active access. The public
   // respondent funnel is mounted separately, before CSRF (see above).

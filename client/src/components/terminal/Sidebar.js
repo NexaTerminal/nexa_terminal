@@ -98,6 +98,7 @@ const Sidebar = () => {
         { path: '/terminal/admin/leads',             label: 'Клиенти' },
         { path: '/terminal/admin/service-providers', label: 'Провајдери на услуги' },
         { path: '/terminal/admin/offer-requests',    label: 'Барања за понуди' },
+        { path: '/terminal/admin-user/requests',     label: 'Барања до професионалци' },
         { path: '/terminal/admin/fair',              label: 'Виртуелен саем' }
       ]
     },

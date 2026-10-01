@@ -12,10 +12,13 @@ class ChatbotApiService {
    * @param {string} conversationId - Optional conversation ID for history tracking
    * @returns {Promise<Object>} - Response with answer, sources, and remaining questions
    */
-  static async askQuestion(question, conversationId = null) {
+  static async askQuestion(question, conversationId = null, agent = null) {
     const data = { question };
     if (conversationId) {
       data.conversationId = conversationId;
+    }
+    if (agent) {
+      data.agent = agent;
     }
 
     return ApiService.post('/chatbot/ask', data);
@@ -76,8 +79,8 @@ class ChatbotApiService {
    * @param {string} question - User's question
    * @returns {Promise<Object>} - AI response with answer and sources
    */
-  static async sendMessage(conversationId, question) {
-    return ApiService.post(`/chatbot/conversations/${conversationId}/ask`, { question });
+  static async sendMessage(conversationId, question, agent = null) {
+    return ApiService.post(`/chatbot/conversations/${conversationId}/ask`, { question, agent });
   }
 
   /**
@@ -87,7 +90,7 @@ class ChatbotApiService {
    * @param {Object} callbacks - { onToken, onSources, onSuggestions, onDone, onError }
    * @returns {Promise<void>}
    */
-  static async sendMessageStream(conversationId, question, { onToken, onSources, onSuggestions, onDone, onError }) {
+  static async sendMessageStream(conversationId, question, { onToken, onSources, onSuggestions, onDone, onError }, agent = null) {
     const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
     const token = localStorage.getItem('token');
 
@@ -118,7 +121,7 @@ class ChatbotApiService {
       method: 'POST',
       headers,
       credentials: 'include',
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, agent }),
     });
 
     if (!response.ok) {

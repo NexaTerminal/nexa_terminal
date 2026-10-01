@@ -97,6 +97,179 @@
   color: var(--color-text-muted, #a3a3a3);
 }
 
+/* AI Team agent selector bar */
+.agentBar {
+  margin: 12px 0 10px;
+}
+
+/* Active agent avatar + identity in the chat header */
+.titleMain { display: flex; align-items: center; gap: 12px; }
+.backBtn {
+  width: 34px; height: 34px;
+  min-width: 34px;
+  padding: 0;
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-neutral-700, #374151);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.backBtn svg { display: block; }
+.backBtn:hover { background: var(--color-neutral-50, #f8f9fa); color: var(--color-primary, #1E4DB7); border-color: var(--color-primary, #1E4DB7); }
+.avatarWrap2 { position: relative; flex-shrink: 0; width: 48px; height: 48px; }
+.titleAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 2px solid var(--color-border, #e5e7eb);
+  flex-shrink: 0;
+  display: block;
+}
+.onlineDot {
+  position: absolute;
+  right: 1px; bottom: 1px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #fff;
+}
+.roleLine { margin: 2px 0 0; font-size: 0.82rem; color: var(--color-neutral-500, #9ca3af); }
+.onlineText { color: #16a34a; font-weight: 600; }
+
+/* ── Modern message rows (avatar + bubble) ─────────────────────────────────── */
+.messageRow { display: flex; gap: 10px; align-items: flex-start; max-width: 100%; animation: fadeIn 0.3s ease-in; }
+.rowAi { justify-content: flex-start; }
+.rowUser { justify-content: flex-end; }
+.rowUser .bubbleCol { align-items: flex-end; }
+.msgAvatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  flex-shrink: 0;
+  margin-top: 20px;
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+.msgAvatarFallback {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-neutral-100, #f3f4f6);
+  flex-shrink: 0; margin-top: 20px; font-size: 1.05rem;
+}
+.bubbleCol { display: flex; flex-direction: column; min-width: 0; max-width: 78%; }
+.bubble {
+  padding: 12px 15px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.bubbleAi {
+  background: #fff;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-top-left-radius: 4px;
+  color: var(--color-neutral-800, #1f2937);
+}
+.bubbleUser {
+  background: var(--color-primary, #1E4DB7);
+  color: #fff;
+  border-top-right-radius: 4px;
+  white-space: pre-wrap;
+}
+
+/* ── Per-agent welcome (empty state) ───────────────────────────────────────── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 20px;
+  margin: auto 0;
+}
+.welcomeAvatar {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border: 3px solid #fff;
+  box-shadow: 0 6px 24px rgba(17, 24, 39, 0.12);
+  margin-bottom: 16px;
+}
+.welcomeTitle { margin: 0 0 8px; font-size: 1.35rem; font-weight: 800; color: var(--color-dark, #111827); }
+.welcomeBio { margin: 0 auto 22px; max-width: 460px; font-size: 0.95rem; line-height: 1.5; color: var(--color-neutral-600, #6b7280); }
+.starters { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 560px; }
+.starterChip {
+  padding: 10px 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-neutral-700, #374151);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.starterChip:hover {
+  border-color: var(--color-primary, #1E4DB7);
+  background: var(--color-accent-soft, #eff6ff);
+  transform: translateY(-1px);
+}
+
+/* Contract review (Елена) */
+.contractToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-primary, #1E4DB7);
+  border-radius: var(--border-radius-full, 999px);
+  background: #fff;
+  color: var(--color-primary, #1E4DB7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.contractToggle:hover { background: var(--color-accent-soft, #eff6ff); }
+.askProBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-full, 999px);
+  background: var(--color-neutral-50, #f8f9fa);
+  color: var(--color-neutral-700, #374151);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.askProBtn:hover { border-color: var(--color-primary, #1E4DB7); background: var(--color-accent-soft, #eff6ff); }
+.proNotice {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.9rem;
+}
+.contractPanel {
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-lg, 12px);
+  background: var(--color-neutral-50, #f8f9fa);
+}
+
 /* Disclaimer - minimal single line */
 .disclaimer {
   font-size: var(--font-size-xs, 0.75rem);
@@ -501,11 +674,16 @@
 /* Input area */
 .inputContainer {
   background: var(--color-white, white);
-  padding: var(--spacing-3, 0.75rem) var(--spacing-4, 1rem);
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+  padding: 10px 10px 10px 18px;
+  border-radius: 22px;
+  box-shadow: 0 2px 14px rgba(17, 24, 39, 0.07);
   border: 1px solid var(--color-border, #e5e5e5);
   flex-shrink: 0;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.inputContainer:focus-within {
+  border-color: var(--color-primary, #1E4DB7);
+  box-shadow: 0 4px 20px rgba(30, 77, 183, 0.12);
 }
 
 .inputForm {
@@ -517,23 +695,21 @@
 
 .input {
   flex: 1;
-  padding: var(--spacing-3, 0.75rem) var(--spacing-4, 1rem);
-  border: 2px solid var(--color-border-soft, #d4d4d4);
-  border-radius: var(--radius-md, 8px);
+  padding: 10px 4px;
+  border: none;
+  border-radius: 0;
   font-size: 16px;
   line-height: 1.5;
-  transition: border-color var(--transition-fast, 150ms);
   font-family: inherit;
-  background: var(--color-white, #ffffff);
+  background: transparent;
   resize: none;
   overflow-y: auto;
-  min-height: 44px;
+  min-height: 24px;
   max-height: 150px;
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--color-primary, #1E4DB7);
 }
 
 .input:disabled {

@@ -9,6 +9,10 @@ import ClientSelector from './ClientSelector';
 import OwnCompanyModal from './OwnCompanyModal';
 import { useDocumentForm } from '../../hooks/useDocumentForm';
 import { visibleTier } from '../../lib/tier';
+import useTermsGate from '../../hooks/useTermsGate';
+import FeatureTermsModal from '../terminal/FeatureTermsModal';
+import ProRequestsApiService from '../../services/proRequestsApi';
+import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -431,6 +435,26 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
  */
 const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
   const [copied, setCopied] = useState(false);
+  const { requireTerms, termsModal } = useTermsGate();
+  const [reviewNotice, setReviewNotice] = useState(null);
+
+  // „Побарај преглед" — hand the generated document to a Pro for review.
+  const requestProReview = () => {
+    requireTerms('proRequest', async () => {
+      setReviewNotice(null);
+      try {
+        const res = await ProRequestsApiService.create({
+          type: 'contract_review',
+          subject: fileName ? `Преглед: ${fileName}` : 'Преглед на документ',
+          context: { documentRef: shareUrl, documentName: fileName || null },
+          consentVersion: CURRENT_VERSIONS.proRequest,
+        });
+        setReviewNotice(res.success
+          ? 'Испратено за преглед — следете го во „Моите барања".'
+          : (res.message || 'Грешка при испраќање.'));
+      } catch (e) { setReviewNotice(e.message || 'Грешка при испраќање.'); }
+    });
+  };
 
   const copyToClipboard = async () => {
     try {
@@ -470,8 +494,13 @@ const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
         <button type="button" className={styles['success-link']} onClick={downloadAgain}>
           Преземи повторно
         </button>
+        <button type="button" className={styles['success-link']} onClick={requestProReview}>
+          Побарај преглед од професионалец
+        </button>
         {expiryLabel && <span className={styles['success-expiry']}>Важи до {expiryLabel}</span>}
       </div>
+      {reviewNotice && <div className={styles['success-review-notice']}>{reviewNotice}</div>}
+      {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
   );
 };

@@ -1,3 +1,18 @@
+# Nexa — Product & Marketing Master Document
+
+> This single document merges the two former briefs — the **Product & Business Overview**
+> (architecture, features, pricing, roles, tech) and the **Marketing Concept Brief** (positioning,
+> funnel, messaging, campaign constraints). Nothing was dropped in the merge; both are preserved in
+> full below. Part I is the engineering/product snapshot; Part II is the go-to-market/marketing brief.
+> Where the two overlap (e.g. pricing, feature lists), Part I is the technical source of truth and
+> Part II is the marketing framing.
+>
+> Last merged: 2026-09-30.
+
+---
+
+# PART I — Product & Business Overview
+
 # Nexa — Product & Business Overview
 
 > A complete snapshot of the Nexa ecosystem as it stands today: business model, product surface, technical architecture, pricing, user roles, marketing channels, and the satellite-site network. Intended as a context briefing for AI tools, advisors, and stakeholders.
@@ -21,14 +36,14 @@ The homepage tells this as a 3-act story:
 
 ## 2. Pricing model
 
-All prices in **EUR**. The go-to-market offer is a **single annual price per tier**, and **prices are not shown on the public website** — they surface only inside the terminal buy flow (the SubscriptionGate). Legacy monthly/quarterly numbers remain in code for back-compat but are not the marketed offer.
+All prices in **EUR** (Nexa 3.1). Each tier is sold on **two cycles — monthly + annual** (annual ≈ 2 months free), and **prices are now shown publicly** on `/pricing` as well as in the terminal buy flow (the SubscriptionGate). Quarterly is retained in code for back-compat only. The issuer is not VAT-liable, so the shown price is final; payment is by manual bank transfer against a pro-forma invoice. MKD is shown for reference at ~61.5.
 
-| Plan | Annual (GTM offer) | (legacy monthly / quarterly) | Audience |
+| Plan | Monthly | Annual (≈2 mo free) | Audience |
 |---|---:|---:|---|
-| **Основен** (Basic) | **€90 / year** | €19 / €49 | SMBs (demand side) |
-| **Про** (Pro) | **€190 / year** | €39 / €99 | Service providers (supply side) |
+| **Основен** (Basic) | **€15 / mo** | **€149 / year** | SMBs (demand side) |
+| **Про** (Pro) | **€39 / mo** | **€390 / year** | Service providers (supply side) |
 
-Public pages sell value and drive to signup; the price is revealed in-app.
+Public pages now show the price and drive to signup; the same numbers surface in-app at checkout.
 
 ### What each plan includes
 
@@ -53,20 +68,20 @@ Public pages sell value and drive to signup; the price is revealed in-app.
 - **Request for offers (tender side)** — respond to client requests
 - Editorial spot in the monthly newsletter for accepted blog posts
 
-### Onboarding & subscription lifecycle (60-day free window + code-first)
+### Onboarding & subscription lifecycle (8-day free window + code-first)
 
-A brand-new signup is granted a **60-day free full-access window** (`initTrial`, `TRIAL_DAYS = 60`) to the product for its storefront's plan. When the window lapses the account **auto-suspends** (data preserved) and returns to a preview/locked state until the user subscribes or redeems a code. Outbound promo codes still run in parallel.
+A brand-new signup is granted an **8-day free full-access window** (`initTrial`, `TRIAL_DAYS = 8`) to the product for its storefront's plan. When the window lapses the account **auto-suspends** (data preserved) and returns to a preview/locked state until the user subscribes or redeems a code. Outbound promo codes still run in parallel.
 
 ```
-register ──► 60-day free window (active, paidVia:'promo', trial:true)
+register ──► 8-day free window (active, paidVia:'promo', trial:true)
    │                     │
-   │                     └─(60 days lapse)─► suspended/locked (preview) ──┐
+   │                     └─(8 days lapse)─► suspended/locked (preview) ──┐
    │                                                                      │
    ├──► redeem promo code (/redeem) ─────────► active (€0, time-boxed) ───┤
    └──► pick a plan → pro-forma invoice → bank transfer → active (paid) ──┘
 ```
 
-- **Free window**: `initTrial` fires after Google signup and after email verification, activating the plan at €0 with `paidVia:'promo'` + `subscription.trial:true`, `endsAt ≈ now + 60d`. One per email.
+- **Free window**: `initTrial` fires after Google signup and after email verification, activating the plan at €0 with `paidVia:'promo'` + `subscription.trial:true`, `endsAt ≈ now + 8d`. One per email.
 - **Code-first acquisition**: outbound sales issue per-prospect **promo codes** (typically a time-boxed Pro grant). A prospect redeems at `/redeem?code=…`, which activates the plan at €0 with `paidVia: 'promo'`. Google OAuth sign-in is wired (`/auth/callback`, `/auth/success`).
 - **Paid path**: the user picks a plan; the Terminal issues a **pro-forma invoice** by email; payment is by **manual bank transfer** (no card processing). On confirmed payment the platform admin approves and the account goes active.
 - **One-time 3-day grace**: the first time a locked/expired user shows intent (requests an invoice) without having paid, a race-safe 3-day grace window is auto-granted so access isn't interrupted while payment is in transit.
@@ -80,16 +95,16 @@ Defined in `server/constants/roles.js`. Canonical two-tier model with legacy key
 ```js
 const PLANS  = { BASIC: 'basic', PRO: 'pro' };
 const PLAN_PRICES = {
-  basic: { monthly: 19, quarterly: 49, annual: 90 },   // €90/yr is the GTM offer
-  pro:   { monthly: 39, quarterly: 99, annual: 190 }    // €190/yr is the GTM offer
+  basic: { monthly: 15, quarterly: 40,  annual: 149 },  // €15/mo · €149/yr (marketed)
+  pro:   { monthly: 39, quarterly: 105, annual: 390 }   // €39/mo · €390/yr (marketed)
 };
 const PLAN_SEATS = { basic: 3, pro: 25 };
 const PLAN_TO_ROLE = { basic: 'standard_user', pro: 'admin_user' };
 const PLAN_CURRENCY = 'EUR';
-const TRIAL_DAYS = 60;  // 60-day free window granted at signup
+const TRIAL_DAYS = 8;  // 8-day free window granted at signup
 ```
 
-`canonicalPlan()` normalizes legacy keys (`standard`→`basic`; `admin_5`/`admin_10`→`pro`). Same prices echo across `Pricing.js`, `SubscriptionGate.js`, `schemaGraph.js` (JSON-LD), payment-instruction emails, and i18n descriptors.
+`canonicalPlan()` normalizes legacy keys (`standard`→`basic`; `admin_5`/`admin_10`→`pro`). Prices are the source of truth here and flow to the pro-forma-invoice + offer PDFs (EUR + MKD) automatically; **hand-synced duplicates** live in `client/src/components/terminal/SubscriptionGate.js`, `client/src/pages/website/Pricing.js`, and `server/emails/subscriptionEmails.js` (keep all three in sync on any change).
 
 ---
 
@@ -276,7 +291,7 @@ Pro buys distribution, not just seats:
 |---|---|
 | `/` | Home — 3-act story |
 | `/about` | Full ecosystem explanation, FAQ, contact, legal entity |
-| `/pricing` | Two-tier chooser (Basic + Pro) + pro-forma invoice flow |
+| `/pricing` | Public two-tier pricing page (Basic + Pro, monthly/annual toggle, prices shown) → signup |
 | `/proverka` | Public compliance teaser funnel |
 | `/ecosystem`, `/corporate`, `/employment`, `/residence`, `/trademark`, `/smetkovoditeli`, `/topics` | Niche landing / funnel entry pages |
 | `/redeem` | Promo-code redemption (Google OAuth wired) |
@@ -321,10 +336,10 @@ In-app dashboard tile, email (Resend → Gmail fallback), and live Socket.io eve
 
 ## 10. Subscription & access enforcement
 
-### State machine (60-day free window)
+### State machine (8-day free window)
 
 ```
-register ─► 60-day free window (active, trial) ─► (lapse) ─► suspended
+register ─► 8-day free window (active, trial) ─► (lapse) ─► suspended
      │              │                                            ▲
      │              └─► pending_approval ─► active ─► renewal ───┤
      │                        └─► (reject) ─► suspended          │
@@ -332,7 +347,7 @@ register ─► 60-day free window (active, trial) ─► (lapse) ─► suspend
 ```
 
 Implemented in `server/services/subscriptionService.js`:
-- **60-day free window** — `initTrial(userId, { plan, days: TRIAL_DAYS })` (`TRIAL_DAYS = 60`) fires at signup (Google + email-verify), activating the plan at €0 with `subscription.trial: true`, `endsAt ≈ now + 60d`. One per email. On lapse the daily cron suspends the account (data preserved) → preview/locked until the user subscribes or redeems a code. `initLocked` remains for edge/back-compat paths.
+- **8-day free window** — `initTrial(userId, { plan, days: TRIAL_DAYS })` (`TRIAL_DAYS = 8`) fires at signup (Google + email-verify), activating the plan at €0 with `subscription.trial: true`, `endsAt ≈ now + 8d`. One per email. On lapse the daily cron suspends the account (data preserved) → preview/locked until the user subscribes or redeems a code. `initLocked` remains for edge/back-compat paths. Trial-conversion reminders fit the 8-day window: `offer_d7` (promo only), `offer_d4` (trial), `offer_d2` (all), with education emails on days 2–3.
 - `requestApproval(userId, { plan, cycle })` — moves to `pending_approval`; if the user is post-activation and grace is unused, atomically grants the one-time 3-day grace (race-safe).
 - `redeemPromo(userId, { plan, cycle, code })` — free €0 activation with `paidVia: 'promo'`, time-boxed.
 - `activate` (shared by admin-approve and promo-redeem) — sets `active`, `endsAt` by cycle (30/90/365), preserves the platform admin, records `paidVia`.
@@ -399,8 +414,8 @@ Security: double-submit-cookie **CSRF** (`middleware/csrf.js`) with an `exemptCS
 
 Roughly in the order shipped:
 
-1. **Two-tier merge** — Standard / Admin·5 / Admin·10 collapsed to **Basic + Pro**; roles `basic→standard_user`, `pro→admin_user`; seats 3 / 25; EUR pricing now a single annual offer (**€90 Basic / €190 Pro**); legacy keys kept for back-compat via `canonicalPlan()`.
-2. **Onboarding: 60-day free window** — new signups get a **60-day free full-access window** (`initTrial`, `TRIAL_DAYS = 60`) at Google/email-verify; on lapse the account suspends (data preserved) → subscribe or **redeem a promo code** (`/redeem`); code-first outbound sales run in parallel; Google OAuth sign-in. _(Supersedes the earlier "no trial, locked-on-signup" model.)_
+1. **Two-tier merge** — Standard / Admin·5 / Admin·10 collapsed to **Basic + Pro**; roles `basic→standard_user`, `pro→admin_user`; seats 3 / 25; EUR pricing was a single annual offer (€90 Basic / €190 Pro); legacy keys kept for back-compat via `canonicalPlan()`. _(Pricing later revised — see #22.)_
+2. **Onboarding: free window** — new signups get a **free full-access window** (`initTrial`) at Google/email-verify; on lapse the account suspends (data preserved) → subscribe or **redeem a promo code** (`/redeem`); code-first outbound sales run in parallel; Google OAuth sign-in. _(Window was 60 days here; now 8 — see #22.)_
 3. **LHC platform overhaul** — unified `lhcScoring.js` engine (fraction model, 4 bands, critical gates); Employment split into full + Parts 1–4; **Tax module** (General / Payroll / Profit / VAT); Archives, Protection & Rescue, Waste Management, Health & Safety, GDPR (a/b/c/d maturity), and a General cross-topic pool.
 4. **HR module** — `/terminal/employees` registry with computed leave balances + reminder cron; document prefill.
 5. **Contracts registry** — `/terminal/contracts` with renewal/expiry reminders.
@@ -420,6 +435,7 @@ Roughly in the order shipped:
 19. **Multi-vertical Inquiry Board** — Pro expanded beyond lawyers to a multi-vertical provider network on the tag-and-express-interest board. `PRACTICE_AREAS` gained `real-estate`, `insurance`, `consulting`; **procedure templates** (`server/config/procedureTemplates.js`: immigration / company_formation / property_purchase) pre-fill inquiry categories + per-category MK/EN suggestion lines; `inquiriesService.listBoardFor` attaches a per-member procedure hint; `ExpressInterestModal` got a profession picker; the `TierOnboardingModal` Pro option is now **„Давател на услуги"** with a provider-type picker that seeds `practiceAreas`; admin `AdminInquiryNew` has a procedure dropdown that pre-fills category chips.
 20. **Newsletter banner for Basic** — the newsletter ad-slot booking (already tier-agnostic on the backend) is now discoverable for Basic via a dedicated **„Банер во билтенот"** item in Маркетинг и раст; `MarketingHub` shows the Блог tab only for Pro/admin, so Basic gets banner-only.
 21. **HR Interviews („Интервјуа")** — a new qualitative HR tool cloning the character-assessment pattern: **Интервју скен** + **Излезно интервју** under one nav group, owner-editable question templates (text/1–5 rating, suggested by business type + role, saveable default per type), public respondent funnel, best-effort **AI summary** (openai) + owner results email on completion. `hr_interviews` + `hr_interview_templates` collections; Basic + Pro via `subscriptionGuard`.
+22. **Pricing 3.1 + 8-day trial** — reset pricing higher and reintroduced two cycles: **Basic €15/mo · €149/yr**, **Pro €39/mo · €390/yr** (annual ≈ 2 months free; quarterly retired from the offer). Prices are now **shown publicly** on a new `/pricing` page (bilingual, monthly/annual toggle, MKD note, Offer JSON-LD) + navbar/footer links, and echoed in `SubscriptionGate` (monthly/annual toggle) + the pro-forma/offer PDFs + emails. Free window shortened **60 → 8 days** (`TRIAL_DAYS = 8`) with reminders reworked (`offer_d7`/`offer_d4`/`offer_d2`). _(Supersedes the €90/€190 annual-only-hidden model in items 1–2.)_
 
 ---
 
@@ -456,4 +472,382 @@ Roughly in the order shipped:
 
 ---
 
-*End of overview. Last updated: 2026-09-26 (rev 2).*
+*End of overview. Last updated: 2026-09-30 (rev 3).*
+
+
+---
+
+# PART II — Marketing Concept Brief
+
+# Nexa Terminal — Full Concept Brief (for Marketing)
+
+_Last updated: 2026-09-30 (rev 3) · Prepared for: marketing/AI strategy work · Market: North Macedonia · Languages: Macedonian (primary) + English_
+
+> **How to use this document.** This is a complete, self-contained description of the Nexa
+> business, product, features, packaging, and go-to-market so an AI (or a marketer) can design
+> the best strategy without needing anything else. It is written to be dropped straight into a
+> marketing tool. Section 12 lists the hard constraints you must respect in any campaign.
+
+---
+
+## 1. One-paragraph summary
+
+**Nexa Terminal is the legal & compliance department that Macedonian small and medium businesses
+cannot afford to hire.** It is a bilingual (Macedonian/English) SaaS platform that lets a company
+run compliance self-checks, get plain-language legal answers from an AI trained on Macedonian law,
+and generate ready-to-use professional legal documents (employment contracts, terminations, GDPR
+rulebooks, company-registration packs, commercial agreements, and more) — all through a web
+terminal, without a lawyer for the routine work. A second, provider-facing side of the platform
+turns verified service providers (lawyers, accountants, agencies) into a lead-generation and
+client-management network.
+
+**The core value story in one line:** _A screening finds the compliance gap → the AI explains it →
+a document fixes it → the system tracks it._ That loop is the product; everything else supports it.
+
+---
+
+## 2. The problem we solve
+
+North Macedonian SMBs operate in a dense, frequently-changing legal environment (labor law, GDPR,
+tax, company registration, obligations/contract law). Their realistic options today are:
+
+- **Hire a lawyer per task** — expensive, slow, overkill for routine paperwork.
+- **Copy a random template from the internet** — outdated, wrong jurisdiction, legally risky.
+- **Ignore it and hope** — the default, until an inspection, a lawsuit, or a fine.
+
+They don't know **what they're missing**, they can't easily **fix it themselves**, and once fixed
+they have **no system to keep it current** when the law changes or documents expire.
+
+Nexa collapses "what am I missing → how do I fix it → give me the document → remind me when it
+changes" into one affordable subscription.
+
+---
+
+## 3. Target customers
+
+Nexa is a **two-sided platform** with two distinct products and audiences:
+
+### Product A — Basic (the demand side) → **nexa.mk**
+The **SMB / business that consumes legal services**: owners, HR, office managers, founders of
+micro and small companies (ДОО/ДООЕЛ), startups, shops, agencies. They want to *do* their own
+compliance and paperwork cheaply and correctly. This is the mass market and the acquisition engine.
+
+### Product B — Pro (the supply side) → **leads.nexa.mk**
+The **service providers** — now a **multi-vertical provider network, no longer lawyers-only**:
+lawyers, accountants, bookkeeping firms, consultants, agencies, plus non-legal verticals like
+**real-estate agents, insurance brokers, and business consultants** (practice areas `real-estate`,
+`insurance`, `consulting`). They want **inbound leads/inquiries**, a professional presence, expert
+positioning, and a way to **manage their own book of client companies** from one account. Pro is the
+higher-value tier and the B2B2B growth wedge (an accountant reselling Nexa compliance to all their
+clients). New Pro signups pick a **provider type** in onboarding („Давател на услуги"), which maps to
+a practice area so they match relevant inquiries immediately.
+
+> Strategic note: the same codebase powers both, split by storefront + navigation + a provider cap.
+> Marketing should treat them as **two campaigns with two promises**, not one blended message.
+
+---
+
+## 4. The product surface — what a user actually sees
+
+Conceptually the terminal has three areas — **the tools (Work)**, **the network (two-sided
+features)**, and **resources** — used below to structure this brief. The live SMB sidebar is a
+product-aware, task-based layout with sections **Администрација · Човечки ресурси · Набавки ·
+Маркетинг и раст · Едукација** (plus a standalone „Мојата значка"); the Pro sidebar foregrounds the
+client-acquisition surfaces. The conceptual grouping and the literal nav don't map 1:1.
+
+### 4.1 РАБОТА — the tools (this is the daily-use core)
+
+**a) Dashboard / Контролна табла** — the command center: compliance score, what's missing,
+upcoming obligations (expiring contracts, due decisions), a "next best action" card, and recent
+documents. (Being rebuilt from a plain feed into this cockpit.)
+
+**b) Documents — ~45+ automated generators across 8 categories.** The user fills a smart form and
+gets a finished, formatted `.docx`. All documents auto-pull the company's own data. Categories:
+- **Employment** — employment agreements, annexes, terminations (by fault, personal reasons, age
+  limit, duration, employee request), disciplinary actions, warnings, warning-before-lawsuit,
+  confirmations of employment, bonus & leave decisions, damages statements, stock-purchase plans.
+- **Personal Data / GDPR** — consent forms, data-processing policies, personal-data rulebooks,
+  company GDPR politics.
+- **Contracts / Obligations** — NDA, services contracts, master services agreements, SaaS
+  agreements, rent agreements, loan agreements, debt assumption, mediation, vehicle sale-purchase,
+  vehicle/rent, mandatory & discretionary bonuses.
+- **Central Register** — **company incorporation packs** („Основање на фирма", ДОО/ДООЕЛ:
+  constitutive act + statements + POAs assembled into one file) and **company-change packs**
+  („Промени во фирма" — a dynamic package that assembles decisions + act + statements).
+- **Accounting / Corporate decisions** — annual accounts adoption, dividend/decision payments,
+  cash-register maximum, write-off decisions, invoice-signing authorization.
+- **Rulebooks & internal acts** — organization act, estimation procedures, workplace rulebooks.
+- **Other** — misc corporate & commercial instruments.
+
+**c) My Templates (Bring-Your-Own-Document automation).** A user uploads their **own** `.docx`,
+Nexa turns it into an automated, fillable template, and they can bulk-generate from it. This
+removes the ceiling of "we only have 45 templates" and is one of the most scalable, under-marketed
+differentiators. Includes a template marketplace, template builder, form-fill, bulk generate, and
+history.
+
+**d) Проверки / Compliance Screenings (Legal Health Checks).** Interactive questionnaires that
+score a company's compliance by domain, flag the gaps, rank them by risk, and route each gap to the
+document or AI answer that fixes it. Domains:
+- **Legal Health Check (LHC):** Employment (multi-part), **GDPR** (a/b/c/d maturity model with
+  critical gates and bands), Archives, Health & Safety, and a **General** cross-domain pool.
+- **Tax compliance (Даночна усогласеност):** modular — profit tax built, more coming.
+- **Marketing, HR/Operational, Cyber** health checks.
+- All screenings run on a **shared unified scoring engine** (fraction model, four maturity bands,
+  critical gates) so results are consistent and comparable.
+
+**e) Nexa AI.** Multiple AI modes:
+- **Legal AI chat** — RAG (retrieval-augmented) assistant grounded in **Macedonian law**; answers
+  cite the law and render structured, readable legal responses (Markdown). This is the hardest-to-
+  replicate, highest-utility feature.
+- **Marketing AI chat** — marketing/copy assistant.
+- **Contract Analysis** — upload a contract, get a structured risk report with ratings.
+- **Stance / personal AI preferences** — the user tunes the AI's default posture.
+
+### 4.2 МРЕЖА — the network (the two-sided / Pro features)
+
+- **Virtual Fair (Виртуелен саем)** — a booth marketplace where providers present themselves.
+- **Sourcing / RFQ (Барање за понуди)** — a business requests quotes; routed to providers. Its
+  companion **Регистар на набавки (Procurement Register)** is a demand-side retention tool: the SMB
+  keeps a register organized by *type of purchase* (insurance, hosting, accounting…), logs the
+  offers it receives per need (supplier · price · terms · valid-until), flags the cheapest, marks
+  the chosen one, and sets a **renewal date that fires a "time to re-quote" email reminder** — closing
+  the loop request → offers → compare → pick → remind → re-quote.
+- **Inquiry Board / Leads / Предмети (case management)** — the canonical **tag-and-express-interest
+  board** where inbound inquiries from Nexa's satellite sites surface to matching providers. Now
+  **multi-vertical** (lawyers, accountants, real-estate, insurance, consultants): providers see
+  inquiries matched to their practice area(s) + city and **express interest** (with a profession
+  picker). **Procedure templates** (immigration / company-formation / property-purchase) pre-fill
+  inquiry categories and give each viewer a per-category suggestion hint. Plus a Pro
+  case-management module (cases + deadlines + timeline, 09:00 reminders, AI case brief, and a public
+  redacted client-status link).
+- **Topics Q&A** — providers answer public legal questions → expert positioning + SEO.
+- **Blog publishing** — providers (and Basic, limited) publish articles → content/SEO placement.
+- **Newsletter banner (Банер во билтенот)** — book a banner slot in the monthly Nexa newsletter
+  (upload an image + optional link; 3 slots/month, 1/quarter). Available to **Basic too** — surfaced
+  in Маркетинг и раст as its own entry (banner-only; the Блог tab stays a Pro surface). A cheap,
+  self-serve promotion channel for SMBs, not just providers.
+- **„Проверен работодавач" badge (Verified-Employer funnel)** — a public, shareable **maturity
+  badge** aimed at jobseekers that doubles as a **non-user acquisition funnel**. A company runs a
+  ~20-question employer check at `/proverka-rabotodavac`, gets an **A / A+ / A++** rating, and signs
+  up to claim a shareable **circular seal** (dynamic server-generated SVG) hosted at `/badge/:token`.
+  Every seal placed on a job ad or website is a backlink + referral loop back to Nexa. Members
+  re-open/re-share it anytime from **„Мојата значка"** in the terminal (with a micro-seal on the
+  profile button). Framing is defensible **self-assessment / maturity level**, never "certified
+  compliant" (see §12).
+
+### 4.3 РЕСУРСИ — resources
+
+- **Education / Courses** — substantial course library (lessons, details) used as retention glue,
+  trust-builder, and lead magnet.
+
+### 4.4 Client / account management
+
+- **Team / Clients (sub-accounts).** Basic → up to **3 co-workers** (shared company). Pro → up to
+  **25 client companies** (each its own company, vouched by the Pro — this is the accountant/agency
+  reseller engine).
+- **Човечки ресурси (HR section).** A dedicated sidebar section grouping the people tools:
+  - **Вработени** — an employee registry with computed leave balances and reminders, and document
+    pre-fill from employee records.
+  - **Проценка на карактер (Character Assessment).** A **Big Five (OCEAN) personality assessment**
+    an SMB sends to a **candidate or employee** to "know who they're hiring/working with." The owner
+    creates a named assessment, shares a link or emails it; the respondent answers **33 bipolar
+    questions** (reverse-keyed for validity); the owner gets a **visual profile report** (radar +
+    a ranked, second-person "how it shows up" narrative), and the **employee is emailed their own
+    results**. A rare, sticky HR feature for the SMB segment.
+  - **Интервјуа (Interviews).** A qualitative counterpart to the character test — one
+    nav group with two flows: **Интервју скен** (a behavioral/soft-skill screen you
+    send a **candidate** before hiring) and **Излезно интервју** (a structured **exit
+    interview** for a departing employee). The employer gets **AI-suggested questions**
+    tuned to the business type + role (behavior/character focused, 10–15 max), can
+    **edit them freely** and **save a reusable default template**, then shares a link or
+    emails it. The respondent answers with free-text + 1–5 ratings; the owner gets the
+    transcript plus a short **AI summary** (soft-skill signals for a candidate; the "why
+    they're leaving" + retention themes for exits). A sticky, high-value HR feature; exit
+    interviews especially double as a **retention insight** engine.
+  - **Работни односи** — a shortcut into the labour-law document category.
+- Billing, subscription, credits, invite/referrals, and company verification screens.
+
+---
+
+## 5. The trust layer (critical for messaging)
+
+Nexa's credibility is built on **factual provenance only**, never on lawyer endorsement:
+- Law citations, official gazette numbers, "last updated" dates, and change logs.
+- **Do NOT claim "checked by a lawyer / проверено од адвокат"** anywhere (see §12). Citing the law
+  requires no license; claiming legal review currently does not apply and would be false.
+- A partner law-firm endorsement can be added **later** if one signs on.
+
+The satellite/network sites — topic-specific micro-sites like `samodaprasham.mk`, `immigration.mk`,
+`macedoniancitizenship.mk`, `company.nexa.mk`, `tax.nexa.mk` (accounting), `iplaw.nexa.mk`,
+`osiguran.nexa.mk` (insurance), `properties.nexa.mk` (real estate, added Sept 2026), and
+`topics.nexa.mk` — feed leads and SEO and reinforce authority through published, sourced content.
+The satellite roster now spans legal *and* non-legal verticals, matching the multi-vertical Pro
+provider network.
+
+---
+
+## 6. Packaging: Basic vs Pro
+
+Two tiers only. **Basic = the tools (demand side). Pro = everything in Basic + the network/provider
+side (supply side).**
+
+| | **Basic** (nexa.mk) | **Pro** (leads.nexa.mk) |
+|---|---|---|
+| **Who** | SMBs that *consume* legal services | Multi-vertical providers who *sell* services — lawyers, accountants, real-estate agents, insurance brokers, consultants |
+| **Core tools** | All ~45 document generators, My Templates, all compliance screenings, Nexa AI (Legal/Marketing/Contract Analysis), courses, dashboard | Everything in Basic |
+| **Network** | Request-an-offer (demand side), virtual fair (view) | + Provider booth, Leads/case routing, Topics Q&A, blog authoring, RFQ bidding, B2B network |
+| **Sub-accounts** | Up to **3 co-workers** (shared company) | Up to **25 client companies** (each own company, vouched) |
+| **Positioning** | "Your company's legal department for a fixed fee" | "Inbound leads + manage your whole client book in one place" |
+
+> Known packaging tension (for honest strategy): Basic already bundles nearly all the genuinely
+> valuable *tools*. Pro's extra value is the **two-sided network + 25-client management**, which is
+> only compelling to providers/agencies. Marketing to a pure SMB should sell **Basic**; do not try
+> to upsell an SMB into Pro. Pro is a separate audience (leads.nexa.mk), not an SMB upgrade.
+
+---
+
+## 7. Pricing & payment model
+
+- **Sold on two cycles per tier — monthly + annual** (Nexa 3.1 model; annual ≈ 2 months free):
+  - **Basic — €15 / month · €149 / year**
+  - **Pro — €39 / month · €390 / year**
+- **Prices ARE now shown publicly** on a `/pricing` page (bilingual, monthly/annual toggle, MKD for
+  reference) and in the terminal buy flow. Marketing can lead with transparent pricing; still pair
+  the number with the value/outcome story (one avoided lawyer visit ≈ the subscription).
+- Currency: **EUR**; issuer is not VAT-liable, so the shown price is final. Payment is by manual
+  bank transfer against a pro-forma invoice. (Quarterly exists in code for back-compat only.)
+- **Onboarding includes an 8-day free window.** A brand-new signup (Google or email-verify) is
+  granted an **8-day free full-access window** to the product for its storefront's plan. When the
+  8 days lapse the account **auto-suspends to a preview/locked state — data is preserved** — and
+  the user must **subscribe or redeem a promo code** to regain feature access. Marketing may say
+  **"8 дена бесплатно"** (8 days free), honestly. _(Shortened from the earlier 60-day window.)_
+- **Code-first sales still run in parallel.** Outbound sales issues **per-prospect promo codes**
+  (typically a time-boxed Pro grant); redemption at `/redeem?code=…` + Google OAuth already works.
+  Redeemed-code access is full paid access for its window.
+- **Planned free public funnel** („Бесплатна проверка" at nexa.mk/proverka): a public,
+  no-login compliance teaser (~10–15 questions) → score + top gaps → email capture → register →
+  a teaser state with **one free document generation** to feel the value, then plan chooser / code.
+  This is the intended top-of-funnel acquisition engine — marketing should build around it.
+
+---
+
+## 8. The strategic funnel (how a stranger becomes a customer)
+
+**Acquisition → Activation → Conversion → Retention**, mapped to real features:
+
+1. **Acquisition (top of funnel):**
+   - Free public compliance teaser (`/proverka`) — fear + urgency from a low compliance score.
+   - Satellite legal micro-sites + published Topics/Blog content — SEO + authority.
+   - Outbound (cold email + LinkedIn) linking **to the teaser funnel**, not the homepage, with
+     per-prospect promo codes as the accelerant.
+2. **Activation:** register → **8-day free window** (full access) → the "wow" is real usage
+   (generate a document, run a screening, send a character assessment, claim a „Проверен
+   работодавач" badge).
+3. **Conversion:** during/at the end of the free window, the value has landed (gaps found, documents
+   generated, renewals tracked) → the plan chooser / code appears; on lapse the terminal locks to a
+   preview state until they subscribe. Prices are public (on `/pricing`) and in the buy flow.
+4. **Retention (why they keep paying):** the **Contract/Compliance Management System** — saved
+   documents, expiry/renewal reminders (08:00 Europe/Skopje), recurring re-screening ("re-run your
+   GDPR check quarterly"), a Macedonian **compliance calendar** of legal deadlines, and a
+   **savings meter** showing money/time saved vs. hiring a lawyer.
+
+**The one core loop to sell in every campaign:**
+`Проверка (screening) → Nexa AI (explanation) → Документ (fix) → CMS (tracking)`.
+
+---
+
+## 9. Positioning & differentiation (the moat)
+
+1. **Macedonian legal localization.** Documents, screenings, and the AI are built for MK law
+   specifically — not a translated generic tool. This is the defensible moat.
+2. **The integrated loop.** Competitors offer *either* templates *or* a chatbot *or* a checklist.
+   Nexa connects find-gap → explain → fix → track in one place.
+3. **Bring-Your-Own-Template automation.** Turns any company's existing paperwork into an
+   automated generator — no competitor ceiling.
+4. **Two-sided network + reseller model.** The 25-client Pro account is a genuine B2B2B wedge
+   (agencies/accountants managing client compliance at scale).
+5. **Factual, sourced trust layer** (law citations, gazette numbers, change logs) vs. anonymous
+   internet templates.
+
+---
+
+## 10. Suggested messaging angles (raw material for the marketing AI)
+
+**For Basic / SMB (nexa.mk):**
+- "Правен оддел за вашата фирма — од €15 месечно." (A legal department for your company, from €15/mo.)
+- "Дознајте што ви недостасува за 5 минути." (Find out what you're missing in 5 minutes.) → teaser.
+- "Договор, отказ, ГДПР правилник — готови за минути, без адвокат за рутината."
+- ROI angle: one avoided lawyer visit (€30–100) ≈ months of Basic. Make the savings visible.
+- Fear/urgency angle (compliance screening): inspections, fines, labor disputes, GDPR.
+
+**For Pro / providers (leads.nexa.mk):**
+- "Добивајте клиенти. Управувајте со целата ваша книга клиенти од едно место."
+- "Inbound leads од Nexa мрежата + presence + експертско позиционирање (Topics, блог, booth)."
+- Reseller angle for accountants/agencies: run all your clients' compliance from one dashboard.
+
+**Content/SEO engine:** Topics Q&A + Blog + satellite sites answer real Macedonian legal questions
+→ rank → funnel to the free teaser. This is the compounding acquisition channel.
+
+---
+
+## 11. Product maturity & roadmap context
+
+- **Live/built:** all the tools in §4 (documents, screenings, AI, templates, network features,
+  sub-accounts, HR module, case management, DB backup system, subscription enforcement). Recently
+  shipped: **„Проверен работодавач" employer-badge funnel**, **Проценка на карактер** (Big Five HR
+  assessment + employee results email), **Регистар на набавки** (procurement offer register +
+  renewal-reminder cron), the **Човечки ресурси** HR nav grouping, the **8-day free window**, the
+  **multi-vertical Inquiry Board** (Pro opened beyond lawyers to real-estate/insurance/consulting,
+  with procedure templates + provider-type onboarding), two new satellite sites —
+  **`properties.nexa.mk`** (real estate) and **`tax.nexa.mk`** (accounting) — the **newsletter
+  banner opened to Basic**, and **HR Interviews** („Интервју скен" + „Излезно интервју": editable
+  AI-suggested questions, mixed free-text/ratings, AI summary + owner results email).
+- **Status of the market:** **zero paying users yet (pre-PMF)** — every account today is demo/dummy.
+  So marketing's job is **acquisition + conversion proof**, not scaling retention. Don't assume an
+  existing customer base in testimonials/social proof (there aren't real paying references yet).
+- **In progress / planned (roadmap SSOT is `tasks/master-plan.md`):** honesty pass on all "free"
+  copy, the public `/proverka` funnel, dashboard command-center rebuild, CMS v1 (contract tracking
+  + reminders), Macedonian compliance calendar, savings meter, and a CMS/content system.
+- **Known focus fixes (be aware, don't over-promise):** several two-sided surfaces (Fair, Sourcing,
+  Find-Lawyer, Investments) need marketplace liquidity that doesn't exist yet — some are being
+  merged/hidden until supply exists. Don't market an empty marketplace to SMBs.
+
+---
+
+## 12. Hard constraints for any campaign (read before writing copy)
+
+1. **NEVER claim "checked by a lawyer / проверено од адвокат"** or imply legal representation/advice.
+   Nexa provides tools and sourced information, not legal counsel. Trust = law citations + gazette
+   numbers + update dates only. (Founder is not currently a licensed attorney.)
+2. **Prices are public now** (Nexa 3.1): Basic €15/mo·€149/yr, Pro €39/mo·€390/yr, on `/pricing` and
+   in the buy flow. Still pair the number with the value/outcome story — don't lead with price alone.
+   Keep every surface in sync with `server/constants/roles.js` (source of truth).
+3. **Be honest about "free."** There is a genuine **8-day free window** (say "8 дена бесплатно")
+   plus the public teaser — but **no "free forever"** and no implying the paid tools stay free after
+   8 days. Honesty pass is a standing rule.
+4. **Two audiences, two storefronts, two promises** — nexa.mk (SMB/Basic) vs leads.nexa.mk
+   (providers/Pro). Don't blend them or upsell SMBs into Pro.
+5. **Don't market empty marketplace surfaces** to demand-side users until supply exists.
+6. **No fabricated social proof** — there are no real paying customers yet.
+7. **Bilingual, Macedonian-first.** Primary market and language is North Macedonia / Macedonian;
+   English is secondary.
+
+---
+
+## 13. Quick-reference fact sheet
+
+- **Product:** Bilingual (MK/EN) legal & compliance SaaS for Macedonian SMBs + a provider network.
+- **Core loop:** Screening → AI → Document → Tracking.
+- **Tiers:** Basic €15/mo·€149/yr (SMB, nexa.mk) · Pro €39/mo·€390/yr (providers, leads.nexa.mk).
+  Monthly + annual; prices public on `/pricing` and in-app.
+- **Onboarding:** **8-day free window** at signup → then subscribe or redeem a promo code (data
+  preserved); code-first outbound sales run in parallel; Google OAuth login.
+- **Headline features:** ~45+ document generators, BYO-template automation, multi-domain compliance
+  screenings, Macedonian-law RAG AI + contract analysis, provider network (booth/leads/Topics/blog),
+  **„Проверен работодавач" employer badge**, **Проценка на карактер** (Big Five HR assessment),
+  **Интервјуа** (interview scan + exit interview with editable AI-suggested questions + AI summary),
+  **Регистар на набавки** (procurement register + renewal reminders), newsletter banner (now Basic too),
+  3 co-workers (Basic) / 25 client companies (Pro), courses.
+- **Moat:** MK legal localization + integrated loop + factual provenance + reseller model.
+- **Stage:** Pre-PMF, zero paying users; priority = acquisition + conversion via the free teaser funnel.
+- **Trust rule:** Cite the law; never claim lawyer review.

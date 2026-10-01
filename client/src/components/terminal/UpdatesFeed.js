@@ -38,7 +38,7 @@ const SCREENING_SHORTCUTS = [
 ];
 
 const AI_SHORTCUTS = [
-  { to: '/terminal/ai-chat',           label: 'Правен AI помошник' },
+  { to: '/terminal/ai-team',           label: 'AI Тим' },
   { to: '/terminal/contract-analysis', label: 'Анализа на договор' },
   { to: '/terminal/marketing-ai',      label: 'Маркетинг AI' }
 ];

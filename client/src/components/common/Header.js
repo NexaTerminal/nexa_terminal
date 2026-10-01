@@ -4,7 +4,7 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
-import { showsSubUsers, showsMarketing, showsLeads, showsTopicsQA, interiorProduct } from '../../lib/tier';
+import { showsMarketing, showsLeads, showsTopicsQA, interiorProduct } from '../../lib/tier';
 import Notifications from '../terminal/Notifications';
 
 // Inline SVG icons matching the sidebar style (stroke-only, currentColor).
@@ -242,7 +242,7 @@ const Header = ({ isTerminal = false }) => {
             { path: '/terminal/contracts',         label: 'Мои договори' },
             { path: '/terminal/contract-analysis', label: 'Анализа на договор' }
           ]},
-        { key: 'legal-ai',   label: 'Правен AI', path: '/terminal/ai-chat' },
+        { key: 'legal-ai',   label: 'AI Тим', path: '/terminal/ai-team' },
         { key: 'screening',  label: 'Проверки', children: [
             { path: '/terminal/legal-screening', label: 'Правна' },
             { path: '/terminal/hr-screening',    label: 'HR и Оперативна' },
@@ -297,6 +297,16 @@ const Header = ({ isTerminal = false }) => {
       <div className={styles['profile-section']}>
         {/* Notification bell — admin↔user updates (approvals, verification, …) */}
         <Notifications />
+
+        {/* „Проверен работодавач" badge shortcut — turns golden once earned. */}
+        <Link
+          to="/terminal/moja-znachka"
+          className={`${styles['badge-link']} ${hasValidBadge ? styles['badge-link-earned'] : ''}`}
+          title={hasValidBadge ? `Проверен работодавач · рејтинг ${badge.ratingTier}` : 'Мојата значка'}
+          aria-label="Мојата значка"
+        >
+          <DropdownIcon name="badge" />
+        </Link>
 
         {/* Credit Badge - Always visible credit counter */}
         {!creditsLoading && credits && (
@@ -360,38 +370,6 @@ const Header = ({ isTerminal = false }) => {
               <span className={styles['dropdown-icon']}><DropdownIcon name="receipt" /></span>
               Сметководство
             </Link>
-            <Link
-              to="/terminal/moja-znachka"
-              className={styles['dropdown-item']}
-              onClick={() => setProfileDropdownOpen(false)}
-            >
-              <span className={styles['dropdown-icon']}><DropdownIcon name="badge" /></span>
-              Мојата значка
-              {hasValidBadge && (
-                <span className={styles['dropdown-badge']}>{badge.ratingTier}</span>
-              )}
-            </Link>
-            {/* Корисници + AI преференци are Basic-only; hidden on the Pro shell. */}
-            {interiorProduct(currentUser) !== 'B' && showsSubUsers(currentUser) && (
-              <Link
-                to="/terminal/team"
-                className={styles['dropdown-item']}
-                onClick={() => setProfileDropdownOpen(false)}
-              >
-                <span className={styles['dropdown-icon']}><DropdownIcon name="users" /></span>
-                Корисници
-              </Link>
-            )}
-            {interiorProduct(currentUser) !== 'B' && (
-              <Link
-                to="/terminal/ai/stance"
-                className={styles['dropdown-item']}
-                onClick={() => setProfileDropdownOpen(false)}
-              >
-                <span className={styles['dropdown-icon']}><DropdownIcon name="sliders" /></span>
-                AI преференци
-              </Link>
-            )}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -692,16 +670,6 @@ const Header = ({ isTerminal = false }) => {
             <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметководство</span>
             </Link>
-            {interiorProduct(currentUser) !== 'B' && (
-              <Link to="/terminal/ai/stance" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
-                <span>AI преференци</span>
-              </Link>
-            )}
-            {interiorProduct(currentUser) !== 'B' && showsSubUsers(currentUser) && (
-              <Link to="/terminal/team" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
-                <span>Корисници</span>
-              </Link>
-            )}
             <button
               className={styles['mobile-menu-item']}
               onClick={() => { setMobileMenuOpen(false); handleLogout(); }}

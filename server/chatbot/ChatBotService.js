@@ -6,6 +6,7 @@ const { QdrantClient } = require('@qdrant/js-client-rest');
 const OpenAI = require('openai');
 const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
+const { getAgentFlavor } = require('./agentProfiles');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -486,7 +487,7 @@ Nexa Terminal има функции што решаваат дел од проб
     }
   }
 
-  async askQuestion(question, userId, conversationId = null) {
+  async askQuestion(question, userId, conversationId = null, agent = 'legal') {
     try {
       // Validate inputs
       if (!question || question.trim().length === 0) {
@@ -542,9 +543,10 @@ Nexa Terminal има функции што решаваат дел од проб
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Step 6: Execute the chain. Stance preferences are injected as a
-      // structured prefix above the system prompt — empty string if unset.
-      const stancePrefix = await this._getStancePrefix(userId);
+      // Step 6: Execute the chain. The agent flavor (AI Team specialization)
+      // and stance preferences are injected as a structured prefix above the
+      // system prompt — either may be empty.
+      const stancePrefix = getAgentFlavor(agent) + (await this._getStancePrefix(userId));
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
@@ -1281,7 +1283,7 @@ Nexa Terminal има функции што решаваат дел од проб
    * @param {string} conversationId - Conversation ID
    * @param {Function} onEvent - Callback: ({type, data}) => void
    */
-  async askQuestionStream(question, userId, conversationId, onEvent) {
+  async askQuestionStream(question, userId, conversationId, onEvent, agent = 'legal') {
     try {
       if (!question || question.trim().length === 0) {
         throw new Error('Question cannot be empty');
@@ -1333,8 +1335,8 @@ Nexa Terminal има функции што решаваат дел од проб
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Stream tokens. Stance prefix injected once at the top.
-      const stancePrefix = await this._getStancePrefix(userId);
+      // Stream tokens. Agent flavor + stance prefix injected once at the top.
+      const stancePrefix = getAgentFlavor(agent) + (await this._getStancePrefix(userId));
       let fullResponse = '';
       const stream = await chain.stream({
         stancePrefix,

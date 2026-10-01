@@ -87,8 +87,6 @@ export default function PersonaControl() {
 
   if (!loaded) return null;
 
-  const current = catalog.find((p) => p.key === persona);
-
   return (
     <>
       <button
@@ -99,7 +97,6 @@ export default function PersonaControl() {
         aria-label="Смени го стилот на асистентот"
       >
         <span className={styles.chipIcon}>{persona ? PERSONA_ICON[persona] : '✨'}</span>
-        <span className={styles.chipLabel}>{current ? current.label : 'Избери стил'}</span>
         <span className={styles.chipEdit} aria-hidden="true">✎</span>
       </button>
 

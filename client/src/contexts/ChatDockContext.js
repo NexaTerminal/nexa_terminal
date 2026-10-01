@@ -15,16 +15,21 @@ const MAX_WINDOWS = 3;
 export function ChatDockProvider({ children }) {
   const [windows, setWindows] = useState([]);
 
-  const openChat = useCallback((key) => {
+  // openChat(key) — just open. openChat(key, { seed }) — open and auto-ask the
+  // seed message (used to hand an artifact to an agent for review). seedId lets
+  // the window detect a fresh seed even if it's already open.
+  const openChat = useCallback((key, opts = {}) => {
     if (!key) return;
+    const seed = opts.seed || null;
+    const seedId = seed ? Date.now() : 0;
     setWindows((prev) => {
       const existing = prev.find((w) => w.key === key);
       if (existing) {
-        // Already open — just un-minimize and bring it forward.
-        return [...prev.filter((w) => w.key !== key), { key, minimized: false }];
+        const updated = { ...existing, minimized: false };
+        if (seed) { updated.seed = seed; updated.seedId = seedId; }
+        return [...prev.filter((w) => w.key !== key), updated];
       }
-      const next = [...prev, { key, minimized: false }];
-      // Drop the oldest if we exceed the cap.
+      const next = [...prev, { key, minimized: false, seed, seedId }];
       return next.slice(-MAX_WINDOWS);
     });
   }, []);

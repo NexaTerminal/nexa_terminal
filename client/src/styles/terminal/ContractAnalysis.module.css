@@ -185,6 +185,15 @@
   color: var(--color-neutral-600, #525252);
 }
 
+.reviewActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-neutral-200, #e5e7eb);
+}
+
 .disclaimerBanner {
   margin: 16px 0;
   padding: 14px 18px;

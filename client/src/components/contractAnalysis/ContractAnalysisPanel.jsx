@@ -3,7 +3,12 @@ import ContractDropzone from './ContractDropzone';
 import IntroQuestions from './IntroQuestions';
 import AnalysisReport from './AnalysisReport';
 import { getUsage, uploadContract, analyzeContract } from '../../services/contractAnalysisApi';
+import { useChatDock } from '../../contexts/ChatDockContext';
+import { getAgent } from '../../config/aiAgents';
 import styles from '../../styles/terminal/ContractAnalysis.module.css';
+
+// Contracts are НОВА's domain.
+const REVIEW_AGENT = 'corporate';
 
 const STEP = { UPLOAD: 'upload', QUESTIONS: 'questions', ANALYZING: 'analyzing', REPORT: 'report' };
 
@@ -14,6 +19,8 @@ const STEP = { UPLOAD: 'upload', QUESTIONS: 'questions', ANALYZING: 'analyzing',
  * share one codepath and one API (contractAnalysisApi).
  */
 export default function ContractAnalysisPanel() {
+  const { openChat } = useChatDock();
+  const reviewAgent = getAgent(REVIEW_AGENT);
   const [step, setStep] = useState(STEP.UPLOAD);
   const [usage, setUsage] = useState(null);
   const [error, setError] = useState(null);
@@ -138,6 +145,17 @@ export default function ContractAnalysisPanel() {
             <button className={styles.secondaryButton} onClick={handleReset}>Нова анализа</button>
           </div>
           <AnalysisReport report={report} />
+          <div className={styles.reviewActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => openChat?.(reviewAgent.key, {
+                seed: `Направив анализа на договорот „${filename}". Што е најважно да разгледам и како да ги намалам клучните ризици?`,
+              })}
+            >
+              Продолжи со {reviewAgent.name}
+            </button>
+          </div>
         </>
       )}
     </>

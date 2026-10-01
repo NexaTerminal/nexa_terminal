@@ -26,6 +26,8 @@ export default function AgentChatDock() {
           key={w.key}
           agentKey={w.key}
           minimized={w.minimized}
+          seed={w.seed}
+          seedId={w.seedId}
           onClose={() => closeChat(w.key)}
           onToggle={() => toggleMinimize(w.key)}
         />
@@ -34,7 +36,7 @@ export default function AgentChatDock() {
   );
 }
 
-function ChatWindow({ agentKey, minimized, onClose, onToggle }) {
+function ChatWindow({ agentKey, minimized, seed, seedId, onClose, onToggle }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -42,6 +44,7 @@ function ChatWindow({ agentKey, minimized, onClose, onToggle }) {
   const [error, setError] = useState(null);
   const [conversationId, setConversationId] = useState(null);
   const endRef = useRef(null);
+  const sendRef = useRef(null);
 
   const agent = getAgent(agentKey);
   const isMarketing = agent?.engine === 'marketing';
@@ -50,6 +53,13 @@ function ChatWindow({ agentKey, minimized, onClose, onToggle }) {
   useEffect(() => {
     if (!minimized) endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, minimized]);
+
+  // Auto-ask the seed message when the window is opened/re-opened with one
+  // (e.g. „Прегледај со …" hands an artifact to the agent for review).
+  useEffect(() => {
+    if (seedId && seed) sendRef.current?.(seed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedId]);
 
   if (!agent) return null;
 
@@ -82,6 +92,7 @@ function ChatWindow({ agentKey, minimized, onClose, onToggle }) {
       setLoading(false);
     }
   };
+  sendRef.current = send;
 
   const stop = (fn) => (e) => { e.stopPropagation(); fn(); };
 

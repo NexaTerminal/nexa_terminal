@@ -13,13 +13,33 @@ import useTermsGate from '../../hooks/useTermsGate';
 import FeatureTermsModal from '../terminal/FeatureTermsModal';
 import ProRequestsApiService from '../../services/proRequestsApi';
 import { CURRENT_VERSIONS } from '../../data/featureTerms';
+import { useChatDock } from '../../contexts/ChatDockContext';
+import { getAgent, agentForCategory } from '../../config/aiAgents';
 import styles from '../../styles/terminal/documents/DocumentGeneration.module.css';
+
+// Build the shareable preview URL (encodes form data + resolved company party).
+// Shared by the inline LivePreviewLink and the post-terms actions modal.
+const buildPreviewUrl = (formData, documentType, currentUser) => {
+  const baseUrl = window.location.origin;
+  const ci = currentUser?.companyInfo || {};
+  const companyName = formData.companyName || ci.companyName || '';
+  const companyAddress = formData.companyAddress || ci.companyAddress || ci.address || '';
+  const companyTaxNumber = formData.companyTaxNumber || ci.companyTaxNumber || ci.taxNumber || '';
+  const companyManager = formData.companyManager || ci.companyManager || ci.manager || ci.role || '';
+  const dataWithCompanyInfo = {
+    ...formData,
+    companyName, companyAddress, companyTaxNumber, companyManager,
+    companyRepresentative: companyManager,
+  };
+  const encodedData = btoa(encodeURIComponent(JSON.stringify(dataWithCompanyInfo)));
+  return `${baseUrl}/preview/${documentType}?data=${encodedData}`;
+};
 
 /**
  * Base Document Page Component
  * Reusable template for all document generation pages
  */
-const BaseDocumentPage = ({ 
+const BaseDocumentPage = ({
   config,
   renderStepContent,
   customPreviewComponent,
@@ -69,6 +89,45 @@ const BaseDocumentPage = ({
   const vt = visibleTier(currentUser);
   const isPro = vt === 'B' || vt === 'ADMIN';
   const [showOwnCompanyModal, setShowOwnCompanyModal] = useState(false);
+
+  // ── Post-terms actions (Генерирај / AI проверка / Проверка со професионалец) ──
+  const { openChat } = useChatDock();
+  const { requireTerms, termsModal } = useTermsGate();
+  const [actionsProNotice, setActionsProNotice] = useState(null);
+
+  // Route to the agent that fits this document's category (route segment).
+  const docCategory = (() => {
+    const parts = (window.location.pathname || '').split('/').filter(Boolean);
+    const i = parts.indexOf('documents');
+    return i >= 0 && parts[i + 1] ? parts[i + 1] : '';
+  })();
+  const actionsAgent = getAgent(agentForCategory(docCategory));
+  const docDisplayName = title && title !== 'Генерирање на документ' ? title : 'документот';
+
+  const handleCheckAI = () => {
+    openChat?.(actionsAgent.key, {
+      seed: `Подготвувам „${docDisplayName}". Што треба да внимавам и кои се типичните ризици или грешки кај ваков документ?`,
+    });
+  };
+  const handleCheckPro = () => {
+    requireTerms('proRequest', async () => {
+      setActionsProNotice(null);
+      try {
+        const res = await ProRequestsApiService.create({
+          type: 'contract_review',
+          subject: `Преглед: ${docDisplayName}`,
+          context: {
+            documentRef: buildPreviewUrl(formData, config.documentType, currentUser),
+            documentName: docDisplayName,
+          },
+          consentVersion: CURRENT_VERSIONS.proRequest,
+        });
+        setActionsProNotice(res.success
+          ? 'Испратено за преглед — следете го во „Моите барања".'
+          : (res.message || 'Грешка при испраќање.'));
+      } catch (e) { setActionsProNotice(e.message || 'Грешка при испраќање.'); }
+    });
+  };
 
   const applyCompanySource = (src) => {
     handleInputChange('companyName', src.companyName || '');
@@ -168,14 +227,28 @@ const BaseDocumentPage = ({
                     disabled={isGenerating}
                   />
 
-                  {/* Live Preview Link - Only visible when terms are accepted */}
+                  {/* Actions are always available on the last step. */}
+                  <div className={styles['inline-actions']}>
+                    <button type="button" className={`${styles['inline-action-btn']} ${styles['inline-action-primary']}`} onClick={handleSubmit} disabled={isGenerating}>
+                      {isGenerating ? 'Се генерира…' : 'Генерирај'}
+                    </button>
+                    <button type="button" className={styles['inline-action-btn']} onClick={handleCheckAI} disabled={isGenerating}>
+                      AI проверка
+                    </button>
+                    <button type="button" className={styles['inline-action-btn']} onClick={handleCheckPro} disabled={isGenerating}>
+                      Проверка со професионалец
+                    </button>
+                  </div>
+                  {actionsProNotice && <div className={styles.actionsNotice}>{actionsProNotice}</div>}
+
+                  {/* Share link appears once the terms are accepted. */}
                   {formData.acceptTerms && !config.disableLivePreview && (
                     <LivePreviewLink formData={formData} documentType={config.documentType} currentUser={currentUser} />
                   )}
                 </>
               )}
 
-              {/* Form Actions */}
+              {/* Form Actions (step navigation; generate lives in the modal / buttons) */}
               <FormActions
                 isFirstStep={isFirstStep}
                 isLastStep={isLastStep}
@@ -183,6 +256,7 @@ const BaseDocumentPage = ({
                 onPrevStep={prevStep}
                 onNextStep={nextStep}
                 onSubmit={handleSubmit}
+                hideSubmit
               />
 
               {/* Quiet inline success bar — shows after the document downloads. */}
@@ -230,6 +304,9 @@ const BaseDocumentPage = ({
         onClose={() => setShowOwnCompanyModal(false)}
         onSaved={handleOwnCompanySaved}
       />
+
+      {/* Pro-review consent gate (triggered by „Проверка со професионалец") */}
+      {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
   );
 };
@@ -293,136 +370,62 @@ const DefaultStepRenderer = ({ stepData, formData, handleInputChange, errors, di
 /**
  * Form Actions Component
  */
-const FormActions = ({ 
-  isFirstStep, 
-  isLastStep, 
-  isGenerating, 
-  onPrevStep, 
-  onNextStep, 
-  onSubmit 
-}) => (
-  <div className={styles['form-actions']}>
-    <div className={styles['navigation-buttons']}>
-      {!isFirstStep && (
-        <button 
-          type="button" 
-          onClick={onPrevStep}
-          className={`${styles.btn} ${styles['prev-btn']}`}
-          disabled={isGenerating}
-        >
-          ← Назад
-        </button>
-      )}
-      
-      {isLastStep ? (
-        <button 
-          type="button" 
-          onClick={onSubmit} 
-          disabled={isGenerating}
-          className={`${styles.btn} ${styles['generate-btn']}`}
-        >
-          {isGenerating ? 'Се генерира...' : 'Генерирај'}
-        </button>
-      ) : (
-        <button 
-          type="button" 
-          onClick={onNextStep}
-          className={`${styles.btn} ${styles['next-btn']}`}
-          disabled={isGenerating}
-        >
-          Следно →
-        </button>
-      )}
-    </div>
-  </div>
-);
-
-/**
- * Live Preview Link Component
- * Always visible - allows users to preview/share form data before generating
- */
-const LivePreviewLink = ({ formData, documentType, currentUser }) => {
-  const [copied, setCopied] = useState(false);
-
-  // Generate preview URL with encoded form data + user company info
-  const generatePreviewUrl = () => {
-    const baseUrl = window.location.origin;
-
-    // Company party for the preview. formData already carries the correct company
-    // (a Pro user's selected client, or their own company set via ClientSelector /
-    // the own-company modal), so prefer it and only fall back to the user's own
-    // companyInfo for Basic users who never touch the client selector. Checking
-    // both field-name variants (companyAddress vs address, etc.).
-    const ci = currentUser?.companyInfo || {};
-    const companyName = formData.companyName || ci.companyName || '';
-    const companyAddress = formData.companyAddress || ci.companyAddress || ci.address || '';
-    const companyTaxNumber = formData.companyTaxNumber || ci.companyTaxNumber || ci.taxNumber || '';
-    const companyManager = formData.companyManager || ci.companyManager || ci.manager || ci.role || '';
-    const dataWithCompanyInfo = {
-      ...formData,
-      companyName,
-      companyAddress,
-      companyTaxNumber,
-      companyManager,
-      companyRepresentative: companyManager
-    };
-
-    // Debug logging
-    console.log('[LivePreviewLink] Company data being encoded:', {
-      companyName: dataWithCompanyInfo.companyName,
-      companyAddress: dataWithCompanyInfo.companyAddress,
-      companyManager: dataWithCompanyInfo.companyManager,
-      hasCurrentUser: !!currentUser,
-      hasCompanyInfo: !!currentUser?.companyInfo
-    });
-
-    const encodedData = btoa(encodeURIComponent(JSON.stringify(dataWithCompanyInfo)));
-    return `${baseUrl}/preview/${documentType}?data=${encodedData}`;
-  };
-
-  const previewUrl = generatePreviewUrl();
-
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(previewUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch (err) {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = previewUrl;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    }
-  };
-
+const FormActions = ({
+  isFirstStep,
+  isLastStep,
+  isGenerating,
+  onPrevStep,
+  onNextStep,
+  onSubmit,
+  hideSubmit = false,
+}) => {
+  // On the last step the generate action lives in the post-terms modal / inline
+  // action buttons, so FormActions only carries step navigation there.
+  if (isLastStep && hideSubmit) {
+    if (isFirstStep) return null;
+    return (
+      <div className={styles['form-actions']}>
+        <div className={styles['navigation-buttons']}>
+          <button type="button" onClick={onPrevStep} className={`${styles.btn} ${styles['prev-btn']}`} disabled={isGenerating}>
+            ← Назад
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className={styles['live-preview-section']}>
+    <div className={styles['form-actions']}>
+      <div className={styles['navigation-buttons']}>
+        {!isFirstStep && (
+          <button
+            type="button"
+            onClick={onPrevStep}
+            className={`${styles.btn} ${styles['prev-btn']}`}
+            disabled={isGenerating}
+          >
+            ← Назад
+          </button>
+        )}
 
-      <p className={styles['preview-description']}>
-        Споделете го линкот за преглед на внесените податоци.
-      </p>
-      <div className={styles['preview-link-row']}>
-
-        <input
-          type="text"
-          value={previewUrl}
-          readOnly
-          className={styles['preview-input']}
-          onClick={(e) => e.target.select()}
-        />
-        <button
-          onClick={copyToClipboard}
-          className={`${styles['copy-preview-btn']} ${copied ? styles['copied'] : ''}`}
-        >
-          {copied ? '✓ Копирано' : 'Копирај'}
-        </button>
+        {isLastStep ? (
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={isGenerating}
+            className={`${styles.btn} ${styles['generate-btn']}`}
+          >
+            {isGenerating ? 'Се генерира...' : 'Генерирај'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onNextStep}
+            className={`${styles.btn} ${styles['next-btn']}`}
+            disabled={isGenerating}
+          >
+            Следно →
+          </button>
+        )}
       </div>
     </div>
   );
@@ -436,7 +439,25 @@ const LivePreviewLink = ({ formData, documentType, currentUser }) => {
 const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
   const [copied, setCopied] = useState(false);
   const { requireTerms, termsModal } = useTermsGate();
+  const { openChat } = useChatDock();
   const [reviewNotice, setReviewNotice] = useState(null);
+
+  // Route to the agent that fits this document's category (the kebab segment in
+  // /terminal/documents/<category>/<doc>). Opt-in — the user clicks if they want.
+  const category = (() => {
+    const parts = (window.location.pathname || '').split('/').filter(Boolean);
+    const i = parts.indexOf('documents');
+    return i >= 0 && parts[i + 1] ? parts[i + 1] : '';
+  })();
+  const reviewAgent = getAgent(agentForCategory(category));
+  const docLabel = fileName || 'документот';
+
+  // „Прегледај со [agent]" — hand the just-generated document to the AI agent.
+  const askAgentReview = () => {
+    openChat?.(reviewAgent.key, {
+      seed: `Штотуку генерирав „${docLabel}". Што треба да проверам кај ваков документ и кои се типичните ризици или грешки што да ги избегнам?`,
+    });
+  };
 
   // „Побарај преглед" — hand the generated document to a Pro for review.
   const requestProReview = () => {
@@ -494,11 +515,20 @@ const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
         <button type="button" className={styles['success-link']} onClick={downloadAgain}>
           Преземи повторно
         </button>
-        <button type="button" className={styles['success-link']} onClick={requestProReview}>
-          Побарај преглед од професионалец
-        </button>
         {expiryLabel && <span className={styles['success-expiry']}>Важи до {expiryLabel}</span>}
       </div>
+
+      {/* Opt-in review — AI agent or a human Pro. Both optional. */}
+      <div className={styles['review-cta']}>
+        <span className={styles['review-cta-label']}>Сакате втор пар очи?</span>
+        <button type="button" className={styles['review-btn']} onClick={askAgentReview}>
+          Прегледај со {reviewAgent.name}
+        </button>
+        <button type="button" className={styles['review-btn-ghost']} onClick={requestProReview}>
+          Побарај преглед од професионалец
+        </button>
+      </div>
+
       {reviewNotice && <div className={styles['success-review-notice']}>{reviewNotice}</div>}
       {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
@@ -548,6 +578,45 @@ const MissingFieldsModal = ({
             {isGenerating ? 'Се генерира...' : 'Продолжи'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Live Preview Link — shareable link to a read-only preview of the entered data.
+ * Shown under the action buttons once the user accepts the terms.
+ */
+const LivePreviewLink = ({ formData, documentType, currentUser }) => {
+  const [copied, setCopied] = useState(false);
+  const previewUrl = buildPreviewUrl(formData, documentType, currentUser);
+
+  const copyToClipboard = async () => {
+    try { await navigator.clipboard.writeText(previewUrl); }
+    catch (_) { /* clipboard may be blocked; the field is selectable */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  return (
+    <div className={styles['live-preview-section']}>
+      <p className={styles['preview-description']}>
+        Споделете го линкот за преглед на внесените податоци.
+      </p>
+      <div className={styles['preview-link-row']}>
+        <input
+          type="text"
+          value={previewUrl}
+          readOnly
+          className={styles['preview-input']}
+          onClick={(e) => e.target.select()}
+        />
+        <button
+          onClick={copyToClipboard}
+          className={`${styles['copy-preview-btn']} ${copied ? styles['copied'] : ''}`}
+        >
+          {copied ? '✓ Копирано' : 'Копирај'}
+        </button>
       </div>
     </div>
   );

@@ -112,3 +112,25 @@ export const LEGAL_AGENTS = AI_AGENTS.filter((a) => a.engine === 'legal');
 export function getAgent(key) {
   return AI_AGENTS.find((a) => a.key === key) || AI_AGENTS[0];
 }
+
+/**
+ * Route a document/content category to the agent best suited to review it.
+ * Keyed by the kebab category segment used in document routes
+ * (/terminal/documents/<category>/<doc>) and the RAG prompt categories.
+ * Only ACTIVE agents are targets; unknown → the general legal agent.
+ */
+const CATEGORY_TO_AGENT = {
+  employment: 'hr',               // АРИА
+  contracts: 'corporate',         // НОВА
+  'central-register': 'corporate',
+  obligations: 'corporate',
+  accounting: 'corporate',
+  'personal-data-protection': 'legal', // ЈУРА
+  'health-safety': 'legal',
+  other: 'legal',
+  marketing: 'marketing',         // ПУЛС
+};
+
+export function agentForCategory(category) {
+  return CATEGORY_TO_AGENT[category] || DEFAULT_AGENT_KEY;
+}

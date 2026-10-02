@@ -942,6 +942,9 @@ function registerRoutes() {
     // Nexa 3.0 — AI stance preferences
     '/ai/stance',
     /^\/ai\/stance\/.*$/,
+    // AI Team — durable user memory (Layer 1)
+    '/ai/memory',
+    /^\/ai\/memory\/.*$/,
     // Nexa 3.0 — Blog submissions (member + admin queue)
     '/blogs/submissions',
     /^\/blogs\/submissions\/.*$/,
@@ -1089,6 +1092,14 @@ function registerRoutes() {
     console.log('✅ AI Stance Preferences routes loaded successfully');
   } catch (error) {
     console.error('❌ Stance preferences routes error:', error.message);
+  }
+
+  // AI Team — durable user memory (no CSRF, JWT-protected)
+  try {
+    app.use('/api/ai/memory', subscriptionGuard, require('./routes/aiMemory'));
+    console.log('✅ AI user-memory routes loaded successfully');
+  } catch (error) {
+    console.error('❌ AI user-memory routes error:', error.message);
   }
 
   // Nexa 3.0 — Blog Submissions (member workflow + admin queue)

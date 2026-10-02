@@ -6,7 +6,8 @@ const { QdrantClient } = require('@qdrant/js-client-rest');
 const OpenAI = require('openai');
 const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
-const { getAgentFlavor } = require('./agentProfiles');
+const UserMemoryService = require('../services/userMemoryService');
+const { getAgentFlavor, getHandoffNote, getAgentScopePatterns } = require('./agentProfiles');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -487,7 +488,83 @@ Nexa Terminal има функции што решаваат дел од проб
     }
   }
 
-  async askQuestion(question, userId, conversationId = null, agent = 'legal') {
+  /**
+   * Durable per-user memory prefix (Layer 1). The „what we know about you" block,
+   * shared by all legal agents. '' on any miss — never blocks a chat.
+   */
+  async _getMemoryPrefix(userId) {
+    try {
+      if (!this.db || !userId) return '';
+      const svc = new UserMemoryService(this.db);
+      return await svc.getPrefix(userId);
+    } catch (e) {
+      console.warn('[chatbot] memory prefix lookup failed:', e.message);
+      return '';
+    }
+  }
+
+  /**
+   * Compose the full specialization prefix injected above the base system prompt:
+   *   agent flavor · hand-off note · user memory · stance/persona.
+   * Memory sits before stance (what-we-know, then how-to-say-it).
+   */
+  async _buildPrefix(userId, agent, fromAgent) {
+    const [memory, stance] = await Promise.all([
+      this._getMemoryPrefix(userId),
+      this._getStancePrefix(userId),
+    ]);
+    return getAgentFlavor(agent) + getHandoffNote(fromAgent, agent) + memory + stance;
+  }
+
+  /**
+   * Fire-and-forget: extract 0–3 durable, business-relevant facts about the user
+   * from one exchange and merge them into memory. Uses the cheap utilityModel and
+   * is never awaited by the request path. No-ops when memory is disabled/empty.
+   */
+  _learnFromExchange(userId, question, answer) {
+    if (!this.db || !userId || !question) return;
+    (async () => {
+      try {
+        const svc = new UserMemoryService(this.db);
+        const mem = await svc.get(userId);
+        if (!mem.enabled) return;
+
+        const prompt = PromptTemplate.fromTemplate(
+          `Ти си помошник што води кратка меморија за корисник на правна AI платформа.
+Од разговорот подолу извлечи ТРАЈНИ, стабилни факти за КОРИСНИКОТ и неговиот бизнис што би помогнале при идни правни совети.
+
+ВКЛУЧИ само: дејност/индустрија, правна форма (ДОО/ДООЕЛ/занает…), големина (број вработени), улога на корисникот, повторливи теми/грижи, тековни предмети или клучни односи (клиенти, добавувачи, партнери).
+НЕ вклучувај: општи правни информации, содржина на одговорот, еднократни ситни детали, лични чувствителни податоци што не се потребни.
+
+Врати ИСКЛУЧИВО JSON низа (без друг текст) од најмногу 3 објекти: [{{"text":"<факт на македонски, до 160 знаци>","domain":"employment|corporate|contracts|tax|data|general"}}]. Ако нема ништо вредно за памтење, врати [].
+
+ПРАШАЊЕ НА КОРИСНИКОТ:
+{question}
+
+ОДГОВОР НА АСИСТЕНТОТ:
+{answer}`
+        );
+        const chain = RunnableSequence.from([prompt, this.utilityModel, new StringOutputParser()]);
+        const out = await chain.invoke({
+          question: String(question).slice(0, 1500),
+          answer: String(answer || '').slice(0, 2500),
+        });
+
+        const match = out && out.match(/\[[\s\S]*\]/);
+        if (!match) return;
+        let facts;
+        try { facts = JSON.parse(match[0]); } catch { return; }
+        if (!Array.isArray(facts) || facts.length === 0) return;
+
+        await svc.learn(userId, facts.slice(0, 3));
+        console.log(`🧠 [MEMORY] Learned ${Math.min(facts.length, 3)} fact(s) for user ${userId}`);
+      } catch (e) {
+        console.warn('[chatbot] _learnFromExchange failed:', e.message);
+      }
+    })();
+  }
+
+  async askQuestion(question, userId, conversationId = null, agent = 'legal', fromAgent = null) {
     try {
       // Validate inputs
       if (!question || question.trim().length === 0) {
@@ -522,7 +599,7 @@ Nexa Terminal има функции што решаваат дел од проб
       // retrieval knows the topic (the LLM still gets the raw question below).
       console.log(`\n🤖 [RAG DEBUG] Processing question for user ${userId}`);
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
-      const relevantDocs = await this.retrieveRelevantDocuments(searchQuery);
+      const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
 
       // Step 3: Format context from retrieved documents
       const context = this.formatContext(relevantDocs);
@@ -545,8 +622,9 @@ Nexa Terminal има функции што решаваат дел од проб
 
       // Step 6: Execute the chain. The agent flavor (AI Team specialization)
       // and stance preferences are injected as a structured prefix above the
-      // system prompt — either may be empty.
-      const stancePrefix = getAgentFlavor(agent) + (await this._getStancePrefix(userId));
+      // system prompt — any part may be empty. Order: agent flavor · hand-off
+      // note · durable user memory · stance/persona.
+      const stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
@@ -590,6 +668,9 @@ Nexa Terminal има функции што решаваат дел од проб
           console.error('⚠️  Failed to save conversation messages:', convError.message);
         }
       }
+
+      // Grow durable user memory from this exchange (async, best-effort).
+      this._learnFromExchange(userId, question, cleanResponse);
 
       // Step 7: Return response with metadata
       const result = {
@@ -1035,7 +1116,27 @@ Nexa Terminal има функции што решаваат дел од проб
     }
   }
 
-  async retrieveRelevantDocuments(question) {
+  /**
+   * Soft agent-scope boost: float chunks whose documentName/content match the
+   * agent's specialty to the FRONT (stable), so the specialist's own laws are
+   * more likely to survive rerank/backfill. Not a filter; never touches scores.
+   */
+  applyAgentScope(docs, agent) {
+    const patterns = getAgentScopePatterns(agent);
+    if (patterns.length === 0 || docs.length <= 1) return docs;
+    const inScope = (d) => {
+      const hay = `${d.metadata?.documentName || ''} ${(d.pageContent || '').slice(0, 300)}`;
+      return patterns.some((re) => re.test(hay));
+    };
+    // Stable partition preserving relative order within each group.
+    const matched = docs.filter(inScope);
+    if (matched.length === 0 || matched.length === docs.length) return docs;
+    const rest = docs.filter((d) => !inScope(d));
+    console.log(`🎯 [RAG DEBUG] Agent scope (${agent}): floated ${matched.length}/${docs.length} in-specialty chunks`);
+    return [...matched, ...rest];
+  }
+
+  async retrieveRelevantDocuments(question, agent = 'legal') {
     if (!this.vectorStore) {
       console.warn('⚠️  Vector store not initialized. Using placeholder context.');
       return [{
@@ -1087,8 +1188,9 @@ Nexa Terminal има функции што решаваат дел од проб
 
         console.log(`🧠 [RAG DEBUG] Multi-query: ${allResults.length} total → ${topResults.length} unique results`);
         // Rank laws/case law above guidance and cap per-doc; keep the WIDE pool
-        // (the reranker trims to the final set below).
-        topResults = this.prioritizeSources(topResults);
+        // (the reranker trims to the final set below). Scope-boost first so the
+        // specialist's own laws keep their lead within each partition.
+        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent));
       } else {
         // Simple question: single hybrid search — wide pool for the reranker.
         const [vectorResults, keywordResults] = await Promise.allSettled([
@@ -1116,7 +1218,7 @@ Nexa Terminal има функции што решаваат дел од проб
           console.log(`📋 [RAG DEBUG] Using ${vectors.length > 0 ? 'vector' : 'keyword'}-only results`);
         }
 
-        topResults = this.prioritizeSources(topResults);
+        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent));
       }
 
       // Rerank the wide candidate pool down to the final context set — surfaces
@@ -1283,7 +1385,7 @@ Nexa Terminal има функции што решаваат дел од проб
    * @param {string} conversationId - Conversation ID
    * @param {Function} onEvent - Callback: ({type, data}) => void
    */
-  async askQuestionStream(question, userId, conversationId, onEvent, agent = 'legal') {
+  async askQuestionStream(question, userId, conversationId, onEvent, agent = 'legal', fromAgent = null) {
     try {
       if (!question || question.trim().length === 0) {
         throw new Error('Question cannot be empty');
@@ -1313,7 +1415,7 @@ Nexa Terminal има функции што решаваат дел од проб
 
       // Retrieve relevant documents (topic-aware query for follow-ups)
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
-      const relevantDocs = await this.retrieveRelevantDocuments(searchQuery);
+      const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
       const context = this.formatContext(relevantDocs);
 
       // Send sources event first
@@ -1335,8 +1437,8 @@ Nexa Terminal има функции што решаваат дел од проб
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Stream tokens. Agent flavor + stance prefix injected once at the top.
-      const stancePrefix = getAgentFlavor(agent) + (await this._getStancePrefix(userId));
+      // Stream tokens. Prefix = agent flavor · hand-off · memory · stance.
+      const stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       let fullResponse = '';
       const stream = await chain.stream({
         stancePrefix,
@@ -1385,6 +1487,9 @@ Nexa Terminal има функции што решаваат дел од проб
           console.error('⚠️  Failed to save conversation messages:', convError.message);
         }
       }
+
+      // Grow durable user memory from this exchange (async, best-effort).
+      this._learnFromExchange(userId, question, cleanResponse);
 
       // Send done event
       onEvent({

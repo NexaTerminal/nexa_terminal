@@ -31,7 +31,7 @@ const chatBotService = require('../chatbot/ChatBotService');
  */
 router.post('/ask', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
-    const { question, conversationId, agent } = req.body;
+    const { question, conversationId, agent, from } = req.body;
     const userId = req.user._id.toString(); // From JWT auth middleware
 
     // Validate question
@@ -51,7 +51,7 @@ router.post('/ask', authenticateJWT, checkCredits(1), async (req, res) => {
     }
 
     // Ask the chatbot (with optional conversationId for history tracking)
-    const response = await chatBotService.askQuestion(question, userId, conversationId, agent);
+    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from);
 
     // Feature-usage signal (best-effort — never blocks the answer).
     try {
@@ -309,7 +309,7 @@ router.get('/conversations/:id', authenticateJWT, async (req, res) => {
 router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const conversationId = req.params.id;
-    const { question, agent } = req.body;
+    const { question, agent, from } = req.body;
     const userId = req.user._id.toString();
     const conversationService = getConversationService(req);
 
@@ -332,7 +332,7 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     await conversationService.getConversation(conversationId, userId);
 
     // Ask the chatbot with conversation context
-    const response = await chatBotService.askQuestion(question, userId, conversationId, agent);
+    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from);
 
     try {
       req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
@@ -414,7 +414,7 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
 router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const conversationId = req.params.id;
-    const { question, agent } = req.body;
+    const { question, agent, from } = req.body;
     const userId = req.user._id.toString();
     const conversationService = getConversationService(req);
 
@@ -467,7 +467,7 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
     await chatBotService.askQuestionStream(question, userId, conversationId, (event) => {
       if (clientDisconnected) return;
       res.write(`data: ${JSON.stringify(event)}\n\n`);
-    }, agent);
+    }, agent, from);
 
     // Send credits info as final event
     if (!clientDisconnected && creditsRemaining !== null) {

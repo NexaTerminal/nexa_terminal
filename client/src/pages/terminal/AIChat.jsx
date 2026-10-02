@@ -7,6 +7,7 @@ import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
 import PersonaControl from '../../components/chatbot/PersonaControl';
+import MemoryControl from '../../components/chatbot/MemoryControl';
 import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAnalysisPanel';
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
@@ -17,6 +18,21 @@ import useCreditHandler from '../../hooks/useCreditHandler';
 import useTermsGate from '../../hooks/useTermsGate';
 import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from '../../styles/terminal/AIChat.module.css';
+
+// Teammate hand-off marker emitted by the agent (see server/chatbot/agentProfiles.js).
+// We parse it at render time so it works for streamed, fallback and loaded messages
+// alike: the key drives the „Префрли се на <Име> →" chip; the marker is stripped
+// from the displayed text (incl. any trailing partial fragment mid-stream).
+const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|marketing)\]\]/i;
+function splitHandoff(text = '') {
+  const m = text.match(HANDOFF_RE);
+  const handoff = m ? m[1].toLowerCase() : null;
+  const clean = text
+    .replace(HANDOFF_RE, '')
+    .replace(/\[\[HANDOFF:?[a-z]*\]?\]?\s*$/i, '')
+    .trim();
+  return { clean, handoff };
+}
 
 /**
  * AIChat Component
@@ -35,6 +51,9 @@ const AIChat = () => {
   // Active AI Team agent (legal RAG engine). Marketing agent lives on its own page.
   const [agent, setAgent] = useState(DEFAULT_AGENT_KEY);
   const activeAgent = getAgent(agent);
+  // When the user is routed here from a teammate, remember who sent them so the
+  // receiving agent opens with a warm acknowledgment (sent as `from` on next ask).
+  const [handoffFrom, setHandoffFrom] = useState(null);
   // Contract-review panel (corporate agent only).
   const [showContract, setShowContract] = useState(false);
   // Ask-a-Pro handoff
@@ -134,6 +153,29 @@ const AIChat = () => {
   };
 
   /**
+   * Teammate hand-off: user clicked „Префрли се на <колега>". Switch the active
+   * agent, start a fresh thread, carry over the last question, and remember who
+   * sent them so the receiving agent greets warmly (passed as `from` on next ask).
+   * Marketing (ПУЛС) lives on its own page, so route there instead.
+   */
+  const handleHandoff = (targetKey) => {
+    const target = getAgent(targetKey);
+    if (!target || target.key === agent) return;
+    if (target.engine !== 'legal') {
+      navigate(target.route || '/terminal/marketing-ai');
+      return;
+    }
+    const lastUser = [...messages].reverse().find((m) => m.type === 'user');
+    const carried = (lastUser?.content || '').trim();
+    const fromKey = agent;
+    handleNewConversation();
+    setAgent(targetKey);
+    setHandoffFrom(fromKey);
+    if (carried) setQuestion(carried);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  /**
    * Ask-a-Pro handoff: create a `consult` pro request from the current chat.
    * Uses the last user question (or the input box) + a short transcript excerpt;
    * gated behind the proRequest terms (data-sharing consent).
@@ -219,6 +261,9 @@ const AIChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     const questionText = question;
+    // Hand-off origin applies only to THIS (first) message after a switch.
+    const fromAgent = handoffFrom;
+    setHandoffFrom(null);
     setQuestion('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsLoading(true);
@@ -304,7 +349,7 @@ const AIChat = () => {
           setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
           setIsStreaming(false);
         },
-      }, agent);
+      }, agent, fromAgent);
 
     } catch (err) {
       console.error('Error asking question:', err);
@@ -318,7 +363,7 @@ const AIChat = () => {
 
         let conversationId = currentConversationId;
         const data = await handleCreditOperation(
-          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent),
+          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent, fromAgent),
           'AI прашање',
           1
         );
@@ -470,6 +515,7 @@ const AIChat = () => {
                   🧑‍⚖️ Прашај професионалец
                 </button>
                 <PersonaControl />
+                <MemoryControl />
                 <div className={styles.limitsBadge}>
                   <span className={styles.limitsCount}>
                     {limits.remaining}/{limits.total}
@@ -513,7 +559,12 @@ const AIChat = () => {
                   <img src={activeAgent.photo} alt={activeAgent.name} className={styles.welcomeAvatar} />
                 )}
                 <h3 className={styles.welcomeTitle}>Здраво, јас сум {activeAgent.name}</h3>
-                <p className={styles.welcomeBio}>{activeAgent.bio}</p>
+                {handoffFrom && getAgent(handoffFrom) && (
+                  <p className={styles.handoffNote}>
+                    Префрлени сте од {getAgent(handoffFrom).name}. {activeAgent.name} презема од тука.
+                  </p>
+                )}
+                <p className={styles.welcomeBio}>{activeAgent.greeting || activeAgent.bio}</p>
                 <div className={styles.starters}>
                   {(activeAgent.starters || []).map((s, i) => (
                     <button
@@ -529,7 +580,13 @@ const AIChat = () => {
               </div>
             ) : (
               <div className={styles.messagesList}>
-                {messages.map((message, index) => (
+                {messages.map((message, index) => {
+                  const isAi = message.type === 'ai';
+                  const { clean: displayContent, handoff } = isAi
+                    ? splitHandoff(message.content)
+                    : { clean: message.content, handoff: null };
+                  const handoffAgent = handoff ? getAgent(handoff) : null;
+                  return (
                   <div
                     key={index}
                     className={`${styles.messageRow} ${
@@ -556,9 +613,9 @@ const AIChat = () => {
                       </div>
 
                       <div className={`${styles.bubble} ${message.type === 'user' ? styles.bubbleUser : styles.bubbleAi} ${message.type === 'ai' ? styles.markdownContent : ''}`}>
-                        {message.type === 'ai' ? (
+                        {isAi ? (
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {message.content}
+                            {displayContent}
                           </ReactMarkdown>
                         ) : (
                           message.content
@@ -601,9 +658,28 @@ const AIChat = () => {
                           ))}
                         </div>
                       )}
+
+                      {/* Teammate hand-off chip (light) — switch to the right specialist */}
+                      {isAi && !message.isStreaming && handoffAgent && handoffAgent.key !== agent && (
+                        <div className={styles.handoffRow}>
+                          <button
+                            type="button"
+                            className={styles.handoffChip}
+                            onClick={() => handleHandoff(handoffAgent.key)}
+                            disabled={isLoading || isStreaming}
+                            title={`Продолжи со ${handoffAgent.name} — ${handoffAgent.role}`}
+                          >
+                            {handoffAgent.photo
+                              ? <img src={handoffAgent.photo} alt="" className={styles.handoffAvatar} />
+                              : <span className={styles.handoffIcon}>{handoffAgent.icon}</span>}
+                            <span>Префрли се на <strong>{handoffAgent.name}</strong> →</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
                 {/* Loading indicator */}
                 {isLoading && (

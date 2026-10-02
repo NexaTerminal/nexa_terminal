@@ -647,6 +647,66 @@
   cursor: not-allowed;
 }
 
+/* Teammate hand-off chip — light background, reads as "pass you to a colleague" */
+.handoffRow {
+  display: flex;
+  margin-top: var(--spacing-2, 0.5rem);
+}
+
+.handoffChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2, 0.5rem);
+  background-color: #f6f8fc;
+  color: var(--color-neutral-700, #374151);
+  border: 1px solid rgba(30, 77, 183, 0.18);
+  border-radius: var(--radius-full, 9999px);
+  padding: var(--spacing-1, 0.25rem) var(--spacing-3, 0.75rem);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  text-align: left;
+}
+
+.handoffChip:hover:not(:disabled) {
+  background-color: #eef2fb;
+  border-color: var(--color-primary, #1E4DB7);
+}
+
+.handoffChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.handoffChip strong {
+  color: var(--color-primary, #1E4DB7);
+  font-weight: 600;
+}
+
+.handoffAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.handoffIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Hand-off origin note on the welcome screen */
+.handoffNote {
+  margin: 0 auto 10px;
+  max-width: 460px;
+  font-size: 0.85rem;
+  color: var(--color-primary, #1E4DB7);
+  background-color: #f6f8fc;
+  border: 1px solid rgba(30, 77, 183, 0.15);
+  border-radius: var(--radius-md, 8px);
+  padding: 6px 12px;
+}
+
 /* Streaming cursor */
 .streamingCursor {
   display: inline-block;

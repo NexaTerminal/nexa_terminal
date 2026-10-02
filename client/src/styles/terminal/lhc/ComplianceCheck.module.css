@@ -1056,5 +1056,35 @@
   background: #fff;
   border: 1px solid var(--color-accent, #2563eb);
 }
+.finding-action-ask { cursor: pointer; font-family: inherit; }
 .finding-action-ask:hover { background: var(--color-accent-soft, #eff6ff); }
+
+/* Module-level AI/human review strip (light buttons, dark font) */
+.lhc-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.lhc-review-btn {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  background: #fff;
+  color: var(--color-text-dark, #111827);
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.lhc-review-btn:hover { background: var(--color-neutral-50, #f9fafb); border-color: var(--color-neutral-300, #d1d5db); }
+.lhc-review-notice {
+  margin: 8px 0 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.86rem;
+}
 .recommendation-body{flex:1;display:flex;flex-direction:column;gap:0.35rem;}

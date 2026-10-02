@@ -9,6 +9,12 @@ import LhcDisclaimer from './LhcDisclaimer';
 import LhcCoverageNote from './LhcCoverageNote';
 import LhcAiNarrative from './LhcAiNarrative';
 import LhcFindingActions from './LhcFindingActions';
+import FeatureTermsModal from '../FeatureTermsModal';
+import useTermsGate from '../../../hooks/useTermsGate';
+import ProRequestsApiService from '../../../services/proRequestsApi';
+import { CURRENT_VERSIONS } from '../../../data/featureTerms';
+import { useChatDock } from '../../../contexts/ChatDockContext';
+import { getAgent } from '../../../config/aiAgents';
 
 // Shared §6.2 report layout for every module scored through lhcScoring.js
 // (Employment + Parts 1–4, Health & Safety, Archives). Each page passes its
@@ -35,6 +41,35 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({});
   const [printing, handlePrint] = usePrintReport();
+
+  // AI/human review for this report. Employment modules → АРИА; the rest → ЈУРА.
+  const { openChat } = useChatDock();
+  const { requireTerms, termsModal } = useTermsGate();
+  const [reviewNotice, setReviewNotice] = useState(null);
+  const reviewAgentKey = /employment/i.test(fetchBase || '') ? 'hr' : 'legal';
+  const reviewAgent = getAgent(reviewAgentKey);
+
+  const askAgent = () => {
+    openChat?.(reviewAgentKey, {
+      seed: `Направив правна проверка „${title}". Кои наоди се најитни и како да ги решам?`,
+    });
+  };
+  const askPro = () => {
+    requireTerms('proRequest', async () => {
+      setReviewNotice(null);
+      try {
+        const res = await ProRequestsApiService.create({
+          type: 'consult',
+          subject: `Правна проверка: ${title}`,
+          context: { question: `Правна проверка „${title}" — барам преглед и совет за наодите.` },
+          consentVersion: CURRENT_VERSIONS.proRequest,
+        });
+        setReviewNotice(res.success
+          ? 'Испратено — следете го во „Моите барања".'
+          : (res.message || 'Грешка при испраќање.'));
+      } catch (e) { setReviewNotice(e.message || 'Грешка при испраќање.'); }
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -140,6 +175,17 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
             {/* AI advisory summary */}
             <LhcAiNarrative assessmentId={assessment._id} />
 
+            {/* AI / human review of this report */}
+            <div className={styles['lhc-review-actions']}>
+              <button type="button" className={styles['lhc-review-btn']} onClick={askAgent}>
+                Разговарај со {reviewAgent.name}
+              </button>
+              <button type="button" className={styles['lhc-review-btn']} onClick={askPro}>
+                Побарај преглед од професионалец
+              </button>
+            </div>
+            {reviewNotice && <div className={styles['lhc-review-notice']}>{reviewNotice}</div>}
+
             {redFlagNote && assessment.redFlagTriggered && (
               <div className={`${styles['finding-card']} ${styles['finding-card-violation']}`}>
                 🚩 {redFlagNote}
@@ -169,7 +215,7 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
                       {(cf.legalRef || cf.legalBasis) && (
                         <div className={styles['finding-article']}><strong>Правна основа:</strong> {cf.legalRef || cf.legalBasis}</div>
                       )}
-                      <LhcFindingActions finding={cf} />
+                      <LhcFindingActions finding={cf} agentKey={reviewAgentKey} />
                     </div>
                   ))}
                 </div>
@@ -223,7 +269,7 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
                           {(r.severity === 'critical' || r.severity === 'high') ? '⚠ ' : '✶ '}{r.text}
                           {r.legalRef ? <span className={styles['recommendation-category-badge']}> · {r.legalRef}</span> : null}
                         </label>
-                        <LhcFindingActions finding={r} />
+                        <LhcFindingActions finding={r} agentKey={reviewAgentKey} />
                       </div>
                     </div>
                   ))}
@@ -318,6 +364,7 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
           </div>
         </main>
       </div>
+      {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
   );
 };

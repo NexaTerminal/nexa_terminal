@@ -1,14 +1,16 @@
 import React from 'react';
 import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import { suggestDocs } from '../../../config/lhcDocumentMap';
+import { useChatDock } from '../../../contexts/ChatDockContext';
 
 // Per-finding next actions: one-click "generate the fixing document" chips
 // (deterministic route map — never a dead link) + an "ask the AI" handoff that
-// opens the chat preloaded with the finding. Shared by every LHC report.
-export default function LhcFindingActions({ finding }) {
+// opens the routed agent's chat balloon preloaded with the finding.
+export default function LhcFindingActions({ finding, agentKey = 'legal' }) {
+  const { openChat } = useChatDock();
   const docs = suggestDocs(finding);
-  const askQuery = encodeURIComponent(finding.question || finding.text || '');
-  if (docs.length === 0 && !askQuery) return null;
+  const q = (finding.question || finding.text || '').trim();
+  if (docs.length === 0 && !q) return null;
   return (
     <div className={styles['finding-actions']}>
       {docs.map((d) => (
@@ -16,10 +18,14 @@ export default function LhcFindingActions({ finding }) {
           📄 Подготви: {d.label}
         </a>
       ))}
-      {askQuery && (
-        <a href={`/terminal/ai?q=${askQuery}`} className={styles['finding-action-ask']}>
-          💬 Прашај го АИ за ова
-        </a>
+      {q && (
+        <button
+          type="button"
+          className={styles['finding-action-ask']}
+          onClick={() => openChat?.(agentKey, { seed: q })}
+        >
+          Прашај го АИ за ова
+        </button>
       )}
     </div>
   );

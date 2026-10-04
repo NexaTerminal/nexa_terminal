@@ -3,12 +3,13 @@
  *
  * Any authenticated (verified) user may create a request (demand side). Reads
  * are role-scoped via a `view` param: mine (requester) | assigned (Pro) | admin.
- * Approve/reject/providers are ADMIN-only. Email notifications are best-effort
+ * Approve-to-board and reject are ADMIN-only. Email notifications are best-effort
  * and never block the API response.
  */
 const ProRequestsService = require('../services/proRequestsService');
 const tierService = require('../services/tierService');
 const emailService = require('../services/emailService');
+const aiSummaryService = require('../services/aiSummaryService');
 
 const make = (req) => new ProRequestsService(req.app.locals.db);
 const isAdmin = (req) => tierService.visibleTier(req.user) === 'ADMIN';
@@ -32,7 +33,11 @@ function notify(to, subject, html) {
 }
 
 const TYPE_LABEL = { consult: 'Прашање до професионалец', contract_review: 'Преглед на договор' };
+const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување' };
 const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+// Liability line shown to both sides — the Pro owns their advice; AI is informational.
+const LIABILITY_NOTE =
+  'Напомена: AI одговорите се информативни и не се правен совет. Ако професионалец се приклучи и даде совет, тој е професионално одговорен за точноста на својот совет.';
 
 // ── Reads ──────────────────────────────────────────────────────────────────────
 exports.list = async (req, res) => {
@@ -60,8 +65,20 @@ exports.get = async (req, res) => {
 // ── Create (requester) ──────────────────────────────────────────────────────────
 exports.create = async (req, res) => {
   try {
-    const item = await make(req).create(req.user, req.body || {});
+    // Summarize the AI↔user conversation up-front so the admin reviews a clean
+    // brief before approving, and the same text rides onto the Pro board. Fails
+    // safe (trimmed fallback) — never blocks creation.
+    const ctx = req.body?.context || {};
+    const summary = await aiSummaryService.summarizeConversation({
+      subject: req.body?.subject,
+      question: ctx.question,
+      transcript: ctx.transcriptExcerpt,
+      type: req.body?.type,
+    });
+
+    const item = await make(req).create(req.user, req.body || {}, summary);
     const adminLink = `${APP_URL()}/terminal/admin-user/requests`;
+    const summaryHtml = esc(item.context?.aiSummary || '').replace(/\n/g, '<br/>');
     notify(
       ADMIN_EMAIL(),
       `Ново барање: ${TYPE_LABEL[item.type] || item.type}`,
@@ -70,9 +87,10 @@ exports.create = async (req, res) => {
        <strong>Наслов:</strong> ${esc(item.subject)}<br/>
        <strong>Корисник:</strong> ${esc(item.userName || '')} ${item.userEmail ? `(${esc(item.userEmail)})` : ''}<br/>
        <strong>Фирма:</strong> ${esc(item.companyName || '-')}</p>
+       ${summaryHtml ? `<p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>` : ''}
        ${item.context?.question ? `<p><strong>Прашање:</strong><br/>${esc(item.context.question)}</p>` : ''}
        ${item.context?.documentName ? `<p><strong>Документ:</strong> ${esc(item.context.documentName)}</p>` : ''}
-       <p><a href="${adminLink}">Отвори во админ панел</a> за одобрување и доделување.</p>`
+       <p><a href="${adminLink}">Отвори во админ панел</a> за да го објавиш на таблата за професионалци.</p>`
     );
     return res.status(201).json({ success: true, item });
   } catch (err) { return handle(res, err); }
@@ -108,25 +126,80 @@ exports.addQuote = async (req, res) => {
 };
 
 // ── Admin actions ────────────────────────────────────────────────────────────────
-exports.approve = async (req, res) => {
+// Admin approves onto the open board, then broadcasts to all eligible Pros. The
+// conversation summary was generated at creation; we only regenerate it here as
+// a fallback (e.g. legacy rows that predate create-time summaries). First Pro to
+// claim joins the thread.
+exports.approveToBoard = async (req, res) => {
   try {
     if (!isAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за администратор.' });
-    const item = await make(req).approveAndAssign(req.params.id, req.body?.assignedProId);
-    const link = `${APP_URL()}/terminal/requests`;
-    notify(
-      item.assignedProEmail,
-      `Доделено ново барање: ${esc(item.subject)}`,
-      `<p>Ви е доделено барање од клиент на Nexa.</p>
-       <p><strong>Наслов:</strong> ${esc(item.subject)}</p>
-       ${item.context?.question ? `<p><strong>Прашање:</strong><br/>${esc(item.context.question)}</p>` : ''}
-       ${item.context?.documentRef ? `<p><strong>Документ за преглед:</strong> <a href="${esc(item.context.documentRef)}">отвори</a></p>` : ''}
-       <p><a href="${link}">Отвори го разговорот</a> за да одговориш.</p>`
-    );
+    const svc = make(req);
+    const current = await svc.getForActor(req.user, req.params.id, true);
+
+    let summary = current.context?.aiSummary;
+    if (!summary) {
+      summary = await aiSummaryService.summarizeConversation({
+        subject: current.subject,
+        question: current.context?.question,
+        transcript: current.context?.transcriptExcerpt,
+        type: current.type,
+      });
+    }
+
+    const item = await svc.approveToBoard(req.params.id, summary);
+    const pros = await svc.eligibleProsForCategory(item.category);
+    const boardLink = `${APP_URL()}/terminal/pro/board`;
+    const summaryHtml = esc(item.context?.aiSummary || summary).replace(/\n/g, '<br/>');
+
+    for (const p of pros) {
+      notify(
+        p.email,
+        `Ново барање на таблата: ${esc(item.subject)}`,
+        `<p>Пристигна ново барање од корисник на Nexa што бара помош или проверка од професионалец.</p>
+         <p><strong>Област:</strong> ${esc(CATEGORY_LABEL[item.category] || item.category)}<br/>
+         <strong>Наслов:</strong> ${esc(item.subject)}</p>
+         <p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>
+         <p>Првиот професионалец што ќе се приклучи го презема разговорот. <a href="${boardLink}">Отвори ја таблата со барања</a>.</p>
+         <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
+      );
+    }
+
     notify(
       item.userEmail,
-      'Вашето барање е прифатено',
-      `<p>Вашето барање „${esc(item.subject)}" е прегледано и доделено на професионалец. Може да започнете разговор.</p>
-       <p><a href="${link}">Отвори го разговорот</a></p>`
+      'Вашето барање е споделено со професионалци',
+      `<p>Вашето барање „${esc(item.subject)}" е одобрено и споделено со проверени професионалци. Наскоро некој ќе се приклучи во разговорот.</p>
+       <p><a href="${APP_URL()}/terminal/requests">Следете го тука</a>.</p>
+       <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
+    );
+
+    return res.json({ success: true, item, notified: pros.length });
+  } catch (err) { return handle(res, err); }
+};
+
+// Pro view of the open board (eligible, unclaimed requests).
+exports.board = async (req, res) => {
+  try {
+    if (!isProOrAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за Про членови.' });
+    return res.json({ success: true, items: await make(req).listBoardForPro(req.user) });
+  } catch (err) { return handle(res, err); }
+};
+
+// Pro claims an open request (first-come) and joins the conversation. Requires an
+// explicit professional-liability acknowledgment.
+exports.claim = async (req, res) => {
+  try {
+    if (!isProOrAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за Про членови.' });
+    if (!req.body?.acceptLiability) {
+      return handle(res, { code: 'INVALID_INPUT', message: 'Мора да ја потврдите професионалната одговорност за да се приклучите.', fields: ['acceptLiability'] });
+    }
+    const item = await make(req).claim(req.user, req.params.id, { version: req.body?.consentVersion });
+    const link = `${APP_URL()}/terminal/requests`;
+    notify(
+      item.userEmail,
+      'Професионалец се приклучи во вашето барање',
+      `<p><strong>${esc(item.assignedProName || 'Професионалец')}</strong> се приклучи во вашето барање „${esc(item.subject)}" и може да ви помогне.</p>
+       <p><a href="${link}">Отвори го разговорот</a></p>
+       <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
     );
     return res.json({ success: true, item });
   } catch (err) { return handle(res, err); }
@@ -150,12 +223,5 @@ exports.close = async (req, res) => {
   try {
     const item = await make(req).close(req.user, req.params.id, isAdmin(req));
     return res.json({ success: true, item });
-  } catch (err) { return handle(res, err); }
-};
-
-exports.providers = async (req, res) => {
-  try {
-    if (!isAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за администратор.' });
-    return res.json({ success: true, items: await make(req).listProviders() });
   } catch (err) { return handle(res, err); }
 };

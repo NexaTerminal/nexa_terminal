@@ -985,6 +985,9 @@ function registerRoutes() {
     // Регистар на набавки — owner API (JWT-Bearer)
     '/procurement',
     /^\/procurement\/.*$/,
+    // „Ask a Pro" / Барања — AI→human handoff (JWT-Bearer; header auth, cross-domain SPA)
+    '/pro-requests',
+    /^\/pro-requests\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled

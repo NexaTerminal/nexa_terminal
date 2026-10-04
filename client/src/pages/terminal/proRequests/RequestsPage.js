@@ -7,22 +7,28 @@ import styles from './RequestsPage.module.css';
 
 const STATUS_LABEL = {
   pending_approval: 'Се чека одобрување',
+  open: 'Споделено со професионалци',
   active: 'Активно',
   closed: 'Затворено',
   rejected: 'Одбиено',
 };
 const STATUS_CLASS = {
   pending_approval: 'badgePending',
+  open: 'badgePending',
   active: 'badgeActive',
   closed: 'badgeClosed',
   rejected: 'badgeRejected',
 };
 const TYPE_LABEL = { consult: 'Прашање', contract_review: 'Преглед на договор' };
+const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување' };
+const LIABILITY_NOTE =
+  'AI одговорите се информативни и не се правен совет. Советот од професионалецот е негова професионална одговорност.';
 
 const TITLES = {
   mine: { h1: 'Моите барања', sub: 'Вашите прашања и барања за преглед од професионалец.' },
-  assigned: { h1: 'Барања', sub: 'Барања доделени на вас од клиенти на Nexa.' },
-  admin: { h1: 'Барања (админ)', sub: 'Одобрете и доделете барања на професионалец.' },
+  assigned: { h1: 'Преземени барања', sub: 'Барања што ги презедовте и разговори со клиенти на Nexa.' },
+  board: { h1: 'Отворени барања', sub: 'Барања од корисници што чекаат професионалец. Првиот што ќе се приклучи го презема разговорот.' },
+  admin: { h1: 'Барања (админ)', sub: 'Одобрете ги барањата и објавете ги на таблата за професионалци.' },
 };
 
 /**
@@ -37,54 +43,67 @@ export default function RequestsPage({ view = 'mine' }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Admin assign state
-  const [providers, setProviders] = useState([]);
-  const [chosenPro, setChosenPro] = useState('');
+  // Admin reject state
   const [rejectReason, setRejectReason] = useState('');
   const [acting, setActing] = useState(false);
+  // Board claim state
+  const [acceptLiability, setAcceptLiability] = useState(false);
+  const [notice, setNotice] = useState(null);
+
+  const isBoard = view === 'board';
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const res = await ProRequestsApiService.list(view);
+      const res = isBoard ? await ProRequestsApiService.board() : await ProRequestsApiService.list(view);
       if (res.success) setItems(res.items || []);
       else setError(res.message || 'Грешка при вчитување.');
     } catch (e) { setError(e.message || 'Грешка при вчитување.'); }
     finally { setLoading(false); }
-  }, [view]);
+  }, [view, isBoard]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Load providers once for admin (for hand-pick).
-  useEffect(() => {
-    if (view !== 'admin') return;
-    ProRequestsApiService.providers()
-      .then((r) => { if (r.success) setProviders(r.items || []); })
-      .catch(() => {});
-  }, [view]);
-
-  async function openRequest(id) {
-    setChosenPro(''); setRejectReason('');
+  async function openRequest(idOrItem) {
+    setRejectReason(''); setAcceptLiability(false); setNotice(null);
+    // Board items are pre-loaded (a Pro has no access to GET /:id before claiming).
+    if (isBoard) { setSelected(typeof idOrItem === 'object' ? idOrItem : items.find((i) => i._id === idOrItem)); return; }
     try {
-      const res = await ProRequestsApiService.get(id);
+      const res = await ProRequestsApiService.get(idOrItem);
       if (res.success) setSelected(res.item);
     } catch (e) { setError(e.message); }
+  }
+
+  async function approveToBoard() {
+    if (acting) return;
+    setActing(true); setError(null); setNotice(null);
+    try {
+      const res = await ProRequestsApiService.approveToBoard(selected._id);
+      if (res.success) { onUpdated(res.item); setNotice(`Објавено на таблата. Известени се ${res.notified ?? 0} професионалци.`); }
+      else setError(res.message);
+    } catch (e) { setError(e.message); }
+    finally { setActing(false); }
+  }
+
+  async function claim() {
+    if (acting) return;
+    if (!acceptLiability) { setError('Потврдете ја професионалната одговорност за да се приклучите.'); return; }
+    setActing(true); setError(null);
+    try {
+      const res = await ProRequestsApiService.claim(selected._id, { acceptLiability: true, consentVersion: 1 });
+      if (res.success) {
+        // Claimed → leaves the board; it now lives under „Преземени барања".
+        setItems((prev) => prev.filter((i) => i._id !== selected._id));
+        setSelected(null);
+        setNotice('Го презедовте барањето. Продолжете го разговорот во „Преземени барања".');
+      } else setError(res.message);
+    } catch (e) { setError(e.message); }
+    finally { setActing(false); }
   }
 
   function onUpdated(updated) {
     setSelected(updated);
     setItems((prev) => prev.map((i) => (i._id === updated._id ? { ...i, ...updated } : i)));
-  }
-
-  async function approve() {
-    if (!chosenPro || acting) { setError('Изберете професионалец.'); return; }
-    setActing(true); setError(null);
-    try {
-      const res = await ProRequestsApiService.approve(selected._id, chosenPro);
-      if (res.success) { onUpdated(res.item); }
-      else setError(res.message);
-    } catch (e) { setError(e.message); }
-    finally { setActing(false); }
   }
 
   async function reject() {
@@ -112,6 +131,7 @@ export default function RequestsPage({ view = 'mine' }) {
           </header>
 
           {error && <div className={styles.errorBanner}>⚠️ {error}</div>}
+          {notice && <div className={styles.noticeBanner}>✓ {notice}</div>}
 
           <div className={styles.layout}>
             {/* List */}
@@ -128,14 +148,16 @@ export default function RequestsPage({ view = 'mine' }) {
                     onClick={() => openRequest(i._id)}
                   >
                     <div className={styles.listTop}>
-                      <span className={styles.listType}>{TYPE_LABEL[i.type] || i.type}</span>
+                      <span className={styles.listType}>
+                        {isBoard ? (CATEGORY_LABEL[i.category] || i.category || 'Барање') : (TYPE_LABEL[i.type] || i.type)}
+                      </span>
                       <span className={`${styles.badge} ${styles[STATUS_CLASS[i.status]]}`}>{STATUS_LABEL[i.status]}</span>
                     </div>
                     <div className={styles.listSubject}>{i.subject}</div>
                     <div className={styles.listMeta}>
                       {view === 'mine'
                         ? (i.assignedProName ? `Професионалец: ${i.assignedProName}` : '—')
-                        : (i.userName || i.companyName || i.userEmail || '—')}
+                        : (i.companyName || i.userName || i.userEmail || '—')}
                     </div>
                   </button>
                 ))
@@ -146,6 +168,43 @@ export default function RequestsPage({ view = 'mine' }) {
             <section className={styles.detail}>
               {!selected ? (
                 <p className={styles.muted}>Изберете барање од листата.</p>
+              ) : isBoard ? (
+                /* ── Board: Pro decides whether to claim an open request ── */
+                <>
+                  <div className={styles.detailHead}>
+                    <div>
+                      <h2 className={styles.detailTitle}>{selected.subject}</h2>
+                      <span className={styles.detailType}>{CATEGORY_LABEL[selected.category] || selected.category}</span>
+                    </div>
+                    <span className={`${styles.badge} ${styles.badgePending}`}>Отворено</span>
+                  </div>
+
+                  {selected.aiSummary && (
+                    <div className={styles.contextBox}>
+                      <span className={styles.contextLabel}>Резиме на разговорот со AI</span>
+                      <p className={styles.contextText}>{selected.aiSummary}</p>
+                    </div>
+                  )}
+                  {selected.question && (
+                    <div className={styles.contextBox}>
+                      <span className={styles.contextLabel}>Прашање од корисникот</span>
+                      <p className={styles.contextText}>{selected.question}</p>
+                    </div>
+                  )}
+                  {selected.documentName && (
+                    <p className={styles.muted}>Документ: {selected.documentName}</p>
+                  )}
+
+                  <div className={styles.liabilityBox}>
+                    <label className={styles.liabilityLabel}>
+                      <input type="checkbox" checked={acceptLiability} onChange={(e) => setAcceptLiability(e.target.checked)} />
+                      <span>Потврдувам дека ако се приклучам и дадам совет, јас сум професионално одговорен за неговата точност. {LIABILITY_NOTE}</span>
+                    </label>
+                    <button className={styles.primaryBtn} onClick={claim} disabled={acting || !acceptLiability}>
+                      Преземи и приклучи се
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className={styles.detailHead}>
@@ -157,6 +216,12 @@ export default function RequestsPage({ view = 'mine' }) {
                   </div>
 
                   {/* Context */}
+                  {selected.context?.aiSummary && (
+                    <div className={styles.contextBox}>
+                      <span className={styles.contextLabel}>Резиме на разговорот со AI</span>
+                      <p className={styles.contextText}>{selected.context.aiSummary}</p>
+                    </div>
+                  )}
                   {selected.context?.question && (
                     <div className={styles.contextBox}>
                       <span className={styles.contextLabel}>Прашање</span>
@@ -172,17 +237,14 @@ export default function RequestsPage({ view = 'mine' }) {
                     </div>
                   )}
 
-                  {/* Admin approval controls for pending requests */}
+                  {/* Admin controls for pending requests */}
                   {view === 'admin' && selected.status === 'pending_approval' && (
                     <div className={styles.adminBox}>
                       <div className={styles.adminRow}>
-                        <select value={chosenPro} onChange={(e) => setChosenPro(e.target.value)} className={styles.select}>
-                          <option value="">Избери професионалец…</option>
-                          {providers.map((p) => (
-                            <option key={p._id} value={p._id}>{p.name}{p.companyName ? ` — ${p.companyName}` : ''}</option>
-                          ))}
-                        </select>
-                        <button className={styles.primaryBtn} onClick={approve} disabled={acting}>Одобри и додели</button>
+                        <button className={styles.primaryBtn} onClick={approveToBoard} disabled={acting}>
+                          Одобри и објави на таблата
+                        </button>
+                        <span className={styles.muted}>Барањето се испраќа до сите соодветни професионалци; првиот што ќе се приклучи го презема.</span>
                       </div>
                       <div className={styles.adminRow}>
                         <input
@@ -196,13 +258,23 @@ export default function RequestsPage({ view = 'mine' }) {
                     </div>
                   )}
 
-                  {/* Assigned pro info (for user/admin) */}
-                  {selected.assignedProName && view !== 'assigned' && (
-                    <p className={styles.muted}>Доделено на: <strong>{selected.assignedProName}</strong></p>
+                  {/* Open (awaiting a Pro to claim) */}
+                  {selected.status === 'open' && view !== 'admin' && (
+                    <p className={styles.muted}>Споделено со професионалци — чека некој да се приклучи во разговорот.</p>
                   )}
 
-                  {/* Thread (active/closed/rejected show appropriate state) */}
-                  {selected.status !== 'pending_approval' && (
+                  {/* Assigned pro info (for user/admin) */}
+                  {selected.assignedProName && view !== 'assigned' && (
+                    <p className={styles.muted}>Во разговорот: <strong>{selected.assignedProName}</strong></p>
+                  )}
+
+                  {/* Liability banner once a thread exists */}
+                  {(selected.status === 'active' || selected.status === 'closed') && (
+                    <p className={styles.liabilityNote}>ℹ️ {LIABILITY_NOTE}</p>
+                  )}
+
+                  {/* Thread (active/closed only — open has no thread yet) */}
+                  {(selected.status === 'active' || selected.status === 'closed') && (
                     <ProRequestThread request={selected} role={role} onUpdated={onUpdated} />
                   )}
                 </>

@@ -68,8 +68,10 @@ const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/termi
 
 // „Моите барања" — the requester side of Ask-a-Pro (consults + document reviews).
 const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Моите барања', path: '/terminal/requests' };
-// „Барања" — the assigned-to-me side for Pro providers.
-const proRequests = { key: 'pro-requests', icon: 'inbox', label: 'Барања', path: '/terminal/pro/requests', visible: showsLeads };
+// „Отворени барања" — the open board of user requests any eligible Pro can claim.
+const proBoard = { key: 'pro-board', icon: 'inbox', label: 'Отворени барања', path: '/terminal/pro/board', visible: showsLeads };
+// „Преземени барања" — requests this Pro has claimed (their active conversations).
+const proRequests = { key: 'pro-requests', icon: 'inbox', label: 'Преземени барања', path: '/terminal/pro/requests', visible: showsLeads };
 
 const screening = {
   key: 'screening', icon: 'check', label: 'Проверки',
@@ -167,7 +169,7 @@ const proSections = [
   // Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [leads, proRequests, topicsqa, proBlog, proClients]
+    items: [leads, proBoard, proRequests, topicsqa, proBlog, proClients]
   },
   {
     key: 'pro-tools', label: 'Алатки',

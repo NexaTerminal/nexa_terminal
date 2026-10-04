@@ -1,55 +1,83 @@
-# Layer 1 — Durable user memory for the AI Team
+# Human Pro ↔ AI conversation bridge (Request Board) — BUILD
 
-Goal: agents "remember" the user across conversations. A per-user "client file"
-(shared by all legal agents) that is (a) injected into every answer and (b)
-grown automatically from each exchange. Mirrors `stancePreferencesService`.
+Core function: a Basic user in an AI chat requests a human Pro to check/assist →
+admin approves → the request is broadcast to all ELIGIBLE Pros by category →
+the first Pro to CLAIM joins the conversation. Pro's name is public; the Pro is
+professionally liable for their advice (both sides informed). Extends the existing
+`pro_requests` (Ask-a-Pro) instead of a new module.
 
-## Principles
-- Reuse the stance-prefix mechanism exactly (compose above the base prompt).
-- Extraction is CHEAP (utilityModel/mini) and ASYNC (never blocks the answer).
-- Injected memory stays COMPACT (bounded facts, each short) — it's re-sent per question.
-- Opt-out-able: `enabled` flag; user can view / delete / clear / toggle.
-- Legal agents only (ЈУРА/НОВА/АРИА). Marketing is a follow-up.
+**Step 1 scope: LEGAL only** — requests from legal AI agents (ЈУРА/НОВА/АРИА) →
+lawyer Pros (admin_user with a legal practice area). HR/marketing/etc. later.
+
+## New lifecycle (same `pro_requests` collection)
+pending_approval → (admin approves to board) **open** → (first eligible Pro claims) active → closed.
+Admin reject → rejected. Keep legacy approveAndAssign(hand-pick) intact for back-compat.
+
+## Data model additions on the doc
+- `category` ('legal') — derived from `agent` at create.
+- `context.aiSummary` — short AI summary of the AI↔user conversation (generated at approve).
+- status `'open'`; `openedAt`, `claimedAt`.
+- `proConsent` { acceptedAt, version } — liability ack captured at claim.
 
 ## Backend
-- [ ] `server/services/userMemoryService.js` — collection `user_ai_memory`
-      `{ userId, enabled, facts:[{id,text,domain,createdAt,lastSeenAt,hits}], updatedAt }`.
-      Methods: `get`, `getPrefix`, `learn(facts[])` (dedupe/merge/cap 30, evict LRU),
-      `deleteFact`, `clear`, `setEnabled`. `buildPrefix` = compact „ШТО ЗНАМ ЗА КОРИСНИКОТ"
-      block (inject top ~15 by hits/recency); never announce; current message wins over stale fact.
-- [ ] `ChatBotService._getMemoryPrefix(userId)` + compose into BOTH ask paths:
-      `agentFlavor + handoffNote + memoryPrefix + stancePrefix`.
-- [ ] `ChatBotService._learnFromExchange(userId, question, answer)` — fire-and-forget after
-      the AI message is saved (both paths); mini-model extracts 0–3 durable user facts → `learn()`.
-      Skips when `enabled === false`.
-- [ ] `server/controllers/userMemoryController.js` + `server/routes/aiMemory.js`
-      (GET /, PUT /enabled, DELETE /:factId, DELETE /) — mirror stance controller/route.
-- [ ] `server/server.js` — add `/ai/memory` to CSRF-exempt list + mount under subscriptionGuard.
+- [ ] `server/services/aiSummaryService.js` — standalone mini-model (gpt-4o-mini) summarizer:
+      `summarizeConversation({subject, question, transcript, type})` → short MK summary + the ask.
+      Fails safe to a truncated transcript (flow never blocks). No RAG coupling.
+- [ ] `proRequestsService.js`:
+      - category map (agent→category) + LEGAL_PRACTICE_AREAS; add `category` at create.
+      - add `'open'` to STATUSES; `presentForBoard` (omit requester email/PII pre-claim).
+      - `approveToBoard(id, aiSummary)` — pending_approval → open (+openedAt, store summary).
+      - `listBoardForPro(pro)` — status 'open' AND pro eligible for category.
+      - `claim(pro, id, consent)` — atomic open→active, set assignedPro + claimedAt + proConsent.
+      - `eligibleProsForCategory(category)` — admin_user + active sub + legal practiceArea overlap.
+- [ ] `proRequestsController.js`:
+      - `approveToBoard` (admin): generate summary → approveToBoard → email ALL eligible pros
+        (summary + ask + board link) + email user ("shared, a pro will join").
+      - `board` (pro): list eligible open requests.
+      - `claim` (pro): claim (requires liability ack) → email user ("Pro X joined").
+      - liability copy in emails + create notice.
+- [ ] `routes/proRequests.js`: GET /board, POST /:id/approve-to-board, POST /:id/claim.
 
 ## Frontend
-- [ ] `client/src/components/chatbot/MemoryControl.jsx` (+ `.module.css`) — 🧠 chip next to
-      PersonaControl; modal lists facts (delete each), master on/off toggle, „Исчисти сè".
-- [ ] `AIChat.jsx` — render `<MemoryControl />` in the header actions.
+- [ ] Admin inbox: „Одобри и објави на таблата" button (shows AI summary preview).
+- [ ] Pro board view (`view=board`): open requests (subject, category, AI summary, time) +
+      „Преземи и приклучи се" with liability-acknowledgment checkbox.
+- [ ] User „Моите барања": 'open' status label „Споделено со професионалци — чека приклучување".
+- [ ] Thread: liability banner (AI is informational; Pro's advice is the Pro's responsibility);
+      Pro name shown.
+- [ ] Nav: Pro „Отворени барања" (board) entry.
+
+## Liability (must inform BOTH sides)
+- User at create + in thread: AI answers are informational; a Pro may review but Nexa/AI are
+  not liable; the Pro is responsible for their professional advice.
+- Pro at claim: explicit acknowledgment that by advising they take professional liability.
 
 ## Verify
-- [ ] Services load (syntax), client parses.
-- [ ] Prefix composes in correct order; empty when no memory / disabled.
-- [ ] Extraction is non-blocking and tolerant of non-JSON model output.
+- [ ] Atomic claim (two pros → exactly one wins).
+- [ ] Only eligible (legal) pros see/receive legal requests.
+- [ ] Summary generated; emails fire best-effort; flow never blocks.
+- [ ] Syntax/parse clean.
 
-## Review — DONE (uncommitted)
+## Review — DONE (Step 1 legal, uncommitted)
 Backend:
-- `services/userMemoryService.js` — `user_ai_memory` collection; learn (dedupe by
-  containment, bump hits, cap 30 evict LRU), getPrefix (inject top 15), enabled/delete/clear.
-- `ChatBotService`: `_getMemoryPrefix`, `_buildPrefix` (agentFlavor·handoff·memory·stance,
-  memory+stance fetched in parallel), `_learnFromExchange` (fire-and-forget, utilityModel,
-  JSON-tolerant, skips when disabled) called after save in BOTH ask paths.
-- `controllers/userMemoryController.js` + `routes/aiMemory.js` (GET /, PUT /enabled,
-  DELETE /:factId, DELETE /); mounted `/api/ai/memory` under subscriptionGuard + CSRF-exempt list.
+- `aiSummaryService.js` — standalone mini-model summarizer, lazy OpenAI, fails safe to trimmed text.
+- `proRequestsService.js` — `category` (agent→category map) at create; status `'open'`; `presentForBoard`
+  (hides requester PII pre-claim); `approveToBoard`, `listBoardForPro`, atomic `claim`,
+  `eligibleProsForCategory`, `proEligibleForCategory`; index {status,category,createdAt}.
+- `proRequestsController.js` — `approveToBoard` (summarize → open → broadcast email to eligible pros
+  + notify user), `board`, `claim` (requires acceptLiability); LIABILITY_NOTE in emails.
+- `routes/proRequests.js` — GET /board, POST /:id/approve-to-board, POST /:id/claim.
 Frontend:
-- `components/chatbot/MemoryControl.jsx` (+ css) — 🧠 chip w/ count, panel (facts+domain
-  badges, per-fact delete, master toggle, Исчисти сè); added next to `<PersonaControl/>` in AIChat.
-Verified: all files syntax/parse OK; service unit + mock-integration tests pass
-(dedupe→2, hits bumped, disable blocks inject+learn, delete, clear).
+- `proRequestsApi.js` — board(), approveToBoard(), claim().
+- `RequestsPage.js` (+css) — board view (summary + claim + liability checkbox), admin „Одобри и објави
+  на таблата" (keeps direct hand-pick as secondary), 'open' status, liability banner/note.
+- `nav.js` — „Отворени барања" (/terminal/pro/board) + „Преземени барања"; `App.js` board route.
+- `featureTerms.js` — proRequest copy: AI informational + Pro owns liability + board flow.
+Tests: mock-integration verified — category derivation, approve→open, eligibility (lawyer yes /
+real-estate no / no-areas yes), board filtering + PII hidden, ATOMIC claim (2nd pro rejected).
+All server `node --check` + client babel parse clean.
 
-Follow-ups (not built): apply memory to MarketingBotService (ПУЛС); Layer 2 episodic
-recall; Layer 3 feedback/corpus learning. Default enabled=ON (pre-revenue, opt-out via toggle).
+Flow end-to-end: AIChat „Прашај професионалец" (existing) → pending_approval → admin approves to
+board → eligible lawyer Pros emailed w/ AI summary → first Pro claims (liability ack) → joins thread.
+
+Next verticals: add marketing/hr categories (extend AGENT_TO_CATEGORY + CATEGORY_TO_PRACTICE_AREAS).

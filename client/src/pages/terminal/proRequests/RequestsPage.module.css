@@ -53,8 +53,33 @@
 
 .primaryBtn { padding: 9px 16px; border: none; border-radius: 8px; background: var(--color-primary, #1E4DB7); color: #fff; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
 .primaryBtn:disabled { opacity: 0.5; cursor: default; }
+.secondaryBtn { padding: 9px 16px; border: 1px solid var(--color-primary, #1E4DB7); border-radius: 8px; background: #fff; color: var(--color-primary, #1E4DB7); font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+.secondaryBtn:disabled { opacity: 0.5; cursor: default; }
 .dangerBtn { padding: 9px 16px; border: 1px solid #fecaca; border-radius: 8px; background: #fff; color: #b91c1c; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
 .dangerBtn:disabled { opacity: 0.5; cursor: default; }
+
+.noticeBanner {
+  background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;
+  padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.9rem;
+}
+
+/* Board claim — liability acknowledgment */
+.liabilityBox {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px; border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px; background: #f8fafc; margin-top: 8px;
+}
+.liabilityLabel {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 0.88rem; line-height: 1.45; color: var(--color-neutral-700, #374151); cursor: pointer;
+}
+.liabilityLabel input { margin-top: 3px; flex-shrink: 0; }
+.liabilityBox .primaryBtn { align-self: flex-start; }
+.liabilityNote {
+  font-size: 0.82rem; color: var(--color-neutral-600, #6b7280);
+  background: #f8fafc; border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px; padding: 8px 12px; margin: 4px 0 12px;
+}
 
 .badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .badgePending { background: #fef3c7; color: #92400e; }

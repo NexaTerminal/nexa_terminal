@@ -15,6 +15,11 @@ class ProRequestsApiService {
     return ApiService.get(`/pro-requests/${id}`);
   }
 
+  // Open board of eligible, unclaimed requests (Pro).
+  static board() {
+    return ApiService.get('/pro-requests/board');
+  }
+
   // payload: { type, subject, agent?, context?, consentVersion? }
   static create(payload) {
     return ApiService.post('/pro-requests', payload);
@@ -28,8 +33,14 @@ class ProRequestsApiService {
     return ApiService.post(`/pro-requests/${id}/quote`, { amount, currency, body });
   }
 
-  static approve(id, assignedProId) {
-    return ApiService.post(`/pro-requests/${id}/approve`, { assignedProId });
+  // Admin: approve + broadcast to the Pro board (first to claim joins).
+  static approveToBoard(id) {
+    return ApiService.post(`/pro-requests/${id}/approve-to-board`, {});
+  }
+
+  // Pro: claim an open board request (requires liability acknowledgment).
+  static claim(id, { acceptLiability, consentVersion } = {}) {
+    return ApiService.post(`/pro-requests/${id}/claim`, { acceptLiability, consentVersion });
   }
 
   static reject(id, reason) {
@@ -38,10 +49,6 @@ class ProRequestsApiService {
 
   static close(id) {
     return ApiService.post(`/pro-requests/${id}/close`, {});
-  }
-
-  static providers() {
-    return ApiService.get('/pro-requests/providers');
   }
 }
 

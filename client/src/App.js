@@ -397,6 +397,7 @@ function App() {
       <Route path="/terminal/contract-analysis" element={<PrivateRoute><VerificationRequired><ContractAnalysis /></VerificationRequired></PrivateRoute>} />
       {/* Ask-a-Pro / Queries (Барања) — role-aware single component */}
       <Route path="/terminal/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="mine" /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/pro/board" element={<PrivateRoute><VerificationRequired><RequestsPage view="board" /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/pro/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="assigned" /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/admin-user/requests" element={<PrivateRoute><VerificationRequired><RequestsPage view="admin" /></VerificationRequired></PrivateRoute>} />
       {/* Parked scope (master-plan Phase 0.4): Investments and FindLawyer are

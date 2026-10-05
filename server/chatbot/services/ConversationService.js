@@ -144,10 +144,13 @@ class ConversationService {
    */
   async getConversation(conversationId, userId) {
     try {
-      const conversation = await this.collection.findOne({
-        _id: new ObjectId(conversationId),
-        userId: userId.toString()
-      });
+      // userId is optional: routes pass it for ownership checks; internal callers
+      // (already-authorized RAG path) may omit it. Only filter when provided.
+      const query = { _id: new ObjectId(conversationId) };
+      if (userId !== undefined && userId !== null) {
+        query.userId = userId.toString();
+      }
+      const conversation = await this.collection.findOne(query);
 
       if (!conversation) {
         throw new Error('Conversation not found or unauthorized');
@@ -212,6 +215,26 @@ class ConversationService {
     } catch (error) {
       console.error('Error getting user conversations:', error);
       throw new Error('Failed to retrieve conversations');
+    }
+  }
+
+  /**
+   * Persist the rolling summary of older turns + how many messages it covers.
+   * Best-effort — never throws (summary is an optimization, not correctness).
+   * @param {string} conversationId
+   * @param {string} summary - Cumulative summary of messages[0..summarizedCount)
+   * @param {number} summarizedCount - How many leading messages the summary covers
+   */
+  async updateSummary(conversationId, summary, summarizedCount) {
+    try {
+      await this.collection.updateOne(
+        { _id: new ObjectId(conversationId) },
+        { $set: { summary: String(summary || '').slice(0, 2000), summarizedCount: summarizedCount | 0 } }
+      );
+      return { success: true };
+    } catch (error) {
+      console.warn('[conversation] updateSummary failed:', error.message);
+      return { success: false };
     }
   }
 

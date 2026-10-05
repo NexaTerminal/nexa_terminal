@@ -580,14 +580,15 @@ Nexa Terminal има функции што решаваат дел од проб
         );
       }
 
-      // Step 1: Load conversation history if available
+      // Step 1: Load conversation history if available (rolling summary + recent turns)
       let conversationHistory = '';
+      let conversation = null;
       if (this.conversationService && conversationId) {
         try {
-          const conversation = await this.conversationService.getConversation(conversationId);
+          conversation = await this.conversationService.getConversation(conversationId, userId);
           if (conversation && conversation.messages && conversation.messages.length > 0) {
-            conversationHistory = this.formatConversationHistory(conversation.messages);
-            console.log(`\n💭 [RAG DEBUG] Loaded ${conversation.messages.length} previous messages from conversation`);
+            conversationHistory = this._formatHistoryWithSummary(conversation);
+            console.log(`\n💭 [RAG DEBUG] Loaded ${conversation.messages.length} previous messages (summary: ${conversation.summary ? 'yes' : 'no'})`);
           }
         } catch (error) {
           console.warn('⚠️  Could not load conversation history:', error.message);
@@ -668,6 +669,8 @@ Nexa Terminal има функции што решаваат дел од проб
         } catch (convError) {
           console.error('⚠️  Failed to save conversation messages:', convError.message);
         }
+        // Roll up older turns into the conversation summary (async, best-effort).
+        this._maybeRollUpSummary(conversationId, conversation, question, cleanResponse);
       }
 
       // Grow durable user memory from this exchange (async, best-effort).
@@ -1380,6 +1383,92 @@ Nexa Terminal има функции што решаваат дел од проб
   }
 
   /**
+   * Build the history block the LLM sees: the rolling summary of older turns (if
+   * any) PLUS the last few raw messages. This keeps a long chat coherent without
+   * resending the whole transcript. Falls back to just the recent window.
+   * @param {Object} conversation - Full conversation doc (messages, summary)
+   * @returns {string}
+   */
+  _formatHistoryWithSummary(conversation) {
+    if (!conversation) return '';
+    const recent = this.formatConversationHistory(conversation.messages || []);
+    const summary = (conversation.summary || '').trim();
+    if (!summary) return recent;
+    const summaryBlock = `РЕЗИМЕ НА ПОРАНЕШНИОТ РАЗГОВОР (постари реплики, за континуитет):\n${summary}`;
+    return recent ? `${summaryBlock}\n\n${recent}` : summaryBlock;
+  }
+
+  // How many trailing messages are kept verbatim; older ones fold into the summary.
+  // Matches the window used by formatConversationHistory (last 6 = 3 Q&A pairs).
+  static get HISTORY_WINDOW() { return 6; }
+
+  /**
+   * Fold any messages that have aged out of the recent window into the cumulative
+   * conversation summary. Runs on the cheap utility model, async + best-effort —
+   * never throws, never blocks the chat response.
+   * @param {string} conversationId
+   * @param {Object} priorConversation - conversation as loaded BEFORE this exchange
+   * @param {string} question - the user message just saved
+   * @param {string} answer - the AI message just saved
+   */
+  async _maybeRollUpSummary(conversationId, priorConversation, question, answer) {
+    try {
+      if (!this.conversationService || !conversationId) return;
+      const WINDOW = ChatBotService.HISTORY_WINDOW;
+      const prior = (priorConversation?.messages || []);
+      // Reconstruct the post-save message list without a re-read.
+      const allMessages = prior.concat([
+        { type: 'user', content: question },
+        { type: 'ai', content: answer },
+      ]);
+      const total = allMessages.length;
+      const target = total - WINDOW;            // messages that belong in the summary
+      const already = priorConversation?.summarizedCount | 0;
+      if (target <= already) return;            // nothing newly aged out yet
+      const aged = allMessages.slice(already, target);
+      if (aged.length === 0) return;
+      const newSummary = await this._rollUpSummary(priorConversation?.summary || '', aged);
+      await this.conversationService.updateSummary(conversationId, newSummary, target);
+    } catch (e) {
+      console.warn('[rollup] _maybeRollUpSummary failed:', e.message);
+    }
+  }
+
+  /**
+   * Cumulative summarizer: extend `prior` summary with the newly-aged-out messages.
+   * @param {string} prior - existing summary (may be empty)
+   * @param {Array} agedMessages - [{type, content}] that fell out of the window
+   * @returns {Promise<string>} - updated summary (falls back to `prior` on error)
+   */
+  async _rollUpSummary(prior, agedMessages) {
+    if (!agedMessages || agedMessages.length === 0) return prior || '';
+    try {
+      const transcript = agedMessages
+        .map((m) => `${m.type === 'user' ? 'Корисник' : 'Советник'}: ${m.content}`)
+        .join('\n')
+        .slice(-4000);
+      const prompt = PromptTemplate.fromTemplate(
+        `Досегашно резиме (може да е празно):
+{prior}
+
+Нови реплики од разговорот (постари, се додаваат во резимето):
+{transcript}
+
+Ажурирај го резимето КУМУЛАТИВНО на македонски во 4–8 куси реченици: задржи ги важните факти од досегашното резиме и додади го новото. Фокусирај се на: што бара корисникот, клучни факти за неговата ситуација (бизнис, рокови, документи) и договорени насоки. Без поздрав, без измислување. Одговори САМО со ажурираното резиме.`
+      );
+      const chain = RunnableSequence.from([prompt, this.utilityModel, new StringOutputParser()]);
+      const out = (await chain.invoke({
+        prior: (prior || '(нема)').slice(-2000),
+        transcript,
+      })).trim();
+      return out.slice(0, 2000) || prior || '';
+    } catch (e) {
+      console.warn('[rollup] _rollUpSummary failed, keeping prior:', e.message);
+      return prior || '';
+    }
+  }
+
+  /**
    * Stream a question response via callback events (SSE)
    * @param {string} question - User's question
    * @param {string} userId - User ID
@@ -1401,13 +1490,14 @@ Nexa Terminal има функции што решаваат дел од проб
         );
       }
 
-      // Load conversation history
+      // Load conversation history (rolling summary + recent turns)
       let conversationHistory = '';
+      let conversation = null;
       if (this.conversationService && conversationId) {
         try {
-          const conversation = await this.conversationService.getConversation(conversationId);
+          conversation = await this.conversationService.getConversation(conversationId, userId);
           if (conversation && conversation.messages && conversation.messages.length > 0) {
-            conversationHistory = this.formatConversationHistory(conversation.messages);
+            conversationHistory = this._formatHistoryWithSummary(conversation);
           }
         } catch (error) {
           console.warn('⚠️  Could not load conversation history:', error.message);
@@ -1488,6 +1578,8 @@ Nexa Terminal има функции што решаваат дел од проб
         } catch (convError) {
           console.error('⚠️  Failed to save conversation messages:', convError.message);
         }
+        // Roll up older turns into the conversation summary (async, best-effort).
+        this._maybeRollUpSummary(conversationId, conversation, question, cleanResponse);
       }
 
       // Grow durable user memory from this exchange (async, best-effort).

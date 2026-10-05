@@ -71,5 +71,51 @@ Verified:
 Notes:
 - No migration: legacy conversations (no `agent`) won't appear in per-character
   lists — acceptable (demo data). They remain in the DB.
-- Not yet done (future): per-character memory (C) + rolling summary (D) from the
-  earlier discussion.
+- Not yet done (future): per-character memory (C).
+
+---
+
+# Plan — D: rolling conversation summary (+ history-load bug fix)
+
+## Bug found (foundational)
+ChatBotService.askQuestion/askQuestionStream call `getConversation(conversationId)`
+with NO userId → service does `userId.toString()` → throws → caught → history = ''.
+=> The AI never actually receives prior turns on follow-ups. Fix this first.
+
+- [ ] ConversationService.getConversation: make `userId` optional (only filter when
+      provided) so the internal load can't crash; still pass userId from routes.
+- [ ] ChatBotService: pass `userId` at both getConversation call sites.
+
+## D — rolling summary
+Keep the last WINDOW(6) raw messages (as today) AND a cumulative `summary` of the
+older turns, so a long chat stays coherent without resending the whole transcript.
+
+- [ ] ConversationService: `updateSummary(conversationId, summary, summarizedCount)`;
+      summary/summarizedCount default to ''/0 when absent.
+- [ ] ChatBotService:
+      - `_formatHistoryWithSummary(conversation)` → stored summary prefix + last-6
+        formatted block; use it at both load sites (replace formatConversationHistory).
+      - after saving the exchange (both paths), fire-and-forget
+        `_maybeRollUpSummary(conversationId, allMessages, priorSummary, summarizedCount)`
+        — folds newly-aged-out messages into the summary via utilityModel (gpt-4o-mini).
+      - `_rollUpSummary(prior, agedMessages)` cumulative summarizer (fail-safe → prior).
+
+## Verify — DONE
+- [x] Mock-db: updateSummary persists; getConversation works with/without userId.
+- [x] Rollup math: summarizedCount advances to total-WINDOW; no-op at/under WINDOW
+      and when already summarized. History block = summary + recent window.
+- [x] Modules load (dummy OPENAI key).
+
+## Review — DONE
+Bug fix (foundational): the AI now actually receives prior turns. Before, the RAG
+path called getConversation without userId → crashed → history silently dropped, so
+follow-ups had no memory. Fixed by passing userId + making userId optional.
+
+D: conversations now carry a cumulative `summary` (+ `summarizedCount`). The LLM
+history = rolling summary of older turns + last 6 raw messages. Summary extends
+incrementally on the cheap utility model (gpt-4o-mini), async/best-effort.
+
+Changed: server/chatbot/services/ConversationService.js (getConversation userId
+optional, updateSummary), server/chatbot/ChatBotService.js (pass userId, hoist
+conversation, _formatHistoryWithSummary at both load sites, _maybeRollUpSummary +
+_rollUpSummary, HISTORY_WINDOW).

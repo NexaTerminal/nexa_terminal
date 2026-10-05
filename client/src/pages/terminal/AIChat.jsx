@@ -108,6 +108,39 @@ const AIChat = () => {
     } catch (_) { /* no-op */ }
   }, []);
 
+  // Continue where you left off: on first load, resume the active character's most
+  // recent conversation. Skipped when ?q= is present (the user arrived to ask a
+  // specific new question — e.g. from an LHC finding) so we don't bury it.
+  const didBootstrapRef = useRef(false);
+  useEffect(() => {
+    if (didBootstrapRef.current) return;
+    didBootstrapRef.current = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('q')) return; // fresh thread for the prefilled question
+      const a = params.get('agent');
+      const picked = a ? getAgent(a) : getAgent(DEFAULT_AGENT_KEY);
+      const resumeKey = picked && picked.engine === 'legal' ? picked.key : DEFAULT_AGENT_KEY;
+
+      ChatbotApiService.getLatestConversation(resumeKey)
+        .then((res) => {
+          const conv = res?.success ? res.data?.conversation : null;
+          if (!conv || !Array.isArray(conv.messages) || conv.messages.length === 0) return;
+          setAgent(resumeKey);
+          setMessages(conv.messages.map((msg) => ({
+            type: msg.type,
+            content: msg.content,
+            sources: msg.sources || [],
+            timestamp: new Date(msg.timestamp),
+            messageId: msg.messageId || null,
+            feedback: msg.feedback || null,
+          })));
+          setCurrentConversationId(String(conv._id));
+        })
+        .catch(() => { /* no prior thread → fresh slate */ });
+    } catch (_) { /* no-op */ }
+  }, []);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
@@ -228,6 +261,11 @@ const AIChat = () => {
 
         setMessages(formattedMessages);
         setCurrentConversationId(conversationId);
+        // Adopt the conversation's character so the header + bubbles match it.
+        if (conversation.agent) {
+          const picked = getAgent(conversation.agent);
+          if (picked && picked.engine === 'legal') setAgent(picked.key);
+        }
         setError(null);
       } else {
         setError('Не можевме да ја вчитаме конверзацијата.');
@@ -273,9 +311,10 @@ const AIChat = () => {
     try {
       let conversationId = currentConversationId;
 
-      // If no current conversation, create one
+      // If no current conversation, create one — tagged with the active character
+      // so it joins that character's own thread list.
       if (!conversationId) {
-        const newConvResponse = await ChatbotApiService.createConversation(questionText);
+        const newConvResponse = await ChatbotApiService.createConversation(questionText, agent);
         if (newConvResponse.success) {
           conversationId = newConvResponse.data.conversationId;
           setCurrentConversationId(conversationId);
@@ -467,6 +506,7 @@ const AIChat = () => {
           refreshTrigger={refreshTrigger}
           isOpen={mobileSidebarOpen}
           onClose={() => setMobileSidebarOpen(false)}
+          agent={agent}
         />
 
         <main className={styles.chatMain}>

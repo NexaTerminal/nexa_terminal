@@ -49,8 +49,10 @@ class ChatbotApiService {
    * @param {string} firstQuestion - Optional first question to set as title
    * @returns {Promise<Object>} - New conversation with conversationId and title
    */
-  static async createConversation(firstQuestion = null) {
-    const data = firstQuestion ? { firstQuestion } : {};
+  static async createConversation(firstQuestion = null, agent = null) {
+    const data = {};
+    if (firstQuestion) data.firstQuestion = firstQuestion;
+    if (agent) data.agent = agent;
     return ApiService.post('/chatbot/conversations/new', data);
   }
 
@@ -60,8 +62,19 @@ class ChatbotApiService {
    * @param {number} offset - Offset for pagination (default 0)
    * @returns {Promise<Object>} - Conversations list with total and hasMore flag
    */
-  static async getConversations(limit = 20, offset = 0) {
-    return ApiService.get(`/chatbot/conversations?limit=${limit}&offset=${offset}`);
+  static async getConversations(limit = 20, offset = 0, agent = null) {
+    const q = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (agent) q.set('agent', agent);
+    return ApiService.get(`/chatbot/conversations?${q.toString()}`);
+  }
+
+  /**
+   * Get the most-recent conversation for a character (to resume it).
+   * @param {string} agent - AI Team character key
+   * @returns {Promise<Object>} - { data: { conversation: object | null } }
+   */
+  static async getLatestConversation(agent) {
+    return ApiService.get(`/chatbot/conversations/latest?agent=${encodeURIComponent(agent)}`);
   }
 
   /**

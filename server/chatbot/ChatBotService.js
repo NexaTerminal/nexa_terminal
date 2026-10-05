@@ -654,6 +654,7 @@ Nexa Terminal има функции што решаваат дел од проб
           await this.conversationService.saveMessage(conversationId, {
             type: 'ai',
             content: cleanResponse,
+            agent,
             sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
               documentName: doc.metadata?.documentName || 'Unknown',
               confidence: doc.metadata?.score || 0,
@@ -1475,6 +1476,7 @@ Nexa Terminal има функции што решаваат дел од проб
           const aiMsg = await this.conversationService.saveMessage(conversationId, {
             type: 'ai',
             content: cleanResponse,
+            agent,
             sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
               documentName: doc.metadata?.documentName || 'Unknown',
               confidence: doc.metadata?.score || 0,

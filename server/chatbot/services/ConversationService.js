@@ -46,7 +46,7 @@ class ConversationService {
    * Create a new conversation
    * @param {string} userId - User ID
    * @param {string} firstQuestion - First question (optional)
-   * @param {Object} options - Optional settings { botType: 'legal' | 'marketing' }
+   * @param {Object} options - Optional settings { botType: 'legal' | 'marketing', agent }
    * @returns {Object} - { conversationId, title, isNew: true }
    */
   async createConversation(userId, firstQuestion = null, options = {}) {
@@ -55,6 +55,9 @@ class ConversationService {
       const title = this.generateTitle(firstQuestion || 'Нова конверзација');
       const now = new Date();
       const botType = options.botType || 'legal';
+      // The AI Team character this thread belongs to (e.g. legal/corporate/hr).
+      // null for legacy / marketing threads. Each character keeps its own thread.
+      const agent = options.agent || null;
 
       const conversation = {
         _id: conversationId,
@@ -65,14 +68,16 @@ class ConversationService {
         updatedAt: now,
         messageCount: 0,
         isActive: true,
-        botType: botType
+        botType: botType,
+        agent: agent
       };
 
-      // Mark any existing active conversations as inactive (only for same botType)
-      await this.collection.updateMany(
-        { userId: userId.toString(), isActive: true, botType: botType },
-        { $set: { isActive: false } }
-      );
+      // Mark the previous active conversation inactive — scoped to this character
+      // (or botType when no agent) so switching characters doesn't deactivate
+      // another character's in-progress thread.
+      const activeScope = { userId: userId.toString(), isActive: true };
+      if (agent) activeScope.agent = agent; else activeScope.botType = botType;
+      await this.collection.updateMany(activeScope, { $set: { isActive: false } });
 
       await this.collection.insertOne(conversation);
 
@@ -80,7 +85,8 @@ class ConversationService {
         conversationId: conversationId.toString(),
         title,
         isNew: true,
-        botType: botType
+        botType: botType,
+        agent: agent
       };
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -104,9 +110,10 @@ class ConversationService {
         timestamp: messageData.timestamp || new Date()
       };
 
-      // Add sources if it's an AI message
-      if (messageData.type === 'ai' && messageData.sources) {
-        message.sources = messageData.sources;
+      // Add sources + authoring character if it's an AI message
+      if (messageData.type === 'ai') {
+        if (messageData.sources) message.sources = messageData.sources;
+        if (messageData.agent) message.agent = messageData.agent;
       }
 
       const result = await this.collection.updateOne(
@@ -170,6 +177,12 @@ class ConversationService {
         query.botType = options.botType;
       }
 
+      // Add agent filter if specified — each AI Team character shows only its own
+      // threads (so ЈУРА, НОВА, АРИА don't share one list).
+      if (options.agent) {
+        query.agent = options.agent;
+      }
+
       // Get total count
       const total = await this.collection.countDocuments(query);
 
@@ -186,7 +199,8 @@ class ConversationService {
           createdAt: 1,
           messageCount: 1,
           isActive: 1,
-          botType: 1
+          botType: 1,
+          agent: 1
         })
         .toArray();
 
@@ -198,6 +212,27 @@ class ConversationService {
     } catch (error) {
       console.error('Error getting user conversations:', error);
       throw new Error('Failed to retrieve conversations');
+    }
+  }
+
+  /**
+   * Get the most-recent conversation for a given character (full, with messages),
+   * so the UI can resume where the user left off. Returns null when the character
+   * has no prior thread.
+   * @param {string} userId - User ID
+   * @param {string} agent - AI Team character key (legal/corporate/hr/…)
+   * @returns {Object|null} - Conversation document or null
+   */
+  async getLatestForAgent(userId, agent) {
+    try {
+      if (!agent) return null;
+      return await this.collection.findOne(
+        { userId: userId.toString(), agent },
+        { sort: { updatedAt: -1 } }
+      );
+    } catch (error) {
+      console.error('Error getting latest conversation for agent:', error);
+      return null;
     }
   }
 

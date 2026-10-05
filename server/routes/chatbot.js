@@ -213,11 +213,11 @@ function getConversationService(req) {
  */
 router.post('/conversations/new', authenticateJWT, async (req, res) => {
   try {
-    const { firstQuestion } = req.body;
+    const { firstQuestion, agent } = req.body;
     const userId = req.user._id;
     const conversationService = getConversationService(req);
 
-    const newConversation = await conversationService.createConversation(userId, firstQuestion);
+    const newConversation = await conversationService.createConversation(userId, firstQuestion, { agent });
 
     return res.status(201).json({
       success: true,
@@ -245,9 +245,10 @@ router.get('/conversations', authenticateJWT, async (req, res) => {
     const userId = req.user._id;
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
+    const agent = req.query.agent || undefined;
     const conversationService = getConversationService(req);
 
-    const result = await conversationService.getUserConversations(userId, limit, offset);
+    const result = await conversationService.getUserConversations(userId, limit, offset, { agent });
 
     return res.status(200).json({
       success: true,
@@ -260,6 +261,31 @@ router.get('/conversations', authenticateJWT, async (req, res) => {
       success: false,
       message: 'Не можевме да ги вчитаме конверзациите.',
     });
+  }
+});
+
+/**
+ * @route   GET /api/chatbot/conversations/latest
+ * @desc    Get the most-recent conversation for a character (to resume it).
+ *          Must precede '/conversations/:id' so "latest" isn't read as an id.
+ * @access  Private (requires authentication)
+ * @query   agent
+ * @returns { conversation: object | null }
+ */
+router.get('/conversations/latest', authenticateJWT, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const agent = req.query.agent;
+    const conversationService = getConversationService(req);
+
+    const conversation = agent
+      ? await conversationService.getLatestForAgent(userId, agent)
+      : null;
+
+    return res.status(200).json({ success: true, data: { conversation: conversation || null } });
+  } catch (error) {
+    console.error('❌ Error getting latest conversation:', error);
+    return res.status(500).json({ success: false, message: 'Не можевме да ја вчитаме конверзацијата.' });
   }
 });
 

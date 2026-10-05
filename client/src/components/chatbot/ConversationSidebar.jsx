@@ -21,6 +21,7 @@ const ConversationSidebar = ({
   refreshTrigger,
   isOpen,
   onClose,
+  agent,
 }) => {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +37,7 @@ const ConversationSidebar = ({
       setError(null);
 
       const currentOffset = reset ? 0 : offset;
-      const response = await ChatbotApiService.getConversations(limit, currentOffset);
+      const response = await ChatbotApiService.getConversations(limit, currentOffset, agent);
 
       if (response.success) {
         if (reset) {
@@ -58,16 +59,19 @@ const ConversationSidebar = ({
     }
   };
 
-  // Initial load
+  // Initial load + reload whenever the active character changes (each character
+  // shows only its own threads).
   useEffect(() => {
     fetchConversations(true);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent]);
 
   // Refresh when trigger changes (after sending a message)
   useEffect(() => {
     if (refreshTrigger > 0) {
       fetchConversations(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger]);
 
   // Handle delete conversation
@@ -197,6 +201,7 @@ ConversationSidebar.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
   isOpen: PropTypes.bool,
   onClose: PropTypes.func,
+  agent: PropTypes.string,
 };
 
 export default ConversationSidebar;

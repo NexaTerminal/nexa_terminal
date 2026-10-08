@@ -210,3 +210,26 @@ empty→null), injection into history block, no-focus path unchanged; ESLint cle
 Live LLM behavior needs deployed backend.
 
 Future adopters of the same mechanism: LHC report, Предмети (cases), HR employee.
+
+---
+
+# Integration #2 — proactive dashboard nudges — DONE
+
+Characters surface suggestions on the terminal home instead of waiting to be summoned.
+
+- GET /api/chatbot/nudges (routes/chatbot.js): resume nudges per character driven by
+  Layer-2 memory note + conversation recency (hr→corporate→legal), onboarding nudge
+  for new users, cap 3, honors memory opt-out. Extension point for LHC/HR nudges
+  later — no client change needed.
+- client: chatbotApi.getNudges; DashboardNudges.jsx (+ CSS) renders cards that open
+  the character in the dock with an optional seed; mounted on the Basic dashboard
+  above UpdatesFeed.
+
+Scope note (honest): v1 nudges are driven by AI-chat state I fully control (memory +
+conversations). Data-driven nudges ("3 employees without annex", "LHC 62%") need
+LHC per-module history aggregation + an employees source — deferred; the endpoint is
+built to absorb them server-side.
+
+Verified: route loads; nudge assembly against REAL services w/ mock db (new user →
+onboarding; note→resume; conversation-only→resume-by-title; memory-off suppresses
+notes; hr-first order; cap 3). ESLint clean (pre-existing companyData warning left).

@@ -88,6 +88,14 @@ class ChatbotApiService {
   }
 
   /**
+   * Proactive dashboard nudges (resume threads / onboarding).
+   * @returns {Promise<Object>} - { data: { nudges: [{ id, agent, title, body, seed }] } }
+   */
+  static async getNudges() {
+    return ApiService.get('/chatbot/nudges');
+  }
+
+  /**
    * Get a single conversation with all messages
    * @param {string} conversationId - Conversation ID
    * @returns {Promise<Object>} - Full conversation object with messages

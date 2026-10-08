@@ -5,6 +5,7 @@ const { checkCredits, deductCredits } = require('../middleware/creditMiddleware'
 const chatBotService = require('../chatbot/ChatBotService');
 const AgentMemoryService = require('../chatbot/services/agentMemoryService');
 const UserMemoryService = require('../services/userMemoryService');
+const { getAgentName } = require('../chatbot/agentProfiles');
 
 /**
  * Chatbot Routes
@@ -703,6 +704,71 @@ router.get('/agent-memory', authenticateJWT, async (req, res) => {
   } catch (error) {
     console.error('❌ Error getting agent memory:', error);
     return res.status(200).json({ success: true, data: { note: '', hasMemory: false } });
+  }
+});
+
+/**
+ * @route   GET /api/chatbot/nudges
+ * @desc    Proactive suggestions for the dashboard: resume threads with the AI Team
+ *          members the user has worked with (driven by per-character memory +
+ *          conversation recency), or an onboarding nudge for new users. Honors the
+ *          global memory opt-out. Extension point: data-driven nudges (LHC/HR) can
+ *          be appended here later without any client change.
+ * @access  Private (requires authentication)
+ * @returns { nudges: [{ id, agent, title, body, seed }] }
+ */
+router.get('/nudges', authenticateJWT, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const db = req.app.locals.db;
+    const convService = req.app.locals.conversationService;
+    if (!db || !convService) {
+      return res.status(200).json({ success: true, data: { nudges: [] } });
+    }
+
+    const memEnabled = (await new UserMemoryService(db).get(userId)).enabled;
+    const agentMem = new AgentMemoryService(db);
+    const nudges = [];
+
+    // Resume nudges — characters the user has an in-progress relationship with.
+    // Ordered hr → corporate → legal (most specialized first).
+    for (const key of ['hr', 'corporate', 'legal']) {
+      const note = memEnabled ? (await agentMem.get(userId, key)).note : '';
+      const latest = await convService.getLatestForAgent(userId, key);
+      if (note) {
+        nudges.push({
+          id: `resume-${key}`,
+          agent: key,
+          title: `Продолжи со ${getAgentName(key)}`,
+          body: `Последен пат работевте на: ${note}`,
+          seed: `Да продолжиме каде што застанавме (${note}). Кои се следните чекори?`,
+        });
+      } else if (latest && latest.title) {
+        nudges.push({
+          id: `resume-${key}`,
+          agent: key,
+          title: `Продолжи со ${getAgentName(key)}`,
+          body: `Отворен разговор: „${latest.title}".`,
+          seed: '',
+        });
+      }
+    }
+
+    // New user → a warm onboarding nudge to meet the team.
+    if (nudges.length === 0) {
+      nudges.push({
+        id: 'start-legal',
+        agent: 'legal',
+        title: `Запознај го ${getAgentName('legal')}`,
+        body: 'Постави прашање и твојот правен AI тим ќе те насочи — бесплатно, веднаш.',
+        seed: '',
+      });
+    }
+
+    return res.status(200).json({ success: true, data: { nudges: nudges.slice(0, 3) } });
+  } catch (error) {
+    console.error('❌ Error getting nudges:', error);
+    return res.status(200).json({ success: true, data: { nudges: [] } });
   }
 });
 

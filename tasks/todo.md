@@ -233,3 +233,24 @@ built to absorb them server-side.
 Verified: route loads; nudge assembly against REAL services w/ mock db (new user →
 onboarding; note→resume; conversation-only→resume-by-title; memory-off suppresses
 notes; hr-first order; cap 3). ESLint clean (pre-existing companyData warning left).
+
+---
+
+# Integration #3 — character feature homes (partial) — DONE (first cut)
+
+Reusable primitive + two concrete homes. Each opens the right character in the dock
+with a seed + focus context (#1 mechanism) about the thing on screen.
+
+- components/chatbot/AskAgentButton.jsx (+CSS): drop-in „Прашај <name>" button
+  (agentKey, seed, context, label) → openChat.
+- CaseDetail (Предмети) → НОВА, context = { kind:'предмет', data: тип/клиент/статус/
+  служебен број/суд }.
+- EmployeeDetail (Вработени) → АРИА, context = { kind:'вработен', data: позиција/тип/
+  статус }.
+
+Deferred (needs live backend / RAG validation): activating ВЕРА + ГАРД (comingSoon,
+no server persona/corpus — risky to enable blind); ПУЛС on blog/marketing (separate
+engine). Blog/marketing home is a follow-up.
+
+Verified: ESLint 0 errors on new/changed files (pre-existing toInputDate warning
+left). Placement/live behavior to be eyeballed on deploy.

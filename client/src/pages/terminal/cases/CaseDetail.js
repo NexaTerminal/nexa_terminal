@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import AskAgentButton from '../../../components/chatbot/AskAgentButton';
 import casesApi from '../../../services/casesApi';
 import base from '../contracts/Contracts.module.css';
 import ui from './CaseDetail.module.css';
@@ -160,6 +161,12 @@ export default function CaseDetail() {
             </div>
           </div>
           <div className={ui.heroActions}>
+            <AskAgentButton
+              agentKey="corporate"
+              label="Прашај ја НОВА"
+              seed={`Помогни ми со предметот „${kase.title}" (${CASE_TYPE_LABEL[kase.caseType] || kase.caseType}${kase.clientName ? `, клиент: ${kase.clientName}` : ''}). Што треба да внимавам и кои се следните чекори?`}
+              context={{ kind: 'предмет', label: kase.title, data: { тип: CASE_TYPE_LABEL[kase.caseType] || kase.caseType, клиент: kase.clientName, статус: STATUS_LABEL[kase.status] || kase.status, служебенБрој: kase.caseNumber, суд: kase.courtName } }}
+            />
             <select className={ui.statusSelect} value={kase.status} onChange={changeStatus}>
               {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>

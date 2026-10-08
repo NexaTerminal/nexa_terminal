@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
+import AskAgentButton from '../../../components/chatbot/AskAgentButton';
 import styles from '../contracts/Contracts.module.css';
 import { STATUS_LABEL, fmtDate } from './Employees';
 
@@ -204,6 +205,12 @@ export default function EmployeeDetail() {
             <p className={styles.subtitle}>{emp.position} · {emp.employmentType} време</p>
           </div>
           <div className={styles.formActions}>
+            <AskAgentButton
+              agentKey="hr"
+              label="Прашај ја АРИА"
+              seed={`Имам прашање за вработениот ${emp.fullName} (${emp.position}, ${emp.employmentType} време). Што треба да внимавам во врска со работниот однос?`}
+              context={{ kind: 'вработен', label: emp.fullName, data: { позиција: emp.position, типВработување: emp.employmentType, статус: STATUS_LABEL[emp.status] || emp.status } }}
+            />
             <Link to="/terminal/employees" className={styles.secondaryBtn}>← Назад</Link>
             <Link to={`/terminal/employees/${id}/edit`} className={styles.secondaryBtn}>Измени</Link>
           </div>

@@ -14,6 +14,33 @@ class ConversationService {
   }
 
   /**
+   * Normalize a client-supplied focus context into { kind, label, text }. `data`
+   * (object or string) is serialized and size-capped so a big form can't bloat the
+   * doc or the prompt. Returns null when there's nothing usable.
+   */
+  static normalizeFocusContext(fc) {
+    if (!fc || typeof fc !== 'object') return null;
+    const clamp = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
+    const kind = clamp(fc.kind, 40) || 'артефакт';
+    const label = clamp(fc.label, 200);
+    let text = '';
+    if (typeof fc.data === 'string') {
+      text = fc.data;
+    } else if (fc.data && typeof fc.data === 'object') {
+      const slim = {};
+      for (const [k, v] of Object.entries(fc.data)) {
+        if (v == null || v === '') continue;
+        if (typeof v === 'object') continue; // skip nested blobs
+        slim[k] = v;
+      }
+      try { text = JSON.stringify(slim); } catch { text = ''; }
+    }
+    text = clamp(text, 3000);
+    if (!label && !text) return null;
+    return { kind, label, text };
+  }
+
+  /**
    * Generate a conversation title from the first question
    * @param {string} question - User's first question
    * @returns {string} - Truncated title (max 60 chars)
@@ -46,7 +73,7 @@ class ConversationService {
    * Create a new conversation
    * @param {string} userId - User ID
    * @param {string} firstQuestion - First question (optional)
-   * @param {Object} options - Optional settings { botType: 'legal' | 'marketing', agent }
+   * @param {Object} options - Optional settings { botType, agent, focusContext }
    * @returns {Object} - { conversationId, title, isNew: true }
    */
   async createConversation(userId, firstQuestion = null, options = {}) {
@@ -58,6 +85,9 @@ class ConversationService {
       // The AI Team character this thread belongs to (e.g. legal/corporate/hr).
       // null for legacy / marketing threads. Each character keeps its own thread.
       const agent = options.agent || null;
+      // Optional artifact this thread is about (a document / LHC report / case),
+      // injected into every prompt so the character answers about THIS thing.
+      const focusContext = ConversationService.normalizeFocusContext(options.focusContext);
 
       const conversation = {
         _id: conversationId,
@@ -69,7 +99,8 @@ class ConversationService {
         messageCount: 0,
         isActive: true,
         botType: botType,
-        agent: agent
+        agent: agent,
+        focusContext: focusContext
       };
 
       // Mark the previous active conversation inactive — scoped to this character

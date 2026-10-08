@@ -107,6 +107,7 @@ const BaseDocumentPage = ({
   const handleCheckAI = () => {
     openChat?.(actionsAgent.key, {
       seed: `Подготвувам „${docDisplayName}". Што треба да внимавам и кои се типичните ризици или грешки кај ваков документ?`,
+      context: { kind: 'документ', label: docDisplayName, data: { category: docCategory, ...formData } },
     });
   };
   const handleCheckPro = () => {
@@ -456,6 +457,7 @@ const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
   const askAgentReview = () => {
     openChat?.(reviewAgent.key, {
       seed: `Штотуку генерирав „${docLabel}". Што треба да проверам кај ваков документ и кои се типичните ризици или грешки што да ги избегнам?`,
+      context: { kind: 'документ', label: docLabel, data: { category } },
     });
   };
 

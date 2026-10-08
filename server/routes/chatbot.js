@@ -215,11 +215,11 @@ function getConversationService(req) {
  */
 router.post('/conversations/new', authenticateJWT, async (req, res) => {
   try {
-    const { firstQuestion, agent } = req.body;
+    const { firstQuestion, agent, focusContext } = req.body;
     const userId = req.user._id;
     const conversationService = getConversationService(req);
 
-    const newConversation = await conversationService.createConversation(userId, firstQuestion, { agent });
+    const newConversation = await conversationService.createConversation(userId, firstQuestion, { agent, focusContext });
 
     return res.status(201).json({
       success: true,

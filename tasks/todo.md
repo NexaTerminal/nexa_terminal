@@ -185,3 +185,28 @@ persistence verified in-process.
   Постари with headers. (ConversationSidebar.jsx groupByDate + .dateGroupHeader CSS)
 - (Per-bubble avatars + relative timestamps already existed.)
 Verified: ESLint clean; date-bucketing boundaries unit-checked. UI-only, no server.
+
+---
+
+# Integration #1 — real artifact context into the dock — DONE
+
+Goal: when a character is opened from a document (and later LHC/cases), it answers
+about THAT artifact, not generically. Mechanism: persist a `focusContext` on the
+conversation; inject it into every prompt (clean transcript — not a visible msg).
+
+- ConversationService: `normalizeFocusContext` ({kind,label,data}→{kind,label,text},
+  scalars only, capped 3000) + store `focusContext` on createConversation.
+- ChatBotService: `_formatFocusContext` + prepend it in `_formatHistoryWithSummary`
+  (so both /ask and /ask-stream inject it on every turn in the thread).
+- routes/chatbot.js: `/conversations/new` accepts `focusContext`.
+- client: chatbotApi.createConversation(q, agent, focusContext); ChatDockContext
+  openChat carries `context`; AgentChatDock passes it at creation and starts a fresh
+  thread on each new seed (convId via ref, no stale closure); BaseDocumentPage passes
+  doc context on both „Провери со …" (pre-gen, full formData) and „Прегледај со …"
+  (post-gen, category).
+
+Verified in-process: normalize (scalars kept, empties/nested dropped, string cap,
+empty→null), injection into history block, no-focus path unchanged; ESLint clean.
+Live LLM behavior needs deployed backend.
+
+Future adopters of the same mechanism: LHC report, Предмети (cases), HR employee.

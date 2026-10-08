@@ -1431,11 +1431,32 @@ Nexa Terminal има функции што решаваат дел од проб
    */
   _formatHistoryWithSummary(conversation) {
     if (!conversation) return '';
+    const focus = this._formatFocusContext(conversation.focusContext);
     const recent = this.formatConversationHistory(conversation.messages || []);
     const summary = (conversation.summary || '').trim();
-    if (!summary) return recent;
-    const summaryBlock = `РЕЗИМЕ НА ПОРАНЕШНИОТ РАЗГОВОР (постари реплики, за континуитет):\n${summary}`;
-    return recent ? `${summaryBlock}\n\n${recent}` : summaryBlock;
+    const summaryBlock = summary
+      ? `РЕЗИМЕ НА ПОРАНЕШНИОТ РАЗГОВОР (постари реплики, за континуитет):\n${summary}`
+      : '';
+    return [focus, summaryBlock, recent].filter(Boolean).join('\n\n');
+  }
+
+  /**
+   * Format the artifact this thread is about (a document / LHC report / case) into
+   * a labeled block, so the character answers about THIS thing, not generically.
+   * '' when none.
+   */
+  _formatFocusContext(focusContext) {
+    if (!focusContext) return '';
+    const label = (focusContext.label || '').trim();
+    const text = (focusContext.text || '').trim();
+    if (!label && !text) return '';
+    return (
+      `ДОКУМЕНТ/ТЕМА ВО ФОКУС (корисникот работи на ова точно сега):\n` +
+      (label ? `- Наслов: ${label}\n` : '') +
+      (focusContext.kind ? `- Вид: ${focusContext.kind}\n` : '') +
+      (text ? `- Детали: ${text}\n` : '') +
+      'Одговарај конкретно за овој артефакт; поврзи ги советите со неговите детали, не давај само општи објаснувања.'
+    );
   }
 
   // How many trailing messages are kept verbatim; older ones fold into the summary.

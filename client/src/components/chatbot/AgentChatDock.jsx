@@ -28,6 +28,7 @@ export default function AgentChatDock() {
           minimized={w.minimized}
           seed={w.seed}
           seedId={w.seedId}
+          context={w.context}
           onClose={() => closeChat(w.key)}
           onToggle={() => toggleMinimize(w.key)}
         />
@@ -36,15 +37,20 @@ export default function AgentChatDock() {
   );
 }
 
-function ChatWindow({ agentKey, minimized, seed, seedId, onClose, onToggle }) {
+function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onToggle }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [conversationId, setConversationId] = useState(null);
   const endRef = useRef(null);
   const sendRef = useRef(null);
+  // Refs so the seed effect + send() always read the latest without stale closures.
+  // conversationId isn't rendered, so a ref (not state) is enough.
+  const convIdRef = useRef(null);
+  const contextRef = useRef(context);
+  contextRef.current = context;
+  const setConv = (id) => { convIdRef.current = id; };
 
   const agent = getAgent(agentKey);
   const isMarketing = agent?.engine === 'marketing';
@@ -55,9 +61,14 @@ function ChatWindow({ agentKey, minimized, seed, seedId, onClose, onToggle }) {
   }, [messages, minimized]);
 
   // Auto-ask the seed message when the window is opened/re-opened with one
-  // (e.g. „Прегледај со …" hands an artifact to the agent for review).
+  // (e.g. „Прегледај со …" hands an artifact to the agent for review). A fresh
+  // seed starts a NEW thread so its focus context attaches cleanly.
   useEffect(() => {
-    if (seedId && seed) sendRef.current?.(seed);
+    if (seedId && seed) {
+      setMessages([]);
+      setConv(null);
+      sendRef.current?.(seed);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedId]);
 
@@ -73,10 +84,12 @@ function ChatWindow({ agentKey, minimized, seed, seedId, onClose, onToggle }) {
     setMessages((prev) => [...prev, { role: 'user', content: q }]);
     setLoading(true);
     try {
-      let convId = conversationId;
+      let convId = convIdRef.current;
       if (!convId) {
-        const created = await api.createConversation(q);
-        if (created?.success) { convId = created.data.conversationId; setConversationId(convId); }
+        const created = isMarketing
+          ? await api.createConversation(q)
+          : await api.createConversation(q, agent.key, contextRef.current);
+        if (created?.success) { convId = created.data.conversationId; setConv(convId); }
       }
       const res = isMarketing
         ? await api.sendMessage(convId, q)

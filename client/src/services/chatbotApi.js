@@ -49,10 +49,11 @@ class ChatbotApiService {
    * @param {string} firstQuestion - Optional first question to set as title
    * @returns {Promise<Object>} - New conversation with conversationId and title
    */
-  static async createConversation(firstQuestion = null, agent = null) {
+  static async createConversation(firstQuestion = null, agent = null, focusContext = null) {
     const data = {};
     if (firstQuestion) data.firstQuestion = firstQuestion;
     if (agent) data.agent = agent;
+    if (focusContext) data.focusContext = focusContext;
     return ApiService.post('/chatbot/conversations/new', data);
   }
 

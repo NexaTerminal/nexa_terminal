@@ -91,6 +91,26 @@
   gap: 2px;
 }
 
+/* Relative date groups (Денес / Вчера / …) */
+.dateGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dateGroup + .dateGroup {
+  margin-top: 10px;
+}
+
+.dateGroupHeader {
+  padding: 6px 10px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #94a3b8);
+}
+
 /* Individual Conversation Item */
 .conversationItem {
   background-color: transparent;

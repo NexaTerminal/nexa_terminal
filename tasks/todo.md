@@ -174,3 +174,14 @@ C shipped. New Layer-2 per-character memory:
 
 Caveat: note quality + live path need the deployed backend (OpenAI). Logic/parse/
 persistence verified in-process.
+
+---
+
+# E — chat-feel polish — DONE
+- Typing indicator: three bouncing dots in the AI bubble while the reply is pending
+  (before the first streamed token); cursor still shows once tokens arrive.
+  (AIChat.jsx bubble + AIChat.module.css .typingDots/@keyframes typingBounce)
+- Date-grouped sidebar: conversations bucketed Денес / Вчера / Последниве 7 дена /
+  Постари with headers. (ConversationSidebar.jsx groupByDate + .dateGroupHeader CSS)
+- (Per-bubble avatars + relative timestamps already existed.)
+Verified: ESLint clean; date-bucketing boundaries unit-checked. UI-only, no server.

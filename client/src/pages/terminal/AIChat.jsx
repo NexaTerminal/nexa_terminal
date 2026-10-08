@@ -670,14 +670,20 @@ const AIChat = () => {
                       </div>
 
                       <div className={`${styles.bubble} ${message.type === 'user' ? styles.bubbleUser : styles.bubbleAi} ${message.type === 'ai' ? styles.markdownContent : ''}`}>
-                        {isAi ? (
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {displayContent}
-                          </ReactMarkdown>
+                        {isAi && message.isStreaming && !displayContent ? (
+                          <span className={styles.typingDots} aria-label="пишува…">
+                            <span></span><span></span><span></span>
+                          </span>
+                        ) : isAi ? (
+                          <>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {displayContent}
+                            </ReactMarkdown>
+                            {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
+                          </>
                         ) : (
                           message.content
                         )}
-                        {message.isStreaming && <span className={styles.streamingCursor}>|</span>}
                       </div>
 
                       {/* Feedback buttons for AI messages (not during streaming) */}

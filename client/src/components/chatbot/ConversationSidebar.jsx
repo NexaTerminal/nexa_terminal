@@ -117,6 +117,28 @@ const ConversationSidebar = ({
     }
   };
 
+  // Bucket conversations (already newest-first) into relative date groups so the
+  // list reads like a real chat history.
+  const groupByDate = (items) => {
+    const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+    const today = startOfDay(Date.now());
+    const DAY = 86400000;
+    const buckets = [
+      { label: 'Денес', items: [] },
+      { label: 'Вчера', items: [] },
+      { label: 'Последниве 7 дена', items: [] },
+      { label: 'Постари', items: [] },
+    ];
+    items.forEach((c) => {
+      const day = startOfDay(c.updatedAt || c.createdAt || Date.now());
+      if (day >= today) buckets[0].items.push(c);
+      else if (day >= today - DAY) buckets[1].items.push(c);
+      else if (day >= today - 7 * DAY) buckets[2].items.push(c);
+      else buckets[3].items.push(c);
+    });
+    return buckets.filter((b) => b.items.length > 0);
+  };
+
   // Handle load more
   const handleLoadMore = () => {
     fetchConversations(false);
@@ -162,15 +184,20 @@ const ConversationSidebar = ({
         ) : (
           <>
             <div className={styles.conversationList}>
-              {conversations.map((conversation) => (
-                <ConversationItem
-                  key={conversation._id}
-                  conversation={conversation}
-                  isActive={conversation._id === currentConversationId}
-                  onClick={handleSelectConversation}
-                  onDelete={handleDelete}
-                  onRename={handleRename}
-                />
+              {groupByDate(conversations).map((group) => (
+                <div key={group.label} className={styles.dateGroup}>
+                  <div className={styles.dateGroupHeader}>{group.label}</div>
+                  {group.items.map((conversation) => (
+                    <ConversationItem
+                      key={conversation._id}
+                      conversation={conversation}
+                      isActive={conversation._id === currentConversationId}
+                      onClick={handleSelectConversation}
+                      onDelete={handleDelete}
+                      onRename={handleRename}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
 

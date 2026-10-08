@@ -76,6 +76,8 @@ const AIChat = () => {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  // Per-character relationship note — powers the "welcome back" greeting.
+  const [agentMemoryNote, setAgentMemoryNote] = useState('');
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -140,6 +142,16 @@ const AIChat = () => {
         .catch(() => { /* no prior thread → fresh slate */ });
     } catch (_) { /* no-op */ }
   }, []);
+
+  // Fetch the active character's relationship note (for the "welcome back"
+  // greeting). Refetches on character switch; honors the global memory opt-out.
+  useEffect(() => {
+    let cancelled = false;
+    ChatbotApiService.getAgentMemory(agent)
+      .then((r) => { if (!cancelled) setAgentMemoryNote(r?.success && r.data?.hasMemory ? r.data.note : ''); })
+      .catch(() => { if (!cancelled) setAgentMemoryNote(''); });
+    return () => { cancelled = true; };
+  }, [agent]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -602,6 +614,11 @@ const AIChat = () => {
                 {handoffFrom && getAgent(handoffFrom) && (
                   <p className={styles.handoffNote}>
                     Префрлени сте од {getAgent(handoffFrom).name}. {activeAgent.name} презема од тука.
+                  </p>
+                )}
+                {!handoffFrom && agentMemoryNote && (
+                  <p className={styles.handoffNote}>
+                    👋 Добредојде назад! Последен пат работевме на: {agentMemoryNote}
                   </p>
                 )}
                 <p className={styles.welcomeBio}>{activeAgent.greeting || activeAgent.bio}</p>

@@ -7,7 +7,8 @@ const OpenAI = require('openai');
 const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
 const UserMemoryService = require('../services/userMemoryService');
-const { getAgentFlavor, getHandoffNote, getAgentScopePatterns } = require('./agentProfiles');
+const AgentMemoryService = require('./services/agentMemoryService');
+const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName } = require('./agentProfiles');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -504,24 +505,44 @@ Nexa Terminal има функции што решаваат дел од проб
   }
 
   /**
-   * Compose the full specialization prefix injected above the base system prompt:
-   *   agent flavor · hand-off note · user memory · stance/persona.
-   * Memory sits before stance (what-we-know, then how-to-say-it).
+   * Per-character relationship memory prefix (Layer 2). The „what you and this
+   * character worked on" block. Gated by the SAME enable flag as Layer-1 memory —
+   * '' when disabled/empty/error so it never blocks a chat.
    */
-  async _buildPrefix(userId, agent, fromAgent) {
-    const [memory, stance] = await Promise.all([
-      this._getMemoryPrefix(userId),
-      this._getStancePrefix(userId),
-    ]);
-    return getAgentFlavor(agent) + getHandoffNote(fromAgent, agent) + memory + stance;
+  async _getAgentMemoryPrefix(userId, agent) {
+    try {
+      if (!this.db || !userId || !agent) return '';
+      const enabled = (await new UserMemoryService(this.db).get(userId)).enabled;
+      if (!enabled) return '';
+      return await new AgentMemoryService(this.db).getPrefix(userId, agent, getAgentName(agent));
+    } catch (e) {
+      console.warn('[chatbot] agent memory prefix lookup failed:', e.message);
+      return '';
+    }
   }
 
   /**
-   * Fire-and-forget: extract 0–3 durable, business-relevant facts about the user
-   * from one exchange and merge them into memory. Uses the cheap utilityModel and
-   * is never awaited by the request path. No-ops when memory is disabled/empty.
+   * Compose the full specialization prefix injected above the base system prompt:
+   *   agent flavor · hand-off note · user memory · agent memory · stance/persona.
+   * Memory sits before stance (what-we-know, then how-to-say-it); the shared client
+   * file comes before the per-character note.
    */
-  _learnFromExchange(userId, question, answer) {
+  async _buildPrefix(userId, agent, fromAgent) {
+    const [memory, agentMemory, stance] = await Promise.all([
+      this._getMemoryPrefix(userId),
+      this._getAgentMemoryPrefix(userId, agent),
+      this._getStancePrefix(userId),
+    ]);
+    return getAgentFlavor(agent) + getHandoffNote(fromAgent, agent) + memory + agentMemory + stance;
+  }
+
+  /**
+   * Fire-and-forget: from one exchange, (1) extract 0–3 durable facts for the
+   * shared client file (Layer 1) and (2) distil a short relationship note for the
+   * active character (Layer 2). Both come from a SINGLE cheap utilityModel call —
+   * no extra cost. Never awaited by the request path; no-ops when memory disabled.
+   */
+  _learnFromExchange(userId, question, answer, agent = null) {
     if (!this.db || !userId || !question) return;
     (async () => {
       try {
@@ -531,12 +552,14 @@ Nexa Terminal има функции што решаваат дел од проб
 
         const prompt = PromptTemplate.fromTemplate(
           `Ти си помошник што води кратка меморија за корисник на правна AI платформа.
-Од разговорот подолу извлечи ТРАЈНИ, стабилни факти за КОРИСНИКОТ и неговиот бизнис што би помогнале при идни правни совети.
+Од разговорот подолу подготви ДВЕ работи и врати ИСКЛУЧИВО еден JSON објект (без друг текст):
 
-ВКЛУЧИ само: дејност/индустрија, правна форма (ДОО/ДООЕЛ/занает…), големина (број вработени), улога на корисникот, повторливи теми/грижи, тековни предмети или клучни односи (клиенти, добавувачи, партнери).
-НЕ вклучувај: општи правни информации, содржина на одговорот, еднократни ситни детали, лични чувствителни податоци што не се потребни.
+1) "facts": низа од најмногу 3 ТРАЈНИ факти за КОРИСНИКОТ и неговиот бизнис (дејност/индустрија, правна форма ДОО/ДООЕЛ/занает, големина, улога, повторливи теми, тековни предмети или клучни односи). Секој: {{"text":"<до 160 знаци>","domain":"employment|corporate|contracts|tax|data|general"}}. Ако нема ништо, [].
+2) "note": ЕДНА куса реченица на македонски — на што работи корисникот со овој советник (темата/прашањето), за континуитет при иден разговор. Без поздрав, без правен совет. Ако нема суштина, "".
 
-Врати ИСКЛУЧИВО JSON низа (без друг текст) од најмногу 3 објекти: [{{"text":"<факт на македонски, до 160 знаци>","domain":"employment|corporate|contracts|tax|data|general"}}]. Ако нема ништо вредно за памтење, врати [].
+НЕ вклучувај: општи правни информации, содржина на одговорот, еднократни ситни детали.
+
+Формат: {{"facts":[...],"note":"..."}}
 
 ПРАШАЊЕ НА КОРИСНИКОТ:
 {question}
@@ -550,14 +573,31 @@ Nexa Terminal има функции што решаваат дел од проб
           answer: String(answer || '').slice(0, 2500),
         });
 
-        const match = out && out.match(/\[[\s\S]*\]/);
-        if (!match) return;
-        let facts;
-        try { facts = JSON.parse(match[0]); } catch { return; }
-        if (!Array.isArray(facts) || facts.length === 0) return;
+        // Parse tolerantly: prefer the {facts,note} object; fall back to a bare
+        // facts array (legacy shape) so fact-learning survives any format drift.
+        let facts = [];
+        let note = '';
+        const objMatch = out && out.match(/\{[\s\S]*\}/);
+        const arrMatch = out && out.match(/\[[\s\S]*\]/);
+        if (objMatch) {
+          try {
+            const parsed = JSON.parse(objMatch[0]);
+            if (Array.isArray(parsed.facts)) facts = parsed.facts;
+            if (typeof parsed.note === 'string') note = parsed.note.trim();
+          } catch { /* fall through to array */ }
+        }
+        if (facts.length === 0 && arrMatch) {
+          try { const a = JSON.parse(arrMatch[0]); if (Array.isArray(a)) facts = a; } catch { /* ignore */ }
+        }
 
-        await svc.learn(userId, facts.slice(0, 3));
-        console.log(`🧠 [MEMORY] Learned ${Math.min(facts.length, 3)} fact(s) for user ${userId}`);
+        if (facts.length > 0) {
+          await svc.learn(userId, facts.slice(0, 3));
+          console.log(`🧠 [MEMORY] Learned ${Math.min(facts.length, 3)} fact(s) for user ${userId}`);
+        }
+        if (note && agent) {
+          await new AgentMemoryService(this.db).setNote(userId, agent, note);
+          console.log(`🧩 [AGENT MEMORY] Updated note for ${agent} / user ${userId}`);
+        }
       } catch (e) {
         console.warn('[chatbot] _learnFromExchange failed:', e.message);
       }
@@ -674,7 +714,7 @@ Nexa Terminal има функции што решаваат дел од проб
       }
 
       // Grow durable user memory from this exchange (async, best-effort).
-      this._learnFromExchange(userId, question, cleanResponse);
+      this._learnFromExchange(userId, question, cleanResponse, agent);
 
       // Step 7: Return response with metadata
       const result = {
@@ -1583,7 +1623,7 @@ Nexa Terminal има функции што решаваат дел од проб
       }
 
       // Grow durable user memory from this exchange (async, best-effort).
-      this._learnFromExchange(userId, question, cleanResponse);
+      this._learnFromExchange(userId, question, cleanResponse, agent);
 
       // Send done event
       onEvent({

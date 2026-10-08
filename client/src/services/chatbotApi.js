@@ -78,6 +78,15 @@ class ChatbotApiService {
   }
 
   /**
+   * Get the per-character relationship note (for a referential greeting).
+   * @param {string} agent - AI Team character key
+   * @returns {Promise<Object>} - { data: { note, hasMemory } }
+   */
+  static async getAgentMemory(agent) {
+    return ApiService.get(`/chatbot/agent-memory?agent=${encodeURIComponent(agent)}`);
+  }
+
+  /**
    * Get a single conversation with all messages
    * @param {string} conversationId - Conversation ID
    * @returns {Promise<Object>} - Full conversation object with messages

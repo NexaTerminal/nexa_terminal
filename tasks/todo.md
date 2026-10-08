@@ -119,3 +119,58 @@ Changed: server/chatbot/services/ConversationService.js (getConversation userId
 optional, updateSummary), server/chatbot/ChatBotService.js (pass userId, hoist
 conversation, _formatHistoryWithSummary at both load sites, _maybeRollUpSummary +
 _rollUpSummary, HISTORY_WINDOW).
+
+Integration-tested in-process (10-turn chat through real services, LLM stubbed):
+history loads, summary rolls up incrementally (summarizedCount 0→14, 7 rollups),
+summary injected on later turns. LLM quality + live SSE need deployed backend.
+
+---
+
+# Plan — C: per-character relationship memory + referential greeting
+
+Each AI Team character remembers what it has worked on with the user across
+conversations, and greets referentially on a fresh thread ("Добредојде назад —
+последен пат работевме на …"). Layers ON TOP of the shared Layer-1 client file.
+
+Growth is FREE: piggyback on the existing per-exchange `_learnFromExchange` LLM
+call (extend it to also emit a 1-sentence relationship note) — no new LLM calls.
+Gated by the existing memory enable flag (privacy opt-out covers it).
+
+- [ ] `server/chatbot/services/agentMemoryService.js` — collection
+      `user_agent_memory`, unique {userId, agent}. get / setNote / getPrefix.
+- [ ] ChatBotService:
+      - pass `agent` into `_learnFromExchange`; extend its single utility-model
+        call to return { facts:[...], note:"…" }; store facts (unchanged) + upsert
+        the per-character note. Fail-safe: bad parse → behave exactly as today.
+      - `_buildPrefix`: inject agent-memory block below shared memory
+        (order: flavor · hand-off · shared memory · AGENT memory · stance).
+- [ ] route `GET /api/chatbot/agent-memory?agent=` → { note, hasMemory }.
+- [ ] client/chatbotApi: `getAgentMemory(agent)`.
+- [ ] AIChat: on a FRESH thread (messages empty, not resumed/hand-off), fetch the
+      note and show a warm referential greeting line in the welcome panel.
+
+Limitation (v1): note reflects the latest substantive exchanges with the character
+(cumulative via the extended learn call); not a full cross-thread merge.
+
+## Verify — DONE
+- [x] agentMemoryService mock-db: empty→'', setNote upsert, per-character isolation,
+      getPrefix block (header+name+note), empty→'' prefix, clear.
+- [x] _learnFromExchange real-path parse (RunnableLambda-stubbed LLM): object
+      {facts,note} → learns + sets note; legacy bare array → learns, no note;
+      garbage → no-op; empty note → learns only. Fact-learning preserved.
+- [x] modules load; ESLint clean (AIChat, chatbotApi).
+
+## Review — DONE
+C shipped. New Layer-2 per-character memory:
+- server/chatbot/services/agentMemoryService.js — user_agent_memory {userId,agent}.
+- ChatBotService — _getAgentMemoryPrefix + injected in _buildPrefix (below shared
+  memory); _learnFromExchange now takes `agent`, emits {facts,note} from its single
+  existing utility-model call (no new LLM cost), upserts the note. Gated by the
+  shared memory enable flag.
+- routes/chatbot.js — GET /agent-memory?agent= (honors opt-out).
+- client chatbotApi.getAgentMemory; AIChat fetches on character switch and shows a
+  "👋 Добредојде назад! Последен пат работевме на: …" line in the welcome panel on a
+  fresh thread (not during hand-off).
+
+Caveat: note quality + live path need the deployed backend (OpenAI). Logic/parse/
+persistence verified in-process.

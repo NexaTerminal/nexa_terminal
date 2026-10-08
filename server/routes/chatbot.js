@@ -3,6 +3,8 @@ const router = express.Router();
 const { authenticateJWT } = require('../middleware/auth');
 const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
 const chatBotService = require('../chatbot/ChatBotService');
+const AgentMemoryService = require('../chatbot/services/agentMemoryService');
+const UserMemoryService = require('../services/userMemoryService');
 
 /**
  * Chatbot Routes
@@ -673,6 +675,34 @@ router.put('/conversations/:conversationId/messages/:messageId/feedback', authen
       success: false,
       message: 'Не можевме да ја зачуваме оценката.',
     });
+  }
+});
+
+/**
+ * @route   GET /api/chatbot/agent-memory
+ * @desc    The per-character relationship note (for a referential greeting).
+ *          Honors the user's global memory opt-out.
+ * @access  Private (requires authentication)
+ * @query   agent
+ * @returns { note: string, hasMemory: boolean }
+ */
+router.get('/agent-memory', authenticateJWT, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const agent = req.query.agent;
+    const db = req.app.locals.db;
+    if (!agent || !db) {
+      return res.status(200).json({ success: true, data: { note: '', hasMemory: false } });
+    }
+    const enabled = (await new UserMemoryService(db).get(userId)).enabled;
+    if (!enabled) {
+      return res.status(200).json({ success: true, data: { note: '', hasMemory: false } });
+    }
+    const { note } = await new AgentMemoryService(db).get(userId, agent);
+    return res.status(200).json({ success: true, data: { note: note || '', hasMemory: !!note } });
+  } catch (error) {
+    console.error('❌ Error getting agent memory:', error);
+    return res.status(200).json({ success: true, data: { note: '', hasMemory: false } });
   }
 });
 

@@ -74,9 +74,10 @@ export function hasFeatureAccess(user) {
   if (user.role === 'sub_seat') return true; // inherits parent access
   const s = user.subscription || {};
   const now = Date.now();
-  const endsAt      = s.endsAt      ? new Date(s.endsAt).getTime()      : 0;
   const graceEndsAt = s.graceEndsAt ? new Date(s.graceEndsAt).getTime() : 0;
-  const inActive = s.status === 'active' && endsAt > now;
+  // ACTIVE with no endsAt = perpetual access (free-forever Basic); mirrors
+  // server hasFeatureAccess. Paid/pilot subs carry an endsAt and expire.
+  const inActive = s.status === 'active' && (!s.endsAt || new Date(s.endsAt).getTime() > now);
   return inActive || graceEndsAt > now;
 }
 

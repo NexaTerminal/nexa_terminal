@@ -8,7 +8,7 @@
 const Joi = require('joi');
 const subscriptionEmails = require('../emails/subscriptionEmails');
 const { seatLimitFor } = require('../services/subSeatService');
-const { PRACTICE_AREAS, capForArea } = require('../constants/roles');
+const { PRACTICE_AREAS, ACTIVE_PRACTICE_AREAS, capForArea } = require('../constants/roles');
 const providerCapService = require('../services/providerCapService');
 
 // De-merge Phase 4 — a Pro provider edits which practice areas + cities they
@@ -216,8 +216,11 @@ class AdminUserController {
     try {
       const su = req.user.superUser || {};
       const mine = su.practiceAreas || [];
+      // Offer the active (legal-only pilot) areas, plus any non-active area the
+      // caller already holds so existing selections stay visible/removable.
+      const offered = [...new Set([...ACTIVE_PRACTICE_AREAS, ...mine])];
       const areas = [];
-      for (const area of PRACTICE_AREAS) {
+      for (const area of offered) {
         // eslint-disable-next-line no-await-in-loop
         const count = this.users
           ? await providerCapService.countActiveProvidersInArea(this.users, area, { excludeUserId: req.user._id })

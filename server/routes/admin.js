@@ -51,6 +51,17 @@ const upload = multer({
 //  debug routes that exposed user PII and stack traces without auth.)
 router.use(authenticateJWT, isAdmin);
 
+// Founding-20 cap status — total active lawyers / cap + per-city breakdown.
+router.get('/pro-cap-status', async (req, res) => {
+  try {
+    const providerCapService = require('../services/providerCapService');
+    const status = await providerCapService.globalCapStatus(req.app.locals.db.collection('users'));
+    res.json({ success: true, ...status });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // User Management (legacy)
 router.get('/users', adminController.getUsers);
 router.get('/users/:id', adminController.getUserDetails);

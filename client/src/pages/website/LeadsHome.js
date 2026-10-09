@@ -73,8 +73,8 @@ export default function LeadsHome() {
       label: T('Клиенти', 'Clients'),
       hook: T('Ние имаме клиенти. Вие имате експертиза.',
               'We have the clients. You have the expertise.'),
-      sub: T('Луѓе и бизниси со потреба од стручна помош нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги барањата од Вашата област и град.',
-             'People and businesses that need professional help reach us every day through our network of sites. Take the requests from your field and city.')
+      sub: T('Луѓе и бизниси со потреба од правна помош нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги барањата од Вашата област и град.',
+             'People and businesses that need legal help reach us every day through our network of sites. Take the requests from your practice area and city.')
     },
     {
       label: T('Стручни одговори', 'Expert answers'),
@@ -119,27 +119,25 @@ export default function LeadsHome() {
     { domain: 'immigration.mk', url: 'https://immigration.mk', tag: T('Дозволи за престој', 'Residence permits') },
     { domain: 'macedoniancitizenship.mk', url: 'https://macedoniancitizenship.mk', tag: T('Државјанство', 'Citizenship') },
     { domain: 'company.nexa.mk', url: 'https://company.nexa.mk', tag: T('Основање фирма', 'Company setup') },
-    { domain: 'iplaw.nexa.mk', url: 'https://iplaw.nexa.mk', tag: T('Интелектуална сопственост', 'IP law') },
-    { domain: 'osiguran.nexa.mk', url: 'https://osiguran.nexa.mk', tag: T('Осигурување', 'Insurance') },
-    { domain: 'properties.nexa.mk', url: 'https://properties.nexa.mk', tag: T('Недвижности', 'Real estate') }
+    { domain: 'iplaw.nexa.mk', url: 'https://iplaw.nexa.mk', tag: T('Интелектуална сопственост', 'IP law') }
   ];
 
   return (
     <div className={styles.page}>
       <SEOHelmet
-        title={T('Nexa за професионалци — нови клиенти од нашата мрежа', 'Nexa for professionals — new clients from our network')}
+        title={T('Nexa за адвокати — нови клиенти од нашата мрежа', 'Nexa for lawyers — new clients from our network')}
         description={T('Насочени случаи од специјализирани сајти по област и град, плус видливост како експерт. Ограничени места по област.',
-                       'Routed cases from specialized sites by area and city, plus visibility as an expert. Limited seats per area.')}
+                       'Routed legal cases from specialized sites by area and city, plus visibility as an expert. A limited founding cohort — invite-only.')}
         canonical="/"
         locale={isMk ? 'mk_MK' : 'en_US'}
         altLocale={isMk ? 'en_US' : 'mk_MK'}
-        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa for professionals', description: T('Нови клиенти за професионалци.', 'New clients for professionals.'), language: lang })]}
+        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa for lawyers', description: T('Нови клиенти за адвокати.', 'New clients for lawyers.'), language: lang })]}
       />
 
       {/* ── Left side: brand · pitch · footer ───────────────────────────── */}
       <div className={styles.pitchSide}>
       <header className={styles.topBar}>
-        <Link to="/" className={styles.brand} aria-label="Nexa за професионалци">
+        <Link to="/" className={styles.brand} aria-label="Nexa за адвокати">
           <img src="/nexa-logo-navbar.png" alt="Nexa" className={styles.brandLogo} />
         </Link>
         <nav className={styles.topNav}>
@@ -154,7 +152,7 @@ export default function LeadsHome() {
 
       <main className={styles.intro}>
           <span className={styles.pill}>
-            {T('Ние нудиме можности — Вие решавате проблеми', 'We bring the opportunities — you solve the problems')}
+            {T('Основачки круг за адвокати — по покана', 'A founding cohort for lawyers — invite-only')}
           </span>
           <div className={styles.rotator}>
             <h1 className={styles.rotHook} key={`h-${active}`} aria-live="polite">

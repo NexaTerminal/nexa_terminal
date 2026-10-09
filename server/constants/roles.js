@@ -96,15 +96,15 @@ const GRACE_DAYS = 3;
 // One per email (enforced by the email-eligibility guard at registration).
 const TRIAL_DAYS = 8;
 
-// EUR prices (Nexa 3.1). Each tier is sold on TWO cycles — monthly + annual
-// (annual ≈ 2 months free). Quarterly is retained only for back-compat and is
-// no longer offered at checkout. Prices are shown publicly on /pricing and in
-// the terminal buy flow (SubscriptionGate).
-//   Basic (Product A, nexa.mk)       → €15 / month · €149 / year
-//   Pro   (Product B, leads.nexa.mk) → €39 / month · €390 / year
+// EUR prices — INTERNAL ONLY (billing, admin, invoices). Under the founding-pilot
+// model these are NOT shown publicly: Basic is free, Pro is invite-only (no price
+// on the public site). Pro is sold annual-only at €590 (manual close after the
+// 6-month pilot). Monthly/quarterly kept for back-compat / legacy accounts only.
+//   Basic (Product A, nexa.mk)       → FREE (perpetual, no checkout)
+//   Pro   (Product B, leads.nexa.mk) → €590 / year, annual-only, invite-only
 const PLAN_PRICES = Object.freeze({
   basic: { monthly: 15, quarterly: 40,  annual: 149 },
-  pro:   { monthly: 39, quarterly: 105, annual: 390 },
+  pro:   { monthly: 39, quarterly: 105, annual: 590 },
   // legacy
   standard: { monthly: 15, quarterly: 40,  annual: 149 },
   admin_5:  { monthly: 39, quarterly: 105, annual: 390 },
@@ -152,6 +152,14 @@ const capForArea = (area) => {
   return Number.isFinite(c) ? c : PRACTICE_AREA_CAPS.default;
 };
 
+// Founding-20 GLOBAL cap — the total number of ACTIVE Pro (admin_user) lawyers
+// allowed at once across ALL areas. Density is then steered by WHERE we recruit
+// (per-city), not by per-area code caps. 0 or negative = no global cap.
+// Override with env PRO_GLOBAL_CAP without a code change.
+const PRO_GLOBAL_CAP = Number.isInteger(Number.parseInt(process.env.PRO_GLOBAL_CAP, 10))
+  ? Number.parseInt(process.env.PRO_GLOBAL_CAP, 10)
+  : 20;
+
 // Practice areas enum — must match satellite-site contract (NEXA_2.0_CONTEXT.md §11).
 // The first block are legal practice areas (satellite lead contract). The second
 // block are non-legal provider verticals added for the multi-vertical Inquiry Board
@@ -170,6 +178,22 @@ const PRACTICE_AREAS = Object.freeze([
   'insurance',
   'consulting'
 ]);
+
+// The legal subset of PRACTICE_AREAS. During the legal-only founding pilot these
+// are the ONLY areas a Pro may pick; the non-legal verticals above stay in the
+// enum (paused, not deleted) for back-compat + instant un-pause.
+const LEGAL_PRACTICE_AREAS = Object.freeze([
+  'consumer-legal', 'immigration', 'citizenship', 'company-registration',
+  'ip-law', 'tax-accounting', 'labor-law', 'general-legal'
+]);
+// Areas offered in the provider profile editor right now. Widen (or set
+// ACTIVE_PRACTICE_AREAS env, comma-separated) to re-enable non-legal verticals.
+const ACTIVE_PRACTICE_AREAS = Object.freeze(
+  (process.env.ACTIVE_PRACTICE_AREAS
+    ? process.env.ACTIVE_PRACTICE_AREAS.split(',').map((s) => s.trim()).filter(Boolean)
+    : LEGAL_PRACTICE_AREAS
+  ).filter((a) => PRACTICE_AREAS.includes(a))
+);
 
 // ---- Helpers ----
 const isPlatformAdmin = (user) => !!user && (user.role === ROLES.ADMIN || user.isAdmin === true);
@@ -203,6 +227,9 @@ module.exports = {
   labelForPlan,
   REMINDER_SCHEDULE,
   PRACTICE_AREAS,
+  LEGAL_PRACTICE_AREAS,
+  ACTIVE_PRACTICE_AREAS,
+  PRO_GLOBAL_CAP,
   PRACTICE_AREA_CAPS,
   capForArea,
   isPlatformAdmin,

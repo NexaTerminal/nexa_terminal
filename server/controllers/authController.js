@@ -393,6 +393,8 @@ class AuthController {
       if (!planKey) return res.status(400).json({ message: 'Невалиден избор на тип на сметка.' });
 
       // Provider vertical → the practice area that drives Inquiry Board matching.
+      // Legal-only pilot: non-legal verticals stay here (PAUSED, not deleted) so
+      // they can be re-enabled instantly by widening PRO_PROVIDER_TYPES.
       const PROVIDER_TYPE_TO_AREA = {
         lawyer:      'general-legal',
         accountant:  'tax-accounting',
@@ -400,11 +402,15 @@ class AuthController {
         insurance:   'insurance',
         consulting:  'consulting'
       };
+      // Which provider types may currently sign up as Pro. Founding cohort = lawyers
+      // only; add types (comma-separated) to PRO_PROVIDER_TYPES to un-pause a vertical.
+      const ALLOWED_PROVIDER_TYPES = (process.env.PRO_PROVIDER_TYPES || 'lawyer')
+        .split(',').map((s) => s.trim()).filter(Boolean);
 
       if (req.user.needsTierOnboarding !== true) {
         return res.status(403).json({ code: 'ONBOARDING_DONE', message: 'Изборот на тип на сметка е веќе завршен.' });
       }
-      if (planKey === 'pro' && !PROVIDER_TYPE_TO_AREA[providerType]) {
+      if (planKey === 'pro' && (!PROVIDER_TYPE_TO_AREA[providerType] || !ALLOWED_PROVIDER_TYPES.includes(providerType))) {
         return res.status(400).json({ message: 'Изберете тип на давател на услуги за да продолжите.' });
       }
       if (planKey === 'pro' && !String(license || '').trim()) {
@@ -491,16 +497,23 @@ class AuthController {
         { $set: { emailVerified: true, emailVerifiedAt: new Date(), updatedAt: new Date() } }
       );
 
-      // Email verified — start the 8-day free trial for the plan the user
-      // signed up for (Basic on nexa.mk, Pro on leads.nexa.mk). Full access
-      // until it lapses, then the scheduler auto-suspends. One per email.
+      // Email verified. Under the free-Basic model: SMB (Basic) accounts get
+      // perpetual free access immediately; Pro (lawyer) accounts stay LOCKED —
+      // they are invite-only and activated by redeeming a pilot code the
+      // operator sends them. One per email.
       try {
         const sub = req.app.locals.subscriptionService;
         if (sub) {
           const u = await userService.findById(userId);
-          await sub.initTrial(userId, { plan: u?.intendedPlan || 'basic' });
+          const { canonicalPlan } = require('../constants/roles');
+          const intended = canonicalPlan(u?.intendedPlan) || 'basic';
+          if (intended === 'pro') {
+            await sub.initLocked(userId);
+          } else {
+            await sub.initFreeBasic(userId);
+          }
         }
-      } catch (e) { console.error('initTrial after verify warning:', e.message); }
+      } catch (e) { console.error('subscription init after verify warning:', e.message); }
 
       try {
         const creditService = req.app.locals.creditService;

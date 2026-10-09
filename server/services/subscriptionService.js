@@ -122,7 +122,9 @@ class SubscriptionService {
 
     const sub = resolved.subscription || {};
     const now = new Date();
-    const inActive = sub.status === SUBSCRIPTION_STATUSES.ACTIVE && sub.endsAt && new Date(sub.endsAt) > now;
+    // ACTIVE with no endsAt = perpetual access (free-forever Basic). Paid/pilot
+    // subscriptions always carry an endsAt and are gated by expiry as before.
+    const inActive = sub.status === SUBSCRIPTION_STATUSES.ACTIVE && (!sub.endsAt || new Date(sub.endsAt) > now);
     const inGrace  = this.isInGrace(resolved);
     return inActive || inGrace;
   }
@@ -159,6 +161,49 @@ class SubscriptionService {
       requestedPlan: null,
       requestedCycle: null,
       gracePeriod: { ...EMPTY_GRACE }
+    };
+    await this.users.updateOne(
+      { _id: toObjectId(userId) },
+      { $set: { subscription, updatedAt: now } }
+    );
+    return { ...user, subscription };
+  }
+
+  /**
+   * Initialize a brand-new account as FREE BASIC (perpetual, no expiry).
+   * This is the default for SMB (Basic) signups under the free-Basic model:
+   * active status + endsAt=null = permanent access (hasFeatureAccess treats a
+   * null endsAt as never-expiring; suspendExpired skips null endsAt).
+   * Idempotent: only initializes a fresh account (no status or 'none'); never
+   * overwrites an active paid / pending / suspended subscription.
+   */
+  async initFreeBasic(userId) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    const existing = user.subscription?.status;
+    if (existing && existing !== SUBSCRIPTION_STATUSES.NONE) return user;
+
+    const now = new Date();
+    const subscription = {
+      plan: 'basic',
+      cycle: null,
+      status: SUBSCRIPTION_STATUSES.ACTIVE,
+      startedAt: now,
+      endsAt: null,            // perpetual — free forever
+      durationDays: null,
+      autoRenew: false,
+      amountEur: 0,
+      paidVia: null,
+      invoiceNumber: null,
+      approvedBy: null,
+      approvedAt: null,
+      remindersSent: [],
+      notes: 'free-basic',
+      requestedAt: null,
+      requestedPlan: null,
+      requestedCycle: null,
+      gracePeriod: { ...EMPTY_GRACE },
+      trial: false
     };
     await this.users.updateOne(
       { _id: toObjectId(userId) },
@@ -431,6 +476,24 @@ class SubscriptionService {
       const err = new Error('Имате активна платена претплата — кодот не може да се искористи сега.');
       err.code = 'ALREADY_ACTIVE_PAID';
       throw err;
+    }
+
+    // Founding-20 global cap: a Pro (lawyer) code cannot activate a NEW lawyer
+    // once all seats are taken. An already-active Pro re-redeeming is exempt.
+    if ((canonicalPlan(plan) || plan) === 'pro') {
+      const alreadyActivePro =
+        user.role === ROLES.ADMIN_USER && sub.status === SUBSCRIPTION_STATUSES.ACTIVE;
+      if (!alreadyActivePro) {
+        const providerCapService = require('./providerCapService');
+        const reached = await providerCapService.isGlobalCapReached(this.users, {
+          excludeUserId: toObjectId(userId)
+        });
+        if (reached) {
+          const err = new Error('Бројот на места за адвокати е пополнет во моментов.');
+          err.code = 'PRO_CAP_REACHED';
+          throw err;
+        }
+      }
     }
 
     return this._activate(userId, {

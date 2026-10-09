@@ -417,8 +417,8 @@ class SubscriptionController {
   // ----------------- user-facing ----------------- //
 
   /** GET /api/subscription/me — includes effective status (handles sub-seat → parent).
-   * Initializes a missing subscription in the LOCKED state (no auto-trial).
-   * `initLocked` is idempotent. */
+   * Backfills a missing subscription: SMB (Basic) → perpetual free; Pro (lawyer)
+   * → LOCKED (invite-only, awaits a pilot code). Both inits are idempotent. */
   async getMine(req, res) {
     try {
       const isOwnAccount = req.user.role !== 'admin' && req.user.role !== 'sub_seat';
@@ -426,9 +426,13 @@ class SubscriptionController {
       let user = req.user;
       if (isOwnAccount && noStatus) {
         try {
-          user = await this.subscriptionService.initLocked(req.user._id);
+          const { canonicalPlan } = require('../constants/roles');
+          const intended = canonicalPlan(req.user.intendedPlan) || 'basic';
+          user = intended === 'pro'
+            ? await this.subscriptionService.initLocked(req.user._id)
+            : await this.subscriptionService.initFreeBasic(req.user._id);
         } catch (e) {
-          console.warn('[subscription/me] initLocked failed:', e.message);
+          console.warn('[subscription/me] subscription backfill failed:', e.message);
         }
       }
       const eff = await this.subscriptionService.effectiveStatus(user);

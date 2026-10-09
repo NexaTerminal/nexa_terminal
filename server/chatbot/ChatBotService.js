@@ -611,12 +611,17 @@ Nexa Terminal има функции што решаваат дел од проб
         throw new Error('Question cannot be empty');
       }
 
-      // Check user's weekly prompt limit
+      // Check user's weekly prompt limit. On the wall we don't just stop the
+      // user — we route them to a lawyer: in-platform hand-off ("Барања") or the
+      // official Bar directory. This is the lead moment in the free-Basic model.
       const limitStatus = await this.checkWeeklyLimit(userId);
       if (!limitStatus.allowed) {
         throw new Error(
-          `Ја достигнавте вашата неделна граница од ${this.weeklyLimit} прашања. ` +
-          `Вашиот лимит ќе се ресетира на ${limitStatus.resetDate.toLocaleDateString('mk-MK')}.`
+          `Ја достигнавте вашата неделна граница од ${this.weeklyLimit} бесплатни прашања ` +
+          `(се ресетира на ${limitStatus.resetDate.toLocaleDateString('mk-MK')}).\n\n` +
+          `За конкретно правно прашање не морате да чекате — побарајте **да ве поврземе со адвокат** ` +
+          `преку „Барања" во апликацијата, или најдете адвокат во ` +
+          `[Именикот на Адвокатската комора на РМ](https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati).`
         );
       }
 

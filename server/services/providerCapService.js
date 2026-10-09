@@ -11,7 +11,7 @@
  * decide allow / waitlist. Routing itself already picks a single assignee.
  */
 
-const { ROLES, capForArea } = require('../constants/roles');
+const { ROLES, capForArea, PRO_GLOBAL_CAP } = require('../constants/roles');
 
 /** Count active Pro providers that currently hold `area`. */
 async function countActiveProvidersInArea(usersCol, area, { excludeUserId = null } = {}) {
@@ -61,9 +61,53 @@ async function areaCapStatus(usersCol, areas = []) {
   return rows;
 }
 
+/** Count ALL active Pro (admin_user) lawyers, across every area (founding-20). */
+async function countActivePros(usersCol, { excludeUserId = null } = {}) {
+  if (!usersCol) return 0;
+  const query = { role: ROLES.ADMIN_USER, 'subscription.status': 'active' };
+  if (excludeUserId) query._id = { $ne: excludeUserId };
+  return usersCol.countDocuments(query);
+}
+
+/**
+ * Has the GLOBAL founding-cohort cap been reached? A cap <= 0 means "no cap".
+ * `excludeUserId` lets an already-active provider re-activate without self-count.
+ */
+async function isGlobalCapReached(usersCol, { excludeUserId = null } = {}) {
+  if (!Number.isFinite(PRO_GLOBAL_CAP) || PRO_GLOBAL_CAP <= 0) return false;
+  const count = await countActivePros(usersCol, { excludeUserId });
+  return count >= PRO_GLOBAL_CAP;
+}
+
+/**
+ * Admin overview of the founding-20: { total, cap, full, byCity: [{ city, count }] }.
+ * Density is managed by city, so the breakdown groups active Pros by their
+ * declared `superUser.cities` (a Pro may appear in several cities).
+ */
+async function globalCapStatus(usersCol) {
+  if (!usersCol) return { total: 0, cap: PRO_GLOBAL_CAP, full: false, byCity: [] };
+  const total = await countActivePros(usersCol);
+  const agg = await usersCol.aggregate([
+    { $match: { role: ROLES.ADMIN_USER, 'subscription.status': 'active' } },
+    { $unwind: { path: '$superUser.cities', preserveNullAndEmptyArrays: true } },
+    { $group: { _id: { $ifNull: ['$superUser.cities', '—'] }, count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+  ]).toArray();
+  const byCity = agg.map((r) => ({ city: r._id, count: r.count }));
+  return {
+    total,
+    cap: PRO_GLOBAL_CAP,
+    full: PRO_GLOBAL_CAP > 0 && total >= PRO_GLOBAL_CAP,
+    byCity
+  };
+}
+
 module.exports = {
   countActiveProvidersInArea,
   isAreaAtCap,
   fullAreas,
-  areaCapStatus
+  areaCapStatus,
+  countActivePros,
+  isGlobalCapReached,
+  globalCapStatus
 };

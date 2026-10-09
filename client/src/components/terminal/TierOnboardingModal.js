@@ -13,13 +13,17 @@ import styles from '../../styles/terminal/TierOnboardingModal.module.css';
  * choice sets plan + role via /auth/choose-account-type. Not dismissible.
  */
 // Provider verticals — value must match PROVIDER_TYPE_TO_AREA in authController.
-const PROVIDER_TYPES = [
+// Full list retained for easy un-pause; legal-only pilot shows lawyers only
+// (mirror of the server's PRO_PROVIDER_TYPES gate).
+const ALL_PROVIDER_TYPES = [
   { value: 'lawyer',      label: 'Адвокат / Правни услуги' },
   { value: 'accountant',  label: 'Сметководител' },
   { value: 'real_estate', label: 'Агент за недвижен имот' },
   { value: 'insurance',   label: 'Осигурување' },
   { value: 'consulting',  label: 'Консалтинг' }
 ];
+const ACTIVE_PROVIDER_VALUES = ['lawyer'];
+const PROVIDER_TYPES = ALL_PROVIDER_TYPES.filter((p) => ACTIVE_PROVIDER_VALUES.includes(p.value));
 
 const TierOnboardingModal = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -27,7 +31,9 @@ const TierOnboardingModal = () => {
   // correctly-classified provider can't accidentally downgrade to Basic).
   const currentIsPro = currentUser?.role === 'admin_user' || currentUser?.subscription?.plan === 'pro';
   const [plan, setPlan] = useState(currentIsPro ? 'pro' : 'basic');
-  const [providerType, setProviderType] = useState(currentUser?.superUser?.providerType || currentUser?.proVerification?.providerType || '');
+  // Default to the sole active provider type (lawyer) so a single-option list needs no pick.
+  const defaultProviderType = PROVIDER_TYPES.length === 1 ? PROVIDER_TYPES[0].value : '';
+  const [providerType, setProviderType] = useState(currentUser?.superUser?.providerType || currentUser?.proVerification?.providerType || defaultProviderType);
   const [license, setLicense] = useState(currentUser?.proVerification?.license || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

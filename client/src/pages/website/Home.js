@@ -54,8 +54,8 @@ export default function Home() {
               {isMk ? 'Проверете ја вашата усогласеност' : 'Check your compliance'}
               <Icon name="arrowRight" size={18} />
             </Link>
-            <Link to="/contact" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
-              {isMk ? 'Контактирајте нé' : 'Contact us'}
+            <Link to="/login" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
+              {isMk ? 'Започни бесплатно' : 'Start free'}
             </Link>
           </div>
         </div>

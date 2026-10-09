@@ -5,7 +5,6 @@ import Sidebar from "../../components/terminal/Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import UpdatesFeed from "../../components/terminal/UpdatesFeed";
-import DashboardNudges from "../../components/terminal/DashboardNudges";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
 import LockedWelcome from "../../components/terminal/LockedWelcome";
@@ -106,7 +105,6 @@ const Dashboard = () => {
                   </div>
                 ) : null}
 
-                <DashboardNudges />
                 <UpdatesFeed />
               </>
             )}

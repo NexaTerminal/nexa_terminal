@@ -9,6 +9,9 @@ import MarketingBotApiService from '../../services/marketingBotApi';
 import styles from './AgentChatDock.module.css';
 
 const stripSuggestions = (t) => (t || '').replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/, '').trim();
+// Clean a stored AI message for display in the compact dock (no suggestion chips
+// or hand-off markers are rendered here).
+const cleanAi = (t) => stripSuggestions((t || '').replace(/\[\[HANDOFF:[a-z]*\]\]/ig, '')).trim();
 
 /**
  * AgentChatDock — the footer dock. Renders one ChatWindow per open agent,
@@ -51,6 +54,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const contextRef = useRef(context);
   contextRef.current = context;
   const setConv = (id) => { convIdRef.current = id; };
+  const didInitRef = useRef(false);
 
   const agent = getAgent(agentKey);
   const isMarketing = agent?.engine === 'marketing';
@@ -59,6 +63,27 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   useEffect(() => {
     if (!minimized) endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, minimized]);
+
+  // On first open, resume this character's latest conversation so the balloon
+  // shows history (same continuity as the full page). Skipped when opened with a
+  // seed (a seeded open starts a fresh contextual thread) and for marketing.
+  useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    if (!agent || isMarketing || seedId) return;
+    ChatbotApiService.getLatestConversation(agent.key)
+      .then((res) => {
+        const conv = res?.success ? res.data?.conversation : null;
+        if (!conv || !Array.isArray(conv.messages) || conv.messages.length === 0) return;
+        setMessages(conv.messages.map((m) => ({
+          role: m.type === 'ai' ? 'ai' : 'user',
+          content: m.type === 'ai' ? cleanAi(m.content) : m.content,
+        })));
+        setConv(String(conv._id));
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-ask the seed message when the window is opened/re-opened with one
   // (e.g. „Прегледај со …" hands an artifact to the agent for review). A fresh

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { visibleTier } from '../../lib/tier';
+import { AI_AGENTS } from '../../config/aiAgents';
+import { useChatDock } from '../../contexts/ChatDockContext';
 import UpdateModal from './UpdateModal';
 import styles from '../../styles/terminal/UpdatesFeed.module.css';
 
@@ -25,23 +27,50 @@ const previewBody = (text = '', n = PREVIEW_WORDS) => {
  * on the public site now.
  */
 
+// Suggested actions — benefit-driven tiles that nudge feature discovery.
+// `icon` keys into ICONS; `accent` tints the icon wrap and hover border.
+const SUGGESTED_ACTIONS = [
+  { to: '/terminal/documents',          title: 'Нов документ',       desc: 'Договори, одлуки и спогодби за минута',  icon: 'doc',       accent: 'blue'   },
+  { to: '/terminal/legal-screening',    title: 'Правна проверка',    desc: 'Откриј каде си изложен на правен ризик', icon: 'shield',    accent: 'teal'   },
+  { to: '/terminal/hr-screening',       title: 'HR и оперативна',    desc: 'Усогласи ги работните односи',          icon: 'users',     accent: 'amber'  },
+  { to: '/terminal/contract-analysis',  title: 'Анализа на договор', desc: 'AI ги наоѓа ризичните клаузули',        icon: 'contract',  accent: 'indigo' },
+  { to: '/terminal/marketing-screening', title: 'Маркетинг проверка', desc: 'Провери усогласеност во маркетингот',  icon: 'megaphone', accent: 'rose'   },
+  { to: '/terminal/marketing-ai',       title: 'Маркетинг AI',       desc: 'Идеи за содржина и кампањи',             icon: 'spark',     accent: 'rose'   },
+];
+
+// Direct jump-to links for users who already know the template they need.
 const TEMPLATE_SHORTCUTS = [
   { to: '/terminal/documents/employment/employment-agreement',  label: 'Договор за вработување' },
   { to: '/terminal/documents/employment/termination-agreement', label: 'Спогодба за престанок' },
-  { to: '/terminal/documents/employment/annual-leave-decision', label: 'Одлука за годишен одмор' }
+  { to: '/terminal/documents/employment/annual-leave-decision', label: 'Одлука за годишен одмор' },
 ];
 
-const SCREENING_SHORTCUTS = [
-  { to: '/terminal/legal-screening',     label: 'Правна проверка' },
-  { to: '/terminal/hr-screening',        label: 'HR и оперативна' },
-  { to: '/terminal/marketing-screening', label: 'Маркетинг проверка' }
-];
+// Active characters only — the hero avatar band that opens the chat dock.
+const AI_CHARACTERS = AI_AGENTS.filter((a) => !a.comingSoon);
 
-const AI_SHORTCUTS = [
-  { to: '/terminal/ai-team',           label: 'AI Тим' },
-  { to: '/terminal/contract-analysis', label: 'Анализа на договор' },
-  { to: '/terminal/marketing-ai',      label: 'Маркетинг AI' }
-];
+// Compact inline icon set for the shortcut pills.
+const ICONS = {
+  doc: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />,
+  shield: <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />,
+  users: <path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M22 20v-2a4 4 0 0 0-3-3.87 M16 4.13A4 4 0 0 1 16 11" />,
+  megaphone: <path d="M3 11l15-6v14l-15-6z M3 11v4a2 2 0 0 0 2 2h1 M14 7v10" />,
+  contract: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 15l2 2 4-4" />,
+  spark: <path d="M12 3v4 M12 17v4 M3 12h4 M17 12h4 M6 6l2.5 2.5 M15.5 15.5 18 18 M18 6l-2.5 2.5 M8.5 15.5 6 18" />,
+};
+
+const Icon = ({ name }) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {ICONS[name]}
+  </svg>
+);
+
+const ArrowIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12h14 M13 6l6 6-6 6" />
+  </svg>
+);
 
 const fmtDate = (d) => d
   ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -116,21 +145,85 @@ const UpdatesFeed = () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ShortcutColumn = ({ title, items, allTo }) => (
-  <div className={styles.shortcutCol}>
-    <div className={styles.shortcutColTitle}>{title}</div>
-    <ul className={styles.shortcutList}>
-      {items.map(s => (
-        <li key={s.to}>
-          <Link to={s.to} className={styles.shortcutLink}>{s.label}</Link>
-        </li>
+// Hero band: tap a character avatar to open the chat dock; "Сите" links to the
+// full AI Team page. Characters are the headline of the quick-actions card.
+const AiTeamBand = () => {
+  const { openChat } = useChatDock();
+  return (
+    <div className={styles.aiBand}>
+      <div className={styles.groupHead}>
+        <span className={styles.groupTitle}>AI Тим</span>
+        <Link to="/terminal/ai-team" className={styles.groupAll}>
+          Сите <ArrowIcon />
+        </Link>
+      </div>
+      <ul className={styles.aiChipRow}>
+        {AI_CHARACTERS.map((a) => (
+          <li key={a.key}>
+            <button
+              type="button"
+              className={styles.aiChip}
+              onClick={() => openChat?.(a.key)}
+              title={`Разговарај со ${a.name} · ${a.role}`}
+              style={{ '--accent': a.accent }}
+            >
+              {a.photo
+                ? <img src={a.photo} alt="" className={styles.aiChipPhoto} loading="lazy" />
+                : <span className={styles.aiChipEmoji} aria-hidden>{a.icon}</span>}
+              <span className={styles.aiChipText}>
+                <span className={styles.aiChipName}>{a.name}</span>
+                <span className={styles.aiChipRole}>{a.role}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Suggested actions — rich tiles whose benefit copy nudges feature discovery.
+const SuggestedActions = () => (
+  <div className={styles.shortcutGroup}>
+    <div className={styles.groupHead}>
+      <span className={styles.groupTitle}>Предложено за тебе</span>
+    </div>
+    <div className={styles.actionGrid}>
+      {SUGGESTED_ACTIONS.map((a) => (
+        <Link key={a.to} to={a.to} className={styles.actionTile}>
+          <span className={`${styles.actionIconWrap} ${styles[`accent_${a.accent}`]}`}>
+            <Icon name={a.icon} />
+          </span>
+          <span className={styles.actionTileBody}>
+            <span className={styles.actionTileTitle}>{a.title}</span>
+            <span className={styles.actionTileDesc}>{a.desc}</span>
+          </span>
+          <span className={styles.actionTileArrow}><ArrowIcon /></span>
+        </Link>
       ))}
-      {allTo && (
-        <li>
-          <Link to={allTo} className={`${styles.shortcutLink} ${styles.shortcutLinkAll}`}>Сите</Link>
-        </li>
-      )}
-    </ul>
+    </div>
+  </div>
+);
+
+// Compact jump-to row for the most-used templates.
+const TemplateRow = () => (
+  <div className={styles.shortcutGroup}>
+    <div className={styles.groupHead}>
+      <span className={styles.groupTitle}>Шаблони</span>
+      <Link to="/terminal/documents" className={styles.groupAll}>
+        Сите <ArrowIcon />
+      </Link>
+    </div>
+    <div className={styles.chipRow}>
+      {TEMPLATE_SHORTCUTS.map((s) => (
+        <Link key={s.to} to={s.to} className={styles.chip}>
+          <span className={`${styles.chipIcon} ${styles.accent_blue}`}>
+            <Icon name="doc" />
+          </span>
+          <span className={styles.chipLabel}>{s.label}</span>
+        </Link>
+      ))}
+    </div>
   </div>
 );
 
@@ -142,11 +235,9 @@ const ActionGridCard = () => (
         Брзи дејства
       </span>
     </header>
-    <div className={styles.shortcutCols}>
-      <ShortcutColumn title="Шаблони"   items={TEMPLATE_SHORTCUTS}  allTo="/terminal/documents" />
-      <ShortcutColumn title="Проверки"  items={SCREENING_SHORTCUTS} allTo="/terminal/legal-screening" />
-      <ShortcutColumn title="AI алатки" items={AI_SHORTCUTS}        allTo="/terminal/ai-chat" />
-    </div>
+    <AiTeamBand />
+    <SuggestedActions />
+    <TemplateRow />
   </section>
 );
 

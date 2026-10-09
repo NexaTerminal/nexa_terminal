@@ -1329,46 +1329,46 @@
 .actionGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: 8px;
 }
 .actionTile {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px 8px 7px;
-  background: transparent;
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-left: 3px solid transparent;
-  border-radius: 8px;
+  gap: 11px;
+  padding: 10px 11px;
+  background: #fff;
+  border: 1px solid #eef1f5;
+  border-radius: 11px;
   text-decoration: none;
   color: inherit;
-  min-height: 44px;
-  transition: background-color 0.18s, border-color 0.18s, color 0.18s;
+  min-height: 52px;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background-color 0.18s;
 }
 .actionTile:hover {
-  background-color: #f8fafc;
-  border-left-color: var(--color-primary, #1e4db7);
-  color: var(--color-primary, #1e4db7);
-  transform: none;
-  box-shadow: none;
+  background-color: #fff;
+  border-color: #dbe2ea;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
   text-decoration: none;
 }
 .actionIconWrap {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.18s;
 }
+.actionTile:hover .actionIconWrap { transform: scale(1.06); }
 .actionTileBody { flex: 1 1 auto; min-width: 0; }
-.actionTileTitle { font-size: 13.5px; font-weight: 600; color: #0f172a; line-height: 1.25; }
-.actionTileDesc  { font-size: 11.5px; color: #64748b; margin-top: 1px; line-height: 1.35; }
+.actionTileTitle { display: block; font-size: 13.5px; font-weight: 650; color: #0f172a; line-height: 1.25; }
+.actionTileDesc  { display: block; font-size: 11.5px; color: #64748b; margin-top: 1px; line-height: 1.35; }
 .actionTile:hover .actionTileTitle { color: var(--color-primary, #1e4db7); }
 .actionTileArrow {
   flex: 0 0 auto;
+  display: inline-flex;
   color: #cbd5e1;
   transition: color 0.18s, transform 0.18s;
 }
@@ -1637,32 +1637,37 @@
    SHORTCUT GROUPS inside ActionGridCard
    ============================================================ */
 .shortcutGroup {
-  padding: 10px 0 4px;
+  padding: 12px 0 4px;
   border-top: 1px solid #f1f5f9;
 }
-.shortcutGroup:first-of-type { border-top: none; padding-top: 4px; }
 
-.shortcutGroupHead {
+/* Shared section head — used by the AI band and every shortcut group. */
+.groupHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-.shortcutGroupTitle {
+.groupTitle {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #64748b;
 }
-.shortcutGroupAll {
-  font-size: 12px;
+.groupAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
   font-weight: 600;
   color: #94a3b8;
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color 0.15s, gap 0.15s;
 }
-.shortcutGroupAll:hover { color: var(--color-primary, #1e4db7); text-decoration: none; }
+.groupAll svg { transition: transform 0.15s; }
+.groupAll:hover { color: var(--color-primary, #1e4db7); text-decoration: none; }
+.groupAll:hover svg { transform: translateX(2px); }
 
 .chipRow {
   display: flex;
@@ -1706,69 +1711,66 @@
 .chipLabel { white-space: nowrap; }
 
 /* ============================================================
-   3-COLUMN SHORTCUTS — text-only, no borders, no icons
+   AI TEAM BAND — hero avatar shortcuts that open the chat dock
    ============================================================ */
-.shortcutCols {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  padding-top: 6px;
+.aiBand {
+  padding: 8px 0 4px;
 }
-.shortcutCol { min-width: 0; }
-.shortcutColTitle {
-  position: relative;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-}
-.shortcutColTitle::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 22px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--color-primary, #1e4db7);
-  opacity: 0.55;
-}
-.shortcutList {
+.aiChipRow {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.shortcutLink {
-  display: inline;
-  font-size: 13px;
-  color: #0f172a;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  padding: 0;
-  line-height: 1.45;
-  transition: color 0.15s;
+.aiChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 13px 5px 5px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
-.shortcutLink:hover {
-  color: var(--color-primary, #1e4db7);
-  text-decoration: none;
+.aiChip:hover {
+  border-color: var(--accent, #1e4db7);
+  background: #f8fafc;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
 }
+.aiChipPhoto {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--accent, #e5e7eb);
+}
+.aiChipEmoji {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  background: #f1f5f9;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--accent, #e5e7eb);
+}
+.aiChipText { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.aiChipName { font-size: 13px; font-weight: 700; color: #0f172a; }
+.aiChipRole { font-size: 10.5px; color: #64748b; }
 
 @media (max-width: 640px) {
-  .shortcutCols { grid-template-columns: 1fr; gap: 10px; }
+  .aiChipRow { gap: 6px; }
+  .aiChipRole { display: none; }
 }
-
-.shortcutLinkAll {
-  color: #94a3b8;
-  font-style: italic;
-}
-.shortcutLinkAll:hover { color: var(--color-primary, #1e4db7); }
 
 /* ============================================================
    SECTION BREAK — divider between "Брзи дејства" and the feed

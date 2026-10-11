@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import ProfileReport from '../../components/character/ProfileReport';
+import AskAgentButton from '../../components/chatbot/AskAgentButton';
 import characterApi from '../../services/characterApi';
 import s from './CharacterAssessments.module.css';
 
@@ -148,6 +149,15 @@ export default function CharacterAssessments() {
           <button type="submit" className={s.btnPrimary} disabled={creating}>
             {creating ? 'Се креира…' : 'Креирај и подготви линк'}
           </button>
+          {/* Prep: ВЕРА advises what traits matter for this hire before inviting. */}
+          <div style={{ marginTop: 12 }}>
+            <AskAgentButton
+              agentKey="hr"
+              label="Што да барам? Прашај ја ВЕРА"
+              seed={`Сакам да оценам карактер (моделот „Големите пет") за вработување${form.role ? ` на улога „${form.role.trim()}"` : ''}. Кои црти се најважни за оваа улога и на што да внимавам?`}
+              context={{ kind: 'подготовка за проценка на карактер', label: form.role ? form.role.trim() : 'ново вработување', data: { улога: form.role } }}
+            />
+          </div>
         </form>
 
         {/* List */}
@@ -204,6 +214,19 @@ export default function CharacterAssessments() {
                                          report={detail.report} ranked={detail.ranked}
                                          overall={detail.overall} disclaimer={detail.disclaimer}
                                          completedAt={detail.completedAt} />
+                          {/* Interpret: hand the profile to ВЕРА for HR advice. */}
+                          <div style={{ marginTop: 14 }}>
+                            <AskAgentButton
+                              agentKey="hr"
+                              label="Разговарај со ВЕРА за резултатите"
+                              seed={`Еве ја проценката на карактер за вработениот/кандидатот ${detail.candidateName}${detail.role ? ` за улогата „${detail.role}"` : ''}. Како да го толкувам овој профил и на што да внимавам кога работам со него (онбординг, стил на менаџирање, можни ризици)?`}
+                              context={{
+                                kind: 'проценка на карактер (Големите пет)',
+                                label: `${detail.candidateName}${detail.role ? ` · ${detail.role}` : ''}`,
+                                data: JSON.stringify({ overall: detail.overall, ranked: detail.ranked }),
+                              }}
+                            />
+                          </div>
                           {detail.resultsEmailedAt && (
                             <p className={s.emailedNote}>✓ Резултатите се испратени и до вработениот{detail.resultsEmailedTo ? ` (${detail.resultsEmailedTo})` : ''}.</p>
                           )}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from '../../../styles/terminal/lhc/ComplianceCheck.module.css';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
+import AskAgentButton from '../../../components/chatbot/AskAgentButton';
 import api from '../../../services/api';
 import usePrintReport from '../../../hooks/usePrintReport';
 
@@ -162,6 +163,26 @@ const HRReport = () => {
 
               <div className={styles["score-description"]}>
                 <p>{assessment.gradeDescription}</p>
+              </div>
+
+              {/* Interpret: hand the HR health-check to ВЕРА for prioritized advice. */}
+              <div style={{ marginTop: 14, textAlign: 'center' }}>
+                <AskAgentButton
+                  agentKey="hr"
+                  label="Разговарај со ВЕРА за извештајот"
+                  seed={`Еве го мојот HR health check извештај (резултат ${assessment.score}/${assessment.maxScore}, ${assessment.grade}). Кои работи со вработените и HR процеси да ги подобрам прво и како да почнам?`}
+                  context={{
+                    kind: 'HR health check извештај',
+                    label: `${assessment.grade} (${assessment.score}/${assessment.maxScore})`,
+                    data: JSON.stringify({
+                      score: assessment.score,
+                      maxScore: assessment.maxScore,
+                      grade: assessment.grade,
+                      categoryScores: assessment.categoryScores,
+                      recommendations: assessment.recommendations,
+                    }),
+                  }}
+                />
               </div>
             </div>
 

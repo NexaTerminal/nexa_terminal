@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import TerminalShell from '../../components/terminal/TerminalShell';
+import AskAgentButton from '../../components/chatbot/AskAgentButton';
 import interviewApi from '../../services/interviewApi';
 import s from './Interviews.module.css';
 
@@ -324,6 +325,17 @@ export default function Interviews({ type = 'scan' }) {
               </button>
             </div>
           </div>
+          {/* Design: ВЕРА drafts role-specific interview questions. */}
+          <div style={{ margin: '4px 0 10px' }}>
+            <AskAgentButton
+              agentKey="hr"
+              label="Предложи прашања со ВЕРА"
+              seed={type === 'exit'
+                ? `Помогни ми да подготвам прашања за излезно интервју со вработен${form.role ? ` (улога „${form.role.trim()}")` : ''} — предложи 6–8 прашања што ќе откријат зошто заминува и што да подобриме.`
+                : `Помогни ми да подготвам прашања за интервју за вработување${form.role ? ` за улога „${form.role.trim()}"` : ''} — предложи 6–8 добри прашања за да го проценам кандидатот.`}
+              context={{ kind: type === 'exit' ? 'подготовка за излезно интервју' : 'подготовка за интервју', label: form.role ? form.role.trim() : (type === 'exit' ? 'излезно интервју' : 'ново вработување'), data: { улога: form.role, вид: type } }}
+            />
+          </div>
           {qLoading
             ? <div className={s.empty}>Се вчитуваат прашањата…</div>
             : <QuestionEditor questions={questions} setQuestions={setQuestions} />}
@@ -381,7 +393,26 @@ export default function Interviews({ type = 'scan' }) {
 
                 {openId === item.id && (
                   <div className={s.reportPanel}>
-                    {detail ? <Transcript detail={detail} /> : <div className={s.empty}>Се вчитува прегледот…</div>}
+                    {detail ? (
+                      <>
+                        <Transcript detail={detail} />
+                        {/* Interpret: hand the interview summary to ВЕРА. */}
+                        <div style={{ marginTop: 14 }}>
+                          <AskAgentButton
+                            agentKey="hr"
+                            label="Разговарај со ВЕРА за резултатите"
+                            seed={type === 'exit'
+                              ? `Еве го излезното интервју на вработениот ${detail.subjectName}${detail.role ? ` (улога „${detail.role}")` : ''}. Зошто заминал, кои се обрасците и што да подобрам за задржување на вработените?`
+                              : `Еве го резимето од интервјуто за вработување на кандидатот ${detail.subjectName}${detail.role ? ` за улога „${detail.role}"` : ''}. Што ми кажува за него (јаки страни, грижи) и кои се следните чекори?`}
+                            context={{
+                              kind: type === 'exit' ? 'излезно интервју' : 'интервју за вработување',
+                              label: `${detail.subjectName}${detail.role ? ` · ${detail.role}` : ''}`,
+                              data: JSON.stringify({ aiSummary: detail.aiSummary }),
+                            }}
+                          />
+                        </div>
+                      </>
+                    ) : <div className={s.empty}>Се вчитува прегледот…</div>}
                   </div>
                 )}
               </div>

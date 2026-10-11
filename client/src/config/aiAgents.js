@@ -3,69 +3,37 @@
  *
  * Names, roles, bios and icons are display copy only; the server-side
  * specialization (systemFlavor) lives in server/chatbot/agentProfiles.js keyed
- * by the same `key`. Mirrors the PERSONA_ICON (client) vs PERSONAS (server) split.
+ * by the same `key`.
+ *
+ * Oct 2026 — collapsed to ONE lawyer. ЈУРА is now the single comprehensive
+ * business lawyer (employment, companies, contracts, GDPR, tax). The former
+ * НОВА (corporate) and АРИА (hr) are gone; legacy keys resolve to ЈУРА via
+ * getAgent()'s fallback, so old links/data still work. ПУЛС (marketing) runs on
+ * its own engine/page. Insurance (ГАРД) is reserved for later.
  *
  * `engine` tells the UI how to run the agent:
  *  - 'legal'     → served by AIChat on the legal RAG (ChatBotService); `key` is
  *                  sent as the `agent` param on each /chatbot request.
  *  - 'marketing' → separate page; selecting it navigates to `route`.
- *
- * `accent` tints the agent's silhouette on the Team page.
  */
 
 export const AI_AGENTS = [
   {
     key: 'legal',
     name: 'ЈУРА',
-    role: 'Правен советник',
-    tagline: 'Секојдневни правни прашања',
-    bio: 'ЈУРА дава брзи и јасни одговори на секојдневните правни прашања и оди право на суштината, без непотребни правни фрази.',
-    greeting: 'Кажи ми со две реченици што те мачи — брзо ќе препознаам за што станува збор и, ако треба, ќе те насочам кон вистинскиот колега од тимот.',
+    role: 'Деловен правен советник',
+    tagline: 'Работни односи, друштва, договори, ГДПР, даноци',
+    bio: 'ЈУРА е твојот деловен адвокат за сите секојдневни правни прашања — работни односи и отказ, трговски друштва и договори, заштита на лични податоци и даночна усогласеност. Оди право на суштината, лови ги ризиците и те води низ постапката чекор по чекор. Прикачи договор и ќе ти го прегледа клаузула по клаузула.',
+    greeting: 'Кажи ми со две реченици што те мачи — дали е работен однос, договор, друштво или лични податоци — и веднаш одиме на суштината: што те штити, каде е ризикот и кои се следните чекори.',
     icon: '⚖️',
     photo: '/ai-team/lex.png',
     accent: '#1E4DB7',
     engine: 'legal',
-    hasContractReview: false,
-    starters: [
-      'Што е ова прашање правно и од каде да почнам?',
-      'Дали ми треба писмен договор за соработка?',
-      'Што да направам ако клиент не ми плаќа?',
-    ],
-  },
-  {
-    key: 'corporate',
-    name: 'НОВА',
-    role: 'Корпоративен адвокат',
-    tagline: 'Друштва, договори, регистрација',
-    bio: 'НОВА се грижи за друштва, договори и регистрација во Централен регистар; прикачи ѝ договор и таа ќе ти го прегледа и ќе ти ги посочи ризиците.',
-    greeting: 'Ајде да го погледнеме низ призма на ризик — што те интересира за друштвото или договорот? Ако имаш договор, прикачи го и одам клаузула по клаузула.',
-    icon: '🏢',
-    photo: '/ai-team/nova.png',
-    accent: '#7C3AED',
-    engine: 'legal',
     hasContractReview: true,
     starters: [
-      'Кои ризици ги носи овој договор за мене?',
-      'Што мора да содржи договор со добавувач?',
-      'Кои се обврските и одговорностите на управител?',
-    ],
-  },
-  {
-    key: 'hr',
-    name: 'АРИА',
-    role: 'Советник за работни односи',
-    tagline: 'Вработување, отказ, одмори',
-    bio: 'АРИА те води низ вработување, отказ, одмори и работни акти, за да ја спроведеш постапката без грешки и без ризик од спорови.',
-    greeting: 'Да го поминеме чекор по чекор. Опиши ми ја ситуацијата со работникот, па ќе ги средиме постапката, роковите и документите за да нема спор.',
-    icon: '👥',
-    photo: '/ai-team/aria.png',
-    accent: '#0891B2',
-    engine: 'legal',
-    hasContractReview: false,
-    starters: [
       'Која е точната постапка за отказ и роковите?',
-      'Кои се основите за отказ од деловни причини?',
-      'Колку дена годишен одмор следуваат по закон?',
+      'Кои ризици ги носи овој договор за мене?',
+      'Што мора да содржи политика за заштита на лични податоци?',
     ],
   },
   {
@@ -80,18 +48,6 @@ export const AI_AGENTS = [
     engine: 'marketing',
     route: '/terminal/marketing-ai',
     hasContractReview: false,
-  },
-  {
-    key: 'people',
-    name: 'ВЕРА',
-    role: 'Советник за човечки ресурси',
-    tagline: 'HR и управување со луѓе',
-    bio: 'ВЕРА ќе помага со вработување, оценување, HR политики и управување со тимови — наскоро дел од твојот AI Тим.',
-    icon: '🧑‍💼',
-    photo: '/ai-team/vera.png',
-    accent: '#B45309',
-    hasContractReview: false,
-    comingSoon: true,
   },
   {
     key: 'insurance',
@@ -118,20 +74,11 @@ export function getAgent(key) {
 
 /**
  * Route a document/content category to the agent best suited to review it.
- * Keyed by the kebab category segment used in document routes
- * (/terminal/documents/<category>/<doc>) and the RAG prompt categories.
- * Only ACTIVE agents are targets; unknown → the general legal agent.
+ * All legal categories map to the single lawyer (ЈУРА); marketing → ПУЛС.
+ * Unknown → the lawyer.
  */
 const CATEGORY_TO_AGENT = {
-  employment: 'hr',               // АРИА
-  contracts: 'corporate',         // НОВА
-  'central-register': 'corporate',
-  obligations: 'corporate',
-  accounting: 'corporate',
-  'personal-data-protection': 'legal', // ЈУРА
-  'health-safety': 'legal',
-  other: 'legal',
-  marketing: 'marketing',         // ПУЛС
+  marketing: 'marketing', // ПУЛС
 };
 
 export function agentForCategory(category) {

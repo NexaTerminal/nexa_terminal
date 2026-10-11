@@ -182,9 +182,12 @@ class ProRequestsService {
 
     const agent = clamp(input.agent, 40) || null;
     const now = new Date();
+    // Requests are published straight to the open board (no admin-approval gate):
+    // created 'open' and broadcast to eligible Pros immediately. Admin may still
+    // reject an open request to pull it back.
     const doc = {
       type,
-      status: 'pending_approval',
+      status: 'open',
       subject,
       agent,
       category: categoryForAgent(agent),
@@ -201,6 +204,7 @@ class ProRequestsService {
       messages: [],
       createdAt: now,
       updatedAt: now,
+      openedAt: now,
       closedAt: null,
     };
     const { insertedId } = await this.col.insertOne(doc);
@@ -423,7 +427,7 @@ class ProRequestsService {
     if (!_id) throw invalid('Невалиден идентификатор.');
     const now = new Date();
     const res = await this.col.findOneAndUpdate(
-      { _id, status: 'pending_approval' },
+      { _id, status: { $in: ['pending_approval', 'open'] } },
       { $set: { status: 'rejected', rejectionReason: clamp(reason, 600) || null, updatedAt: now, closedAt: now } },
       { returnDocument: 'after' }
     );

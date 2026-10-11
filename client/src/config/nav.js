@@ -72,6 +72,9 @@ const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Моите ба�
 const proBoard = { key: 'pro-board', icon: 'inbox', label: 'Отворени барања', path: '/terminal/pro/board', visible: showsLeads };
 // „Преземени барања" — requests this Pro has claimed (their active conversations).
 const proRequests = { key: 'pro-requests', icon: 'inbox', label: 'Преземени барања', path: '/terminal/pro/requests', visible: showsLeads };
+// „Сите барања" — admin-only oversight of every Ask-a-Pro request; admin can reject
+// (remove) an open request from here. Requests auto-publish, so this is for cleanup.
+const adminRequests = { key: 'admin-requests', icon: 'inbox', label: 'Сите барања', path: '/terminal/admin-user/requests', visible: (user) => user?.role === 'admin' };
 
 const screening = {
   key: 'screening', icon: 'check', label: 'Проверки',
@@ -134,7 +137,7 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, contracts, myRequests, screening]
+    items: [documents, contracts, myRequests, adminRequests, screening]
   },
   {
     key: 'human-resources', label: 'Човечки ресурси',

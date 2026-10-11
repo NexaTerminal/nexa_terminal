@@ -12,6 +12,7 @@
  */
 
 const OpenAI = require('openai');
+const { redactPii } = require('../utils/redactPii');
 
 const MODEL = process.env.OPENAI_UTILITY_MODEL || 'gpt-4o-mini';
 
@@ -31,7 +32,7 @@ function fallbackSummary({ subject, question, transcript }) {
   if (subject) parts.push(subject);
   if (question) parts.push(clip(question, 600));
   else if (transcript) parts.push(clip(transcript, 600));
-  return parts.join(' — ') || 'Барање за помош од професионалец.';
+  return redactPii(parts.join(' — ')) || 'Барање за помош од професионалец.';
 }
 
 /**
@@ -53,7 +54,9 @@ async function summarizeConversation({ subject, question, transcript, type } = {
     const sys =
       'Ти си асистент што подготвува кратко резиме на разговор меѓу правен AI и корисник (сопственик на бизнис), за да му помогне на адвокат да одлучи дали да го преземе случајот. ' +
       'Пиши на македонски, неутрално и конкретно. 3–5 реченици. Без поздрав, без правни совети, без измислување факти. ' +
-      'Резимирај: (1) ситуацијата на корисникот, (2) што точно бара/сака да му провери професионалец, (3) правната област ако е јасна. Не вклучувај лични контакт податоци.';
+      'Резимирај: (1) ситуацијата на корисникот, (2) што точно бара/сака да му провери професионалец, (3) правната област ако е јасна. ' +
+      'АНОНИМИЗИРАЈ целосно: НЕ вклучувај имиња на лица или фирми, адреси, е-пошта, телефони, ЕМБГ/ЕДБ или матични броеви, ниту било каков податок што може да ја открие идентитетот на корисникот или трети лица. ' +
+      'Наместо конкретни имиња користи неутрални описи (на пр. „корисникот", „фирмата", „вработен", „друга страна").';
     const user =
       `Вид на барање: ${input.type}\n` +
       (input.subject ? `Наслов: ${input.subject}\n` : '') +
@@ -70,7 +73,7 @@ async function summarizeConversation({ subject, question, transcript, type } = {
       ],
     });
     const out = resp?.choices?.[0]?.message?.content?.trim();
-    return out || fallbackSummary(input);
+    return out ? redactPii(out) : fallbackSummary(input);
   } catch (e) {
     console.warn('[aiSummary] summarize failed, using fallback:', e.message);
     return fallbackSummary(input);

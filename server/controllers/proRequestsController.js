@@ -39,6 +39,34 @@ const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '
 const LIABILITY_NOTE =
   'Напомена: AI одговорите се информативни и не се правен совет. Ако професионалец се приклучи и даде совет, тој е професионално одговорен за точноста на својот совет.';
 
+// Broadcast an open request to every eligible Pro + confirm to the requester.
+// Shared by create (auto-publish) and the legacy admin approve-to-board endpoint.
+async function broadcastToBoard(svc, item, summary) {
+  const pros = await svc.eligibleProsForCategory(item.category);
+  const boardLink = `${APP_URL()}/terminal/pro/board`;
+  const summaryHtml = esc(item.context?.aiSummary || summary || '').replace(/\n/g, '<br/>');
+  for (const p of pros) {
+    notify(
+      p.email,
+      `Ново барање на таблата: ${esc(item.subject)}`,
+      `<p>Пристигна ново барање од корисник на Nexa што бара помош или проверка од професионалец.</p>
+       <p><strong>Област:</strong> ${esc(CATEGORY_LABEL[item.category] || item.category)}<br/>
+       <strong>Наслов:</strong> ${esc(item.subject)}</p>
+       ${summaryHtml ? `<p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>` : ''}
+       <p>Првиот професионалец што ќе се приклучи го презема разговорот. <a href="${boardLink}">Отвори ја таблата со барања</a>.</p>
+       <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
+    );
+  }
+  notify(
+    item.userEmail,
+    'Вашето барање е споделено со професионалци',
+    `<p>Вашето барање „${esc(item.subject)}" е споделено со проверени професионалци. Наскоро некој ќе се приклучи во разговорот.</p>
+     <p><a href="${APP_URL()}/terminal/requests">Следете го тука</a>.</p>
+     <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
+  );
+  return pros.length;
+}
+
 // ── Reads ──────────────────────────────────────────────────────────────────────
 exports.list = async (req, res) => {
   try {
@@ -77,12 +105,17 @@ exports.create = async (req, res) => {
     });
 
     const item = await make(req).create(req.user, req.body || {}, summary);
+
+    // Requests are auto-published to the Pro board — broadcast to eligible Pros now.
+    const notified = await broadcastToBoard(make(req), item, summary);
+
+    // Admin gets a heads-up copy (informational; approval is no longer required).
     const adminLink = `${APP_URL()}/terminal/admin-user/requests`;
     const summaryHtml = esc(item.context?.aiSummary || '').replace(/\n/g, '<br/>');
     notify(
       ADMIN_EMAIL(),
       `Ново барање: ${TYPE_LABEL[item.type] || item.type}`,
-      `<p>Пристигна ново барање за професионалец.</p>
+      `<p>Пристигна ново барање за професионалец (автоматски објавено на таблата).</p>
        <p><strong>Вид:</strong> ${esc(TYPE_LABEL[item.type] || item.type)}<br/>
        <strong>Наслов:</strong> ${esc(item.subject)}<br/>
        <strong>Корисник:</strong> ${esc(item.userName || '')} ${item.userEmail ? `(${esc(item.userEmail)})` : ''}<br/>
@@ -90,9 +123,9 @@ exports.create = async (req, res) => {
        ${summaryHtml ? `<p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>` : ''}
        ${item.context?.question ? `<p><strong>Прашање:</strong><br/>${esc(item.context.question)}</p>` : ''}
        ${item.context?.documentName ? `<p><strong>Документ:</strong> ${esc(item.context.documentName)}</p>` : ''}
-       <p><a href="${adminLink}">Отвори во админ панел</a> за да го објавиш на таблата за професионалци.</p>`
+       <p><a href="${adminLink}">Отвори во админ панел</a> за да го отстраниш ако е потребно.</p>`
     );
-    return res.status(201).json({ success: true, item });
+    return res.status(201).json({ success: true, item, notified });
   } catch (err) { return handle(res, err); }
 };
 
@@ -147,32 +180,8 @@ exports.approveToBoard = async (req, res) => {
     }
 
     const item = await svc.approveToBoard(req.params.id, summary);
-    const pros = await svc.eligibleProsForCategory(item.category);
-    const boardLink = `${APP_URL()}/terminal/pro/board`;
-    const summaryHtml = esc(item.context?.aiSummary || summary).replace(/\n/g, '<br/>');
-
-    for (const p of pros) {
-      notify(
-        p.email,
-        `Ново барање на таблата: ${esc(item.subject)}`,
-        `<p>Пристигна ново барање од корисник на Nexa што бара помош или проверка од професионалец.</p>
-         <p><strong>Област:</strong> ${esc(CATEGORY_LABEL[item.category] || item.category)}<br/>
-         <strong>Наслов:</strong> ${esc(item.subject)}</p>
-         <p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>
-         <p>Првиот професионалец што ќе се приклучи го презема разговорот. <a href="${boardLink}">Отвори ја таблата со барања</a>.</p>
-         <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
-      );
-    }
-
-    notify(
-      item.userEmail,
-      'Вашето барање е споделено со професионалци',
-      `<p>Вашето барање „${esc(item.subject)}" е одобрено и споделено со проверени професионалци. Наскоро некој ќе се приклучи во разговорот.</p>
-       <p><a href="${APP_URL()}/terminal/requests">Следете го тука</a>.</p>
-       <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
-    );
-
-    return res.json({ success: true, item, notified: pros.length });
+    const notified = await broadcastToBoard(svc, item, summary);
+    return res.json({ success: true, item, notified });
   } catch (err) { return handle(res, err); }
 };
 

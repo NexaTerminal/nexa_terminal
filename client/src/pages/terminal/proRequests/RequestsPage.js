@@ -28,7 +28,7 @@ const TITLES = {
   mine: { h1: 'Моите барања', sub: 'Вашите прашања и барања за преглед од професионалец.' },
   assigned: { h1: 'Преземени барања', sub: 'Барања што ги презедовте и разговори со клиенти на Nexa.' },
   board: { h1: 'Отворени барања', sub: 'Барања од корисници што чекаат професионалец. Првиот што ќе се приклучи го презема разговорот.' },
-  admin: { h1: 'Барања (админ)', sub: 'Одобрете ги барањата и објавете ги на таблата за професионалци.' },
+  admin: { h1: 'Сите барања', sub: 'Сите барања се објавуваат автоматски на таблата за професионалци. Отстранете барање ако е потребно.' },
 };
 
 /**
@@ -237,23 +237,28 @@ export default function RequestsPage({ view = 'mine' }) {
                     </div>
                   )}
 
-                  {/* Admin controls for pending requests */}
-                  {view === 'admin' && selected.status === 'pending_approval' && (
+                  {/* Admin controls: approve legacy pending rows, or remove an open
+                      request (requests auto-publish, so removal is the main action). */}
+                  {view === 'admin' && (selected.status === 'pending_approval' || selected.status === 'open') && (
                     <div className={styles.adminBox}>
-                      <div className={styles.adminRow}>
-                        <button className={styles.primaryBtn} onClick={approveToBoard} disabled={acting}>
-                          Одобри и објави на таблата
-                        </button>
-                        <span className={styles.muted}>Барањето се испраќа до сите соодветни професионалци; првиот што ќе се приклучи го презема.</span>
-                      </div>
+                      {selected.status === 'pending_approval' && (
+                        <div className={styles.adminRow}>
+                          <button className={styles.primaryBtn} onClick={approveToBoard} disabled={acting}>
+                            Одобри и објави на таблата
+                          </button>
+                          <span className={styles.muted}>Барањето се испраќа до сите соодветни професионалци; првиот што ќе се приклучи го презема.</span>
+                        </div>
+                      )}
                       <div className={styles.adminRow}>
                         <input
                           className={styles.rejectInput}
-                          placeholder="Причина за одбивање (опционално)"
+                          placeholder="Причина за отстранување (опционално)"
                           value={rejectReason}
                           onChange={(e) => setRejectReason(e.target.value)}
                         />
-                        <button className={styles.dangerBtn} onClick={reject} disabled={acting}>Одбиј</button>
+                        <button className={styles.dangerBtn} onClick={reject} disabled={acting}>
+                          {selected.status === 'open' ? 'Отстрани од таблата' : 'Одбиј'}
+                        </button>
                       </div>
                     </div>
                   )}

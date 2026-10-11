@@ -12,6 +12,7 @@
 const InquiriesService = require('../services/inquiriesService');
 const tierService = require('../services/tierService');
 const emails = require('../emails/inquiryEmails');
+const inquiryEmailExtractor = require('../services/inquiryEmailExtractor');
 
 const make = (req) => new InquiriesService(req.app.locals.db);
 
@@ -119,6 +120,35 @@ exports.adminCreate = async (req, res) => {
   try {
     const doc = await make(req).create(req.user, req.body || {});
     return res.status(201).json({ success: true, inquiry: doc });
+  } catch (err) { return handle(res, err); }
+};
+
+/**
+ * POST /api/admin/inquiries/draft-from-email — AI assist for the create form.
+ * Reads a pasted raw email, returns a structured, anonymized DRAFT (not saved).
+ * The admin reviews/edits and publishes via adminCreate.
+ */
+exports.adminDraftFromEmail = async (req, res) => {
+  try {
+    const rawText = String(req.body?.rawText || '').trim();
+    if (!rawText) {
+      return handle(res, { code: 'INVALID_INPUT', message: 'Внесете текст на е-поштата.', fields: ['rawText'] });
+    }
+    const draft = await inquiryEmailExtractor.extractFromEmail(rawText);
+    return res.json({ success: true, draft });
+  } catch (err) { return handle(res, err); }
+};
+
+/**
+ * POST /api/admin/inquiries/ingest/run-now — backstop: pull recent inbound emails
+ * from Resend and process any not already ingested (the webhook is the real-time
+ * path; this covers a dropped webhook). Admin-only.
+ */
+exports.adminIngestRunNow = async (req, res) => {
+  try {
+    const inquiryIngest = require('../services/inquiryIngestService');
+    const result = await inquiryIngest.fetchAndProcessRecent(req.app.locals.db);
+    return res.json({ success: true, result });
   } catch (err) { return handle(res, err); }
 };
 

@@ -507,7 +507,8 @@ class EmailService {
       }
 
       const emailData = {
-        from: this.fromEmail,
+        // Callers may override the sender (e.g. inquiry intake sends FROM info@nexa.mk).
+        from: options.from || this.fromEmail,
         to: [to],
         subject: subject,
         html: html

@@ -32,6 +32,8 @@ export default function AdminInquiriesPage() {
   const [catDraft, setCatDraft] = useState([]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [pulling, setPulling] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -40,7 +42,24 @@ export default function AdminInquiriesPage() {
       .then(res => setItems(res.data?.items || []))
       .catch(e => setErr(e.response?.data?.message || e.message))
       .finally(() => setLoading(false));
-  }, [filter, token]);
+  }, [filter, token, reloadKey]);
+
+  // Trigger an immediate Gmail ingest pass, then refresh the list.
+  const pullNow = async () => {
+    if (pulling) return;
+    setPulling(true); setToast(null);
+    try {
+      const res = await axios.post('/api/admin/inquiries/ingest/run-now', {},
+                                   { headers: { Authorization: `Bearer ${token}` } });
+      const r = res.data?.result || {};
+      setToast({ type: 'ok', text: r.ok === false
+        ? `Ингест не е активен (${r.error || 'не е конфигуриран'}).`
+        : `Повлечени ${r.fetched ?? 0}, објавени ${r.posted ?? 0}, веќе постоечки ${r.duplicate ?? 0}.` });
+      setReloadKey(k => k + 1);
+    } catch (e2) {
+      setToast({ type: 'error', text: e2.response?.data?.message || e2.message });
+    } finally { setPulling(false); }
+  };
 
   const startEdit = (e, inq) => {
     e.preventDefault(); e.stopPropagation();
@@ -89,6 +108,10 @@ export default function AdminInquiriesPage() {
             </button>
           ))}
           <span style={{ flex: 1 }} />
+          <button type="button" className={styles.btnSecondary} onClick={pullNow} disabled={pulling}
+                  style={{ marginRight: 8 }}>
+            {pulling ? 'Се повлекува…' : '↓ Повлечи од е-пошта'}
+          </button>
           <Link to="/terminal/admin/inquiries/new" className={styles.btnPrimary} style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
             + Внеси ново барање
           </Link>
@@ -112,6 +135,12 @@ export default function AdminInquiriesPage() {
                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/terminal/admin/inquiries/${inq._id}`); }}>
                 <div className={styles.cardHead}>
                   <div className={styles.cardTitle}>{inq.topic}</div>
+                  {inq.origin === 'email_auto' && (
+                    <span className={styles.chip} title="Авто-објавено од е-пошта">🤖 Авто</span>
+                  )}
+                  {inq.inquirerDecision === 'removed' && (
+                    <span className={styles.chipUrgent} title="Клиентот го отстрани барањето">Отстрането од клиент</span>
+                  )}
                   {inq.urgency === 'urgent' && <span className={styles.chipUrgent}>Итно</span>}
                   <span className={`${styles.statusPill} ${styles['s_' + inq.status]}`}>
                     {STATUS_LABEL[inq.status]}

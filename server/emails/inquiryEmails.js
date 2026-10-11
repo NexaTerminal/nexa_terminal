@@ -57,4 +57,32 @@ const inquiryAcknowledgedNotChosen = ({ name, topic }, language = 'mk') => {
   };
 };
 
-module.exports = { inquiryAcknowledged, inquiryAcknowledgedNotChosen };
+/**
+ * Opt-out notice for an auto-ingested inquiry. The enquiry is already shared
+ * (anonymized) with professionals; this gives the visitor a one-click „remove me".
+ */
+const inquiryAutoPostedNotice = ({ name, topic, removeUrl }, language = 'mk') => {
+  const lang = language === 'en' ? 'en' : 'mk';
+  if (lang === 'mk') {
+    return {
+      subject: `Вашето прашање е споделено со професионалци — „${topic}"`,
+      html: wrap(`Здраво ${name || ''},`, `
+        <p>Вашето прашање „<strong>${topic}</strong>" е споделено <strong>анонимно</strong> (без Вашето име и контакт) со проверени професионалци што може да ви помогнат. Ако некој е заинтересиран, ќе ве поврземе.</p>
+        <p>Ако <strong>не</strong> сакате ова, кликнете за да го отстраните веднаш:</p>
+        <p><a href="${removeUrl}" style="display:inline-block;padding:10px 18px;background:#0B1220;color:#fff;border-radius:6px;text-decoration:none;">Отстрани го моето барање</a></p>
+        <p style="font-size:12px;color:#94a3b8;">Ако копчето не работи, отворете: ${removeUrl}</p>
+      `)
+    };
+  }
+  return {
+    subject: `Your question was shared with professionals — "${topic}"`,
+    html: wrap(`Hi ${name || ''},`, `
+      <p>Your question "<strong>${topic}</strong>" has been shared <strong>anonymously</strong> (without your name or contact details) with vetted professionals who may help. If someone is interested, we'll connect you.</p>
+      <p>If you do <strong>not</strong> want this, click to remove it right away:</p>
+      <p><a href="${removeUrl}" style="display:inline-block;padding:10px 18px;background:#0B1220;color:#fff;border-radius:6px;text-decoration:none;">Remove my request</a></p>
+      <p style="font-size:12px;color:#94a3b8;">If the button doesn't work, open: ${removeUrl}</p>
+    `)
+  };
+};
+
+module.exports = { inquiryAcknowledged, inquiryAcknowledgedNotChosen, inquiryAutoPostedNotice };

@@ -110,6 +110,11 @@ app.use(cors({
 app.use('/api/', generalRateLimit); // General API rate limiting
 app.use('/api/auth/', authRateLimit); // Stricter rate limiting for auth
 
+// Resend inbound email webhook — mounted BEFORE express.json because the
+// Standard Webhooks signature is verified over the RAW request body. Public +
+// token(signature)-secured; inert unless RESEND_INBOUND_ENABLED=true.
+app.use('/api/public/inquiry/inbound', require('./routes/resendInbound'));
+
 // Body parsing with security
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -190,6 +195,10 @@ app.use('/api/public/screening', require('./routes/publicScreening'));
 // Public „Проверен работодавач" badge funnel + verify/asset endpoints (no auth;
 // same public posture as screening, before CSRF).
 app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
+
+// Public inquiry opt-out (visitor „remove me" link from auto-posted inquiries;
+// token-secured, no auth, before CSRF).
+app.use('/api/public/inquiry', require('./routes/publicInquiry'));
 
 // Public „Проценка на карактер" respondent funnel — a candidate/employee answers
 // the personality assessment via their link (no auth, before CSRF).
@@ -643,6 +652,10 @@ async function initializeServices(database) {
     } catch (e) {
       console.error('⚠️  Backup scheduler init failed:', e.message);
     }
+
+    // Inquiry email ingestion is push-based (Resend inbound webhook) — no cron.
+    // See routes/resendInbound.js (mounted before express.json) and
+    // services/inquiryIngestService.js. Inert unless RESEND_INBOUND_ENABLED=true.
 
     app.use('/api/pro-invoices',       proInvoicesRoutes.userRoutes(proInvoicesController));
     app.use('/api/admin/pro-invoices', proInvoicesRoutes.adminRoutes(proInvoicesController));

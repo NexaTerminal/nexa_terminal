@@ -32,7 +32,49 @@ export default function AdminInquiryNewPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
+  // AI assist: paste the raw email, let AI anonymize + pre-fill the form below.
+  const [rawEmail, setRawEmail] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNote, setAiNote] = useState(null);
+
   const toggleCat = (v) => setCategories(cats => cats.includes(v) ? cats.filter(c => c !== v) : [...cats, v]);
+
+  // Call the AI extractor and spread the returned draft across the form fields.
+  // Only non-empty values overwrite, so a blank field from the AI keeps any prior input.
+  const runAiAssist = async () => {
+    if (!rawEmail.trim() || aiBusy) return;
+    setAiBusy(true); setErr(null); setAiNote(null);
+    try {
+      const res = await axios.post('/api/admin/inquiries/draft-from-email',
+        { rawText: rawEmail },
+        { headers: { Authorization: `Bearer ${token}` } });
+      const d = res.data?.draft || {};
+      if (d.source) setSource(d.source);
+      if (d.topic) setTopic(d.topic);
+      if (d.city) setCity(d.city);
+      if (d.procedureType) setProcedureType(d.procedureType);
+      if (Array.isArray(d.categories) && d.categories.length) setCategories(d.categories);
+      if (d.summary) setSummary(d.summary);
+      if (d.language) setLanguage(d.language);
+      if (d.urgency) setUrgency(d.urgency);
+      if (d.inquirerName) setInquirerName(d.inquirerName);
+      if (d.inquirerEmail) setInquirerEmail(d.inquirerEmail);
+      if (d.inquirerPhone) setInquirerPhone(d.inquirerPhone);
+      setOriginalEmailBody(d.originalEmailBody || rawEmail);
+
+      const missing = [];
+      if (!d.summary) missing.push('резиме');
+      if (!d.city) missing.push('град');
+      if (!(d.categories || []).length) missing.push('категории');
+      if (!d.inquirerName) missing.push('име');
+      if (!d.inquirerEmail && !d.inquirerPhone) missing.push('контакт');
+      setAiNote(missing.length
+        ? `Прегледајте и дополнете: ${missing.join(', ')}. Контакт податоците остануваат скриени од таблата.`
+        : 'Пополнето. Прегледајте го резимето пред да објавите.');
+    } catch (e2) {
+      setErr(e2.response?.data?.message || e2.message);
+    } finally { setAiBusy(false); }
+  };
 
   // Choosing a procedure pre-fills the categories it touches (still editable).
   const onProcedureChange = (v) => {
@@ -75,6 +117,21 @@ export default function AdminInquiryNewPage() {
         </Link>
 
         {err && <div className={styles.toastError}>{err}</div>}
+
+        <div className={styles.panel} style={{ marginBottom: 16 }}>
+          <div className={styles.panelHead}>AI помош — залепи ја е-поштата</div>
+          <div className={styles.field}>
+            <label className={styles.label}>Текст на е-поштата</label>
+            <textarea className={styles.textarea} rows={5} value={rawEmail}
+                      onChange={(e) => setRawEmail(e.target.value)}
+                      placeholder="Залепете го целиот текст на е-поштата добиена од сателитскиот сајт. AI ќе ги отстрани личните податоци и ќе ги пополни полињата подолу." />
+            <span className={styles.help}>Контакт податоците одат во скриениот панел; резимето на таблата е анонимизирано.</span>
+          </div>
+          {aiNote && <div className={styles.help} style={{ marginBottom: 8 }}>✓ {aiNote}</div>}
+          <button type="button" className={styles.btnSecondary} onClick={runAiAssist} disabled={aiBusy || !rawEmail.trim()}>
+            {aiBusy ? 'AI обработува…' : 'AI подготви'}
+          </button>
+        </div>
 
         <form className={styles.form} onSubmit={submit}>
           <div className={styles.field}>

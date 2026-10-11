@@ -17,6 +17,7 @@
  * template, and writes from their own mailbox.
  */
 
+const crypto = require('crypto');
 const { ObjectId } = require('mongodb');
 const tierService = require('./tierService');
 const {
@@ -44,6 +45,9 @@ class InquiriesService {
     await this.col.createIndex({ status: 1, categories: 1, city: 1 });
     await this.col.createIndex({ createdBy: 1, status: 1 });
     await this.col.createIndex({ 'approvals.memberId': 1 });
+    // Dedup for auto-ingested emails (sparse: manual inquiries have no messageId).
+    await this.col.createIndex({ messageId: 1 }, { unique: true, sparse: true });
+    await this.col.createIndex({ removeToken: 1 }, { sparse: true });
     await this.signals.createIndex({ inquiryId: 1 });
     await this.signals.createIndex({ memberId: 1, status: 1, decidedAt: 1 });
     await this.signals.createIndex({ inquiryId: 1, memberId: 1 }, { unique: true });
@@ -75,6 +79,94 @@ class InquiriesService {
     };
     await this.col.insertOne(doc);
     return doc;
+  }
+
+  /**
+   * Tolerant create for the auto-ingest path (Resend inbound → extractor).
+   * Unlike the strict admin `create()`, it fills safe defaults so an AI-extracted
+   * email can be auto-posted to the board without every field present. It REQUIRES
+   * a visitor email (needed for the opt-out „remove me" link) — otherwise it throws
+   * NO_CONTACT so the caller can fall back to notifying the admin.
+   *
+   * @param {object} extracted - inquiryEmailExtractor draft
+   * @param {object} meta - { messageId, source }
+   * @returns {Promise<object>} the inserted inquiry (with removeToken)
+   */
+  async createFromEmail(extracted = {}, meta = {}) {
+    await this._ensureIndexes();
+    const e = extracted || {};
+
+    const inquirerEmail = String(e.inquirerEmail || '').trim().slice(0, 240);
+    if (!inquirerEmail) { const err = new Error('No visitor email'); err.code = 'NO_CONTACT'; throw err; }
+
+    const summary = String(e.summary || e.topic || '').trim().slice(0, 1200)
+      || 'Барање добиено преку сателитска страница.';
+    const categories = (Array.isArray(e.categories) && e.categories.filter((c) => INQUIRY_CATEGORIES.includes(c)).length)
+      ? Array.from(new Set(e.categories.filter((c) => INQUIRY_CATEGORIES.includes(c))))
+      : ['legal_questions'];
+
+    const now = new Date();
+    const doc = {
+      _id: new ObjectId(),
+      source: INQUIRY_SOURCES.includes(meta.source) ? meta.source
+        : (INQUIRY_SOURCES.includes(e.source) ? e.source : 'other'),
+      topic: String(e.topic || summary.slice(0, 80)).trim().slice(0, 240),
+      city: INQUIRY_CITIES.includes(e.city) ? e.city : 'Anywhere',
+      language: INQUIRY_LANGUAGES.includes(e.language) ? e.language : 'mk',
+      urgency: INQUIRY_URGENCY.includes(e.urgency) ? e.urgency : 'standard',
+      summary,
+      categories,
+      procedureType: isValidProcedure(e.procedureType) ? e.procedureType : null,
+      internalNotes: '',
+      inquirerName: String(e.inquirerName || '').trim().slice(0, 240),
+      inquirerEmail,
+      inquirerPhone: String(e.inquirerPhone || '').trim().slice(0, 64),
+      originalEmailBody: String(e.originalEmailBody || '').slice(0, 20000),
+      // Auto-ingest provenance + opt-out machinery.
+      origin: 'email_auto',
+      messageId: meta.messageId || null,
+      removeToken: crypto.randomBytes(24).toString('hex'),
+      consentEmailSentAt: null,
+      inquirerDecision: null,
+      status: INQUIRY_STATUS.OPEN,
+      postedAt: now,
+      closedAt: null,
+      approvals: [],
+      createdBy: null,
+      updatedAt: now,
+    };
+    await this.col.insertOne(doc);
+    return doc;
+  }
+
+  /** Stamp that the visitor opt-out email was sent (best-effort bookkeeping). */
+  async markConsentEmailSent(id) {
+    const oid = InquiriesService.toObjectId(id);
+    if (!oid) return;
+    await this.col.updateOne({ _id: oid }, { $set: { consentEmailSentAt: new Date() } });
+  }
+
+  /**
+   * Visitor opt-out: close an auto-posted inquiry via its removeToken and record
+   * the decline. Idempotent — an already-removed/closed inquiry returns ok.
+   * @returns {Promise<{ok:boolean, topic?:string, alreadyClosed?:boolean}>}
+   */
+  async removeByInquirer(token) {
+    await this._ensureIndexes();
+    const t = String(token || '').trim();
+    if (!t) return { ok: false };
+    const doc = await this.col.findOne({ removeToken: t });
+    if (!doc) return { ok: false };
+    if (doc.status === INQUIRY_STATUS.CLOSED) {
+      return { ok: true, alreadyClosed: true, topic: doc.topic };
+    }
+    const now = new Date();
+    await this.col.updateOne(
+      { _id: doc._id },
+      { $set: { status: INQUIRY_STATUS.CLOSED, closedAt: now, updatedAt: now,
+                inquirerDecision: 'removed', removedAt: now } }
+    );
+    return { ok: true, topic: doc.topic };
   }
 
   async update(admin, id, input) {

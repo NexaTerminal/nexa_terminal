@@ -647,6 +647,25 @@ Nexa Terminal има функции што решаваат дел од проб
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
       const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
 
+      // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
+      if (agent === 'hr' && this._isOutOfHrLane(question)) {
+        const cleanResponse = this._hrReferral();
+        if (this.conversationService && conversationId) {
+          try {
+            await this.conversationService.saveMessage(conversationId, { type: 'user', content: question, timestamp: new Date() });
+            await this.conversationService.saveMessage(conversationId, { type: 'ai', content: cleanResponse, agent, sources: [], timestamp: new Date() });
+          } catch (e) { console.warn('[hr-gate] save failed:', e.message); }
+        }
+        return {
+          answer: cleanResponse,
+          suggestions: [],
+          sources: [],
+          timestamp: new Date(),
+          userId,
+          remainingQuestions: limitStatus.remaining - 1,
+        };
+      }
+
       // Step 3: Format context from retrieved documents
       const context = this.formatContext(relevantDocs);
       console.log(`\n📝 [RAG DEBUG] Context being sent to LLM (${context.length} characters):`);
@@ -1464,6 +1483,34 @@ Nexa Terminal има функции што решаваат дел од проб
     );
   }
 
+  // ── HR lane gate (ВЕРА) ──────────────────────────────────────────────────────
+  // ВЕРА advises only on employment/HR. For a question clearly in ANOTHER legal
+  // domain (companies, tax, data, pure contracts) we DETERMINISTICALLY refer to
+  // ЈУРА instead of answering — a hard boundary, not a best-effort prompt rule.
+  // Classified on the QUESTION text (not retrieved docs, which the employment
+  // scope-boost skews). Ambiguous questions stay with ВЕРА — we only refer on a
+  // clear other-domain signal, so we never over-refer an HR question.
+  _isOutOfHrLane(question) {
+    // NB: JS \b word boundaries are ASCII-only — useless around Cyrillic — so these
+    // use plain substrings (safe: the tokens below don't occur inside unrelated words).
+    const q = String(question || '');
+    const employment = /работн|вработ|отказ|работодав|синдикат|колективен договор|мобинг|систематизациј|годишен одмор|отсуство|дисциплин|пробна работа|боледув|прекувремен/i;
+    if (employment.test(q)) return false; // ВЕРА's own lane
+    const otherDomain = /друштв|содружник|управител|акционер|централен регистар|основањ|статут|удел|доо|данок|ддв|добивк|придонес|лични податоц|гдпр|gdpr|приватност|закуп|купопродаж/i;
+    return otherDomain.test(q);
+  }
+
+  // The fixed, diplomatic referral ВЕРА gives for out-of-lane questions. The
+  // trailing [[HANDOFF:legal]] marker makes the client render the „→ ЈУРА" chip.
+  _hrReferral() {
+    return (
+      'Ова излегува малку од мојата област — јас сум тука за работните односи и HR ' +
+      '(вработување, изведба, дисциплина, отказ, тимови). За ова вистинскиот од тимот е ' +
+      '**ЈУРА**, нашиот адвокат — таа ги покрива друштвата, договорите, даноците и заштитата ' +
+      'на лични податоци. Ајде да те префрлам кај неа за прецизен одговор.\n\n[[HANDOFF:legal]]'
+    );
+  }
+
   // How many trailing messages are kept verbatim; older ones fold into the summary.
   // Matches the window used by formatConversationHistory (last 6 = 3 Q&A pairs).
   static get HISTORY_WINDOW() { return 6; }
@@ -1573,6 +1620,25 @@ Nexa Terminal има функции што решаваат дел од проб
       // Retrieve relevant documents (topic-aware query for follow-ups)
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
       const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
+
+      // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
+      if (agent === 'hr' && this._isOutOfHrLane(question)) {
+        const cleanResponse = this._hrReferral();
+        onEvent({ type: 'sources', data: [] });
+        onEvent({ type: 'token', data: cleanResponse });
+        await this.incrementUsageCount(userId);
+        let hgMessageId = null;
+        if (this.conversationService && conversationId) {
+          try {
+            await this.conversationService.saveMessage(conversationId, { type: 'user', content: question, timestamp: new Date() });
+            const aiMsg = await this.conversationService.saveMessage(conversationId, { type: 'ai', content: cleanResponse, agent, sources: [], timestamp: new Date() });
+            hgMessageId = aiMsg?.messageId || null;
+          } catch (e) { console.warn('[hr-gate] save failed:', e.message); }
+        }
+        onEvent({ type: 'done', data: { messageId: hgMessageId, remainingQuestions: limitStatus.remaining - 1 } });
+        return;
+      }
+
       const context = this.formatContext(relevantDocs);
 
       // Send sources event first

@@ -45,7 +45,7 @@ export default function Home() {
         <div className={`nexa-container ${styles.heroInner}`}>
           <span className={`nx-pill ${styles.heroPill} nx-fade-in-up`}>
             <Icon name="globe" size={14} />
-            {isMk ? 'Правни алатки за мали и средни бизниси во Македонија' : 'Legal tools for small and medium businesses in Macedonia'}
+            {isMk ? 'Помалку администрација. Повеќе бизнис.' : 'Less admin. More business.'}
           </span>
           <h1 className="nx-fade-in-up nx-d-100">{t('home.heroTitle')}</h1>
           <p className={`${styles.heroSub} nx-fade-in-up nx-d-200`}>{t('home.heroSubtitle')}</p>

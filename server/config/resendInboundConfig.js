@@ -3,8 +3,9 @@
 /**
  * Resend inbound email — the ONLY intake/notify channel for satellite enquiries.
  *
- * info@nexa.mk is routed to Resend (MX/receiving). When a satellite site emails an
- * enquiry, Resend fires an `email.received` webhook → POST /api/public/inquiry/inbound
+ * mail.nexa.mk is routed to Resend (MX/receiving) — satellite sites email enquiries to
+ * an address on it (e.g. info@mail.nexa.mk). Resend fires an `email.received` webhook →
+ * POST /api/public/inquiry/inbound
  * → we fetch the full body via the Resend Receiving API, anonymize it, auto-post it to
  * the inquiry board, and email the visitor an opt-out link. All outbound mail for this
  * feature (visitor opt-out + admin notices) is sent FROM info@nexa.mk via Resend.
@@ -41,7 +42,9 @@ module.exports = Object.freeze({
   WEBHOOK_SECRET: process.env.RESEND_INBOUND_WEBHOOK_SECRET || '',
 
   // The single channel address. All feature email is sent FROM here.
-  FROM: process.env.INQUIRY_FROM_EMAIL || 'info@nexa.mk',
+  // Must be on a Resend-verified domain — falls back to the app's verified
+  // FROM_EMAIL (mail.nexa.mk) so opt-out mail actually sends.
+  FROM: process.env.INQUIRY_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@mail.nexa.mk',
 
   // Only process mail from these satellite sender domains.
   SENDERS: (process.env.RESEND_INBOUND_SENDERS

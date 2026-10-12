@@ -105,6 +105,12 @@
 .bubbleAi :global(p) { margin: 0 0 6px; }
 .bubbleAi :global(p:last-child) { margin-bottom: 0; }
 .bubbleAi :global(ul), .bubbleAi :global(ol) { margin: 4px 0; padding-left: 18px; }
+.bubbleAi :global(h1), .bubbleAi :global(h2), .bubbleAi :global(h3),
+.bubbleAi :global(h4), .bubbleAi :global(h5), .bubbleAi :global(h6) {
+  font-size: 0.95rem; font-weight: 700; line-height: 1.3; margin: 10px 0 4px;
+}
+.bubbleAi :global(h1:first-child), .bubbleAi :global(h2:first-child),
+.bubbleAi :global(h3:first-child) { margin-top: 0; }
 
 .typing { display: inline-flex; gap: 4px; padding: 2px 0; }
 .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--color-neutral-400, #9ca3af); animation: blink 1.2s infinite both; }

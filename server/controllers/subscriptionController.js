@@ -57,7 +57,7 @@ const createCodeSchema = Joi.object({
   plan: Joi.string().valid(...PLAN_VALUES).default('pro'),
   cycle: Joi.string().valid('monthly', 'quarterly', 'annual').default('monthly'),
   // Free window granted on redeem — the "extra" over the standard 8-day trial.
-  promoDays: Joi.number().integer().min(1).max(365).default(30),
+  promoDays: Joi.number().integer().min(1).max(365).default(90),
   maxRedemptions: Joi.number().integer().min(1).max(100000).required(),
   expiresAt: Joi.date().greater('now').allow(null)
 });
@@ -99,7 +99,7 @@ class SubscriptionController {
       try {
         updated = await this.subscriptionService.redeemPromo(req.user._id, {
           plan: codeDoc.plan, cycle: codeDoc.cycle, code: codeDoc.code,
-          durationDays: codeDoc.promoDays || 30
+          durationDays: codeDoc.promoDays || 90
         });
       } catch (activationErr) {
         await this.promoCodeService.releaseClaim(codeDoc.code, req.user._id);

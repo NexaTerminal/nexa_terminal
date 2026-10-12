@@ -418,7 +418,7 @@ function RejectModal({ user, onCancel, onSubmit }) {
 function PromoCodes({ token, showFlash, setError }) {
   const [codes, setCodes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ code: '', plan: 'pro', promoDays: 30, maxRedemptions: 100, expiresAt: '' });
+  const [form, setForm] = useState({ code: '', plan: 'pro', promoDays: 90, maxRedemptions: 100, expiresAt: '' });
   const [creating, setCreating] = useState(false);
   const [inviteFor, setInviteFor] = useState(null); // code string
   const auth = { headers: { Authorization: `Bearer ${token}` } };
@@ -446,7 +446,7 @@ function PromoCodes({ token, showFlash, setError }) {
         code: form.code.trim().toUpperCase(),
         plan: form.plan,
         cycle: 'monthly',
-        promoDays: parseInt(form.promoDays, 10) || 30,
+        promoDays: parseInt(form.promoDays, 10) || 90,
         maxRedemptions: parseInt(form.maxRedemptions, 10),
         expiresAt: form.expiresAt || null
       };

@@ -24,6 +24,7 @@ const DEFAULT_SENDERS = [
   'company.nexa.mk',
   'iplaw.nexa.mk',
   'tax.nexa.mk',
+  'osiguran.mk',
 ];
 
 const SENDER_TO_SOURCE = Object.freeze({
@@ -33,6 +34,7 @@ const SENDER_TO_SOURCE = Object.freeze({
   'company.nexa.mk': 'company.nexa.mk',
   'iplaw.nexa.mk': 'iplaw.nexa.mk',
   'tax.nexa.mk': 'tax.nexa.mk',
+  'osiguran.mk': 'osiguran.mk',
 });
 
 module.exports = Object.freeze({

@@ -13,6 +13,7 @@ const INQUIRY_SOURCES = Object.freeze([
   'company.nexa.mk',
   'iplaw.nexa.mk',
   'tax.nexa.mk',
+  'osiguran.mk',
   'other'
 ]);
 

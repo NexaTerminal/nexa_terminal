@@ -4172,13 +4172,41 @@
   line-height: 1.5;
 }
 
+/* Quiet, compact note — keeps the form front-and-center. Sits tight under the
+   heading it follows rather than reading as a prominent banner. */
 .info-box {
-  padding: 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #3b82f6;
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  padding: 0.5rem 0.7rem;
+  background: #f9fafb;
+  border: 1px solid #eef2f6;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 5px;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.info-box strong { font-weight: 600; color: #4b5563; }
+.info-box p { margin: 0.2rem 0; }
+.info-box ol,
+.info-box ul { margin: 0.25rem 0; padding-left: 1.1rem; }
+.info-box li { margin-bottom: 0.15rem; }
+.info-box summary { cursor: pointer; }
+
+/* Document step header: compact title + subtle description so the user's focus
+   lands on the fields immediately. The description is the <p> right after <h3>. */
+.form-section > h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-section > h3 + p {
+  margin: 0 0 0.9rem 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #9ca3af;
 }
 
 .info-link {

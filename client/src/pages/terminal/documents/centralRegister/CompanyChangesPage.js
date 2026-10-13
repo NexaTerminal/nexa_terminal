@@ -158,7 +158,7 @@ const Step1 = ({ formData, onChange, disabled }) => {
  * чл. 183/231 (управител), и чл. 7 од Правилникот за регистрационен агент.
  */
 const ChangesGuide = () => (
-  <details className={styles['info-box']} open>
+  <details className={styles['info-box']}>
     <summary>
       <strong>📘 Практичен водич: промени во друштвото (Трговски регистар)</strong>
     </summary>

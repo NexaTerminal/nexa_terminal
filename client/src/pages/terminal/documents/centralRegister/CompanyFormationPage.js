@@ -56,7 +56,7 @@ const CompanyFormationPage = () => {
  * (содржина), 172 (главнина ≥ 5.000 ЕУР), 183 (прилози кон пријавата).
  */
 const FormationGuide = () => (
-  <details className={styles['info-box']} open>
+  <details className={styles['info-box']}>
     <summary>
       <strong>📘 Практичен водич: основање на друштво (ДОО/ДООЕЛ)</strong>
     </summary>

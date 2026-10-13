@@ -67,7 +67,7 @@ const fmtMKD = (n) => Number(n || 0).toLocaleString('de-DE') + ',00';
  * Phase I (the „Службен весник" number/date, known only after publication).
  */
 const ReductionGuide = () => (
-  <details className={styles['info-box']} open>
+  <details className={styles['info-box']}>
     <summary>
       <strong>📘 Практичен водич: како функционира намалувањето (чл. 261–264 ЗТД)</strong>
     </summary>

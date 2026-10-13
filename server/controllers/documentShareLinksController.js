@@ -10,6 +10,24 @@ const tierService = require('../services/tierService');
 const shareService = require('../services/documentShareService');
 const { isShareable, listShareable } = require('../utils/documentGenerators');
 
+/**
+ * The public page (/dokument/:token) is served by the FRONTEND, which can be a
+ * different origin than this API (Vercel client ↔ Render/Railway API) and varies
+ * per storefront (nexa.mk / leads.nexa.mk). Prefer the browser's Origin header (the
+ * exact site the Pro is on), then an explicit env override. The request host is NOT
+ * used — behind the split deploy it would be the API domain, not the public site.
+ */
+function resolvePublicBaseUrl(req) {
+  const origin = req.headers && req.headers.origin;
+  if (origin && /^https?:\/\//i.test(origin)) return origin.replace(/\/+$/, '');
+  const referer = req.headers && req.headers.referer;
+  if (referer && /^https?:\/\//i.test(referer)) {
+    try { return new URL(referer).origin; } catch (_) { /* fall through */ }
+  }
+  if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL.replace(/\/+$/, '');
+  return 'http://localhost:3000';
+}
+
 // Pro (B) or ADMIN only — mirrors clientsController.requireProOrAdmin.
 exports.requireProOrAdmin = (req, res, next) => {
   const v = tierService.visibleTier(req.user);
@@ -83,8 +101,7 @@ exports.create = async (req, res) => {
       ...(lockedList.length ? { locked: lockedList } : {})
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const url = `${frontendUrl}/dokument/${token}`;
+    const url = `${resolvePublicBaseUrl(req)}/dokument/${token}`;
     const ttlMin = shareService.ttlMinutes();
 
     return res.status(201).json({

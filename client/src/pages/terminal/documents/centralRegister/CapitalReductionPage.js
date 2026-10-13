@@ -52,7 +52,7 @@ const CapitalReductionPage = () => {
       renderStepContent={renderStepContent}
       customPreviewComponent={renderPreview}
       title="Намалување на основна главнина"
-      description="Пакет документи за двофазна постапка за намалување на основната главнина (чл. 261–263 ЗТД). Фаза I (намера) и Фаза II (спроведување, 91 ден подоцна) во еден .docx."
+      description="Двофазна постапка за намалување на основната главнина (чл. 261–263 ЗТД). Изберете фаза: Фаза I (намера) или Фаза II (спроведување) — се генерираат документите само за избраната фаза."
     />
   );
 };
@@ -73,11 +73,12 @@ const ReductionGuide = () => (
     </summary>
     <p>
       Намалувањето на основната главнина е <strong>двофазна постапка</strong>. Помеѓу двете фази тече
-      законски рок од <strong>најмалку 90 дена</strong> за заштита на доверителите — затоа системот ги
-      генерира документите за двете фази одеднаш, со датум на Фаза II <strong>91 ден</strong> по Фаза I.
+      законски рок од <strong>најмалку 90 дена</strong> за заштита на доверителите. Затоа документите се
+      генерираат <strong>фаза по фаза</strong> — изберете ја фазата горе: прво <strong>Фаза I</strong>, а
+      по истекот на рокот вратете се и изберете <strong>Фаза II</strong>.
     </p>
 
-    <p><strong>Фаза I — Намера (со денешен датум):</strong></p>
+    <p><strong>Фаза I — Намера:</strong></p>
     <ol>
       <li>Се донесува <strong>Одлука за намера</strong> за намалување (чл. 261) — во неа се определуваат обемот, целта и начинот на намалувањето.</li>
       <li>Управителот поднесува пријава во Трговскиот регистар за упис на намерата (чл. 262 ст.1).</li>
@@ -86,7 +87,7 @@ const ReductionGuide = () => (
 
     <p><strong>Чекање — најмалку 90 дена (чл. 262 ст.2):</strong> ако во тој рок ниту еден доверител не побара исплата, се смета дека сите се согласни со намалувањето.</p>
 
-    <p><strong>Фаза II — Спроведување (91 ден подоцна):</strong></p>
+    <p><strong>Фаза II — Спроведување (по истекот на рокот):</strong></p>
     <ol>
       <li><strong>Одлука за намалување</strong> на основната главнина (чл. 263 ст.1) — со карактер на измена на Актот.</li>
       <li><strong>Изјава на управителот</strong> за доверителите (чл. 263 ст.3) — нема пријавени / сите намирени.</li>
@@ -298,21 +299,14 @@ const CompanyAndManager = ({ formData, onChange, errors, disabled }) => {
   return <PlainFields step={1} formData={formData} onChange={onChange} errors={errors} disabled={disabled} />;
 };
 
-/** Step 4 — agent + dates; seeds phase1Date=today and phase2Date=+91 on mount. */
+/** Step 4 — agent + date; seeds the active phase's date to today. */
 const Dates = ({ formData, onChange, errors, disabled }) => {
   useEffect(() => {
-    if (!formData.phase1Date) {
-      const today = new Date();
-      const iso = (d) => d.toISOString().slice(0, 10);
-      onChange('phase1Date', iso(today));
-      if (!formData.phase2Date) {
-        const p2 = new Date(today);
-        p2.setDate(p2.getDate() + 91);
-        onChange('phase2Date', iso(p2));
-      }
-    }
+    const today = new Date().toISOString().slice(0, 10);
+    if ((formData.phase || '1') === '2') { if (!formData.phase2Date) onChange('phase2Date', today); }
+    else if (!formData.phase1Date) { onChange('phase1Date', today); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [formData.phase]);
   return <PlainFields step={4} formData={formData} onChange={onChange} errors={errors} disabled={disabled} />;
 };
 
@@ -392,8 +386,9 @@ const PersonList = ({ listConfig, value, formData, onChange, disabled }) => {
   );
 };
 
-/** Computes the document list for both phases (mirrors backend assembleChildren). */
+/** Computes the document list for the CHOSEN phase (mirrors backend assembleChildren). */
 const computePackDocs = (formData) => {
+  const phase = formData.phase === '2' ? 2 : 1;
   const shareholders = (formData.shareholdersList || []).filter((s) => s && s.name);
   const pd = formData.includePersonalDataChange === 'да' && shareholders.some((s) => s.newAddress && s.newAddress.trim());
   const isDooel = (formData.companyForm || 'doo') === 'dooel';
@@ -404,80 +399,69 @@ const computePackDocs = (formData) => {
   if (formData.managerName) names.set(formData.managerName.trim().toLowerCase(), formData.managerName.trim());
   const signatories = Array.from(names.values());
 
-  const phase1 = ['Одлука за намера за намалување на основната главнина'];
-  if (pd) phase1.push('Одлука за промена на лични податоци');
-  signatories.forEach((n) => phase1.push(`Изјава за потписи (чл. 7) — ${n}`));
-  signatories.forEach((n) => phase1.push(`Полномошно — ${n}`));
-
-  const phase2 = ['Одлука за намалување на основната главнина'];
-  if (pd) phase2.push('Одлука за промена на лични податоци');
-  phase2.push('Изјава (Управител) по чл. 263 ст.3 (доверители)');
-  phase2.push('Изјава по член 32');
-  phase2.push(isDooel ? 'Изјава за основање — пречистен текст' : 'Договор за основање — пречистен текст');
-  phase2.push('Одлука за измена на Актот за основање (чл. 252/253)');
-  phase2.push('Книга на удели');
-  signatories.forEach((n) => phase2.push(`Изјава за потписи (чл. 7) — ${n}`));
-  signatories.forEach((n) => phase2.push(`Полномошно — ${n}`));
-
-  return { phase1, phase2 };
+  const docs = [];
+  if (phase === 1) {
+    docs.push('Одлука за намера за намалување на основната главнина');
+    if (pd) docs.push('Одлука за промена на лични податоци');
+    signatories.forEach((n) => docs.push(`Изјава за потписи (чл. 7) — ${n}`));
+    signatories.forEach((n) => docs.push(`Полномошно — ${n}`));
+  } else {
+    docs.push('Одлука за намалување на основната главнина');
+    if (pd) docs.push('Одлука за промена на лични податоци');
+    docs.push('Изјава (Управител) по чл. 263 ст.3 (доверители)');
+    docs.push('Изјава по член 32');
+    docs.push(isDooel ? 'Изјава за основање — пречистен текст' : 'Договор за основање — пречистен текст');
+    docs.push('Одлука за измена на Актот за основање (чл. 252/253)');
+    docs.push('Книга на удели');
+    signatories.forEach((n) => docs.push(`Изјава за потписи (чл. 7) — ${n}`));
+    signatories.forEach((n) => docs.push(`Полномошно — ${n}`));
+  }
+  return { phase, docs };
 };
 
-/** Adds N days to an ISO date string, returns dd.mm.yyyy (empty → ''). */
-const plusDays = (iso, days) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d)) return '';
-  d.setDate(d.getDate() + days);
-  return d.toLocaleDateString('mk-MK');
-};
 const fmtDate = (iso) => { const d = iso ? new Date(iso) : null; return d && !isNaN(d) ? d.toLocaleDateString('mk-MK') : ''; };
+const phaseLabel = (phase) => (phase === 1 ? 'Фаза I — Намера' : 'Фаза II — Спроведување');
 
-/** Step 5 — review of the documents from both phases. */
+/** Step 5 — review of the documents for the chosen phase. */
 const ReviewSummary = ({ formData }) => {
   const stepConfig = capitalReductionConfig.steps.find((s) => s.id === 5);
-  const { phase1, phase2 } = computePackDocs(formData);
-  const p1 = fmtDate(formData.phase1Date);
-  const p2 = formData.phase2Date ? fmtDate(formData.phase2Date) : plusDays(formData.phase1Date, 91);
-  const total = phase1.length + phase2.length;
+  const { phase, docs } = computePackDocs(formData);
+  const dateStr = fmtDate(phase === 2 ? formData.phase2Date : formData.phase1Date);
 
   return (
     <div className={styles['form-section']}>
       <h3>{stepConfig.title}</h3>
       {stepConfig.description && <p>{stepConfig.description}</p>}
 
-      <p>ℹ️ Намалувањето на основната главнина е двофазна постапка. Помеѓу објавата на намерата и спроведувањето тече законски рок за заштита на доверителите.</p>
+      <p>ℹ️ Намалувањето е двофазна постапка. {phase === 1
+        ? 'Сега ги генерирате документите за Фаза I (намера). По истекот на законскиот рок (најмалку 90 дена од објавата), вратете се и изберете Фаза II.'
+        : 'Ги генерирате документите за Фаза II (спроведување) — по истекот на рокот за доверители од Фаза I.'}</p>
 
-      <p><strong>ФАЗА I — Намера {p1 ? `(${p1})` : ''} ({phase1.length}):</strong></p>
-      <ol>{phase1.map((d, i) => <li key={`p1-${i}`}>{d}</li>)}</ol>
+      <p><strong>{phaseLabel(phase)} {dateStr ? `(${dateStr})` : ''} — {docs.length} документи:</strong></p>
+      <ol>{docs.map((d, i) => <li key={i}>{d}</li>)}</ol>
 
-      <p><strong>ФАЗА II — Спроведување {p2 ? `(${p2})` : ''} ({phase2.length}):</strong></p>
-      <ol>{phase2.map((d, i) => <li key={`p2-${i}`}>{d}</li>)}</ol>
-
-      <p><strong>Вкупно {total} документи</strong> во еден .docx фајл, секој на нова страница, со насловна страница пред секоја фаза.</p>
+      <p>Сите документи се составуваат во еден .docx фајл, секој на нова страница.</p>
     </div>
   );
 };
 
-/** Right panel — pack overview (replaces the live document preview). */
+/** Right panel — document list for the chosen phase (replaces the live preview). */
 const PackOverview = ({ formData }) => {
   const shareholders = (formData.shareholdersList || []).filter((s) => s && s.name);
-  const { phase1, phase2 } = computePackDocs(formData);
-  const p1 = fmtDate(formData.phase1Date);
-  const p2 = formData.phase2Date ? fmtDate(formData.phase2Date) : plusDays(formData.phase1Date, 91);
+  const { phase, docs } = computePackDocs(formData);
+  const dateStr = fmtDate(phase === 2 ? formData.phase2Date : formData.phase1Date);
   return (
     <div className={styles['preview-changes']}>
-      <h3>Пакет документи (две фази)</h3>
+      <h3>Документи — {phaseLabel(phase)}</h3>
       {shareholders.length === 0 ? (
-        <p>Внесете ги содружниците за да го видите пакетот документи.</p>
+        <p>Внесете ги содружниците за да го видите списокот документи.</p>
       ) : (
         <>
-          <div className={styles['compare-label']}>ФАЗА I — Намера {p1 ? `· ${p1}` : ''}</div>
-          <ol className={styles['preview-changes-list']}>{phase1.map((d, i) => <li key={`a${i}`}>{d}</li>)}</ol>
-          <div className={styles['compare-label']}>ФАЗА II — Спроведување {p2 ? `· ${p2}` : ''}</div>
-          <ol className={styles['preview-changes-list']}>{phase2.map((d, i) => <li key={`b${i}`}>{d}</li>)}</ol>
+          <div className={styles['compare-label']}>{phaseLabel(phase)} {dateStr ? `· ${dateStr}` : ''}</div>
+          <ol className={styles['preview-changes-list']}>{docs.map((d, i) => <li key={i}>{d}</li>)}</ol>
         </>
       )}
-      <p className={styles['preview-hint']}>Пакетот се составува во еден .docx фајл, секој документ на нова страница.</p>
+      <p className={styles['preview-hint']}>Документите се составуваат во еден .docx фајл, секој на нова страница.</p>
     </div>
   );
 };

@@ -2,19 +2,20 @@ const { Document, Paragraph, TextRun, AlignmentType, PageBreak, Table, TableRow,
 const moment = require('moment');
 
 /**
- * Намалување на основна главнина (Централен регистар) — two-phase document package.
+ * Намалување на основна главнина (Централен регистар) — phase-by-phase generator.
  *
  * Capital reduction under чл. 261–263 ЗТД is a statutory TWO-PHASE process with a
- * creditor-protection window in between. This generator assembles BOTH phases into
- * one .docx (page breaks between documents, a title page before each phase):
+ * creditor-protection window in between. The user picks ONE phase per generation
+ * (formData.phase = '1' | '2'); only that phase's documents are produced, dated by the
+ * phase's own date field (default today):
  *
- *   ФАЗА I — Намера (dated phase1Date = today):
+ *   ФАЗА I — Намера (dated phase1Date):
  *     Д-01 Одлука за намера за намалување (чл. 261/262/263)
  *     (Д-PD Одлука за промена на лични податоци — optional companion)
  *     Д-07 Изјава за потписи (чл. 7) — по потписник
  *     Д-08 Полномошно — по потписник
  *
- *   ФАЗА II — Спроведување (dated phase2Date = phase1Date + 91 days):
+ *   ФАЗА II — Спроведување (dated phase2Date):
  *     Д-02 Одлука за намалување на основната главнина (чл. 261 ст.1)
  *     (Д-PD Одлука за промена на лични податоци — optional companion)
  *     Д-03 Изјава (Управител) по чл. 263 ст.3 — creditor statement (2 variants)
@@ -70,15 +71,6 @@ function article(n) {
 
 function pageBreak() {
   return new Paragraph({ children: [new PageBreak()] });
-}
-
-/** Phase separator — a centered bold title page describing the phase + its date. */
-function phaseSeparator(heading, subtitle, dateStr) {
-  return [
-    new Paragraph({ children: [new TextRun({ text: heading, bold: true, font: FONT, size: 36 })], alignment: AlignmentType.CENTER, spacing: { before: 1200, after: 200, line: LINE } }),
-    new Paragraph({ children: [new TextRun({ text: subtitle, font: FONT, size: 26 })], alignment: AlignmentType.CENTER, spacing: { after: 200, line: LINE } }),
-    new Paragraph({ children: [new TextRun({ text: `Датум на документите: ${dateStr} година`, italics: true, font: FONT, size: 24 })], alignment: AlignmentType.CENTER, spacing: { after: 200, line: LINE } })
-  ];
 }
 
 /** Signature line + name(s) under it, left aligned (MASTER §4.3). */
@@ -756,38 +748,33 @@ function deriveSignatories(ctx) {
 }
 
 function assembleChildren(ctx) {
+  // Single-phase generation: the user picks Фаза I (намера) or Фаза II
+  // (спроведување) and only that phase's documents are produced. Both ctx.phase1 and
+  // ctx.phase2 hold the same active date, so the phase-specific builders are unchanged.
   const docs = []; // array of Paragraph[] (one per sub-document)
-  const phase1Blocks = [];
-  const phase2Blocks = [];
   const signatories = deriveSignatories(ctx);
 
-  // ---- ФАЗА I ----
-  phase1Blocks.push(buildIntentDecision(ctx));
-  if (ctx.hasPD) phase1Blocks.push(buildPersonalDataDecision(ctx, ctx.phase1));
-  signatories.forEach((s) => phase1Blocks.push(buildSignatureStatement(ctx, s, ctx.phase1)));
-  signatories.forEach((s) => phase1Blocks.push(buildPowerOfAttorney(ctx, s, ctx.phase1, 1)));
-
-  // ---- ФАЗА II ----
-  phase2Blocks.push(buildReductionDecision(ctx));
-  if (ctx.hasPD) phase2Blocks.push(buildPersonalDataDecision(ctx, ctx.phase2));
-  phase2Blocks.push(buildManagerCreditorStatement(ctx));
-  phase2Blocks.push(buildArticle32Statement(ctx));
-  phase2Blocks.push(ctx.co.form === 'dooel' ? buildConsolidatedActDOOEL(ctx) : buildConsolidatedActDOO(ctx));
-  phase2Blocks.push(buildActAmendmentDecision(ctx));
-  phase2Blocks.push(buildBookOfShares(ctx));
-  signatories.forEach((s) => phase2Blocks.push(buildSignatureStatement(ctx, s, ctx.phase2)));
-  signatories.forEach((s) => phase2Blocks.push(buildPowerOfAttorney(ctx, s, ctx.phase2, 2)));
-
-  docs.push({ sep: phaseSeparator('ФАЗА I', 'Намера за намалување на основната главнина', ctx.phase1) });
-  phase1Blocks.forEach((b) => docs.push({ block: b }));
-  docs.push({ sep: phaseSeparator('ФАЗА II', 'Спроведување на намалувањето на основната главнина', ctx.phase2) });
-  phase2Blocks.forEach((b) => docs.push({ block: b }));
+  if (ctx.phase === 1) {
+    docs.push(buildIntentDecision(ctx));
+    if (ctx.hasPD) docs.push(buildPersonalDataDecision(ctx, ctx.phase1));
+    signatories.forEach((s) => docs.push(buildSignatureStatement(ctx, s, ctx.phase1)));
+    signatories.forEach((s) => docs.push(buildPowerOfAttorney(ctx, s, ctx.phase1, 1)));
+  } else {
+    docs.push(buildReductionDecision(ctx));
+    if (ctx.hasPD) docs.push(buildPersonalDataDecision(ctx, ctx.phase2));
+    docs.push(buildManagerCreditorStatement(ctx));
+    docs.push(buildArticle32Statement(ctx));
+    docs.push(ctx.co.form === 'dooel' ? buildConsolidatedActDOOEL(ctx) : buildConsolidatedActDOO(ctx));
+    docs.push(buildActAmendmentDecision(ctx));
+    docs.push(buildBookOfShares(ctx));
+    signatories.forEach((s) => docs.push(buildSignatureStatement(ctx, s, ctx.phase2)));
+    signatories.forEach((s) => docs.push(buildPowerOfAttorney(ctx, s, ctx.phase2, 2)));
+  }
 
   const children = [];
-  docs.forEach((item, i) => {
+  docs.forEach((block, i) => {
     if (i > 0) children.push(pageBreak());
-    if (item.sep) children.push(...item.sep);
-    else children.push(...item.block);
+    children.push(...block);
   });
   return children;
 }
@@ -815,9 +802,12 @@ function generateCapitalReductionDoc(formData = {}, user, company) {
   const reduction = Math.max(totalCurrent - totalNew, 0);
   const reducedShareholders = shareholders.filter((s) => parseMKD(s.currentContributionMKD) > parseMKD(s.newContributionMKD));
 
-  // Dates: phase 1 = entered/today; phase 2 = entered, else phase1 + 91 days.
-  const phase1Moment = formData.phase1Date ? moment(formData.phase1Date) : moment();
-  const phase2Moment = formData.phase2Date ? moment(formData.phase2Date) : phase1Moment.clone().add(91, 'days');
+  // Single-phase: the chosen phase is dated by its own date field (default today).
+  const phase = formData.phase === '2' ? 2 : 1;
+  const activeMoment = phase === 2
+    ? (formData.phase2Date ? moment(formData.phase2Date) : moment())
+    : (formData.phase1Date ? moment(formData.phase1Date) : moment());
+  const dateStr = activeMoment.format('DD.MM.YYYY');
 
   const hasPD = (formData.includePersonalDataChange === 'да' || formData.includePersonalDataChange === true)
     && shareholders.some((s) => s.newAddress && s.newAddress.trim());
@@ -828,15 +818,17 @@ function generateCapitalReductionDoc(formData = {}, user, company) {
     manager,
     formData,
     hasPD,
+    phase,
     totals: { current: totalCurrent, new: totalNew, reduction },
     reducedShareholders: reducedShareholders.length ? reducedShareholders : shareholders.slice(0, 1),
-    phase1: phase1Moment.format('DD.MM.YYYY'),
-    phase2: phase2Moment.format('DD.MM.YYYY')
+    // Both hold the active date so the phase-specific builders need no changes.
+    phase1: dateStr,
+    phase2: dateStr
   };
 
   const doc = new Document({
     creator: 'Nexa Terminal',
-    title: 'Намалување на основна главнина',
+    title: `Намалување на основна главнина — Фаза ${phase === 1 ? 'I' : 'II'}`,
     sections: [{
       properties: { page: { margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 } } },
       children: assembleChildren(ctx)

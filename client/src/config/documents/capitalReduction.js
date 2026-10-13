@@ -19,6 +19,7 @@ export const capitalReductionConfig = {
 
   initialFormData: {
     companyForm: 'doo',
+    phase: '1',
     shareholdersList: [],
     creditorStatus: 'settled',
     includePersonalDataChange: 'не',
@@ -26,11 +27,11 @@ export const capitalReductionConfig = {
   },
 
   steps: [
-    { id: 1, title: 'Друштво и управител', description: 'Основни податоци за друштвото (предложени од профилот) и за управителот што ги дава изјавите по чл. 263 и чл. 32.', requiredFields: [] },
+    { id: 1, title: 'Фаза и друштво', description: 'Изберете ја фазата (I — намера или II — спроведување) и внесете ги основните податоци за друштвото и управителот.', requiredFields: [] },
     { id: 2, title: 'Содружници и влогови', description: 'Внесете ги содружниците со тековниот и новиот паричен влог (во денари). Намалувањето се пресметува од разликата.', requiredFields: [] },
-    { id: 3, title: 'Намалување и објава', description: 'Причина за намалувањето, податоци за објавата во Службен весник и доверители.', requiredFields: [] },
-    { id: 4, title: 'Регистрационен агент и датуми', description: 'Агентот што ги поднесува документите и датумите на двете фази (Фаза II = Фаза I + 91 ден).', requiredFields: [] },
-    { id: 5, title: 'Преглед', description: 'Преглед на документите од двете фази што ќе се генерираат.', requiredFields: [] }
+    { id: 3, title: 'Намалување и објава', description: 'Причина за намалувањето; за Фаза II и податоци за објавата во Службен весник и доверители.', requiredFields: [] },
+    { id: 4, title: 'Регистрационен агент и датум', description: 'Агентот што ги поднесува документите и датумот на избраната фаза.', requiredFields: [] },
+    { id: 5, title: 'Преглед', description: 'Преглед на документите од избраната фаза што ќе се генерираат.', requiredFields: [] }
   ],
 
   // Repeating shareholders list (Step 2)
@@ -54,7 +55,15 @@ export const capitalReductionConfig = {
   },
 
   fields: {
-    // --- Step 1: company + manager ---
+    // --- Step 1: phase + company + manager ---
+    phase: {
+      name: 'phase', type: 'select', label: 'Фаза на постапката', step: 1, required: true,
+      options: [
+        { value: '1', label: 'Фаза I — Намера за намалување' },
+        { value: '2', label: 'Фаза II — Спроведување (по истекот на рокот)' }
+      ],
+      helpText: 'Намалувањето е двофазна постапка. Прво генерирајте ги документите за Фаза I (намера), а по истекот на законскиот рок (најмалку 90 дена од објавата) вратете се и изберете Фаза II за документите за спроведување.'
+    },
     companyForm: {
       name: 'companyForm', type: 'select', label: 'Форма на друштво', step: 1, required: true,
       options: [ { value: 'doo', label: 'ДОО (двајца или повеќе содружници)' }, { value: 'dooel', label: 'ДООЕЛ (еден содружник)' } ],
@@ -131,11 +140,13 @@ export const capitalReductionConfig = {
     gazetteNumber: {
       name: 'gazetteNumber', type: 'text', label: 'Службен весник — број', step: 3,
       placeholder: 'пр. 233',
-      helpText: 'Бројот на Службен весник во кој е објавена одлуката за намера (се објавува по Фаза I). Се наведува во документите од Фаза II.'
+      condition: (fd) => fd.phase === '2',
+      helpText: 'Само за Фаза II. Бројот на Службен весник во кој е објавена одлуката за намера од Фаза I.'
     },
     gazetteDate: {
       name: 'gazetteDate', type: 'date', label: 'Службен весник — датум на објава', step: 3,
-      helpText: 'Датумот на објавата на намерата во Службен весник.'
+      condition: (fd) => fd.phase === '2',
+      helpText: 'Само за Фаза II. Датумот на објавата на намерата во Службен весник.'
     },
     creditorStatus: {
       name: 'creditorStatus', type: 'select', label: 'Доверители', step: 3, required: true,
@@ -143,7 +154,8 @@ export const capitalReductionConfig = {
         { value: 'settled', label: 'Нема пријавени / сите намирени' },
         { value: 'none', label: 'Друштвото нема познати доверители' }
       ],
-      helpText: 'Ја одредува варијантата на Изјавата на управителот по чл. 263 ст.3.'
+      condition: (fd) => fd.phase === '2',
+      helpText: 'Само за Фаза II. Ја одредува варијантата на Изјавата на управителот по чл. 263 ст.3.'
     },
     includePersonalDataChange: {
       name: 'includePersonalDataChange', type: 'select', label: 'Вклучи промена на лични податоци', step: 3,
@@ -151,14 +163,16 @@ export const capitalReductionConfig = {
       helpText: 'Ако е „Да", паралелно се спроведува и промена на адреса на содружниците (внесете ја „Новата адреса" кај содружниците во чекор 2). Актот се менува и во член 2 и во член 7.'
     },
 
-    // --- Step 4: agent + dates ---
+    // --- Step 4: agent + date (of the chosen phase) ---
     phase1Date: {
-      name: 'phase1Date', type: 'date', label: 'Датум на Фаза I (намера)', step: 4, required: true,
+      name: 'phase1Date', type: 'date', label: 'Датум на документите (Фаза I)', step: 4, required: true,
+      condition: (fd) => (fd.phase || '1') !== '2',
       helpText: 'Датумот на документите од Фаза I (одлука за намера, изјави за потписи, полномошна).'
     },
     phase2Date: {
-      name: 'phase2Date', type: 'date', label: 'Датум на Фаза II (спроведување)', step: 4,
-      helpText: 'Датумот на документите од Фаза II. Ако е празно, автоматски се зема Фаза I + 91 ден.'
+      name: 'phase2Date', type: 'date', label: 'Датум на документите (Фаза II)', step: 4, required: true,
+      condition: (fd) => fd.phase === '2',
+      helpText: 'Датумот на документите од Фаза II — денот кога ја спроведувате постапката (по истекот на рокот од Фаза I).'
     },
     city: {
       name: 'city', type: 'text', label: 'Место', step: 4, placeholder: 'Скопје',

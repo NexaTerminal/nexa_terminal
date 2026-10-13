@@ -9,26 +9,36 @@ import styles from '../../../../styles/terminal/documents/DocumentGeneration.mod
  * Incorporation pack: company + capital → founders → managers → agent → review.
  * The backend assembles the constitutive act + statements + POAs + ЗП into one .docx.
  */
+/**
+ * Step + preview renderers — exported so the public share flow (/dokument/:token)
+ * reuses the exact same bespoke UI as the authenticated page.
+ */
+export const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
+  switch (currentStep) {
+    case 1:
+      return (
+        <>
+          <FormationGuide />
+          <PlainFields step={1} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />
+        </>
+      );
+    case 2:
+      return <PersonList listConfig={companyIncorporationConfig.foundersList} value={formData.foundersList || []} formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
+    case 3:
+      return <PersonList listConfig={companyIncorporationConfig.managersList} value={formData.managersList || []} formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
+    case 4:
+      return <PlainFields step={4} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
+    case 5:
+      return <ReviewSummary formData={formData} />;
+    default:
+      return null;
+  }
+};
+
+export const renderPreview = ({ formData }) => <PackOverview formData={formData} />;
+export const config = companyIncorporationConfig;
+
 const CompanyFormationPage = () => {
-  const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
-    switch (currentStep) {
-      case 1:
-        return <PlainFields step={1} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
-      case 2:
-        return <PersonList listConfig={companyIncorporationConfig.foundersList} value={formData.foundersList || []} formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
-      case 3:
-        return <PersonList listConfig={companyIncorporationConfig.managersList} value={formData.managersList || []} formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
-      case 4:
-        return <PlainFields step={4} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
-      case 5:
-        return <ReviewSummary formData={formData} />;
-      default:
-        return null;
-    }
-  };
-
-  const renderPreview = ({ formData }) => <PackOverview formData={formData} />;
-
   return (
     <BaseDocumentPage
       config={companyIncorporationConfig}
@@ -39,6 +49,31 @@ const CompanyFormationPage = () => {
     />
   );
 };
+
+/**
+ * Practical, law-derived intro for incorporation (ЗТД, глава за ДОО). Grounded in
+ * чл. 167 (1–50 content), 169 (ДОО/ДООЕЛ ознака), 170 (Договор/Изјава), 171
+ * (содржина), 172 (главнина ≥ 5.000 ЕУР), 183 (прилози кон пријавата).
+ */
+const FormationGuide = () => (
+  <details className={styles['info-box']} open>
+    <summary>
+      <strong>📘 Практичен водич: основање на друштво (ДОО/ДООЕЛ)</strong>
+    </summary>
+    <p>
+      ДОО се основа со <strong>Договор за основање</strong> од сите основачи; кога друштвото го основа
+      <strong> едно лице</strong>, Договорот се заменува со <strong>Изјава за основање</strong> (чл. 170).
+      Фирмата задолжително ја содржи ознаката <strong>ДОО</strong>, односно <strong>ДООЕЛ</strong> за едно
+      лице (чл. 169). Друштвото може да има од 1 до 50 содружници (чл. 167).
+    </p>
+    <p><strong>Што содржи конститутивниот акт (чл. 171):</strong> податоци за содружниците (ЕМБГ/пасош/ЕМБС), фирма и седиште, предмет на работење, времетраење, основна главнина и поединечен влог на секој содружник, управител и застапување, права и обврски, распределба на добивката.</p>
+    <p><strong>Основна главнина (чл. 172):</strong> најмалку <strong>5.000 ЕУР</strong> во денарска противвредност, изразена со цел број делив со 100. Влогот може да биде паричен или непаричен (кај непаричен — проценка од овластен проценувач).</p>
+    <p><strong>Што се приложува кон пријавата (чл. 183):</strong> конститутивниот акт, документи за идентитет, одлука/изјава за избор и прифаќање на управител, <strong>изјава по чл. 29</strong> (нема пречки за основач), <strong>изјава по чл. 32</strong> и заверени потписи (ЗП образец).</p>
+    <p><strong>📦 Што се генерира:</strong> Изјава/Договор за основање, изјави по чл. 29/32/183/231, полномошна за регистрациониот агент, изјави за потписи (чл. 7 од Правилникот) и ЗП образец.</p>
+    <p><strong>✍️ Што пополнувате:</strong> формата (ДОО/ДООЕЛ), називите и седиштето, НКД дејноста, основната главнина и влоговите, основачите и управителите, и регистрациониот агент.</p>
+    <p><strong>ℹ️ Напомена:</strong> НКД шифрата не се проверува — мора да постои во официјалниот НКД список. <strong>ЕМБС и ЕДБ ги доделува Регистарот</strong>, па при основање остануваат празни.</p>
+  </details>
+);
 
 /** Renders the plain (getStepFields) fields for a step via FormField. */
 const PlainFields = ({ step, formData, onChange, errors, disabled }) => {

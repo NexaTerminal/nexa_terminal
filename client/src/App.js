@@ -27,6 +27,7 @@ import ResetPassword from './pages/website/ResetPassword';
 import ProviderResponse from './pages/public/ProviderResponse';
 import SharedDocument from './pages/public/SharedDocument';
 import DocumentPreviewPage from './pages/public/DocumentPreviewPage';
+import PublicDocumentPage from './pages/public/PublicDocumentPage';
 import Blog from './pages/website/Blog';
 import BlogPost from './pages/website/BlogPost';
 import TopicsPage from './pages/website/TopicsPage';
@@ -203,6 +204,7 @@ import ServicesContractPage from './pages/terminal/documents/contracts/ServicesC
 import LoanAgreementPage from './pages/terminal/documents/contracts/LoanAgreementPage';
 import CompanyChangesPage from './pages/terminal/documents/centralRegister/CompanyChangesPage';
 import CompanyFormationPage from './pages/terminal/documents/centralRegister/CompanyFormationPage';
+import CapitalReductionPage from './pages/terminal/documents/centralRegister/CapitalReductionPage';
 import VehicleSalePurchaseAgreementPage from './pages/terminal/documents/obligations/VehicleSalePurchaseAgreementPage';
 import PersonalDataRulebookPage from './pages/terminal/documents/rulebooks/PersonalDataRulebookPage';
 import CashRegisterMaximumDecisionPage from './pages/terminal/documents/accounting/CashRegisterMaximumDecisionPage';
@@ -302,6 +304,7 @@ function App() {
 
       {/* Shared Document Viewer - Public (no auth required) */}
       <Route path="/shared/:shareToken" element={<SharedDocument />} />
+      <Route path="/dokument/:token" element={<PublicDocumentPage />} />
       <Route path="/predmet/:token" element={<CaseStatus />} />
 
       {/* Document Preview - Public (no auth required) */}
@@ -476,6 +479,7 @@ function App() {
       <Route path="/terminal/documents/other/warning-before-lawsuit" element={<PrivateRoute><VerificationRequired><WarningBeforeLawsuitPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/central-register/company-changes" element={<PrivateRoute><VerificationRequired><CompanyChangesPage/></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/documents/central-register/company-formation" element={<PrivateRoute><VerificationRequired><CompanyFormationPage/></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/documents/central-register/capital-reduction" element={<PrivateRoute><VerificationRequired><CapitalReductionPage/></VerificationRequired></PrivateRoute>} />
 
       {/* Admin Routes */}
       <Route path="/terminal/admin/blogs" element={<PrivateRoute><ManageBlogs /></PrivateRoute>} />

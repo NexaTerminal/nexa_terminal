@@ -132,6 +132,9 @@ const subscriptionGuard = require('./middleware/subscriptionGuard');
 // Mount auto-documents routes BEFORE CSRF middleware (no CSRF for JWT-protected API)
 app.use('/api/auto-documents', subscriptionGuard, require('./routes/autoDocuments'));
 
+// Mint public share links for a document (Pro/lawyer only; auth + tier gate inside).
+app.use('/api/document-links', require('./routes/documentShareLinks'));
+
 // Contract Management System — „Договори" (Basic tool, not credit-metered)
 app.use('/api/contracts', subscriptionGuard, require('./routes/contracts'));
 
@@ -207,6 +210,11 @@ app.use('/api/public/character-assessment', require('./routes/publicCharacterAss
 // Public „Интервјуа" respondent funnel — a candidate/employee answers an
 // interview scan or exit interview via their link (no auth, before CSRF).
 app.use('/api/public/interview', require('./routes/publicInterview'));
+
+// Public shared-document generation — a stranger fills + generates a document from a
+// Pro user's share link (stateless signed token, no auth, before CSRF). The owner's
+// credits are charged; nothing is stored. See routes/documentShareLinks.js for minting.
+app.use('/api/public/documents', require('./routes/publicDocuments'));
 
 // Public click-tracking for cold-invite emails (no auth, no CSRF). The Redeem
 // page pings this with the prospect id so we can measure invited → clicked.

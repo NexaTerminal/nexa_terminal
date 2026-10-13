@@ -6,6 +6,7 @@ import ProfileReminderBanner from '../terminal/ProfileReminderBanner';
 import DocumentPreview from '../terminal/documents/DocumentPreview';
 import FormField, { TermsField } from '../forms/FormField';
 import ClientSelector from './ClientSelector';
+import ShareLinkButton from './ShareLinkButton';
 import OwnCompanyModal from './OwnCompanyModal';
 import { useDocumentForm } from '../../hooks/useDocumentForm';
 import { visibleTier } from '../../lib/tier';
@@ -190,6 +191,9 @@ const BaseDocumentPage = ({
             <div className={styles.formSection}>
               {/* Pro: choose the client this document is for, at the top of the form. */}
               {isPro && <ClientSelector value={formData.clientId} onSelect={onSelectClient} />}
+
+              {/* Pro: share a public link so a client can fill + generate this document. */}
+              {isPro && <ShareLinkButton config={config} formData={formData} />}
 
               {/* Step Progress */}
               <StepProgress steps={steps} currentStep={currentStep} />

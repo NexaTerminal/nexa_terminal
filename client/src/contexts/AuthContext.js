@@ -41,7 +41,7 @@ install402Interceptor();
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
 
 // Create auth context
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 // Auth provider component
 export const AuthProvider = ({ children }) => {

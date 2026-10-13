@@ -94,7 +94,7 @@ const createDocumentController = (config) => {
     preprocessFunction = null
   } = config;
 
-  return async (req, res) => {
+  const handler = async (req, res) => {
     try {
       // Extract data from request
       const { formData } = req.body;
@@ -282,6 +282,11 @@ const createDocumentController = (config) => {
       });
     }
   };
+
+  // Expose the generator wiring so non-request callers (e.g. the public shared-link
+  // generator) can reuse the same template + validation without an HTTP round-trip.
+  handler.generatorConfig = { templateFunction, documentName, validateFunction, preprocessFunction, requiredFields };
+  return handler;
 };
 
 /**

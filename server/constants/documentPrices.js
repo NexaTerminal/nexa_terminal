@@ -62,7 +62,8 @@ const DOCUMENT_PRICES_EUR = {
 
   // Packages
   'company-incorporation': 300,
-  'company-changes': 150
+  'company-changes': 150,
+  'company-capital-reduction': 300
 };
 
 // Fallback for unlisted types (incl. My-Templates custom generations).

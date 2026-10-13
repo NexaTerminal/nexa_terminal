@@ -48,6 +48,7 @@ const loanAgreementController = require('../controllers/autoDocuments/loanAgreem
 const companyChangesController = require('../controllers/autoDocuments/companyChangesController');
 const companyActExtraction = require('../controllers/autoDocuments/companyActExtractionController');
 const companyIncorporationController = require('../controllers/autoDocuments/companyIncorporationController');
+const capitalReductionController = require('../controllers/autoDocuments/capitalReductionController');
 
 // Company Changes — Централен регистар (Промени во фирма)
 router.post('/company-changes', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), companyChangesController);
@@ -58,6 +59,9 @@ router.post('/company-changes/amend-act', authenticateJWT, requireVerifiedCompan
 
 // Company Incorporation — Централен регистар (Основање на фирма)
 router.post('/company-incorporation', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), companyIncorporationController);
+
+// Capital Reduction — Централен регистар (Намалување на основна главнина)
+router.post('/company-capital-reduction', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), capitalReductionController);
 
 // Consent for Personal Data Processing
 router.post('/consent-for-personal-data-processing', authenticateJWT, requireVerifiedCompany, checkCredits(1), deductCredits('DOCUMENT_GENERATION'), generate);

@@ -4,6 +4,7 @@ import FormField from '../../../../components/forms/FormField';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { companyChangesConfig, getStepFields, CHANGE_OPTIONS } from '../../../../config/documents/companyChanges';
 import { extractAct, amendActDownload } from '../../../../services/companyChangesApi';
+import { usePublicMode } from '../../../../contexts/PublicModeContext';
 import styles from '../../../../styles/terminal/documents/DocumentGeneration.module.css';
 
 /**
@@ -11,31 +12,38 @@ import styles from '../../../../styles/terminal/documents/DocumentGeneration.mod
  * Dynamic document package: choose changes → enter company/people → fill
  * per-change fields → agent/general → review. See config for the data model.
  */
+/**
+ * Step + preview renderers — exported so the public share flow (/dokument/:token)
+ * reuses the exact same bespoke UI. NOTE: Step 3's NEW-data inputs live in the
+ * preview panel, so the public renderer must render BOTH renderStepContent and
+ * renderPreview (the public shell does).
+ */
+export const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
+  switch (currentStep) {
+    case 1:
+      return <Step1 formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
+    case 2:
+      return <CompanyAndPeople formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
+    case 3:
+      return <ChangeWizardCurrent formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
+    case 4:
+      return <PlainFields step={4} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
+    case 5:
+      return <ReviewSummary formData={formData} />;
+    default:
+      return null;
+  }
+};
+
+// Right panel: a „Тековно → Ново" view. On the per-change step it hosts the NEW-data
+// inputs; elsewhere it shows a running before/after overview of selected changes.
+export const renderPreview = ({ formData, currentStep, onChange }) => (
+  <CompanyChangesPreview formData={formData} currentStep={currentStep} onChange={onChange} />
+);
+
+export const config = companyChangesConfig;
+
 const CompanyChangesPage = () => {
-  const renderStepContent = ({ currentStep, formData, handleInputChange, errors, isGenerating }) => {
-    switch (currentStep) {
-      case 1:
-        return <Step1 formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
-      case 2:
-        return <CompanyAndPeople formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
-      case 3:
-        return <ChangeWizardCurrent formData={formData} onChange={handleInputChange} disabled={isGenerating} />;
-      case 4:
-        return <PlainFields step={4} formData={formData} onChange={handleInputChange} errors={errors} disabled={isGenerating} />;
-      case 5:
-        return <ReviewSummary formData={formData} />;
-      default:
-        return null;
-    }
-  };
-
-  // Right panel: a „Тековно → Ново" view instead of a rendered live preview.
-  // On the per-change step it hosts the NEW-data inputs; elsewhere it shows a
-  // running before/after overview of all selected changes.
-  const renderPreview = ({ formData, currentStep, onChange }) => (
-    <CompanyChangesPreview formData={formData} currentStep={currentStep} onChange={onChange} />
-  );
-
   return (
     <BaseDocumentPage
       config={companyChangesConfig}
@@ -136,11 +144,43 @@ const Step1 = ({ formData, onChange, disabled }) => {
   const { currentUser } = useAuth();
   return (
     <>
+      <ChangesGuide />
       <ActUpload onChange={onChange} currentUser={currentUser} disabled={disabled} />
       <ChangeSelector formData={formData} onChange={onChange} disabled={disabled} />
     </>
   );
 };
+
+/**
+ * Practical, law-derived intro for company changes (ЗТД). Grounded in чл. 252/253
+ * (измена на Актот — ¾ мнозинство, пречистен текст, упис со број и датум на
+ * одлуката), чл. 200/201 (пренос на удел, книга на удели), чл. 26 (подружница),
+ * чл. 183/231 (управител), и чл. 7 од Правилникот за регистрационен агент.
+ */
+const ChangesGuide = () => (
+  <details className={styles['info-box']} open>
+    <summary>
+      <strong>📘 Практичен водич: промени во друштвото (Трговски регистар)</strong>
+    </summary>
+    <p>
+      Ова е <strong>динамичен пакет</strong> — изберете една или повеќе промени, а системот ги составува сите
+      потребни одлуки, изјави и полномошна во еден документ. Повеќето промени на основните податоци
+      претставуваат <strong>измена на Актот за основање</strong> и се носат со одлука на содружниците (по правило
+      <strong> тричетвртинско мнозинство</strong>, чл. 252). Управителот поднесува пријава и подготвува
+      <strong> пречистен текст</strong> на Актот, а уписот се објавува со број и датум на одлуката (чл. 253).
+    </p>
+    <p><strong>По промена:</strong></p>
+    <ul>
+      <li><strong>Назив / Седиште / Лични податоци</strong> — одлука + пречистен текст на Актот.</li>
+      <li><strong>Управител</strong> — избор/отповикување; новиот управител дава изјава по <strong>чл. 183 и 231 ст.4</strong> (го прифаќа изборот; нема судска забрана) и приложува <strong>ЗП образец</strong> (чл. 231).</li>
+      <li><strong>Пренос на удел</strong> — задолжително се заверува кај <strong>нотар</strong>; стекнувачот поднесува пријава за упис во <strong>книгата на удели</strong> и изјава дека ги прифаќа одредбите на Договорот (чл. 200). Внимавајте на формата: ДООЕЛ не може да има двајца содружници, ниту ДОО да остане со еден.</li>
+      <li><strong>Подружница</strong> — се организира/менува со одлука; подружницата нема својство на правно лице и работи под фирмата на друштвото (чл. 26).</li>
+      <li><strong>Уплата на влог</strong> — одлука за уплата на основачкиот влог.</li>
+    </ul>
+    <p><strong>Заеднички документи:</strong> за секоја промена се додаваат <strong>Изјава по чл. 32</strong>, <strong>Изјава за потписи</strong> (чл. 7 од Правилникот) и <strong>Полномошно</strong> по потписник за регистрациониот агент.</p>
+    <p><strong>✍️ Што пополнувате:</strong> изберете ги промените, потврдете ги тековните податоци (предложени од профилот или од прикачениот акт) и внесете ги новите вредности по промена, па податоците за агентот.</p>
+  </details>
+);
 
 const COMPANY_SCALARS = [
   'companyFullName', 'companyShortName', 'companyForeignName', 'companyAddress',
@@ -165,6 +205,7 @@ const normalizePerson = (p, isShareholder) => ({
  * and reconciles conflicts against the verified company profile.
  */
 const ActUpload = ({ onChange, currentUser, disabled }) => {
+  const isPublic = usePublicMode();
   const [mode, setMode] = useState(null); // null | 'upload' | 'standard'
   const [status, setStatus] = useState('idle'); // idle | loading | done | error
   const [error, setError] = useState('');
@@ -172,6 +213,9 @@ const ActUpload = ({ onChange, currentUser, disabled }) => {
   const [filledCount, setFilledCount] = useState(0);
 
   const ci = currentUser?.companyInfo || {};
+
+  // The act extractor hits an authenticated endpoint — hide it for public visitors.
+  if (isPublic) return null;
 
   const applyExtracted = (ex) => {
     const c = ex.company || {};

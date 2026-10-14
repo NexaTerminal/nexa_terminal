@@ -120,6 +120,12 @@
 
 .error { font-size: 0.8rem; color: #b91c1c; text-align: center; }
 
+.proNotice {
+  margin: 0 10px 6px; padding: 8px 10px; border-radius: 10px;
+  background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;
+  font-size: 0.78rem; line-height: 1.4;
+}
+
 /* Composer */
 .composer {
   display: flex;

@@ -6,6 +6,8 @@ import { useChatDock } from '../../contexts/ChatDockContext';
 import { getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import MarketingBotApiService from '../../services/marketingBotApi';
+import ProRequestsApiService from '../../services/proRequestsApi';
+import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from './AgentChatDock.module.css';
 
 const stripSuggestions = (t) => (t || '').replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/, '').trim();
@@ -46,6 +48,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [proNotice, setProNotice] = useState(null);
+  const [proBusy, setProBusy] = useState(false);
   const endRef = useRef(null);
   const sendRef = useRef(null);
   // Refs so the seed effect + send() always read the latest without stale closures.
@@ -132,6 +136,30 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   };
   sendRef.current = send;
 
+  // „Покани професионалец" — invite a human pro into this conversation (group-chat
+  // style), straight from the dock. Creates a pro request from the chat so far.
+  const handleAddPro = async () => {
+    if (proBusy) return;
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    const q = (lastUser?.content || input).trim();
+    if (!q) { setError('Прво напишете прашање за да поканите професионалец.'); return; }
+    const excerpt = messages.slice(-6).map((m) => `${m.role === 'user' ? 'Јас' : agent.name}: ${m.content}`).join('\n\n');
+    setProBusy(true); setError(null); setProNotice(null);
+    try {
+      const res = await ProRequestsApiService.create({
+        type: 'consult',
+        subject: q.slice(0, 120),
+        agent: agent.key,
+        context: { question: q, conversationId: convIdRef.current, transcriptExcerpt: excerpt },
+        consentVersion: CURRENT_VERSIONS.proRequest,
+      });
+      setProNotice(res?.success
+        ? 'Поканивме професионалци. Првиот што ќе се приклучи ќе ви одговори во „Разговори".'
+        : (res?.message || 'Грешка при поканата.'));
+    } catch (e) { setProNotice(e?.message || 'Грешка при поканата.'); }
+    finally { setProBusy(false); }
+  };
+
   const stop = (fn) => (e) => { e.stopPropagation(); fn(); };
 
   return (
@@ -149,6 +177,14 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
           <span className={styles.onlineDot} aria-hidden="true" />
         </span>
         <span className={styles.hdActions}>
+          {!isMarketing && (
+            <span role="button" tabIndex={0} className={styles.iconBtn} title="Покани професионалец во разговорот"
+              aria-label="Покани професионалец"
+              onClick={stop(handleAddPro)}
+              onKeyDown={(e) => { if (e.key === 'Enter') stop(handleAddPro)(e); }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+            </span>
+          )}
           <span role="button" tabIndex={0} className={styles.iconBtn} title="Отвори цела страница"
             onClick={stop(() => { navigate(fullPageHref); onClose(); })}
             onKeyDown={(e) => { if (e.key === 'Enter') stop(() => { navigate(fullPageHref); onClose(); })(e); }}>
@@ -203,6 +239,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
             {error && <div className={styles.error}>{error}</div>}
             <div ref={endRef} />
           </div>
+
+          {proNotice && <div className={styles.proNotice}>🧑‍⚖️ {proNotice}</div>}
 
           <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(); }}>
             <input

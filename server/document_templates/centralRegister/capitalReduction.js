@@ -782,7 +782,8 @@ function assembleChildren(ctx) {
 function generateCapitalReductionDoc(formData = {}, user, company) {
   const co = resolveCompany(formData, company);
   const shareholders = (Array.isArray(formData.shareholdersList) ? formData.shareholdersList : [])
-    .filter((s) => s && s.name);
+    .filter((s) => s && s.name)
+    .map(({ newAddress, ...s }) => s); // personal-data change not offered — drop any stray new address
 
   // Manager (управител) — a single person; may be one of the shareholders or separate.
   const managerForeign = formData.managerForeign === 'да' || formData.managerForeign === true;
@@ -809,8 +810,8 @@ function generateCapitalReductionDoc(formData = {}, user, company) {
     : (formData.phase1Date ? moment(formData.phase1Date) : moment());
   const dateStr = activeMoment.format('DD.MM.YYYY');
 
-  const hasPD = (formData.includePersonalDataChange === 'да' || formData.includePersonalDataChange === true)
-    && shareholders.some((s) => s.newAddress && s.newAddress.trim());
+  // Personal-data change is not offered for capital reduction — always off.
+  const hasPD = false;
 
   const ctx = {
     co,

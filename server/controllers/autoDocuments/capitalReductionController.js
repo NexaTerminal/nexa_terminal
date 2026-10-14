@@ -35,12 +35,6 @@ const validateFunction = (formData) => {
     warnings.push('Бројот/датумот на Службен весник не се внесени — ќе се прикажат како [број]/[датум] во документите од Фаза II.');
   }
 
-  // Personal-data companion needs at least one new address.
-  const pdOn = formData?.includePersonalDataChange === 'да' || formData?.includePersonalDataChange === true;
-  if (pdOn && !shareholders.some((s) => s.newAddress && s.newAddress.trim())) {
-    warnings.push('Избрана е промена на лични податоци, но ниту еден содружник нема внесена нова адреса.');
-  }
-
   if (warnings.length) console.log('[namaluvanje-glavnina] Warnings:', warnings.join(' | '));
   return { isValid: true, warnings };
 };

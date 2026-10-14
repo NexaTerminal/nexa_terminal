@@ -1,14 +1,13 @@
 /**
  * „Намалување на основна главнина" (Централен регистар) — capital-reduction config.
  *
- * Two-phase statutory procedure (чл. 261–263 ЗТД). One .docx holds BOTH phases:
- *  ФАЗА I  (намера)       — dated phase1Date (today)
- *  ФАЗА II (спроведување) — dated phase2Date (phase1Date + 91 days)
+ * Two-phase statutory procedure (чл. 261–263 ЗТД). Generated phase-by-phase: the user
+ * picks Фаза I (намера) or Фаза II (спроведување) and only that phase's docs are made.
  *
- * Multi-step form: (1) company + manager, (2) shareholders (current/new влог in MKD),
- * (3) reduction params + Службен весник + creditors + optional personal-data change,
- * (4) agent + dates, (5) review. Amounts are MKD (денари). Like the other Централен
- * регистар packs, shows a document-list review instead of a live preview.
+ * Multi-step form: (1) phase + company + manager, (2) shareholders (current/new влог in
+ * MKD), (3) reduction params (+ Службен весник + creditors for Фаза II), (4) agent +
+ * date, (5) review. Amounts are MKD (денари). Like the other Централен регистар packs,
+ * shows a document-list review instead of a live preview.
  */
 
 export const capitalReductionConfig = {
@@ -22,7 +21,6 @@ export const capitalReductionConfig = {
     phase: '1',
     shareholdersList: [],
     creditorStatus: 'settled',
-    includePersonalDataChange: 'не',
     city: 'Скопје'
   },
 
@@ -45,8 +43,7 @@ export const capitalReductionConfig = {
       { name: 'name', type: 'text', label: 'Име и презиме / Назив', placeholder: 'пр. Благоја Новески', helpText: 'Целосно име и презиме (физичко) или назив (правно лице).' },
       { name: 'isForeign', type: 'select', label: 'Странец', options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ], condition: (item) => item.entityType !== 'legal', helpText: 'Дали лицето е странски државјанин (бара пасош + државјанство).' },
       { name: 'citizenship', type: 'text', label: 'Државјанство', placeholder: 'пр. Република Србија', condition: (item) => item.entityType !== 'legal' && item.isForeign === 'да', helpText: 'Се пополнува само за странски физички лица.' },
-      { name: 'address', type: 'text', label: 'Адреса (тековна)', placeholder: 'пр. ул. Аминта Трети бр. 60/1-8, Скопје', helpText: 'Тековната адреса на живеење (физичко) или седиште (правно лице).' },
-      { name: 'newAddress', type: 'text', label: 'Нова адреса (само при промена на лични податоци)', placeholder: 'пр. Бул. Партизански одреди бр. 102/2-5, Скопје', helpText: 'Пополнете само ако во чекор 3 е избрана промена на лични податоци и адресата на ова лице се менува.' },
+      { name: 'address', type: 'text', label: 'Адреса', placeholder: 'пр. ул. Аминта Трети бр. 60/1-8, Скопје', helpText: 'Адреса на живеење (физичко) или седиште (правно лице).' },
       { name: 'idType', type: 'select', label: 'Документ', options: [ { value: 'ЕМБГ', label: 'ЕМБГ (13 цифри)' }, { value: 'пасош', label: 'Број на пасош' }, { value: 'ЕМБС', label: 'ЕМБС / рег. број' } ], helpText: 'ЕМБГ за домашно физичко лице, пасош за странец, ЕМБС за правно лице.' },
       { name: 'idNumber', type: 'text', label: 'Број', placeholder: 'пр. 0706997450086', helpText: 'Вредноста на избраниот документ.' },
       { name: 'currentContributionMKD', type: 'text', label: 'Тековен влог (МКД)', placeholder: 'пр. 7000000', inputMode: 'numeric', helpText: 'Тековниот паричен влог на содружникот во денари (само цифри). Пр. 7000000 за 7.000.000,00 денари.' },
@@ -157,12 +154,6 @@ export const capitalReductionConfig = {
       condition: (fd) => fd.phase === '2',
       helpText: 'Само за Фаза II. Ја одредува варијантата на Изјавата на управителот по чл. 263 ст.3.'
     },
-    includePersonalDataChange: {
-      name: 'includePersonalDataChange', type: 'select', label: 'Вклучи промена на лични податоци', step: 3,
-      options: [ { value: 'не', label: 'Не' }, { value: 'да', label: 'Да' } ],
-      helpText: 'Ако е „Да", паралелно се спроведува и промена на адреса на содружниците (внесете ја „Новата адреса" кај содружниците во чекор 2). Актот се менува и во член 2 и во член 7.'
-    },
-
     // --- Step 4: agent + date (of the chosen phase) ---
     phase1Date: {
       name: 'phase1Date', type: 'date', label: 'Датум на документите (Фаза I)', step: 4, required: true,

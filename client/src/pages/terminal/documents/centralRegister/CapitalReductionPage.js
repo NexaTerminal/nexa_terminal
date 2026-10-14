@@ -130,7 +130,6 @@ const normalizeShareholder = (s) => {
     isForeign: s.isForeign === 'да' || s.isForeign === true ? 'да' : 'не',
     citizenship: s.citizenship || '',
     address: s.address || '',
-    newAddress: '',
     idType: s.idType || (s.isForeign === 'да' ? 'пасош' : 'ЕМБГ'),
     idNumber: s.idNumber || '',
     currentContributionMKD: current,
@@ -390,7 +389,6 @@ const PersonList = ({ listConfig, value, formData, onChange, disabled }) => {
 const computePackDocs = (formData) => {
   const phase = formData.phase === '2' ? 2 : 1;
   const shareholders = (formData.shareholdersList || []).filter((s) => s && s.name);
-  const pd = formData.includePersonalDataChange === 'да' && shareholders.some((s) => s.newAddress && s.newAddress.trim());
   const isDooel = (formData.companyForm || 'doo') === 'dooel';
 
   // Signatories: shareholders + manager (deduped).
@@ -402,12 +400,10 @@ const computePackDocs = (formData) => {
   const docs = [];
   if (phase === 1) {
     docs.push('Одлука за намера за намалување на основната главнина');
-    if (pd) docs.push('Одлука за промена на лични податоци');
     signatories.forEach((n) => docs.push(`Изјава за потписи (чл. 7) — ${n}`));
     signatories.forEach((n) => docs.push(`Полномошно — ${n}`));
   } else {
     docs.push('Одлука за намалување на основната главнина');
-    if (pd) docs.push('Одлука за промена на лични податоци');
     docs.push('Изјава (Управител) по чл. 263 ст.3 (доверители)');
     docs.push('Изјава по член 32');
     docs.push(isDooel ? 'Изјава за основање — пречистен текст' : 'Договор за основање — пречистен текст');

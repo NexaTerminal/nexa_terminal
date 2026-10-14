@@ -67,7 +67,7 @@ const contracts = {
 const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/terminal/ai-team' };
 
 // „Моите барања" — the requester side of Ask-a-Pro (consults + document reviews).
-const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Моите барања', path: '/terminal/requests' };
+const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Разговори', path: '/terminal/requests' };
 // „Отворени барања" — the open board of user requests any eligible Pro can claim.
 const proBoard = { key: 'pro-board', icon: 'inbox', label: 'Отворени барања', path: '/terminal/pro/board', visible: showsLeads };
 // „Преземени барања" — requests this Pro has claimed (their active conversations).

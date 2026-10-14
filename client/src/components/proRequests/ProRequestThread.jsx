@@ -63,8 +63,11 @@ export default function ProRequestThread({ request, role, onUpdated }) {
   return (
     <div className={styles.thread}>
       <div className={styles.messages}>
+        {request.assignedProName && (
+          <div className={styles.systemLine}>👋 {request.assignedProName} се приклучи во разговорот</div>
+        )}
         {messages.length === 0 && (
-          <p className={styles.empty}>Сè уште нема пораки. Започнете го разговорот.</p>
+          <p className={styles.empty}>Сè уште нема пораки. Напишете прва порака за да започнете.</p>
         )}
         {messages.map((m) => {
           const mine = m.authorRole === mineRole;
@@ -137,9 +140,9 @@ export default function ProRequestThread({ request, role, onUpdated }) {
         </>
       ) : (
         <div className={styles.closedNote}>
-          {request.status === 'closed' ? 'Барањето е затворено.'
-            : request.status === 'rejected' ? 'Барањето е одбиено.'
-            : 'Барањето чека одобрување.'}
+          {request.status === 'closed' ? 'Разговорот е завршен.'
+            : request.status === 'rejected' ? 'Барањето е отстрането.'
+            : 'Се бара професионалец да се приклучи…'}
         </div>
       )}
     </div>

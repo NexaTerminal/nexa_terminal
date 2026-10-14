@@ -7,10 +7,10 @@ import styles from './RequestsPage.module.css';
 
 const STATUS_LABEL = {
   pending_approval: 'Се чека одобрување',
-  open: 'Споделено со професионалци',
-  active: 'Активно',
-  closed: 'Затворено',
-  rejected: 'Одбиено',
+  open: 'Се бара професионалец',
+  active: 'Во разговор',
+  closed: 'Завршено',
+  rejected: 'Отстрането',
 };
 const STATUS_CLASS = {
   pending_approval: 'badgePending',
@@ -25,11 +25,32 @@ const LIABILITY_NOTE =
   'AI одговорите се информативни и не се правен совет. Советот од професионалецот е негова професионална одговорност.';
 
 const TITLES = {
-  mine: { h1: 'Моите барања', sub: 'Вашите прашања и барања за преглед од професионалец.' },
-  assigned: { h1: 'Преземени барања', sub: 'Барања што ги презедовте и разговори со клиенти на Nexa.' },
-  board: { h1: 'Отворени барања', sub: 'Барања од корисници што чекаат професионалец. Првиот што ќе се приклучи го презема разговорот.' },
-  admin: { h1: 'Сите барања', sub: 'Сите барања се објавуваат автоматски на таблата за професионалци. Отстранете барање ако е потребно.' },
+  mine: { h1: 'Разговори со професионалци', sub: 'Поканувате професионалец од вашите AI разговори — првиот што ќе се приклучи ви одговара тука.' },
+  assigned: { h1: 'Мои разговори', sub: 'Разговори во кои сте се приклучиле како професионалец.' },
+  board: { h1: 'Покани за разговор', sub: 'Корисници бараат професионалец. Првиот што ќе се приклучи го презема разговорот — потоа е заклучен за другите.' },
+  admin: { h1: 'Сите барања', sub: 'Сите барања се објавуваат автоматски до професионалците. Отстранете барање ако е потребно.' },
 };
+
+// Plain-language status line for a conversation row (requester inbox).
+function statusLine(i) {
+  if (i.status === 'open') return '⏳ Се бара професионалец да се приклучи…';
+  if (i.status === 'active') return i.assignedProName ? `💬 ${i.assignedProName}` : '💬 Во разговор';
+  if (i.status === 'closed') return '✓ Завршено';
+  if (i.status === 'rejected') return 'Отстрането';
+  return STATUS_LABEL[i.status] || '';
+}
+
+function timeAgo(d) {
+  if (!d) return '';
+  const t = new Date(d).getTime();
+  if (isNaN(t)) return '';
+  const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (s < 60) return 'сега';
+  const m = Math.floor(s / 60); if (m < 60) return `пред ${m} мин`;
+  const h = Math.floor(m / 60); if (h < 24) return `пред ${h} ч`;
+  const dd = Math.floor(h / 24); if (dd < 7) return `пред ${dd} д`;
+  try { return new Date(d).toLocaleDateString('mk-MK', { day: '2-digit', month: '2-digit' }); } catch { return ''; }
+}
 
 /**
  * RequestsPage — one role-aware master/detail view over `pro_requests`.
@@ -139,7 +160,11 @@ export default function RequestsPage({ view = 'mine' }) {
               {loading ? (
                 <p className={styles.muted}>Вчитување…</p>
               ) : items.length === 0 ? (
-                <p className={styles.muted}>Нема барања.</p>
+                <p className={styles.muted}>
+                  {view === 'mine' ? 'Сè уште немате разговори. Поканете професионалец од некој AI разговор.'
+                    : isBoard ? 'Нема отворени покани во моментов.'
+                    : 'Нема разговори.'}
+                </p>
               ) : (
                 items.map((i) => (
                   <button
@@ -147,18 +172,20 @@ export default function RequestsPage({ view = 'mine' }) {
                     className={`${styles.listItem} ${selected?._id === i._id ? styles.listItemActive : ''}`}
                     onClick={() => openRequest(i._id)}
                   >
-                    <div className={styles.listTop}>
-                      <span className={styles.listType}>
-                        {isBoard ? (CATEGORY_LABEL[i.category] || i.category || 'Барање') : (TYPE_LABEL[i.type] || i.type)}
+                    <span className={styles.rowAvatar} aria-hidden>⚖️</span>
+                    <span className={styles.rowBody}>
+                      <span className={styles.rowTop}>
+                        <span className={styles.rowSubject}>{i.subject}</span>
+                        <span className={styles.rowTime}>{timeAgo(i.updatedAt || i.createdAt)}</span>
                       </span>
-                      <span className={`${styles.badge} ${styles[STATUS_CLASS[i.status]]}`}>{STATUS_LABEL[i.status]}</span>
-                    </div>
-                    <div className={styles.listSubject}>{i.subject}</div>
-                    <div className={styles.listMeta}>
-                      {view === 'mine'
-                        ? (i.assignedProName ? `Професионалец: ${i.assignedProName}` : '—')
-                        : (i.companyName || i.userName || i.userEmail || '—')}
-                    </div>
+                      <span className={styles.rowStatus}>
+                        {view === 'mine'
+                          ? statusLine(i)
+                          : isBoard
+                            ? (CATEGORY_LABEL[i.category] || i.category || 'Барање')
+                            : (i.companyName || i.userName || i.userEmail || '—')}
+                      </span>
+                    </span>
                   </button>
                 ))
               )}
@@ -176,7 +203,7 @@ export default function RequestsPage({ view = 'mine' }) {
                       <h2 className={styles.detailTitle}>{selected.subject}</h2>
                       <span className={styles.detailType}>{CATEGORY_LABEL[selected.category] || selected.category}</span>
                     </div>
-                    <span className={`${styles.badge} ${styles.badgePending}`}>Отворено</span>
+                    <span className={`${styles.badge} ${styles.badgePending}`}>Се бара професионалец</span>
                   </div>
 
                   {selected.aiSummary && (
@@ -201,8 +228,9 @@ export default function RequestsPage({ view = 'mine' }) {
                       <span>Потврдувам дека ако се приклучам и дадам совет, јас сум професионално одговорен за неговата точност. {LIABILITY_NOTE}</span>
                     </label>
                     <button className={styles.primaryBtn} onClick={claim} disabled={acting || !acceptLiability}>
-                      Преземи и приклучи се
+                      Приклучи се во разговорот
                     </button>
+                    <span className={styles.muted}>Првиот што ќе се приклучи го презема разговорот — потоа е заклучен за другите.</span>
                   </div>
                 </>
               ) : (
@@ -263,9 +291,15 @@ export default function RequestsPage({ view = 'mine' }) {
                     </div>
                   )}
 
-                  {/* Open (awaiting a Pro to claim) */}
+                  {/* Open (awaiting a Pro to join) — calm waiting state, like a sent invite */}
                   {selected.status === 'open' && view !== 'admin' && (
-                    <p className={styles.muted}>Споделено со професионалци — чека некој да се приклучи во разговорот.</p>
+                    <div className={styles.waitingBox}>
+                      <span className={styles.waitingDot} aria-hidden />
+                      <div>
+                        <strong>Поканата е испратена до професионалци.</strong>
+                        <p className={styles.muted}>Првиот професионалец што ќе се приклучи ќе ви одговори тука. Ќе добиете известување штом се приклучи.</p>
+                      </div>
+                    </div>
                   )}
 
                   {/* Assigned pro info (for user/admin) */}

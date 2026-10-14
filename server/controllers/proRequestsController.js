@@ -10,6 +10,7 @@ const ProRequestsService = require('../services/proRequestsService');
 const tierService = require('../services/tierService');
 const emailService = require('../services/emailService');
 const aiSummaryService = require('../services/aiSummaryService');
+const userNotifications = require('../services/userNotificationService');
 
 const make = (req) => new ProRequestsService(req.app.locals.db);
 const isAdmin = (req) => tierService.visibleTier(req.user) === 'ADMIN';
@@ -32,6 +33,16 @@ function notify(to, subject, html) {
     .catch((e) => console.warn('[proRequests] email failed:', e?.message));
 }
 
+// Fire-and-forget in-app (bell) notification; best-effort, never blocks the request.
+function notifyInApp(req, userId, opts) {
+  if (!userId) return;
+  const db = req.app.locals.db;
+  const io = req.app.locals.io || null;
+  Promise.resolve()
+    .then(() => userNotifications.notify(db, userId, opts, io))
+    .catch((e) => console.warn('[proRequests] in-app notify failed:', e?.message));
+}
+
 const TYPE_LABEL = { consult: 'Прашање до професионалец', contract_review: 'Преглед на договор' };
 const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување' };
 const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
@@ -41,7 +52,7 @@ const LIABILITY_NOTE =
 
 // Broadcast an open request to every eligible Pro + confirm to the requester.
 // Shared by create (auto-publish) and the legacy admin approve-to-board endpoint.
-async function broadcastToBoard(svc, item, summary) {
+async function broadcastToBoard(req, svc, item, summary) {
   const pros = await svc.eligibleProsForCategory(item.category);
   const boardLink = `${APP_URL()}/terminal/pro/board`;
   const summaryHtml = esc(item.context?.aiSummary || summary || '').replace(/\n/g, '<br/>');
@@ -56,6 +67,13 @@ async function broadcastToBoard(svc, item, summary) {
        <p>Првиот професионалец што ќе се приклучи го презема разговорот. <a href="${boardLink}">Отвори ја таблата со барања</a>.</p>
        <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
     );
+    notifyInApp(req, p._id, {
+      type: 'pro_request_open',
+      title: 'Ново барање за професионалец',
+      message: item.subject,
+      actionUrl: '/terminal/pro/board',
+      severity: 'info',
+    });
   }
   notify(
     item.userEmail,
@@ -107,7 +125,7 @@ exports.create = async (req, res) => {
     const item = await make(req).create(req.user, req.body || {}, summary);
 
     // Requests are auto-published to the Pro board — broadcast to eligible Pros now.
-    const notified = await broadcastToBoard(make(req), item, summary);
+    const notified = await broadcastToBoard(req, make(req), item, summary);
 
     // Admin gets a heads-up copy (informational; approval is no longer required).
     const adminLink = `${APP_URL()}/terminal/admin-user/requests`;
@@ -136,8 +154,13 @@ exports.addMessage = async (req, res) => {
     // Notify the counterpart.
     const link = `${APP_URL()}/terminal/requests`;
     const body = `<p>Нова порака во барањето „${esc(request.subject)}".</p><p><a href="${link}">Отвори го разговорот</a></p>`;
-    if (authorRole === 'user') notify(request.assignedProEmail, 'Нова порака од клиент', body);
-    else notify(request.userEmail, 'Нова порака од професионалец', body);
+    if (authorRole === 'user') {
+      notify(request.assignedProEmail, 'Нова порака од клиент', body);
+      notifyInApp(req, request.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: request.subject, actionUrl: '/terminal/pro/requests', severity: 'info' });
+    } else {
+      notify(request.userEmail, 'Нова порака од професионалец', body);
+      notifyInApp(req, request.userId, { type: 'pro_request_message', title: 'Нова порака од професионалец', message: request.subject, actionUrl: '/terminal/requests', severity: 'info' });
+    }
     return res.json({ success: true, item: request, message });
   } catch (err) { return handle(res, err); }
 };
@@ -180,7 +203,7 @@ exports.approveToBoard = async (req, res) => {
     }
 
     const item = await svc.approveToBoard(req.params.id, summary);
-    const notified = await broadcastToBoard(svc, item, summary);
+    const notified = await broadcastToBoard(req, svc, item, summary);
     return res.json({ success: true, item, notified });
   } catch (err) { return handle(res, err); }
 };
@@ -210,6 +233,13 @@ exports.claim = async (req, res) => {
        <p><a href="${link}">Отвори го разговорот</a></p>
        <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
     );
+    notifyInApp(req, item.userId, {
+      type: 'pro_request_joined',
+      title: 'Професионалец се приклучи',
+      message: `${item.assignedProName || 'Професионалец'} се приклучи во „${item.subject}"`,
+      actionUrl: '/terminal/requests',
+      severity: 'success',
+    });
     return res.json({ success: true, item });
   } catch (err) { return handle(res, err); }
 };

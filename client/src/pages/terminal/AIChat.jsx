@@ -244,7 +244,7 @@ const AIChat = () => {
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
         if (res.success) {
-          setProNotice('Барањето е испратено. Ќе биде прегледано и доделено на професионалец — следете го во „Моите барања".');
+          setProNotice('Поканивме професионалци во разговорот. Првиот што ќе се приклучи ќе ви одговори — следете го во „Разговори со професионалци".');
         } else setError(res.message || 'Грешка при испраќање на барањето.');
       } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
     });
@@ -562,9 +562,9 @@ const AIChat = () => {
                   type="button"
                   className={styles.askProBtn}
                   onClick={handleAskPro}
-                  title="Испрати го прашањето на професионалец"
+                  title="Покани професионалец да се приклучи во разговорот"
                 >
-                  🧑‍⚖️ Прашај професионалец
+                  🧑‍⚖️ Покани професионалец
                 </button>
                 <PersonaControl />
                 <MemoryControl />

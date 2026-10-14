@@ -9,6 +9,11 @@
   padding: 4px;
 }
 .empty { color: var(--color-neutral-500, #9ca3af); font-size: 0.9rem; text-align: center; padding: 24px 0; }
+.systemLine {
+  align-self: center; margin: 2px auto 8px; padding: 4px 12px;
+  font-size: 0.78rem; color: var(--color-neutral-600, #6b7280);
+  background: #f1f5f9; border-radius: 999px;
+}
 
 .msg { max-width: 78%; padding: 10px 12px; border-radius: 12px; }
 .mine { align-self: flex-end; background: var(--color-accent-soft, #eff6ff); }

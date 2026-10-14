@@ -95,17 +95,6 @@ export default function RequestsPage({ view = 'mine' }) {
     } catch (e) { setError(e.message); }
   }
 
-  async function approveToBoard() {
-    if (acting) return;
-    setActing(true); setError(null); setNotice(null);
-    try {
-      const res = await ProRequestsApiService.approveToBoard(selected._id);
-      if (res.success) { onUpdated(res.item); setNotice(`Објавено на таблата. Известени се ${res.notified ?? 0} професионалци.`); }
-      else setError(res.message);
-    } catch (e) { setError(e.message); }
-    finally { setActing(false); }
-  }
-
   async function claim() {
     if (acting) return;
     if (!acceptLiability) { setError('Потврдете ја професионалната одговорност за да се приклучите.'); return; }
@@ -265,18 +254,10 @@ export default function RequestsPage({ view = 'mine' }) {
                     </div>
                   )}
 
-                  {/* Admin controls: approve legacy pending rows, or remove an open
-                      request (requests auto-publish, so removal is the main action). */}
+                  {/* Admin oversight: requests auto-publish to all Pros, so the only
+                      admin action is removing a request if needed. */}
                   {view === 'admin' && (selected.status === 'pending_approval' || selected.status === 'open') && (
                     <div className={styles.adminBox}>
-                      {selected.status === 'pending_approval' && (
-                        <div className={styles.adminRow}>
-                          <button className={styles.primaryBtn} onClick={approveToBoard} disabled={acting}>
-                            Одобри и објави на таблата
-                          </button>
-                          <span className={styles.muted}>Барањето се испраќа до сите соодветни професионалци; првиот што ќе се приклучи го презема.</span>
-                        </div>
-                      )}
                       <div className={styles.adminRow}>
                         <input
                           className={styles.rejectInput}
@@ -285,7 +266,7 @@ export default function RequestsPage({ view = 'mine' }) {
                           onChange={(e) => setRejectReason(e.target.value)}
                         />
                         <button className={styles.dangerBtn} onClick={reject} disabled={acting}>
-                          {selected.status === 'open' ? 'Отстрани од таблата' : 'Одбиј'}
+                          Отстрани
                         </button>
                       </div>
                     </div>

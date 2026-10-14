@@ -33,11 +33,6 @@ class ProRequestsApiService {
     return ApiService.post(`/pro-requests/${id}/quote`, { amount, currency, body });
   }
 
-  // Admin: approve + broadcast to the Pro board (first to claim joins).
-  static approveToBoard(id) {
-    return ApiService.post(`/pro-requests/${id}/approve-to-board`, {});
-  }
-
   // Pro: claim an open board request (requires liability acknowledgment).
   static claim(id, { acceptLiability, consentVersion } = {}) {
     return ApiService.post(`/pro-requests/${id}/claim`, { acceptLiability, consentVersion });

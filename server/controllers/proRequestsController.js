@@ -50,8 +50,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '
 const LIABILITY_NOTE =
   'Напомена: AI одговорите се информативни и не се правен совет. Ако професионалец се приклучи и даде совет, тој е професионално одговорен за точноста на својот совет.';
 
-// Broadcast an open request to every eligible Pro + confirm to the requester.
-// Shared by create (auto-publish) and the legacy admin approve-to-board endpoint.
+// Broadcast an open request to every Pro (bell + email) + confirm to the requester.
 async function broadcastToBoard(req, svc, item, summary) {
   const pros = await svc.eligibleProsForCategory(item.category);
   const boardLink = `${APP_URL()}/terminal/pro/board`;
@@ -182,33 +181,10 @@ exports.addQuote = async (req, res) => {
 };
 
 // ── Admin actions ────────────────────────────────────────────────────────────────
-// Admin approves onto the open board, then broadcasts to all eligible Pros. The
-// conversation summary was generated at creation; we only regenerate it here as
-// a fallback (e.g. legacy rows that predate create-time summaries). First Pro to
-// claim joins the thread.
-exports.approveToBoard = async (req, res) => {
-  try {
-    if (!isAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за администратор.' });
-    const svc = make(req);
-    const current = await svc.getForActor(req.user, req.params.id, true);
+// Requests auto-publish to the board (no approval step). Admin oversight = remove
+// (reject) a request if needed.
 
-    let summary = current.context?.aiSummary;
-    if (!summary) {
-      summary = await aiSummaryService.summarizeConversation({
-        subject: current.subject,
-        question: current.context?.question,
-        transcript: current.context?.transcriptExcerpt,
-        type: current.type,
-      });
-    }
-
-    const item = await svc.approveToBoard(req.params.id, summary);
-    const notified = await broadcastToBoard(req, svc, item, summary);
-    return res.json({ success: true, item, notified });
-  } catch (err) { return handle(res, err); }
-};
-
-// Pro view of the open board (eligible, unclaimed requests).
+// Pro view of the open board (all unclaimed conversations).
 exports.board = async (req, res) => {
   try {
     if (!isProOrAdmin(req)) return handle(res, { code: 'FORBIDDEN', message: 'Само за Про членови.' });

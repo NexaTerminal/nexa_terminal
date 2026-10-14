@@ -41,19 +41,14 @@ const AGENT_TO_CATEGORY = Object.freeze({
 });
 const DEFAULT_CATEGORY = 'legal';
 
-// Legal practice areas (subset of roles.js PRACTICE_AREAS). A Pro is eligible for
-// the 'legal' board if they declare any of these — or none at all (treated as a
-// general lawyer during the founding cohort).
-const LEGAL_PRACTICE_AREAS = Object.freeze([
-  'consumer-legal', 'immigration', 'citizenship', 'company-registration',
-  'ip-law', 'tax-accounting', 'labor-law', 'general-legal',
-]);
-const CATEGORY_TO_PRACTICE_AREAS = Object.freeze({
-  legal: LEGAL_PRACTICE_AREAS,
-});
-
 function categoryForAgent(agent) {
   return AGENT_TO_CATEGORY[agent] || DEFAULT_CATEGORY;
+}
+
+// Is this user a Pro who may see/join the board? Any Pro (admin_user) or platform
+// admin — no practice-area/category gating: every Pro can join any open conversation.
+function isPro(user) {
+  return !!user && (user.role === 'admin' || user.isAdmin === true || user.role === 'admin_user');
 }
 
 const clamp = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
@@ -304,60 +299,18 @@ class ProRequestsService {
     return { request: ProRequestsService.present({ ...doc, messages: [...doc.messages, message], updatedAt: new Date() }), message: ProRequestsService._publicMessage(message) };
   }
 
-  // ── Board model: approve → broadcast → first Pro claims ──────────────────────
+  // ── Board model: auto-broadcast → first Pro claims ───────────────────────────
 
-  // Is a Pro user eligible to see/claim a given category's requests?
-  // Legal: admin_user with any legal practice area, or none declared (founding
-  // cohort = treated as general lawyer). Platform admin is always eligible.
-  static proEligibleForCategory(proUser, category) {
-    if (!proUser) return false;
-    if (proUser.role === 'admin' || proUser.isAdmin === true) return true;
-    if (proUser.role !== 'admin_user') return false;
-    const areas = CATEGORY_TO_PRACTICE_AREAS[category] || [];
-    if (areas.length === 0) return false; // unknown category → nobody (safe default)
-    const mine = proUser.superUser?.practiceAreas || [];
-    if (mine.length === 0) return true; // no declared areas → eligible (general)
-    return mine.some((a) => areas.includes(a));
+  // Any Pro may see/claim any open conversation (no category gating).
+  static proEligibleForCategory(proUser) {
+    return isPro(proUser);
   }
 
-  // Admin approves a pending request onto the open board. Optionally stores an
-  // AI-generated summary (built by the controller) into context.aiSummary.
-  async approveToBoard(id, aiSummary) {
-    const _id = ProRequestsService.toObjectId(id);
-    if (!_id) throw invalid('Невалиден идентификатор.');
-    const now = new Date();
-    const set = { status: 'open', openedAt: now, updatedAt: now };
-    if (aiSummary) set['context.aiSummary'] = clamp(aiSummary, 4000);
-    const res = await this.col.findOneAndUpdate(
-      { _id, status: 'pending_approval' },
-      { $set: set },
-      { returnDocument: 'after' }
-    );
-    const doc = res?.value || res;
-    if (!doc || !doc._id) throw invalid('Барањето веќе е обработено.');
-    return ProRequestsService.present(doc);
-  }
-
-  // Open requests a given Pro may claim (matched by category eligibility).
+  // All open conversations awaiting a Pro — visible to every Pro.
   async listBoardForPro(proUser) {
     await this._ensureIndexes();
-    if (proUser.role === 'admin' || proUser.isAdmin === true) {
-      const docs = await this.col.find({ status: 'open' }).sort({ openedAt: -1 }).toArray();
-      return docs.map(ProRequestsService.presentForBoard);
-    }
-    if (proUser.role !== 'admin_user') return [];
-    const mine = proUser.superUser?.practiceAreas || [];
-    // Eligible categories = those whose area set this Pro overlaps, or (if the Pro
-    // declared no areas) every category (general). Step 1 only 'legal' exists.
-    const categories = Object.keys(CATEGORY_TO_PRACTICE_AREAS).filter((cat) =>
-      ProRequestsService.proEligibleForCategory(proUser, cat)
-    );
-    if (categories.length === 0) return [];
-    void mine;
-    const docs = await this.col
-      .find({ status: 'open', category: { $in: categories } })
-      .sort({ openedAt: -1 })
-      .toArray();
+    if (!isPro(proUser)) return [];
+    const docs = await this.col.find({ status: 'open' }).sort({ openedAt: -1 }).toArray();
     return docs.map(ProRequestsService.presentForBoard);
   }
 
@@ -396,22 +349,13 @@ class ProRequestsService {
     return ProRequestsService.present(updated);
   }
 
-  // All Pros to notify when a request opens for a category (for broadcast email).
-  async eligibleProsForCategory(category) {
-    const areas = CATEGORY_TO_PRACTICE_AREAS[category] || [];
-    if (areas.length === 0) return [];
+  // Every Pro to notify when a conversation opens — all Pros can join, so all are
+  // pinged (bell + email). Skips only admin-deactivated accounts.
+  async eligibleProsForCategory(_category) {
     const docs = await this.users
-      .find({
-        role: 'admin_user',
-        'subscription.status': 'active',
-        $or: [
-          { 'superUser.practiceAreas': { $in: areas } },
-          { 'superUser.practiceAreas': { $exists: false } },
-          { 'superUser.practiceAreas': { $size: 0 } },
-        ],
-      })
+      .find({ role: 'admin_user', isActive: { $ne: false } })
       .project({ email: 1, name: 1, username: 1, 'companyInfo.companyName': 1 })
-      .limit(500)
+      .limit(1000)
       .toArray();
     return docs
       .filter((u) => u.email)

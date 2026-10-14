@@ -14,9 +14,8 @@ router.get('/:id', c.get);
 
 router.post('/:id/messages', c.addMessage);
 router.post('/:id/quote', c.addQuote);
-router.post('/:id/approve-to-board', c.approveToBoard); // approve + broadcast to board
-router.post('/:id/claim', c.claim);                 // Pro claims an open request
-router.post('/:id/reject', c.reject);
+router.post('/:id/claim', c.claim);                 // Pro claims an open request (first-come)
+router.post('/:id/reject', c.reject);               // admin removes a request
 router.post('/:id/close', c.close);
 
 module.exports = router;

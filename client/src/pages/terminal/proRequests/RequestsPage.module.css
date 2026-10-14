@@ -21,6 +21,9 @@
 }
 .listItem:hover { border-color: var(--color-accent, #2563eb); background: #fafbff; }
 .listItemActive { border-color: var(--color-accent, #2563eb); background: var(--color-accent-soft, #eff6ff); }
+/* Open invitation rows stand out slightly (joinable). */
+.listItemOpen { border-left: 3px solid #f59e0b; }
+.listItemOpen .rowAvatar { background: #fef3c7; }
 .rowAvatar {
   flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
@@ -96,23 +99,27 @@
   padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.9rem;
 }
 
-/* Board claim — liability acknowledgment */
-.liabilityBox {
-  display: flex; flex-direction: column; gap: 12px;
-  padding: 14px; border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 12px; background: #f8fafc; margin-top: 8px;
+/* Join card — "enter the chat" (chat-balloon CTA, implied consent). */
+.joinCard {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+  padding: 22px 18px; border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 16px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); margin-top: 12px;
 }
-.liabilityLabel {
-  display: flex; gap: 10px; align-items: flex-start;
-  font-size: 0.88rem; line-height: 1.45; color: var(--color-neutral-700, #374151); cursor: pointer;
+.joinBubble {
+  width: 56px; height: 56px; border-radius: 50% 50% 50% 6px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  background: var(--color-accent-soft, #eff6ff); border: 1px solid #dbeafe;
 }
-.liabilityLabel input { margin-top: 3px; flex-shrink: 0; }
-.liabilityBox .primaryBtn { align-self: flex-start; }
-.liabilityNote {
-  font-size: 0.82rem; color: var(--color-neutral-600, #6b7280);
-  background: #f8fafc; border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px; padding: 8px 12px; margin: 4px 0 12px;
+.joinBtn {
+  padding: 12px 26px; border: none; border-radius: 999px;
+  background: var(--color-primary, #1E4DB7); color: #fff; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(30, 77, 183, 0.25);
 }
+.joinBtn:hover { filter: brightness(1.05); }
+.joinBtn:disabled { opacity: 0.6; cursor: default; }
+.joinHint { margin: 0; font-size: 0.82rem; color: var(--color-neutral-500, #9ca3af); }
+.joinDisclaimer { margin: 2px 0 0; font-size: 0.76rem; line-height: 1.5; color: var(--color-neutral-500, #9ca3af); max-width: 520px; }
+.joinDisclaimer a { color: var(--color-primary, #1E4DB7); text-decoration: underline; }
 
 .badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .badgePending { background: #fef3c7; color: #92400e; }

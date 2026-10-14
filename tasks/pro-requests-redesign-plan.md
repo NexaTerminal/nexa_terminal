@@ -29,6 +29,16 @@ UI/UX + copy reframe + in-app notifications.
 Done (full redesign + bell notifications). Verified: all touched client files parse,
 controller loads. Not yet run in the live app.
 
+## Round 2 (UX pass) — done
+- Removed the heavy proRequest terms modal on invite + „Проверка со професионалец";
+  consent is now implied, with a one-line disclaimer (terms link) inside the chat.
+- Pro claim card rebuilt as a chat-balloon „Приклучи се" (no broken checkbox).
+- Merged the two Pro sidebar links into one „Разговори" → single page (view='pro')
+  showing open invitations + the Pro's own conversations; one click.
+- Thread now shows the full history: the AI exchange (AiTranscript, incl. the AI
+  answer) then the human↔human chat.
+- Notification bell moved to the far right of the navbar (after the profile name).
+
 Files: proRequestsController.js (in-app notify on open/join/message, kept emails),
 RequestsPage.js + .module.css (chat-inbox rows, waiting state, join copy, fixed card),
 ProRequestThread.jsx + .module.css ("X се приклучи" system line, softened copy),

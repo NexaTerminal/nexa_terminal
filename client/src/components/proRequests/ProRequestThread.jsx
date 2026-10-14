@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ProRequestsApiService from '../../services/proRequestsApi';
+import AiTranscript from './AiTranscript';
 import styles from './ProRequestThread.module.css';
 
 /**
@@ -63,11 +64,18 @@ export default function ProRequestThread({ request, role, onUpdated }) {
   return (
     <div className={styles.thread}>
       <div className={styles.messages}>
+        {/* The whole history: the original AI conversation (incl. the AI answer)… */}
+        <AiTranscript
+          text={request.context?.transcriptExcerpt}
+          summary={request.context?.aiSummary}
+          question={request.context?.question}
+        />
+        {/* …then the human↔human talk. */}
         {request.assignedProName && (
           <div className={styles.systemLine}>👋 {request.assignedProName} се приклучи во разговорот</div>
         )}
         {messages.length === 0 && (
-          <p className={styles.empty}>Сè уште нема пораки. Напишете прва порака за да започнете.</p>
+          <p className={styles.empty}>Сè уште нема пораки меѓу вас. Напишете прва порака за да продолжите.</p>
         )}
         {messages.map((m) => {
           const mine = m.authorRole === mineRole;
@@ -117,6 +125,11 @@ export default function ProRequestThread({ request, role, onUpdated }) {
               </div>
             </div>
           )}
+
+          <p className={styles.disclaimer}>
+            Со разговорот се согласувате со <a href="/terms-conditions" target="_blank" rel="noopener noreferrer">општите услови</a>.
+            Соработката и надоместокот се договараат директно меѓу вас и соговорникот. AI одговорите се информативни; советот е професионална одговорност на професионалецот.
+          </p>
 
           <div className={styles.composer}>
             <textarea

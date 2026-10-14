@@ -295,9 +295,6 @@ const Header = ({ isTerminal = false }) => {
   const renderNavLinks = () => {
     return isTerminal ? (
       <div className={styles['profile-section']}>
-        {/* Notification bell — admin↔user updates (approvals, verification, …) */}
-        <Notifications />
-
         {/* „Проверен работодавач" badge shortcut — turns golden once earned. */}
         <Link
           to="/terminal/moja-znachka"
@@ -383,6 +380,9 @@ const Header = ({ isTerminal = false }) => {
             </button>
           </div>
         </div>
+
+        {/* Notification bell — far right of the navbar, after the profile name */}
+        <Notifications />
 
         {/* Credit Modal */}
         {creditModalOpen && (

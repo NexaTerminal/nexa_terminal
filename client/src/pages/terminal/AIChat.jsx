@@ -57,7 +57,7 @@ const AIChat = () => {
   // Contract-review panel (corporate agent only).
   const [showContract, setShowContract] = useState(false);
   // Ask-a-Pro handoff
-  const { requireTerms, termsModal } = useTermsGate();
+  const { termsModal } = useTermsGate();
   const [proNotice, setProNotice] = useState(null);
 
   // State management
@@ -233,7 +233,10 @@ const AIChat = () => {
       .slice(-6)
       .map((m) => `${m.type === 'user' ? 'Јас' : activeAgent.name}: ${m.content}`)
       .join('\n\n');
-    requireTerms('proRequest', async () => {
+    // No heavy consent modal — inviting creates the request directly. Consent is
+    // implied (and the one-line disclaimer lives in the conversation); consentVersion
+    // is still recorded on the request.
+    (async () => {
       setProNotice(null);
       try {
         const res = await ProRequestsApiService.create({
@@ -244,10 +247,10 @@ const AIChat = () => {
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
         if (res.success) {
-          setProNotice('Поканивме професионалци во разговорот. Првиот што ќе се приклучи ќе ви одговори — следете го во „Разговори со професионалци".');
+          setProNotice('Поканивме професионалци во разговорот. Првиот што ќе се приклучи ќе ви одговори — следете го во „Разговори".');
         } else setError(res.message || 'Грешка при испраќање на барањето.');
       } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
-    });
+    })();
   };
 
   /**

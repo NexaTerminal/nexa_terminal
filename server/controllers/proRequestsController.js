@@ -53,7 +53,7 @@ const LIABILITY_NOTE =
 // Broadcast an open request to every Pro (bell + email) + confirm to the requester.
 async function broadcastToBoard(req, svc, item, summary) {
   const pros = await svc.eligibleProsForCategory(item.category);
-  const boardLink = `${APP_URL()}/terminal/pro/board`;
+  const boardLink = `${APP_URL()}/terminal/pro/conversations`;
   const summaryHtml = esc(item.context?.aiSummary || summary || '').replace(/\n/g, '<br/>');
   for (const p of pros) {
     notify(
@@ -70,7 +70,7 @@ async function broadcastToBoard(req, svc, item, summary) {
       type: 'pro_request_open',
       title: 'Ново барање за професионалец',
       message: item.subject,
-      actionUrl: '/terminal/pro/board',
+      actionUrl: '/terminal/pro/conversations',
       severity: 'info',
     });
   }
@@ -155,7 +155,7 @@ exports.addMessage = async (req, res) => {
     const body = `<p>Нова порака во барањето „${esc(request.subject)}".</p><p><a href="${link}">Отвори го разговорот</a></p>`;
     if (authorRole === 'user') {
       notify(request.assignedProEmail, 'Нова порака од клиент', body);
-      notifyInApp(req, request.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: request.subject, actionUrl: '/terminal/pro/requests', severity: 'info' });
+      notifyInApp(req, request.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: request.subject, actionUrl: '/terminal/pro/conversations', severity: 'info' });
     } else {
       notify(request.userEmail, 'Нова порака од професионалец', body);
       notifyInApp(req, request.userId, { type: 'pro_request_message', title: 'Нова порака од професионалец', message: request.subject, actionUrl: '/terminal/requests', severity: 'info' });

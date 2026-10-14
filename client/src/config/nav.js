@@ -68,10 +68,8 @@ const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/termi
 
 // „Моите барања" — the requester side of Ask-a-Pro (consults + document reviews).
 const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Разговори', path: '/terminal/requests' };
-// „Отворени барања" — the open board of user requests any eligible Pro can claim.
-const proBoard = { key: 'pro-board', icon: 'inbox', label: 'Отворени барања', path: '/terminal/pro/board', visible: showsLeads };
-// „Преземени барања" — requests this Pro has claimed (their active conversations).
-const proRequests = { key: 'pro-requests', icon: 'inbox', label: 'Преземени барања', path: '/terminal/pro/requests', visible: showsLeads };
+// „Разговори" — one page for Pros: open invitations to join + their own conversations.
+const proConversations = { key: 'pro-conversations', icon: 'inbox', label: 'Разговори', path: '/terminal/pro/conversations', visible: showsLeads };
 // „Сите барања" — admin-only oversight of every Ask-a-Pro request; admin can reject
 // (remove) an open request from here. Requests auto-publish, so this is for cleanup.
 const adminRequests = { key: 'admin-requests', icon: 'inbox', label: 'Сите барања', path: '/terminal/admin-user/requests', visible: (user) => user?.role === 'admin' };
@@ -172,7 +170,7 @@ const proSections = [
   // Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [leads, proBoard, proRequests, topicsqa, proBlog, proClients]
+    items: [leads, proConversations, topicsqa, proBlog, proClients]
   },
   {
     key: 'pro-tools', label: 'Алатки',

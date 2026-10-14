@@ -146,6 +146,7 @@ class ProRequestsService {
       companyName: doc.companyName || null,
       aiSummary: doc.context?.aiSummary || null,
       question: doc.context?.question || null,
+      transcript: doc.context?.transcriptExcerpt || null,
       documentName: doc.context?.documentName || null,
       createdAt: doc.createdAt,
       openedAt: doc.openedAt || null,

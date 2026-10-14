@@ -93,7 +93,7 @@ const BaseDocumentPage = ({
 
   // ── Post-terms actions (Генерирај / AI проверка / Проверка со професионалец) ──
   const { openChat } = useChatDock();
-  const { requireTerms, termsModal } = useTermsGate();
+  const { termsModal } = useTermsGate();
   const [actionsProNotice, setActionsProNotice] = useState(null);
 
   // Route to the agent that fits this document's category (route segment).
@@ -112,7 +112,7 @@ const BaseDocumentPage = ({
     });
   };
   const handleCheckPro = () => {
-    requireTerms('proRequest', async () => {
+    (async () => {
       setActionsProNotice(null);
       try {
         const res = await ProRequestsApiService.create({
@@ -125,10 +125,10 @@ const BaseDocumentPage = ({
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
         setActionsProNotice(res.success
-          ? 'Испратено за преглед — следете го во „Моите барања".'
+          ? 'Испратено за преглед — следете го во „Разговори".'
           : (res.message || 'Грешка при испраќање.'));
       } catch (e) { setActionsProNotice(e.message || 'Грешка при испраќање.'); }
-    });
+    })();
   };
 
   const applyCompanySource = (src) => {
@@ -443,7 +443,7 @@ const FormActions = ({
  */
 const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
   const [copied, setCopied] = useState(false);
-  const { requireTerms, termsModal } = useTermsGate();
+  const { termsModal } = useTermsGate();
   const { openChat } = useChatDock();
   const [reviewNotice, setReviewNotice] = useState(null);
 
@@ -467,7 +467,7 @@ const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
 
   // „Побарај преглед" — hand the generated document to a Pro for review.
   const requestProReview = () => {
-    requireTerms('proRequest', async () => {
+    (async () => {
       setReviewNotice(null);
       try {
         const res = await ProRequestsApiService.create({
@@ -477,10 +477,10 @@ const ShareableLinkSection = ({ shareUrl, fileName, expiresAt }) => {
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
         setReviewNotice(res.success
-          ? 'Испратено за преглед — следете го во „Моите барања".'
+          ? 'Испратено за преглед — следете го во „Разговори".'
           : (res.message || 'Грешка при испраќање.'));
       } catch (e) { setReviewNotice(e.message || 'Грешка при испраќање.'); }
-    });
+    })();
   };
 
   const copyToClipboard = async () => {

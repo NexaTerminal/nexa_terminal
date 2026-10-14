@@ -15,6 +15,25 @@
   background: #f1f5f9; border-radius: 999px;
 }
 
+/* Recorded AI conversation that preceded the human handoff. */
+.aiHistory {
+  border: 1px dashed var(--color-border, #e5e7eb); border-radius: 12px;
+  background: #fbfcfe; padding: 10px 12px; margin-bottom: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.aiHistoryLabel { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--color-neutral-400, #9ca3af); }
+.aiTurn { max-width: 88%; padding: 7px 11px; border-radius: 12px; }
+.aiTurnUser { align-self: flex-end; background: #eef2ff; border-bottom-right-radius: 4px; }
+.aiTurnBot { align-self: flex-start; background: #f3f4f6; border-bottom-left-radius: 4px; }
+.aiTurnSpeaker { display: block; font-size: 0.68rem; font-weight: 700; color: var(--color-neutral-500, #9ca3af); margin-bottom: 2px; }
+.aiTurnText { font-size: 0.86rem; color: var(--color-neutral-800, #1f2937); line-height: 1.4; white-space: pre-wrap; }
+
+/* One-line relationship/terms disclaimer above the composer. */
+.disclaimer {
+  margin: 8px 0 6px; font-size: 0.76rem; line-height: 1.5; color: var(--color-neutral-500, #9ca3af);
+}
+.disclaimer a { color: var(--color-primary, #1E4DB7); text-decoration: underline; }
+
 .msg { max-width: 78%; padding: 10px 12px; border-radius: 12px; }
 .mine { align-self: flex-end; background: var(--color-accent-soft, #eff6ff); }
 .theirs { align-self: flex-start; background: var(--color-neutral-50, #f8f9fa); border: 1px solid var(--color-border, #e5e7eb); }

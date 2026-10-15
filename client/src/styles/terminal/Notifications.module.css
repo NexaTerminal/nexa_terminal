@@ -61,11 +61,11 @@
   right: 0;
   width: 320px;
   max-width: 90vw;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  background: var(--bg-color, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  z-index: 1200;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
@@ -86,8 +86,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--card-bg, #ffffff);
 }
 
 .notificationsHeader h3 {
@@ -145,6 +145,7 @@
 .notificationsList {
   max-height: 400px;
   overflow-y: auto;
+  background: var(--bg-color, #ffffff);
 }
 
 .notificationItem {

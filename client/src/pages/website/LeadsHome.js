@@ -78,7 +78,7 @@ export default function LeadsHome() {
     },
     {
       label: T('Стручни одговори', 'Expert answers'),
-      hook: T('Луѓето треба да знаат за Вас.',
+      hook: T('Нека клиентите дознаат дека постоите.',
               'People need to know you exist.'),
       sub: T('Одговарајте на реални стручни прашања и градете репутација како експерт пред публика што веќе бара токму такво знаење.',
              'Answer real professional questions and build a reputation as the expert in front of an audience already looking for exactly that.')

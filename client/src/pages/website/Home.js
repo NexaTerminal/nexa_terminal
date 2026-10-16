@@ -51,7 +51,7 @@ export default function Home() {
           <p className={`${styles.heroSub} nx-fade-in-up nx-d-200`}>{t('home.heroSubtitle')}</p>
           <div className={`${styles.heroCtas} nx-fade-in-up nx-d-300`}>
             <Link to="/proverka" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-              {isMk ? 'Проверете ја вашата усогласеност' : 'Check your compliance'}
+              {isMk ? 'Проверете се — бесплатно' : 'Check your compliance — free'}
               <Icon name="arrowRight" size={18} />
             </Link>
             <Link to="/login" className="nexa-btn nexa-btn-secondary nexa-btn-lg">

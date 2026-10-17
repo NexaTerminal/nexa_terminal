@@ -6,6 +6,7 @@ const mammoth = require('mammoth');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const { ChatOpenAI } = require('@langchain/openai');
+const aiModels = require('../config/aiModels');
 const TemplateStorageService = require('../services/templateStorageService');
 const { analyzeAndSplit } = require('../services/bilingualSplitter');
 
@@ -1124,11 +1125,10 @@ async function suggestFields(req, res) {
     // Truncate to ~6000 chars to keep token usage low
     const truncated = text.slice(0, 6000);
 
-    const chatModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+    const chatModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_UTILITY_MODEL, // field-extraction = utility, not main
+      effort: aiModels.EFFORT_UTILITY,
+    }));
 
     const response = await chatModel.invoke([
       {

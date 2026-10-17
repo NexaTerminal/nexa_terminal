@@ -24,7 +24,8 @@ const {
 } = require('../constants/inquiryEnums');
 const { isValidProcedure, categoriesForProcedure, PROCEDURE_TEMPLATES } = require('../config/procedureTemplates');
 
-const MODEL = process.env.OPENAI_UTILITY_MODEL || 'gpt-4o-mini';
+const aiModels = require('../config/aiModels');
+const MODEL = aiModels.OPENAI_UTILITY_MODEL;
 const PROCEDURE_KEYS = Object.keys(PROCEDURE_TEMPLATES);
 
 let _client = null;
@@ -121,7 +122,7 @@ async function extractFromEmail(rawText) {
   if (!api) return emptyDraft(rawText);
 
   try {
-    const resp = await api.chat.completions.create({
+    const resp = await api.chat.completions.create(aiModels.completionParams({
       model: MODEL,
       temperature: 0.2,
       max_tokens: 700,
@@ -130,7 +131,7 @@ async function extractFromEmail(rawText) {
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: `Текст на е-поштата:\n\n${text}` },
       ],
-    });
+    }, { effort: aiModels.EFFORT_UTILITY }));
     const content = resp?.choices?.[0]?.message?.content?.trim();
     if (!content) return emptyDraft(rawText);
     let parsed;

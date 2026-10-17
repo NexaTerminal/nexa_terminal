@@ -4,11 +4,13 @@ const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
 const OpenAI = require('openai');
+const aiModels = require('../config/aiModels');
 const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
 const UserMemoryService = require('../services/userMemoryService');
 const AgentMemoryService = require('./services/agentMemoryService');
-const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName } = require('./agentProfiles');
+const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection } = require('./agentProfiles');
+const { detectInsurers, insurerName } = require('./insurers');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -94,27 +96,23 @@ function isCitableSource(meta) {
  */
 class ChatBotService {
   constructor() {
-    // Initialize OpenAI chat model
-    this.chatModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || 'gpt-5.1',
-      temperature: parseFloat(process.env.CHATBOT_TEMPERATURE) || 0.2,
-      // Cap output so the longer structured legal answers complete without
-      // truncation. MK Cyrillic ≈ 2.5-3 tokens/word, so a 1000-word structured
-      // answer needs ~3000 tokens. This is a CAP, not a spend — short answers
-      // bill only what they generate.
-      maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 4096,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+    // Initialize OpenAI chat model (main answers). Model + reasoning params come
+    // from the central config; maxTokens is a CAP (not a spend) — on reasoning
+    // models the config floors it so reasoning tokens can't starve the answer.
+    this.chatModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_MODEL,
+      maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 8000,
+      effort: aiModels.EFFORT_MAIN,
+    }));
 
     // Cheap utility model for auxiliary calls (query condensation for
     // follow-ups, query decomposition). Never used for user-facing answers.
-    // ~$0.0002 per question — keeps the token budget intact.
-    this.utilityModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_UTILITY_MODEL || 'gpt-4o-mini',
-      temperature: 0,
+    // Effort minimal; the config floors the tiny cap so reasoning doesn't eat it.
+    this.utilityModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_UTILITY_MODEL,
       maxTokens: 250,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+      effort: aiModels.EFFORT_UTILITY,
+    }));
 
     // Initialize OpenAI embeddings (for query embedding)
     this.embeddings = new OpenAIEmbeddings({
@@ -323,6 +321,75 @@ Nexa Terminal има функции што решаваат дел од проб
 Ако контекстот не го покрива прашањето — НЕ одбивајте: одговорете од општо правно знаење со задолжителната напомена дека изворот не е верифициран. Ако навистина не знаете — кажете отворено дека не знаете.`;
 
     this.promptTemplate = PromptTemplate.fromTemplate(this.systemPromptTemplate);
+
+    // Dedicated base prompt for ГАРД (insurance). The legal prompt above actively
+    // pushes the model the WRONG way for insurance — it mandates invented
+    // "примери од пракса", law-citation hierarchy, and a general-knowledge
+    // fallback. Insurance needs the opposite: quote the EXACT provision text of
+    // the insurer's conditions, stay strictly grounded, and ask for the insurer +
+    // policy type when the question is general. {stancePrefix} still carries the
+    // ГАРД persona flavor (agentProfiles.js) + memory.
+    this.insuranceSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Осигурителен AI Асистент (ГАРД)
+
+Ти си ГАРД, осигурителен експерт во Nexa Terminal. Одговараш на прашања за ОПШТИТЕ и ПОСЕБНИТЕ УСЛОВИ за осигурување на четири македонски друштва: Еуролинк, Халк Осигурување, Македонија Осигурување (ВИГ) и Осигурителна Полиса. Корисниците не се осигурителни стручњаци.
+
+## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
+Секогаш одговарај на МАКЕДОНСКИ (кирилица).
+
+## ИЗВОР И ГРОУНДИНГ (НАЈВАЖНО)
+- Твојот ЕДИНСТВЕН извор се доставените извадоци од условите за осигурување во „КОНТЕКСТ" подолу. Одговарај ИСКЛУЧИВО врз основа на нив.
+- Ако одговорот го НЕМА во доставените услови — кажи јасно: „Во достапните услови не го наоѓам тоа" и побарај точно друштво + вид полиса. НЕ погодувај.
+- НИКОГАШ не измислувај членови, точки, бројки, лимити, покриеност или исклучоци. НЕ се потпирај на општо знаење за тоа што „обично" покрива осигурувањето.
+- НЕ измислувај „пример од пракса" ниту хипотетички сценарија. Остани на она што пишува во условите.
+
+## ЦИТИРАЈ ГО ТОЧНИОТ ТЕКСТ (ОБВРСКА — ова е сржта на твојот одговор)
+За СЕКОЈА тврдња НАВЕДИ И ЦИТИРАЈ го конкретниот текст од условите — не парафразирај:
+1. Наведи го изворот: **Друштво — Документ (општи/посебни услови), Член N** (и точка/став ако постои). Ако извадокот во КОНТЕКСТ носи ознака „ВЕРИФИЦИРАН ЧЛЕН: X", СЕКОГАШ наведи го токму тој член (X) во цитатот — не изоставувај го и не измислувај друг број.
+2. Цитирај го ВЕРБАТИМ релевантниот дел во наводници: „... точниот текст од членот/точката ...".
+3. Потоа објасни со едноставни зборови што значи тоа за корисникот.
+Кога одговорот се потпира на повеќе членови/документи — цитирај го СЕКОЈ посебно. Подобро е точен цитат на еден член отколку општо прераскажување.
+
+## ОПШТИ + ПОСЕБНИ УСЛОВИ
+Покриеноста обично е во ОПШТИТЕ услови, а изменета/дополнета/ограничена во ПОСЕБНИТЕ услови (или условите за дополнителен ризик). Провери ги и ДВАТА и цитирај ги каде се релевантни — посебните услови имаат предност пред општите.
+
+## АКО ПРАШАЊЕТО Е ОПШТО ИЛИ НЕПРЕЦИЗНО (ЗАДОЛЖИТЕЛНО)
+Условите се разликуваат по друштво и по вид полиса, па не одговарај „на слепо". Ако недостасува, прво кратко прашај:
+1. За КОЕ друштво станува збор (Еуролинк, Халк, Македонија Осигурување (ВИГ) или Осигурителна Полиса)?
+2. КОЈ вид осигурување/полиса е во прашање и кој РИЗИК или ОСИГУРЕН СЛУЧАЈ те интересира (пр. пожар, поплава, кражба, незгода, патување, каско...)?
+
+## ФОРМАТ
+Кратко директно резиме → цитирани одредби (наводници + извор) со објаснување за секоја → практична напомена ако има (рок за пријава на штета, обврска на осигуреникот, исклучок што лесно се пропушта). Користи кратки markdown наслови/листи каде помага. Без измислени примери, без празни фрази како „разгледајте ги сите услови".
+
+## ПРЕДЛОГ ПРАШАЊА
+На крајот од СЕКОЈ одговор додади точно 3 кратки предлог прашања (до 60 карактери), во формат:
+
+[SUGGESTIONS]
+1. Прво предлог прашање
+2. Второ предлог прашање
+3. Трето предлог прашање
+[/SUGGESTIONS]
+
+## КОНТЕКСТ ОД УСЛОВИ ЗА ОСИГУРУВАЊЕ:
+{context}
+
+## ПРАШАЊЕ НА КОРИСНИКОТ:
+{question}
+
+## ПРЕД ДА ОДГОВОРИШ — КРАТКА ПРОВЕРКА:
+1. Знам ли за кое ДРУШТВО и кој ВИД полиса/ризик се работи? Ако не — прашај, не погодувај.
+2. Го имам ли одговорот во доставените услови? Ако не — кажи дека го нема и побарај прецизирање. Ништо измислено.
+3. Го ЦИТИРАВ ЛИ ВЕРБАТИМ точниот текст на членот/точката во наводници, со друштво + документ + Член?
+4. Проверив ли и општи и посебни услови каде е релевантно?
+5. Одговорот е на македонски, конкретен, без измислени примери и без празни фрази?
+
+Ова е информативен одговор базиран на наведените услови, не е правен совет; конкретната полиса/договор може да отстапува.`;
+
+    this.insurancePromptTemplate = PromptTemplate.fromTemplate(this.insuranceSystemPromptTemplate);
+  }
+
+  /** The base prompt template for an agent — ГАРД gets the insurance prompt. */
+  _promptTemplateFor(agent) {
+    return agent === 'insurance' ? this.insurancePromptTemplate : this.promptTemplate;
   }
 
   /**
@@ -523,17 +590,21 @@ Nexa Terminal има функции што решаваат дел од проб
 
   /**
    * Compose the full specialization prefix injected above the base system prompt:
-   *   agent flavor · hand-off note · user memory · agent memory · stance/persona.
-   * Memory sits before stance (what-we-know, then how-to-say-it); the shared client
-   * file comes before the per-character note.
+   *   agent flavor · hand-off note · user memory · agent memory.
+   *
+   * NOTE: the user's global Stance Preferences / persona picker ("direct",
+   * "mentor", …) are DELIBERATELY NOT applied here. Each AI character has its own
+   * fixed personality (ЈУРА = direct/risk-finder, ВЕРА = diplomatic/cautious,
+   * ГАРД = specific, ПУЛС = enthusiastic) and a user-level tone setting must not
+   * override it — the character IS the personality. Memory stays (that's
+   * what-we-know-about-you, not how-to-speak).
    */
   async _buildPrefix(userId, agent, fromAgent) {
-    const [memory, agentMemory, stance] = await Promise.all([
+    const [memory, agentMemory] = await Promise.all([
       this._getMemoryPrefix(userId),
       this._getAgentMemoryPrefix(userId, agent),
-      this._getStancePrefix(userId),
     ]);
-    return getAgentFlavor(agent) + getHandoffNote(fromAgent, agent) + memory + agentMemory + stance;
+    return getAgentFlavor(agent) + getHandoffNote(fromAgent, agent) + memory + agentMemory;
   }
 
   /**
@@ -673,9 +744,9 @@ Nexa Terminal има функции што решаваат дел од проб
       console.log(context.substring(0, 500) + (context.length > 500 ? '...' : ''));
       console.log('─'.repeat(70));
 
-      // Step 4: Create the RAG chain
+      // Step 4: Create the RAG chain (ГАРД uses the insurance base prompt)
       const chain = RunnableSequence.from([
-        this.promptTemplate,
+        this._promptTemplateFor(agent),
         this.chatModel,
         new StringOutputParser(),
       ]);
@@ -769,7 +840,7 @@ Nexa Terminal има функции што решаваат дел од проб
    * @param {number} limit - Max results to return
    * @returns {Promise<Array>} - Array of {pageContent, metadata} objects
    */
-  async vectorSearch(question, limit = 8) {
+  async vectorSearch(question, limit = 8, collection = this.collectionName, companyConds = []) {
     console.log('📊 [RAG DEBUG] Generating query embedding...');
     const embeddingStartTime = Date.now();
     const questionEmbedding = await this.embeddings.embedQuery(question);
@@ -778,10 +849,12 @@ Nexa Terminal има функции што решаваат дел од проб
 
     console.log('🔎 [RAG DEBUG] Running vector search...');
     const searchStartTime = Date.now();
-    const searchResult = await this.qdrantClient.search(this.collectionName, {
+    const searchResult = await this.qdrantClient.search(collection, {
       vector: questionEmbedding,
       limit,
       with_payload: true,
+      // Per-insurer filter for the insurance collection (empty = no filter).
+      ...(companyConds.length ? { filter: { must: companyConds } } : {}),
       // Cosine similarity floor. Raised from 0.25 → 0.35 (env-overridable) to
       // cut weakly-related chunks that diluted the context. Gated by eval-rag.
       score_threshold: parseFloat(process.env.CHATBOT_SCORE_THRESHOLD) || 0.35,
@@ -826,7 +899,7 @@ Nexa Terminal има функции што решаваат дел од проб
    * @param {number} limit - Max results to return
    * @returns {Promise<Array>} - Array of {pageContent, metadata} objects
    */
-  async keywordSearch(question, limit = 8) {
+  async keywordSearch(question, limit = 8, collection = this.collectionName, companyConds = []) {
     const keywords = extractKeywords(question);
     if (keywords.length === 0) {
       console.log('🔤 [RAG DEBUG] Keyword search skipped (no meaningful keywords)');
@@ -840,8 +913,10 @@ Nexa Terminal има функции што решаваат дел од проб
     let scrollResult;
     try {
       // Require at least 2 keywords present (or all, if fewer than 2).
-      scrollResult = await this.qdrantClient.scroll(this.collectionName, {
+      scrollResult = await this.qdrantClient.scroll(collection, {
         filter: {
+          // Insurer filter (if any) is a hard `must`; keywords stay a soft `min_should`.
+          ...(companyConds.length ? { must: companyConds } : {}),
           min_should: {
             conditions,
             min_count: Math.min(2, conditions.length),
@@ -853,8 +928,8 @@ Nexa Terminal има функции што решаваат дел од проб
     } catch (e) {
       // Fallback for Qdrant versions without min_should: require all keywords.
       console.warn('⚠️ [RAG DEBUG] min_should unsupported, falling back to must-all:', e.message);
-      scrollResult = await this.qdrantClient.scroll(this.collectionName, {
-        filter: { must: conditions },
+      scrollResult = await this.qdrantClient.scroll(collection, {
+        filter: { must: [...conditions, ...companyConds] },
         limit,
         with_payload: true,
       });
@@ -1142,10 +1217,12 @@ Nexa Terminal има функции што решаваат дел од проб
   async webSearchFallback(question) {
     if (process.env.CHATBOT_WEB_SEARCH === 'off') return null;
     try {
-      const model = process.env.CHATBOT_WEB_MODEL || process.env.OPENAI_MODEL || 'gpt-5.1';
+      const model = aiModels.CHATBOT_WEB_MODEL;
       const resp = await this.openaiClient.responses.create({
         model,
         tools: [{ type: 'web_search' }],
+        // Reasoning models: web_search FORBIDS `minimal` effort → use `low`.
+        ...(aiModels.isReasoningModel(model) ? { reasoning: { effort: 'low' } } : {}),
         input:
           `Пребарај на интернет за да одговориш на правно прашање за Република Северна Македонија. ` +
           `Дај предност на официјални извори: slvesnik.com.mk (Службен весник), pravda.gov.mk, ujp.gov.mk, finance.gov.mk. ` +
@@ -1218,7 +1295,23 @@ Nexa Terminal има функции што решаваат дел од проб
 
     try {
       const isComplex = this.isComplexQuestion(question);
-      console.log(`\n🔍 [RAG DEBUG] Starting HYBRID document retrieval (complex: ${isComplex}) for: "${question.substring(0, 100)}..."`);
+      // Per-agent collection: ГАРД (insurance) retrieves from its own Qdrant
+      // collection; legal/hr fall back to the default (legal) collection.
+      const collection = getAgentCollection(agent) || this.collectionName;
+      // Insurance conditions differ per insurer, so filter retrieval to the
+      // insurer(s) named in the (condensed) query. Empty when none is named —
+      // then we retrieve unfiltered and ГАРД asks which insurer (per its prompt).
+      let companyConds = [];
+      if (agent === 'insurance') {
+        const slugs = detectInsurers(question);
+        if (slugs.length) {
+          companyConds = [{ key: 'company', match: { any: slugs } }];
+          console.log(`🛡️ [RAG DEBUG] Insurer filter: ${slugs.map(insurerName).join(', ')}`);
+        } else {
+          console.log('🛡️ [RAG DEBUG] No insurer named — unfiltered insurance retrieval (ГАРД will ask)');
+        }
+      }
+      console.log(`\n🔍 [RAG DEBUG] Starting HYBRID document retrieval (complex: ${isComplex}, collection: ${collection}) for: "${question.substring(0, 100)}..."`);
 
       let topResults;
 
@@ -1231,7 +1324,7 @@ Nexa Terminal има функции што решаваат дел од проб
         // Run hybrid search for each sub-query (6 results each to feed the reranker)
         const allResults = [];
         const searchPromises = queries.map(q =>
-          Promise.allSettled([this.vectorSearch(q, 6), this.keywordSearch(q, 6)])
+          Promise.allSettled([this.vectorSearch(q, 6, collection, companyConds), this.keywordSearch(q, 6, collection, companyConds)])
         );
         const settledResults = await Promise.all(searchPromises);
 
@@ -1262,8 +1355,8 @@ Nexa Terminal има функции што решаваат дел од проб
       } else {
         // Simple question: single hybrid search — wide pool for the reranker.
         const [vectorResults, keywordResults] = await Promise.allSettled([
-          this.vectorSearch(question, 12),
-          this.keywordSearch(question, 12),
+          this.vectorSearch(question, 12, collection, companyConds),
+          this.keywordSearch(question, 12, collection, companyConds),
         ]);
 
         const vectors = vectorResults.status === 'fulfilled' ? vectorResults.value : [];
@@ -1649,9 +1742,9 @@ Nexa Terminal има функции што решаваат дел од проб
       }));
       onEvent({ type: 'sources', data: sources });
 
-      // Build chain for streaming
+      // Build chain for streaming (ГАРД uses the insurance base prompt)
       const chain = RunnableSequence.from([
-        this.promptTemplate,
+        this._promptTemplateFor(agent),
         this.chatModel,
         new StringOutputParser(),
       ]);
@@ -1739,8 +1832,8 @@ Nexa Terminal има функции што решаваат дел од проб
   getHealthStatus() {
     return {
       status: 'operational',
-      model: process.env.OPENAI_MODEL || 'gpt-5.1',
-      temperature: parseFloat(process.env.CHATBOT_TEMPERATURE) || 0.2,
+      model: aiModels.OPENAI_MODEL,
+      effort: aiModels.EFFORT_MAIN,
       vectorStoreInitialized: this.vectorStore !== null,
       timestamp: new Date(),
     };

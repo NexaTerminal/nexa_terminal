@@ -4,6 +4,7 @@ const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const { QdrantClient } = require('@qdrant/js-client-rest');
 const StancePreferencesService = require('../services/stancePreferencesService');
+const aiModels = require('../config/aiModels');
 
 /**
  * MarketingBotService - Core RAG chatbot service for marketing Q&A
@@ -17,23 +18,22 @@ const StancePreferencesService = require('../services/stancePreferencesService')
  */
 class MarketingBotService {
   constructor() {
-    // Initialize OpenAI chat model - higher temperature for creativity.
-    // Own env var (NOT the shared OPENAI_MODEL) so the marketing bot stays on
-    // the budget model even when the legal bot runs gpt-4o.
-    this.chatModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_MARKETING_MODEL || 'gpt-4o-mini',
-      temperature: 0.7, // Higher temperature for marketing creativity
+    // Marketing chat model (ПУЛС). Own model role so it can diverge from the
+    // legal bot. Reasoning params from the central config; on reasoning models
+    // the old `temperature: 0.7` is dropped (rejected) and effort drives style.
+    this.chatModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_MARKETING_MODEL,
+      temperature: 0.7, // used only on a non-reasoning rollback (e.g. gpt-4o)
       maxTokens: parseInt(process.env.MARKETING_MAX_TOKENS) || 3072, // cap, not spend
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+      effort: aiModels.EFFORT_MARKETING,
+    }));
 
     // Cheap utility model for query condensation (follow-up retrieval).
-    this.utilityModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_UTILITY_MODEL || 'gpt-4o-mini',
-      temperature: 0,
+    this.utilityModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_UTILITY_MODEL,
       maxTokens: 200,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+      effort: aiModels.EFFORT_UTILITY,
+    }));
 
     // Initialize OpenAI embeddings (for query embedding)
     this.embeddings = new OpenAIEmbeddings({
@@ -69,7 +69,7 @@ class MarketingBotService {
     // {stancePrefix} renders the user's Stance Preferences (or "" if unset).
     this.systemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Маркетинг Стратег AI
 
-Вие сте сениор маркетинг консултант за македонски мали и средни бизниси, интегриран во Nexa Terminal. Корисниците се сопственици и менаџери — луѓе со малку време и ограничен буџет, на кои им требаат резултати, не теорија.
+Ти си ПУЛС — енергичен, забавен и ентузијастичен маркетинг стратег за македонски мали и средни бизниси, интегриран во Nexa Terminal. Корисниците се сопственици и менаџери — луѓе со малку време и ограничен буџет, на кои им требаат резултати, не теорија. Ти носиш позитивна енергија и те палат идеите — но зад ентузијазмот секогаш стои конкретна, применлива вредност.
 
 ## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
 СЕКОГАШ одговарајте на МАКЕДОНСКИ (кирилица), без оглед на јазикот на прашањето или на изворите. Стручни термини (reach, engagement, CTR, funnel) може да останат во оригинал.
@@ -94,7 +94,7 @@ class MarketingBotService {
 - [Извештај за маркетинг перформанси](/terminal/marketing/performance-report) — структуриран преглед на резултатите.
 
 ## ФОРМАТ
-Markdown: **bold** наслови, кратки листи, лесно скенирање. Директно на поента — без „Одлично прашање!". Тон: топол, професионален, акциски.
+Markdown: **bold** наслови, кратки листи, лесно скенирање. Директно на поента. Тон: ЗАБАВЕН, ентузијастичен и енергичен — како колега што навистина се пали на добра идеја (слободно понекогаш емоџи или извик „Ова е одлична прилика!"), но НИКОГАШ празен хип: енергијата е завиткана околу конкретни чекори, бројки и примери. Инспирирај и забавувај, но секогаш остави нешто применливо.
 
 ### ПРИМЕР — стил и длабочина што се очекува:
 
@@ -340,8 +340,10 @@ Markdown: **bold** наслови, кратки листи, лесно скен�
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // Execute the chain. Stance preferences injected as a structured prefix.
-      const stancePrefix = await this._getStancePrefix(userId);
+      // ПУЛС has its OWN fixed personality (fun, enthusiastic) baked into the base
+      // prompt — the user's global Stance Preferences / persona must NOT override
+      // it, so no stance prefix is applied.
+      const stancePrefix = '';
       console.log('\n💬 [Marketing RAG] Sending to OpenAI LLM...');
       const response = await chain.invoke({
         stancePrefix,
@@ -489,8 +491,8 @@ Markdown: **bold** наслови, кратки листи, лесно скен�
   getHealthStatus() {
     return {
       status: 'operational',
-      model: process.env.OPENAI_MARKETING_MODEL || 'gpt-4o-mini',
-      temperature: 0.7,
+      model: aiModels.OPENAI_MARKETING_MODEL,
+      effort: aiModels.EFFORT_MARKETING,
       vectorStoreInitialized: this.vectorStore !== null,
       collection: this.collectionName,
       timestamp: new Date(),

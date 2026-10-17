@@ -9,8 +9,9 @@
  */
 
 const OpenAI = require('openai');
+const aiModels = require('../config/aiModels');
 
-const MODEL = process.env.BLOG_GUIDELINE_MODEL || 'gpt-4o-mini';
+const MODEL = aiModels.BLOG_GUIDELINE_MODEL;
 
 // Strip HTML tags and collapse whitespace for word-count + content sniffing.
 const stripHtml = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -75,7 +76,7 @@ class BlogGuidelineCheckService {
     ].filter(Boolean).join('\n');
 
     try {
-      const response = await this.openai.chat.completions.create({
+      const response = await this.openai.chat.completions.create(aiModels.completionParams({
         model: MODEL,
         temperature: 0.1,
         response_format: { type: 'json_object' },
@@ -83,7 +84,7 @@ class BlogGuidelineCheckService {
           { role: 'system', content: SYSTEM },
           { role: 'user',   content: userBlock }
         ]
-      });
+      }, { effort: aiModels.EFFORT_UTILITY }));
 
       const raw = response?.choices?.[0]?.message?.content || '{}';
       const verdict = JSON.parse(raw);

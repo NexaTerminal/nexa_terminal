@@ -12,6 +12,7 @@
 
 const { ObjectId } = require('mongodb');
 const { ChatOpenAI } = require('@langchain/openai');
+const aiModels = require('../../config/aiModels');
 
 const NARRATIVE_SYSTEM = `Ти си правен советник што му објаснува на СОПСТВЕНИК НА БИЗНИС (не правник) што значи неговиот извештај за правна усогласеност и што да направи.
 
@@ -106,12 +107,12 @@ exports.generate = async (req, res) => {
       return res.status(503).json({ success: false, message: 'AI резиме моментално не е достапно.' });
     }
 
-    const model = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || 'gpt-5.1',
+    const model = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_MODEL,
       temperature: 0.3,
       maxTokens: 1000,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+      effort: aiModels.EFFORT_MAIN,
+    }));
 
     const findings = buildFindingsBlock(assessment);
     const resp = await model.invoke([

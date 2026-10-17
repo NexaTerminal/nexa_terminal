@@ -13,8 +13,9 @@
 
 const OpenAI = require('openai');
 const { redactPii } = require('../utils/redactPii');
+const aiModels = require('../config/aiModels');
 
-const MODEL = process.env.OPENAI_UTILITY_MODEL || 'gpt-4o-mini';
+const MODEL = aiModels.OPENAI_UTILITY_MODEL;
 
 let _client = null;
 function client() {
@@ -63,7 +64,7 @@ async function summarizeConversation({ subject, question, transcript, type } = {
       (input.question ? `\nПрашање на корисникот:\n${input.question}\n` : '') +
       (input.transcript ? `\nИзвадок од разговорот со AI:\n${input.transcript}\n` : '');
 
-    const resp = await api.chat.completions.create({
+    const resp = await api.chat.completions.create(aiModels.completionParams({
       model: MODEL,
       temperature: 0.2,
       max_tokens: 320,
@@ -71,7 +72,7 @@ async function summarizeConversation({ subject, question, transcript, type } = {
         { role: 'system', content: sys },
         { role: 'user', content: user },
       ],
-    });
+    }, { effort: aiModels.EFFORT_UTILITY }));
     const out = resp?.choices?.[0]?.message?.content?.trim();
     return out ? redactPii(out) : fallbackSummary(input);
   } catch (e) {

@@ -15,7 +15,8 @@ const PRIORITY_LABEL = { low: 'Низок', normal: 'Нормален', high: '�
 const DEADLINE_TYPE_LABEL = { rociste: 'Рочиште', zalba: 'Жалба', podnesok: 'Поднесок', zastarenost: 'Застареност', plakanje: 'Плаќање', drugo: 'Друго' };
 const fmtDate = (d) => { if (!d) return ''; const x = new Date(d); if (isNaN(x)) return ''; return `${String(x.getDate()).padStart(2, '0')}.${String(x.getMonth() + 1).padStart(2, '0')}.${x.getFullYear()}`; };
 
-const AI_MODEL = process.env.CASE_BRIEF_MODEL || 'gpt-4o-mini';
+const aiModels = require('../config/aiModels');
+const AI_MODEL = aiModels.CASE_BRIEF_MODEL;
 let _openai = null;
 const openai = () => {
   if (!_openai && process.env.OPENAI_API_KEY) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -196,7 +197,7 @@ exports.aiBrief = async (req, res) => {
       return res.json({ success: true, summary: notes, clientSummary: notes, degraded: true });
     }
 
-    const response = await client.chat.completions.create({
+    const response = await client.chat.completions.create(aiModels.completionParams({
       model: AI_MODEL,
       temperature: 0.3,
       response_format: { type: 'json_object' },
@@ -204,7 +205,7 @@ exports.aiBrief = async (req, res) => {
         { role: 'system', content: AI_SYSTEM },
         { role: 'user', content: `БЕЛЕШКИ:\n${notes}` }
       ]
-    });
+    }, { effort: aiModels.EFFORT_UTILITY }));
     const raw = response?.choices?.[0]?.message?.content || '{}';
     let parsed = {};
     try { parsed = JSON.parse(raw); } catch { parsed = {}; }

@@ -9,11 +9,15 @@
  * business lawyer (employment, companies, contracts, GDPR, tax). The former
  * НОВА (corporate) and АРИА (hr) are gone; legacy keys resolve to ЈУРА via
  * getAgent()'s fallback, so old links/data still work. ПУЛС (marketing) runs on
- * its own engine/page. Insurance (ГАРД) is reserved for later.
+ * its own engine/page. ГАРД (insurance) is LIVE — it runs on the same RAG engine
+ * as the lawyers but the server routes it to its own Qdrant collection
+ * (nexa_insurance_docs); see server/chatbot/agentProfiles.js.
  *
  * `engine` tells the UI how to run the agent:
- *  - 'legal'     → served by AIChat on the legal RAG (ChatBotService); `key` is
- *                  sent as the `agent` param on each /chatbot request.
+ *  - 'legal'     → served by AIChat on the RAG engine (ChatBotService); `key` is
+ *                  sent as the `agent` param on each /chatbot request. The server
+ *                  picks the retrieval collection per agent, so 'legal' here means
+ *                  "the in-page RAG chat", not "the legal corpus".
  *  - 'marketing' → separate page; selecting it navigates to `route`.
  */
 
@@ -23,7 +27,7 @@ export const AI_AGENTS = [
     name: 'ЈУРА',
     role: 'Деловен правен советник',
     tagline: 'Работни односи, друштва, договори, ГДПР, даноци',
-    bio: 'ЈУРА е твојот деловен адвокат за сите секојдневни правни прашања — работни односи и отказ, трговски друштва и договори, заштита на лични податоци и даночна усогласеност. Оди право на суштината, лови ги ризиците и те води низ постапката чекор по чекор. Прикачи договор и ќе ти го прегледа клаузула по клаузула.',
+    bio: 'ЈУРА е твојот деловен правник за сите секојдневни правни прашања — работни односи и отказ, трговски друштва и договори, заштита на лични податоци и даночна усогласеност. Тој оди право на суштината, ги идентификува ризиците и те води низ постапката чекор по чекор. Прикачи договор и ќе ти го прегледа клаузула по клаузула.',
     greeting: 'Кажи ми со две реченици што те мачи — дали е работен однос, договор, друштво или лични податоци — и веднаш одиме на суштината: што те штити, каде е ризикот и кои се следните чекори.',
     icon: '⚖️',
     photo: '/ai-team/lex.png',
@@ -71,13 +75,19 @@ export const AI_AGENTS = [
     key: 'insurance',
     name: 'ГАРД',
     role: 'Осигурителен експерт',
-    tagline: 'Осигурување и ризици',
-    bio: 'ГАРД ќе ти помага со избор на осигурување, полиси и управување со ризици за твојот бизнис — наскоро дел од твојот AI Тим.',
+    tagline: 'Осигурување, покриеност и ризици',
+    bio: 'ГАРД ги чита општите услови на четири осигурителни друштва (Еуролинк, Халк, Македонија Осигурување/ВИГ и Осигурителна Полиса) и ти кажува што точно покрива полисата, што е исклучено, кои се лимитите и франшизата и како да пријавиш штета. Условите се разликуваат по друштво — затоа прво ќе те праша за кое друштво станува збор.',
+    greeting: 'Кажи ми за кое осигурително друштво прашуваш — Еуролинк, Халк, Македонија Осигурување (ВИГ) или Осигурителна Полиса — и што те интересира. Условите се разликуваат по друштво, па веднаш одиме на суштината: што е покриено, што е ИСКЛУЧЕНО и каде е ризикот.',
     icon: '🛡️',
     photo: '/ai-team/egis.png',
     accent: '#047857',
+    engine: 'legal',
     hasContractReview: false,
-    comingSoon: true,
+    starters: [
+      'Што покрива осигурувањето на имот од пожар кај Халк?',
+      'Кои се исклучоците кај патничкото осигурување на Еуролинк?',
+      'Што да внимавам пред да пријавам штета — рокови и обврски?',
+    ],
   },
 ];
 

@@ -3,9 +3,10 @@ const OpenAI = require('openai');
 const { buildPreScanMessages } = require('./prompts/preScanPrompt');
 const { buildAnalysisMessages } = require('./prompts/analysisPrompt');
 const StancePreferencesService = require('../services/stancePreferencesService');
+const aiModels = require('../config/aiModels');
 
-const PRE_SCAN_MODEL = process.env.CONTRACT_PRESCAN_MODEL || 'gpt-4o-mini';
-const ANALYSIS_MODEL = process.env.CONTRACT_ANALYSIS_MODEL || 'gpt-4o';
+const PRE_SCAN_MODEL = aiModels.CONTRACT_PRESCAN_MODEL; // utility role
+const ANALYSIS_MODEL = aiModels.CONTRACT_ANALYSIS_MODEL; // main role
 const MONTHLY_LIMIT = parseInt(process.env.CONTRACT_ANALYSIS_MONTHLY_LIMIT) || 3;
 const PRE_SCAN_EXCERPT_CHARS = 12000; // ~3K tokens
 
@@ -106,12 +107,12 @@ class ContractAnalysisService {
     const stancePrefix = await this._getStancePrefix(userId);
     const messages = buildPreScanMessages(excerpt, stancePrefix);
 
-    const response = await this._chat({
+    const response = await this._chat(aiModels.completionParams({
       model: PRE_SCAN_MODEL,
       messages,
       temperature: 0.1,
       response_format: { type: 'json_object' },
-    }, { timeout: 25 * 1000, label: 'pre-scan' });
+    }, { effort: aiModels.EFFORT_UTILITY }), { timeout: 25 * 1000, label: 'pre-scan' });
 
     const raw = response.choices[0]?.message?.content || '{}';
     const preScan = this._safeParseJson(raw, {
@@ -238,12 +239,12 @@ class ContractAnalysisService {
     while (attempts < 2) {
       attempts++;
       try {
-        const response = await this._chat({
+        const response = await this._chat(aiModels.completionParams({
           model: ANALYSIS_MODEL,
           messages,
           temperature: 0.2,
           response_format: { type: 'json_object' },
-        }, { timeout: 80 * 1000, label: 'analysis' });
+        }, { effort: aiModels.EFFORT_MAIN }), { timeout: 80 * 1000, label: 'analysis' });
         const raw = response.choices[0]?.message?.content || '{}';
         report = JSON.parse(raw);
         break;

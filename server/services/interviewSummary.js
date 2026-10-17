@@ -2,8 +2,9 @@
 // short, structured read for the employer. Best-effort: never throws, degrades
 // to null when no OPENAI_API_KEY is set. Cheap model (mini) per budget rules.
 const OpenAI = require('openai');
+const aiModels = require('../config/aiModels');
 
-const AI_MODEL = process.env.INTERVIEW_SUMMARY_MODEL || 'gpt-4o-mini';
+const AI_MODEL = aiModels.INTERVIEW_SUMMARY_MODEL;
 let _openai = null;
 const openai = () => {
   if (!_openai && process.env.OPENAI_API_KEY) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -36,7 +37,7 @@ async function summarize({ type, questions, answers }) {
   const client = openai();
   if (!client) return null;
   try {
-    const response = await client.chat.completions.create({
+    const response = await client.chat.completions.create(aiModels.completionParams({
       model: AI_MODEL,
       temperature: 0.3,
       response_format: { type: 'json_object' },
@@ -44,7 +45,7 @@ async function summarize({ type, questions, answers }) {
         { role: 'system', content: SYSTEM[type === 'exit' ? 'exit' : 'scan'] },
         { role: 'user', content: `ОДГОВОРИ ОД ИНТЕРВЈУ:\n\n${transcript(questions, answers)}` },
       ],
-    });
+    }, { effort: aiModels.EFFORT_UTILITY }));
     const raw = response?.choices?.[0]?.message?.content || '{}';
     let parsed = {};
     try { parsed = JSON.parse(raw); } catch { parsed = {}; }

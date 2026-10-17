@@ -1,256 +1,63 @@
-# Plan — AI characters: per-character conversations (A) + continue where you left off (B)
+# Switch all Nexa server AI to gpt-5-mini
 
-Goal: each AI Team character (ЈУРА / НОВА / АРИА) gets its OWN thread list, and
-re-opening a character resumes their last conversation instead of a blank slate.
+## Context / de-risking (DONE — verified live)
+- `gpt-5-mini` is reachable on the current OPENAI_API_KEY.
+- It is a reasoning model: `temperature` → HTTP 400; must use `max_completion_tokens` (not `max_tokens`); reasoning tokens count against the cap (128 reasoning tokens seen on a trivial reply → small caps starve output).
+- LangChain `@langchain/openai@1.4.7` accepts `maxCompletionTokens` + `reasoningEffort`; raw `openai@6.41.0` accepts `max_completion_tokens` + `reasoning_effort`.
+- `web_search` (Responses API) forbids `minimal` effort → use `low` there.
 
-Memory (Layer 1 user facts), persona/stance, and multi-turn history already exist.
-This only scopes conversations by `agent` and auto-resumes.
+## Plan
+- [ ] Step 1: create `server/config/aiModels.js` — single source of model roles + `isReasoningModel` + `langchainOptions()` + `completionParams()` + effort/floor logic. Default model everywhere = `gpt-5-mini`.
+- [ ] Step 2: replace every call site to use the helpers (change only model/params, nothing else):
+  - [ ] chatbot/ChatBotService.js: chatModel (main/low), utilityModel (utility/minimal), webSearchFallback (Responses API, effort low), getHealthStatus (report real model/effort, no temperature)
+  - [ ] chatbot/MarketingBotService.js: chatModel (marketing/low), utilityModel (utility/minimal), raw completion ~L494
+  - [ ] contractAnalysis/ContractAnalysisService.js: pre-scan (utility/minimal), analysis (main/low) via completionParams
+  - [ ] controllers/casesController.js (utility/minimal)
+  - [ ] services/blogGuidelineCheckService.js (utility/minimal)
+  - [ ] services/inquiryEmailExtractor.js (utility/minimal)
+  - [ ] services/interviewSummary.js (utility/minimal)
+  - [ ] services/aiSummaryService.js (utility/minimal)
+  - [ ] controllers/autoDocuments/companyActExtractionController.js (utility — move off OPENAI_MODEL)
+  - [ ] controllers/customTemplateController.js (utility — move off OPENAI_MODEL)
+  - [ ] controllers/lhc/lhcNarrativeController.js (main/low)
+  - [ ] scripts/eval-answers.js (answer model from config; judge stays configurable)
+  - [ ] Do NOT touch embeddings (text-embedding-3-small stays).
+- [ ] Step 3: env — server/.env, server/.env.development, .env.example + list prod vars.
+- [ ] Step 4: verify — single query, eval (gpt-4o vs gpt-5-mini), per-feature smoke tests, cost/latency, rollback to gpt-4o.
 
-No migration: existing conversations have no `agent` → simply won't show in the new
-per-character lists (acceptable — all data is demo per `no-paying-users-yet`).
+## Review
 
-## A — Scope conversations per character
+### Done
+- `config/aiModels.js` created — single source of model roles + effort + floors + `isReasoningModel` + `langchainOptions()` + `completionParams()`. All roles default to `gpt-5-mini`; feature models default to their role.
+- All 13 call sites rewired through the helpers (ChatBotService ×4, MarketingBotService ×3, ContractAnalysisService ×2, lhcNarrative, casesController, blogGuideline, inquiryEmailExtractor, interviewSummary, aiSummaryService, companyActExtraction, customTemplate, eval-answers). companyAct + customTemplate moved OFF OPENAI_MODEL onto the utility role.
+- webSearchFallback: effort `low` (web_search forbids `minimal`); health endpoints report model+effort (no temperature).
+- Embeddings untouched (text-embedding-3-small).
+- Env updated: `.env`, `.env.development` → gpt-5-mini + effort + CHATBOT_MAX_TOKENS=8000, CHATBOT_TEMPERATURE removed. `.env.example` created.
 
-- [ ] `ConversationService.createConversation`: accept `options.agent`; store `agent`
-      on the doc; scope the "deactivate other active" updateMany by `{userId, agent}`
-      (so switching characters doesn't deactivate another character's thread).
-- [ ] `ConversationService.saveMessage`: stamp `agent` on AI messages (future-proof;
-      conversation.agent stays authoritative for display).
-- [ ] `ConversationService.getUserConversations`: honor `options.agent` filter.
-- [ ] `ConversationService.getLatestForAgent(userId, agent)`: return most-recent
-      conversation (full, with messages) for that character, or null.  [serves B]
-- [ ] `ChatBotService` askQuestion + askQuestionStream: pass `agent` into the AI
-      `saveMessage` calls.
-- [ ] `routes/chatbot.js`: `/conversations/new` reads `agent` from body → options;
-      `/conversations` reads `?agent=` → filter; add `GET /conversations/latest?agent=`.
-- [ ] `services/chatbotApi.js`: `createConversation(firstQuestion, agent)`;
-      `getConversations(limit, offset, agent)`; add `getLatestConversation(agent)`.
-- [ ] `ConversationSidebar.jsx`: take `agent` prop → pass to getConversations;
-      refetch when `agent` changes (each character shows only its own threads).
-- [ ] `AIChat.jsx`: pass `agent` to createConversation + sidebar; when loading a
-      conversation, set the active agent from `conversation.agent`.
+### Verified
+- gpt-5-mini reachable; `temperature` → 400; `max_completion_tokens`+`reasoning_effort` work (raw SDK + LangChain). Live probe + full single-query ЈУРА answer (non-empty, Macedonian, sources).
+- Config param-shaping unit-tested offline (reasoning → drop temp, floor tokens, set effort; gpt-4o → keep temp/max_tokens). All role defaults resolve to gpt-5-mini.
+- Rollback path exercised live: the gpt-4o baseline eval generated 9 real answers through `langchainOptions(model='gpt-4o')` → temperature kept, calls succeeded.
+- All AI singletons load/construct cleanly on the new config.
+- Cleanliness grep: no raw temperature/max_tokens/gpt-4o defaults left outside the wrappers.
 
-## B — Continue where you left off
+### Full verification — COMPLETE (credits added, all re-run)
 
-- [ ] `AIChat.jsx`: on mount (after resolving ?agent=), bootstrap the character by
-      loading `getLatestConversation(agent)` → hydrate messages + currentConversationId;
-      if none, fresh slate. SKIP when `?q=` prefill (user came to ask something new)
-      and on in-page hand-off (handoff intentionally starts a fresh thread).
+**Eval — 12 golden questions, judge gpt-4o (per-criterion avg /2.0, overall, pass rate):**
+| criterion | gpt-4o | gpt-5-mini |
+|---|---|---|
+| faithfulness | 1.58 | **1.75** |
+| citation_discipline | 1.58 | 1.58 |
+| article_accuracy | 1.33 | **1.83** |
+| decisiveness | 1.92 | 1.92 |
+| practicality | 1.92 | **2.00** |
+| language_mk | 2.00 | 2.00 |
+| **OVERALL** | **86%** | **92%** |
+| **PASS RATE** | **8/12 (67%)** | **11/12 (92%)** |
+gpt-5-mini is **better or equal on every criterion** — NO regression. Biggest gain: article_accuracy (1.33→1.83). Only 1 failure (Q3 notice-period) — a SHARED corpus/retrieval gap (gpt-4o also fails it), not model-caused.
 
-## Verify
-- [ ] Server modules load; ConversationService unit-exercise with mock db
-      (create w/ agent → list filtered by agent → latest returns it).
-- [ ] ESLint clean on changed client files.
+**Cost/latency (5 ЈУРА answers, $0.25/1M in, $2/1M out):** avg **$0.00517/answer**; input ~8–11k tok (legal context), output ~1–2k, reasoning only 64–384 tok (low effort is efficient). Pure LLM latency ~15s; full pipeline ~46s (dominated by retrieval/LDH/rerank, not the model).
 
-## Review — DONE
+**Per-feature smoke — 11/11 PASS** (non-empty; valid JSON where expected): ВЕРА, ГАРД (insurer named), ПУЛС, contract-analysis (JSON 6.6s ✓ well under 80s timeout — no timeout issue), case-brief (JSON), inquiry-extractor (JSON), AI-summary, interview-summary (JSON), LHC-narrative, company-act (JSON), custom-template (JSON).
 
-All A + B items implemented and verified.
-
-Changed files:
-- server/chatbot/services/ConversationService.js — store `agent` on conversation,
-  per-character "deactivate active" scope, agent filter in list, `agent` stamp on
-  AI messages, new `getLatestForAgent`.
-- server/chatbot/ChatBotService.js — pass `agent` into both AI saveMessage calls.
-- server/routes/chatbot.js — `agent` on /new, `?agent=` filter on list, new
-  GET /conversations/latest?agent= (placed before /:id).
-- client/src/services/chatbotApi.js — createConversation(q, agent),
-  getConversations(…, agent), new getLatestConversation(agent).
-- client/src/components/chatbot/ConversationSidebar.jsx — `agent` prop → filter +
-  refetch on character change.
-- client/src/pages/terminal/AIChat.jsx — tag new conversations with agent; adopt a
-  loaded conversation's agent; (B) bootstrap effect resumes the character's latest
-  thread on mount (skipped when ?q= prefill / handoff keeps fresh thread).
-
-Verified:
-- ConversationService mock-db run: agent stored, no cross-character deactivation,
-  agent-filtered list, AI-message agent stamp (user msg unstamped), getLatestForAgent
-  returns latest / null. ✅
-- Server modules parse + load (dummy OPENAI key). ✅
-- ESLint clean on all 3 changed client files. ✅
-
-Notes:
-- No migration: legacy conversations (no `agent`) won't appear in per-character
-  lists — acceptable (demo data). They remain in the DB.
-- Not yet done (future): per-character memory (C).
-
----
-
-# Plan — D: rolling conversation summary (+ history-load bug fix)
-
-## Bug found (foundational)
-ChatBotService.askQuestion/askQuestionStream call `getConversation(conversationId)`
-with NO userId → service does `userId.toString()` → throws → caught → history = ''.
-=> The AI never actually receives prior turns on follow-ups. Fix this first.
-
-- [ ] ConversationService.getConversation: make `userId` optional (only filter when
-      provided) so the internal load can't crash; still pass userId from routes.
-- [ ] ChatBotService: pass `userId` at both getConversation call sites.
-
-## D — rolling summary
-Keep the last WINDOW(6) raw messages (as today) AND a cumulative `summary` of the
-older turns, so a long chat stays coherent without resending the whole transcript.
-
-- [ ] ConversationService: `updateSummary(conversationId, summary, summarizedCount)`;
-      summary/summarizedCount default to ''/0 when absent.
-- [ ] ChatBotService:
-      - `_formatHistoryWithSummary(conversation)` → stored summary prefix + last-6
-        formatted block; use it at both load sites (replace formatConversationHistory).
-      - after saving the exchange (both paths), fire-and-forget
-        `_maybeRollUpSummary(conversationId, allMessages, priorSummary, summarizedCount)`
-        — folds newly-aged-out messages into the summary via utilityModel (gpt-4o-mini).
-      - `_rollUpSummary(prior, agedMessages)` cumulative summarizer (fail-safe → prior).
-
-## Verify — DONE
-- [x] Mock-db: updateSummary persists; getConversation works with/without userId.
-- [x] Rollup math: summarizedCount advances to total-WINDOW; no-op at/under WINDOW
-      and when already summarized. History block = summary + recent window.
-- [x] Modules load (dummy OPENAI key).
-
-## Review — DONE
-Bug fix (foundational): the AI now actually receives prior turns. Before, the RAG
-path called getConversation without userId → crashed → history silently dropped, so
-follow-ups had no memory. Fixed by passing userId + making userId optional.
-
-D: conversations now carry a cumulative `summary` (+ `summarizedCount`). The LLM
-history = rolling summary of older turns + last 6 raw messages. Summary extends
-incrementally on the cheap utility model (gpt-4o-mini), async/best-effort.
-
-Changed: server/chatbot/services/ConversationService.js (getConversation userId
-optional, updateSummary), server/chatbot/ChatBotService.js (pass userId, hoist
-conversation, _formatHistoryWithSummary at both load sites, _maybeRollUpSummary +
-_rollUpSummary, HISTORY_WINDOW).
-
-Integration-tested in-process (10-turn chat through real services, LLM stubbed):
-history loads, summary rolls up incrementally (summarizedCount 0→14, 7 rollups),
-summary injected on later turns. LLM quality + live SSE need deployed backend.
-
----
-
-# Plan — C: per-character relationship memory + referential greeting
-
-Each AI Team character remembers what it has worked on with the user across
-conversations, and greets referentially on a fresh thread ("Добредојде назад —
-последен пат работевме на …"). Layers ON TOP of the shared Layer-1 client file.
-
-Growth is FREE: piggyback on the existing per-exchange `_learnFromExchange` LLM
-call (extend it to also emit a 1-sentence relationship note) — no new LLM calls.
-Gated by the existing memory enable flag (privacy opt-out covers it).
-
-- [ ] `server/chatbot/services/agentMemoryService.js` — collection
-      `user_agent_memory`, unique {userId, agent}. get / setNote / getPrefix.
-- [ ] ChatBotService:
-      - pass `agent` into `_learnFromExchange`; extend its single utility-model
-        call to return { facts:[...], note:"…" }; store facts (unchanged) + upsert
-        the per-character note. Fail-safe: bad parse → behave exactly as today.
-      - `_buildPrefix`: inject agent-memory block below shared memory
-        (order: flavor · hand-off · shared memory · AGENT memory · stance).
-- [ ] route `GET /api/chatbot/agent-memory?agent=` → { note, hasMemory }.
-- [ ] client/chatbotApi: `getAgentMemory(agent)`.
-- [ ] AIChat: on a FRESH thread (messages empty, not resumed/hand-off), fetch the
-      note and show a warm referential greeting line in the welcome panel.
-
-Limitation (v1): note reflects the latest substantive exchanges with the character
-(cumulative via the extended learn call); not a full cross-thread merge.
-
-## Verify — DONE
-- [x] agentMemoryService mock-db: empty→'', setNote upsert, per-character isolation,
-      getPrefix block (header+name+note), empty→'' prefix, clear.
-- [x] _learnFromExchange real-path parse (RunnableLambda-stubbed LLM): object
-      {facts,note} → learns + sets note; legacy bare array → learns, no note;
-      garbage → no-op; empty note → learns only. Fact-learning preserved.
-- [x] modules load; ESLint clean (AIChat, chatbotApi).
-
-## Review — DONE
-C shipped. New Layer-2 per-character memory:
-- server/chatbot/services/agentMemoryService.js — user_agent_memory {userId,agent}.
-- ChatBotService — _getAgentMemoryPrefix + injected in _buildPrefix (below shared
-  memory); _learnFromExchange now takes `agent`, emits {facts,note} from its single
-  existing utility-model call (no new LLM cost), upserts the note. Gated by the
-  shared memory enable flag.
-- routes/chatbot.js — GET /agent-memory?agent= (honors opt-out).
-- client chatbotApi.getAgentMemory; AIChat fetches on character switch and shows a
-  "👋 Добредојде назад! Последен пат работевме на: …" line in the welcome panel on a
-  fresh thread (not during hand-off).
-
-Caveat: note quality + live path need the deployed backend (OpenAI). Logic/parse/
-persistence verified in-process.
-
----
-
-# E — chat-feel polish — DONE
-- Typing indicator: three bouncing dots in the AI bubble while the reply is pending
-  (before the first streamed token); cursor still shows once tokens arrive.
-  (AIChat.jsx bubble + AIChat.module.css .typingDots/@keyframes typingBounce)
-- Date-grouped sidebar: conversations bucketed Денес / Вчера / Последниве 7 дена /
-  Постари with headers. (ConversationSidebar.jsx groupByDate + .dateGroupHeader CSS)
-- (Per-bubble avatars + relative timestamps already existed.)
-Verified: ESLint clean; date-bucketing boundaries unit-checked. UI-only, no server.
-
----
-
-# Integration #1 — real artifact context into the dock — DONE
-
-Goal: when a character is opened from a document (and later LHC/cases), it answers
-about THAT artifact, not generically. Mechanism: persist a `focusContext` on the
-conversation; inject it into every prompt (clean transcript — not a visible msg).
-
-- ConversationService: `normalizeFocusContext` ({kind,label,data}→{kind,label,text},
-  scalars only, capped 3000) + store `focusContext` on createConversation.
-- ChatBotService: `_formatFocusContext` + prepend it in `_formatHistoryWithSummary`
-  (so both /ask and /ask-stream inject it on every turn in the thread).
-- routes/chatbot.js: `/conversations/new` accepts `focusContext`.
-- client: chatbotApi.createConversation(q, agent, focusContext); ChatDockContext
-  openChat carries `context`; AgentChatDock passes it at creation and starts a fresh
-  thread on each new seed (convId via ref, no stale closure); BaseDocumentPage passes
-  doc context on both „Провери со …" (pre-gen, full formData) and „Прегледај со …"
-  (post-gen, category).
-
-Verified in-process: normalize (scalars kept, empties/nested dropped, string cap,
-empty→null), injection into history block, no-focus path unchanged; ESLint clean.
-Live LLM behavior needs deployed backend.
-
-Future adopters of the same mechanism: LHC report, Предмети (cases), HR employee.
-
----
-
-# Integration #2 — proactive dashboard nudges — DONE
-
-Characters surface suggestions on the terminal home instead of waiting to be summoned.
-
-- GET /api/chatbot/nudges (routes/chatbot.js): resume nudges per character driven by
-  Layer-2 memory note + conversation recency (hr→corporate→legal), onboarding nudge
-  for new users, cap 3, honors memory opt-out. Extension point for LHC/HR nudges
-  later — no client change needed.
-- client: chatbotApi.getNudges; DashboardNudges.jsx (+ CSS) renders cards that open
-  the character in the dock with an optional seed; mounted on the Basic dashboard
-  above UpdatesFeed.
-
-Scope note (honest): v1 nudges are driven by AI-chat state I fully control (memory +
-conversations). Data-driven nudges ("3 employees without annex", "LHC 62%") need
-LHC per-module history aggregation + an employees source — deferred; the endpoint is
-built to absorb them server-side.
-
-Verified: route loads; nudge assembly against REAL services w/ mock db (new user →
-onboarding; note→resume; conversation-only→resume-by-title; memory-off suppresses
-notes; hr-first order; cap 3). ESLint clean (pre-existing companyData warning left).
-
----
-
-# Integration #3 — character feature homes (partial) — DONE (first cut)
-
-Reusable primitive + two concrete homes. Each opens the right character in the dock
-with a seed + focus context (#1 mechanism) about the thing on screen.
-
-- components/chatbot/AskAgentButton.jsx (+CSS): drop-in „Прашај <name>" button
-  (agentKey, seed, context, label) → openChat.
-- CaseDetail (Предмети) → НОВА, context = { kind:'предмет', data: тип/клиент/статус/
-  служебен број/суд }.
-- EmployeeDetail (Вработени) → АРИА, context = { kind:'вработен', data: позиција/тип/
-  статус }.
-
-Deferred (needs live backend / RAG validation): activating ВЕРА + ГАРД (comingSoon,
-no server persona/corpus — risky to enable blind); ПУЛС on blog/marketing (separate
-engine). Blog/marketing home is a follow-up.
-
-Verified: ESLint 0 errors on new/changed files (pre-existing toInputDate warning
-left). Placement/live behavior to be eyeballed on deploy.
+**Rollback:** verified live — gpt-4o baseline generated 12 real answers through `langchainOptions(model='gpt-4o')` (temperature kept). Env-only rollback works.

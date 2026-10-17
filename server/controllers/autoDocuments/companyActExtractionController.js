@@ -2,6 +2,7 @@ const multer = require('multer');
 const mammoth = require('mammoth');
 const { v4: uuidv4 } = require('uuid');
 const { ChatOpenAI } = require('@langchain/openai');
+const aiModels = require('../../config/aiModels');
 const { analyzeAndSplit } = require('../../services/bilingualSplitter');
 const DocumentStorageService = require('../../services/documentStorageService');
 const { replaceInDocx } = require('../../services/docxInPlaceEditor');
@@ -118,11 +119,10 @@ exports.extractAct = async (req, res) => {
     // Acts run ~20 articles; cap to keep token usage modest.
     const truncated = rawText.slice(0, 14000);
 
-    const chatModel = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0,
-      openAIApiKey: process.env.OPENAI_API_KEY
-    });
+    const chatModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_UTILITY_MODEL, // act field-extraction = utility, not main
+      effort: aiModels.EFFORT_UTILITY,
+    }));
 
     const response = await chatModel.invoke([
       { role: 'system', content: SYSTEM_PROMPT },

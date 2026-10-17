@@ -35,6 +35,7 @@ const { StringOutputParser } = require('@langchain/core/output_parsers');
 const { RunnableSequence } = require('@langchain/core/runnables');
 const goldenSet = require('./eval/golden-answers.json');
 const StancePreferencesService = require('../services/stancePreferencesService');
+const aiModels = require('../config/aiModels');
 
 const CRITERIA = ['faithfulness', 'citation_discipline', 'article_accuracy', 'decisiveness', 'practicality', 'language_mk'];
 const MAX_PER_CRITERION = 2;
@@ -48,12 +49,15 @@ const personaKey = arg('--persona');       // optional: score a specific persona
 const answerModel = arg('--answer-model'); // optional: A/B a different answer model vs the configured one
 
 function buildJudge() {
-  return new ChatOpenAI({
-    modelName: process.env.EVAL_JUDGE_MODEL || 'gpt-4o',
+  // Judge stays configurable + stable across A/B runs (default gpt-4o). Routed
+  // through the config so a reasoning judge (e.g. EVAL_JUDGE_MODEL=gpt-5-mini)
+  // also works — it drops temperature and sets effort automatically.
+  return new ChatOpenAI(aiModels.langchainOptions({
+    model: process.env.EVAL_JUDGE_MODEL || 'gpt-4o',
     temperature: 0,
     maxTokens: 500,
-    openAIApiKey: process.env.OPENAI_API_KEY,
-  });
+    effort: aiModels.EFFORT_UTILITY,
+  }));
 }
 
 const JUDGE_PROMPT = `Ти си строг оценувач на квалитетот на одговори од правен AI асистент за македонско право.
@@ -120,13 +124,15 @@ async function main() {
   // A/B: use an override answer model if requested, else the configured one.
   let answerLLM = chatBotService.chatModel;
   if (answerModel) {
-    answerLLM = new ChatOpenAI({
-      modelName: answerModel,
-      temperature: parseFloat(process.env.CHATBOT_TEMPERATURE) || 0.2,
-      maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 4096,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
-    console.log(`🔬 Answer model under test: ${answerModel} (vs configured ${process.env.OPENAI_MODEL || 'gpt-4o'})`);
+    // A/B override — routed through the config so both reasoning (gpt-5-mini) and
+    // non-reasoning (gpt-4o) overrides get the right params.
+    answerLLM = new ChatOpenAI(aiModels.langchainOptions({
+      model: answerModel,
+      temperature: 0.2,
+      maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 8000,
+      effort: aiModels.EFFORT_MAIN,
+    }));
+    console.log(`🔬 Answer model under test: ${answerModel} (vs configured ${aiModels.OPENAI_MODEL})`);
   }
   const answerChain = RunnableSequence.from([
     chatBotService.promptTemplate,

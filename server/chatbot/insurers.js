@@ -17,10 +17,10 @@
  */
 
 const INSURERS = Object.freeze({
-  eurolink: { name: 'Еуролинк Осигурување', url: 'https://eurolink.com.mk', re: /еуролинк|eurolink/i },
-  halk: { name: 'Халк Осигурување', url: 'https://www.halkinsurance.com.mk', re: /халк|halk/i },
-  insumak: { name: 'Македонија Осигурување (ВИГ)', url: 'https://www.insumak.mk', re: /македониј[ае]\s+осигур|\bвиг\b|\bvig\b|insumak/i },
-  ospol: { name: 'Осигурителна Полиса', url: 'https://ospol.mk', re: /осигурителна\s+полиса|\bospol\b/i },
+  eurolink: { name: 'Еуролинк Осигурување', url: 'https://eurolink.com.mk', claimsUrl: 'https://eurolink.com.mk/shteti/', re: /еуролинк|eurolink/i },
+  halk: { name: 'Халк Осигурување', url: 'https://www.halkinsurance.com.mk', claimsUrl: 'https://www.halkinsurance.com.mk/steti.html', re: /халк|halk/i },
+  insumak: { name: 'Македонија Осигурување (ВИГ)', url: 'https://www.insumak.mk', claimsUrl: 'https://www.insumak.mk/prijava-na-shteti/', re: /македониј[ае]\s+осигур|\bвиг\b|\bvig\b|insumak/i },
+  ospol: { name: 'Осигурителна Полиса', url: 'https://ospol.mk', claimsUrl: 'https://ospol.mk/Steti', re: /осигурителна\s+полиса|\bospol\b/i },
 });
 
 // Агенција за супервизија на осигурување (АСО) — the insurance regulator.
@@ -43,13 +43,13 @@ const INSURER_NAMES = Object.values(INSURERS).map((i) => i.name);
  */
 function insuranceResourcesBlock() {
   const insurers = Object.values(INSURERS)
-    .map((i) => `  - ${i.name}: ${i.url}`)
+    .map((i) => `  - ${i.name} — [страница](${i.url}) · [пријава на штета](${i.claimsUrl})`)
     .join('\n');
   return (
-    '## РЕСУРСИ И УПАТУВАЊЕ (користи ИСКЛУЧИВО овие линкови — НИКОГАШ не измислувај URL; макс 1–2 по одговор, вградени природно)\n' +
-    '- **Официјална страница на друштвото** (за детални услови, контакт, онлајн купување и пријава на штета) — линкувај ја страницата на друштвото за кое се работи:\n' +
+    '## РЕСУРСИ И УПАТУВАЊЕ (користи ИСКЛУЧИВО овие линкови, ТОЧНО како што се напишани — НЕ измислувај URL и НЕ додавај патеки/сегменти/параметри на нив; макс 1–2 по одговор, вградени природно)\n' +
+    '- **Официјална страница / пријава на штета на друштвото** — линкувај ги за друштвото за кое се работи (страницата за детални услови/контакт, „пријава на штета" кога корисникот сака да пријави штета):\n' +
     insurers + '\n' +
-    `- **Пријава на штета, поплака или спор со осигурителот + правата на осигуреникот** → Агенција за супервизија на осигурување (АСО): [Заштита на осигуреници](${ASO_LINKS.consumerProtection})\n` +
+    `- **Поплака или спор со осигурителот + правата на осигуреникот** → Агенција за супервизија на осигурување (АСО): [Заштита на осигуреници](${ASO_LINKS.consumerProtection})\n` +
     `- **Проверка дали друштвото е ЛИЦЕНЦИРАНО** → [Регистар на друштва за осигурување (АСО)](${ASO_LINKS.registry})\n\n`
   );
 }

@@ -154,7 +154,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         consentVersion: CURRENT_VERSIONS.proRequest,
       });
       setProNotice(res?.success
-        ? 'Поканивме професионалци. Првиот што ќе се приклучи ќе ви одговори во „Разговори".'
+        ? 'Го зачувавме барањето и проверуваме дали има достапен професионалец. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано.'
         : (res?.message || 'Грешка при поканата.'));
     } catch (e) { setProNotice(e?.message || 'Грешка при поканата.'); }
     finally { setProBusy(false); }
@@ -178,8 +178,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         </span>
         <span className={styles.hdActions}>
           {!isMarketing && (
-            <span role="button" tabIndex={0} className={styles.iconBtn} title="Покани професионалец во разговорот"
-              aria-label="Покани професионалец"
+            <span role="button" tabIndex={0} className={styles.iconBtn} title="Провери за достапен професионалец"
+              aria-label="Провери за достапен професионалец"
               onClick={stop(handleAddPro)}
               onKeyDown={(e) => { if (e.key === 'Enter') stop(handleAddPro)(e); }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>

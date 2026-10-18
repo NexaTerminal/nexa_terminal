@@ -23,15 +23,23 @@ import styles from '../../styles/terminal/AIChat.module.css';
 // We parse it at render time so it works for streamed, fallback and loaded messages
 // alike: the key drives the „Префрли се на <Име> →" chip; the marker is stripped
 // from the displayed text (incl. any trailing partial fragment mid-stream).
-const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|marketing)\]\]/i;
-function splitHandoff(text = '') {
-  const m = text.match(HANDOFF_RE);
-  const handoff = m ? m[1].toLowerCase() : null;
+const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|insurance|marketing)\]\]/i;
+// AI-suggested human handoff: [[ASK_PRO: short reason why a human helps]] on the
+// final line. The captured reason is shown in the inline "invite a pro" card.
+const ASK_PRO_RE = /\[\[ASK_PRO:\s*([^\]]*?)\]\]/i;
+function splitMarkers(text = '') {
+  const hm = text.match(HANDOFF_RE);
+  const handoff = hm ? hm[1].toLowerCase() : null;
+  const am = text.match(ASK_PRO_RE);
+  const askPro = am ? (am[1] || '').trim() : null;
   const clean = text
     .replace(HANDOFF_RE, '')
+    .replace(ASK_PRO_RE, '')
+    // strip trailing partial markers mid-stream so they never flash on screen
     .replace(/\[\[HANDOFF:?[a-z]*\]?\]?\s*$/i, '')
+    .replace(/\[\[ASK_PRO:?[^\]]*\]?\]?\s*$/i, '')
     .trim();
-  return { clean, handoff };
+  return { clean, handoff, askPro };
 }
 
 /**
@@ -59,6 +67,8 @@ const AIChat = () => {
   // Ask-a-Pro handoff
   const { termsModal } = useTermsGate();
   const [proNotice, setProNotice] = useState(null);
+  // Per-message state for the inline "invite a pro" card: index -> 'invited' | 'dismissed'.
+  const [proCardState, setProCardState] = useState({});
 
   // State management
   const [question, setQuestion] = useState('');
@@ -225,7 +235,7 @@ const AIChat = () => {
    * Uses the last user question (or the input box) + a short transcript excerpt;
    * gated behind the proRequest terms (data-sharing consent).
    */
-  const handleAskPro = () => {
+  const handleAskPro = (reason = null, msgIndex = null) => {
     const lastUser = [...messages].reverse().find((m) => m.type === 'user');
     const q = (lastUser?.content || question).trim();
     if (!q) { setError('Прво напишете или поставете прашање.'); return; }
@@ -243,11 +253,14 @@ const AIChat = () => {
           type: 'consult',
           subject: q.slice(0, 120),
           agent,
-          context: { question: q, conversationId: currentConversationId, transcriptExcerpt: excerpt },
+          context: { question: q, conversationId: currentConversationId, transcriptExcerpt: excerpt, reason: reason || undefined },
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
         if (res.success) {
-          setProNotice('Поканивме професионалци во разговорот. Првиот што ќе се приклучи ќе ви одговори — следете го во „Разговори".');
+          // IMPORTANT: no pro users yet — do NOT promise a response. Frame it as
+          // "we'll check availability".
+          setProNotice('Го зачувавме вашето барање и проверуваме дали има достапен професионалец што може да се вклучи. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано.');
+          if (msgIndex != null) setProCardState((s) => ({ ...s, [msgIndex]: 'invited' }));
         } else setError(res.message || 'Грешка при испраќање на барањето.');
       } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
     })();
@@ -564,10 +577,10 @@ const AIChat = () => {
                 <button
                   type="button"
                   className={styles.askProBtn}
-                  onClick={handleAskPro}
-                  title="Покани професионалец да се приклучи во разговорот"
+                  onClick={() => handleAskPro()}
+                  title="Провери дали има достапен професионалец што може да се вклучи во разговорот"
                 >
-                  🧑‍⚖️ Покани професионалец
+                  🧑‍⚖️ Побарај професионалец
                 </button>
                 <PersonaControl />
                 <MemoryControl />
@@ -642,9 +655,9 @@ const AIChat = () => {
               <div className={styles.messagesList}>
                 {messages.map((message, index) => {
                   const isAi = message.type === 'ai';
-                  const { clean: displayContent, handoff } = isAi
-                    ? splitHandoff(message.content)
-                    : { clean: message.content, handoff: null };
+                  const { clean: displayContent, handoff, askPro } = isAi
+                    ? splitMarkers(message.content)
+                    : { clean: message.content, handoff: null, askPro: null };
                   const handoffAgent = handoff ? getAgent(handoff) : null;
                   return (
                   <div
@@ -740,6 +753,41 @@ const AIChat = () => {
                               : <span className={styles.handoffIcon}>{handoffAgent.icon}</span>}
                             <span>Префрли се на <strong>{handoffAgent.name}</strong> →</span>
                           </button>
+                        </div>
+                      )}
+
+                      {/* AI-suggested human handoff — the AI itself offers to check for a pro.
+                          Cautious copy: we CHECK availability, never promise a response. */}
+                      {isAi && !message.isStreaming && askPro && proCardState[index] !== 'dismissed' && (
+                        <div className={styles.askProCard}>
+                          {proCardState[index] === 'invited' ? (
+                            <span className={styles.askProDone}>
+                              ✓ Го зачувавме барањето и проверуваме дали има достапен професионалец. Следете во „Разговори".
+                            </span>
+                          ) : (
+                            <>
+                              <span className={styles.askProText}>
+                                🧑‍⚖️ {askPro} Да проверам дали има достапен професионалец што може да се вклучи во разговорот?
+                              </span>
+                              <span className={styles.askProActions}>
+                                <button
+                                  type="button"
+                                  className={styles.askProYes}
+                                  onClick={() => handleAskPro(askPro, index)}
+                                  disabled={isLoading || isStreaming}
+                                >
+                                  Да, провери
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.askProNo}
+                                  onClick={() => setProCardState((s) => ({ ...s, [index]: 'dismissed' }))}
+                                >
+                                  Не, продолжи со тебе
+                                </button>
+                              </span>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

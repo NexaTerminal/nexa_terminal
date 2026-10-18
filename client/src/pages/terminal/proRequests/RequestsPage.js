@@ -262,8 +262,8 @@ export default function RequestsPage({ view = 'mine' }) {
                     <div className={styles.waitingBox}>
                       <span className={styles.waitingDot} aria-hidden />
                       <div>
-                        <strong>Поканата е испратена до професионалци.</strong>
-                        <p className={styles.muted}>Првиот професионалец што ќе се приклучи ќе ви одговори тука. Ќе добиете известување штом се приклучи.</p>
+                        <strong>Го зачувавме барањето.</strong>
+                        <p className={styles.muted}>Проверуваме дали има достапен професионалец. Ако некој се приклучи, ќе ви одговори тука и ќе добиете известување — тоа засега не е загарантирано.</p>
                       </div>
                     </div>
                   )}

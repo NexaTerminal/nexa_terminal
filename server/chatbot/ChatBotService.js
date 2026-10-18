@@ -10,7 +10,7 @@ const StancePreferencesService = require('../services/stancePreferencesService')
 const UserMemoryService = require('../services/userMemoryService');
 const AgentMemoryService = require('./services/agentMemoryService');
 const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection } = require('./agentProfiles');
-const { detectInsurers, insurerName } = require('./insurers');
+const { detectInsurers, insurerName, insuranceResourcesBlock } = require('./insurers');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -357,7 +357,7 @@ Nexa Terminal има функции што решаваат дел од проб
 1. За КОЕ друштво станува збор (Еуролинк, Халк, Македонија Осигурување (ВИГ) или Осигурителна Полиса)?
 2. КОЈ вид осигурување/полиса е во прашање и кој РИЗИК или ОСИГУРЕН СЛУЧАЈ те интересира (пр. пожар, поплава, кражба, незгода, патување, каско...)?
 
-## ФОРМАТ
+${insuranceResourcesBlock()}## ФОРМАТ
 Кратко директно резиме → цитирани одредби (наводници + извор) со објаснување за секоја → практична напомена ако има (рок за пријава на штета, обврска на осигуреникот, исклучок што лесно се пропушта). Користи кратки markdown наслови/листи каде помага. Без измислени примери, без празни фрази како „разгледајте ги сите услови".
 
 ## ПРЕДЛОГ ПРАШАЊА

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { visibleTier } from '../../lib/tier';
 import styles from './SubscriptionStatusBanner.module.css';
 
 const daysRemaining = (d) => {
@@ -28,12 +29,16 @@ const daysLabel = (n) => {
  * never navigated back to the public `/pricing` page.
  */
 export default function SubscriptionStatusBanner({ flush = false }) {
-  const { token } = useAuth();
+  const { token, currentUser } = useAuth();
   const [sub, setSub] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
+  // Basic is free forever — no subscription/expiry nagging. The banner only
+  // applies to paying Pro (and admin) accounts.
+  const isBasic = visibleTier(currentUser) === 'B';
+
   useEffect(() => {
-    if (!token) return;
+    if (!token || isBasic) return;
     let cancelled = false;
     const load = () => axios
       .get('/api/subscription/me', { headers: { Authorization: `Bearer ${token}` } })
@@ -48,9 +53,9 @@ export default function SubscriptionStatusBanner({ flush = false }) {
       cancelled = true;
       window.removeEventListener('subscription:updated', onSuccess);
     };
-  }, [token]);
+  }, [token, isBasic]);
 
-  if (!loaded || !sub) return null;
+  if (isBasic || !loaded || !sub) return null;
 
   const status = sub.status;
   const days = daysRemaining(sub.endsAt);

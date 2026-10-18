@@ -1319,6 +1319,24 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 .actionHeader { margin-bottom: 4px; }
+.actionToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.actionChevron {
+  display: inline-flex;
+  color: #94a3b8;
+  transform: rotate(90deg);
+  transition: transform 0.18s ease;
+}
+.actionChevronOpen { transform: rotate(-90deg); }
 .actionTitle {
   margin: 2px 0 0;
   font-size: 13.5px;
@@ -1714,37 +1732,62 @@
    AI TEAM BAND — hero avatar shortcuts that open the chat dock
    ============================================================ */
 .aiBand {
-  padding: 8px 0 4px;
+  padding: 4px 0 12px;
+}
+.aiBandHero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.aiBandHeroText { min-width: 0; }
+.aiBandTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+.aiBandSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #64748b;
 }
 .aiChipRow {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
+.aiChipRow > li { min-width: 0; }
 .aiChip {
-  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 9px;
-  padding: 5px 13px 5px 5px;
+  padding: 16px 10px 14px;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 999px;
+  border-top: 3px solid var(--accent, #1e4db7);
+  border-radius: 14px;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 .aiChip:hover {
   border-color: var(--accent, #1e4db7);
-  background: #f8fafc;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--accent, #1e4db7) 5%, #fff);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.09);
+  transform: translateY(-2px);
 }
 .aiChipPhoto {
-  width: 34px;
-  height: 34px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -1752,24 +1795,25 @@
   box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--accent, #e5e7eb);
 }
 .aiChipEmoji {
-  width: 34px;
-  height: 34px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 24px;
   background: #f1f5f9;
   flex-shrink: 0;
   box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--accent, #e5e7eb);
 }
-.aiChipText { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.aiChipName { font-size: 13px; font-weight: 700; color: #0f172a; }
-.aiChipRole { font-size: 10.5px; color: #64748b; }
+.aiChipText { display: flex; flex-direction: column; align-items: center; line-height: 1.25; min-width: 0; }
+.aiChipName { font-size: 15px; font-weight: 700; color: #0f172a; }
+.aiChipRole { font-size: 11.5px; color: #64748b; margin-top: 1px; }
 
 @media (max-width: 640px) {
-  .aiChipRow { gap: 6px; }
-  .aiChipRole { display: none; }
+  .aiChipRow { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .aiChipPhoto, .aiChipEmoji { width: 46px; height: 46px; }
+  .aiChipEmoji { font-size: 21px; }
 }
 
 /* ============================================================

@@ -116,6 +116,7 @@ const UpdatesFeed = () => {
       {error && <div className={styles.feedError}>{error}</div>}
 
       <div className={styles.feedStream}>
+        <AiTeamBand />
         {showBcTiles && <BcTileRow tier={tier} />}
         <ActionGridCard />
 
@@ -145,14 +146,17 @@ const UpdatesFeed = () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Hero band: tap a character avatar to open the chat dock; "Сите" links to the
-// full AI Team page. Characters are the headline of the quick-actions card.
+// Hero band: the AI team is the star feature, so it leads the dashboard. Tap a
+// character avatar to open the chat dock; "Сите" links to the full AI Team page.
 const AiTeamBand = () => {
   const { openChat } = useChatDock();
   return (
     <div className={styles.aiBand}>
-      <div className={styles.groupHead}>
-        <span className={styles.groupTitle}>AI Тим</span>
+      <div className={styles.aiBandHero}>
+        <div className={styles.aiBandHeroText}>
+          <h2 className={styles.aiBandTitle}>Твојот тим е тука</h2>
+          <p className={styles.aiBandSubtitle}>Прашај кого сакаш — одговара веднаш, бесплатно.</p>
+        </div>
         <Link to="/terminal/ai-team" className={styles.groupAll}>
           Сите <ArrowIcon />
         </Link>
@@ -165,6 +169,7 @@ const AiTeamBand = () => {
               className={styles.aiChip}
               onClick={() => openChat?.(a.key)}
               title={`Разговарај со ${a.name} · ${a.role}`}
+              aria-label={`Разговарај со ${a.name}, ${a.role}`}
               style={{ '--accent': a.accent }}
             >
               {a.photo
@@ -227,19 +232,33 @@ const TemplateRow = () => (
   </div>
 );
 
-const ActionGridCard = () => (
-  <section className={styles.actionCard} aria-label="Брзи дејства">
-    <header className={styles.actionHeader}>
-      <span className={styles.eyebrow}>
-        <span className={`${styles.eyebrowDot} ${styles.dotBlue}`} aria-hidden />
-        Брзи дејства
-      </span>
-    </header>
-    <AiTeamBand />
-    <SuggestedActions />
-    <TemplateRow />
-  </section>
-);
+// Quick-actions are kept but collapsed by default, so the Известувања feed sits
+// right under the AI team hero and reads like a scrollable feed. One tap expands.
+const ActionGridCard = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className={styles.actionCard} aria-label="Брзи дејства">
+      <button
+        type="button"
+        className={styles.actionToggle}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span className={styles.eyebrow}>
+          <span className={`${styles.eyebrowDot} ${styles.dotBlue}`} aria-hidden />
+          Брзи дејства
+        </span>
+        <span className={`${styles.actionChevron} ${open ? styles.actionChevronOpen : ''}`} aria-hidden><ArrowIcon /></span>
+      </button>
+      {open && (
+        <>
+          <SuggestedActions />
+          <TemplateRow />
+        </>
+      )}
+    </section>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 

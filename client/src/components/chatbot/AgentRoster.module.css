@@ -3,8 +3,9 @@
 /* ── Bar (compact pills) ─────────────────────────────────────────────────── */
 .bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;        /* one line; parent scrolls horizontally on mobile */
   gap: 8px;
+  width: max-content;
 }
 .pill {
   display: inline-flex;
@@ -16,17 +17,20 @@
   background: var(--color-neutral-50, #f8f9fa);
   color: var(--color-neutral-700, #374151);
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .pill:hover {
-  border-color: var(--color-accent, #2563eb);
-  background: var(--color-accent-soft, #eff6ff);
+  border-color: var(--agent-accent, var(--color-accent, #2563eb));
+  background: color-mix(in srgb, var(--agent-accent, #2563eb) 8%, #fff);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 .pillActive {
-  border-color: var(--color-accent, #2563eb);
-  background: var(--color-accent-soft, #eff6ff);
+  border-color: var(--agent-accent, var(--color-accent, #2563eb));
+  background: color-mix(in srgb, var(--agent-accent, #2563eb) 12%, #fff);
 }
+.pillActive .pillName { color: var(--agent-accent, var(--color-dark, #111827)); }
 .pillIcon { font-size: 1.05rem; line-height: 1; }
 .pillName { font-size: 0.85rem; font-weight: 700; color: var(--color-dark, #111827); }
 .pillRole { font-size: 0.78rem; color: var(--color-neutral-600, #6b7280); }

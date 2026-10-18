@@ -8,6 +8,7 @@ import Sidebar from '../../components/terminal/Sidebar';
 import ConversationSidebar from '../../components/chatbot/ConversationSidebar';
 import PersonaControl from '../../components/chatbot/PersonaControl';
 import MemoryControl from '../../components/chatbot/MemoryControl';
+import AgentRoster from '../../components/chatbot/AgentRoster';
 import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAnalysisPanel';
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
@@ -231,6 +232,20 @@ const AIChat = () => {
   };
 
   /**
+   * Manual expert switch from the in-chat roster bar. Unlike a hand-off, the user
+   * is deliberately picking a teammate, so we start that expert's own fresh thread
+   * (no "handed off from" framing). Marketing lives on its own page.
+   */
+  const handleSelectAgent = (a) => {
+    if (!a || a.key === agent) return;
+    if (a.engine !== 'legal') { navigate(a.route || '/terminal/marketing-ai'); return; }
+    handleNewConversation();
+    setHandoffFrom(null);
+    setAgent(a.key);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  /**
    * Ask-a-Pro handoff: create a `consult` pro request from the current chat.
    * Uses the last user question (or the input box) + a short transcript excerpt;
    * gated behind the proRequest terms (data-sharing consent).
@@ -315,7 +330,8 @@ const AIChat = () => {
     if (!question.trim()) return;
 
     if (limits.remaining <= 0) {
-      setError('Ја достигнавте вашата неделна граница од прашања.');
+      // The dedicated limit-wall card (below) communicates this + offers the pro
+      // hand-off; no raw error banner needed.
       return;
     }
 
@@ -538,7 +554,7 @@ const AIChat = () => {
         />
 
         <main className={styles.chatMain}>
-          <div className={styles.container}>
+          <div className={styles.container} style={{ ['--agent-accent']: activeAgent.accent }}>
           <div className={styles.header}>
             <div className={styles.titleRow}>
               <div className={styles.titleMain}>
@@ -584,11 +600,11 @@ const AIChat = () => {
                 </button>
                 <PersonaControl />
                 <MemoryControl />
-                <div className={styles.limitsBadge}>
+                <div className={`${styles.limitsBadge} ${limits.remaining <= 1 ? styles.limitsBadgeLow : ''}`}>
                   <span className={styles.limitsCount}>
                     {limits.remaining}/{limits.total}
                   </span>
-                  <span className={styles.limitsLabel}>прашања</span>
+                  <span className={styles.limitsLabel}>{limits.remaining === 1 ? 'последно' : 'прашања'}</span>
                   {limits.resetDate && (
                     <span className={styles.resetInfo}>
                       · {formatResetDate(limits.resetDate)}
@@ -596,6 +612,11 @@ const AIChat = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* In-chat expert switcher — jump between the team without leaving */}
+            <div className={styles.switcherRow}>
+              <AgentRoster variant="bar" activeKey={agent} onSelect={handleSelectAgent} />
             </div>
 
             {/* Disclaimer */}
@@ -627,6 +648,14 @@ const AIChat = () => {
                   <img src={activeAgent.photo} alt={activeAgent.name} className={styles.welcomeAvatar} />
                 )}
                 <h3 className={styles.welcomeTitle}>Здраво, јас сум {activeAgent.name}</h3>
+                <p className={styles.welcomeRole}>{activeAgent.role}</p>
+                {activeAgent.tags && activeAgent.tags.length > 0 && (
+                  <div className={styles.welcomeTags}>
+                    {activeAgent.tags.map((tag, i) => (
+                      <span key={i} className={styles.welcomeTag}>{tag}</span>
+                    ))}
+                  </div>
+                )}
                 {handoffFrom && getAgent(handoffFrom) && (
                   <p className={styles.handoffNote}>
                     Префрлени сте од {getAgent(handoffFrom).name}. {activeAgent.name} презема од тука.
@@ -829,6 +858,30 @@ const AIChat = () => {
           {error && (
             <div className={styles.errorMessage}>
               ❌ {error}
+            </div>
+          )}
+
+          {/* Weekly-limit wall — graceful, turns the wall into the pro hand-off moment */}
+          {limits.remaining <= 0 && (
+            <div className={styles.limitWall}>
+              <div className={styles.limitWallText}>
+                <strong>Ги искористивте бесплатните прашања за оваа недела.</strong>
+                <span>
+                  {limits.resetDate ? `Се ресетира на ${formatResetDate(limits.resetDate)}. ` : ''}
+                  За конкретно прашање не морате да чекате — можеме да провериме дали има достапен професионалец.
+                </span>
+              </div>
+              <div className={styles.limitWallActions}>
+                <button type="button" className={styles.limitWallBtn} onClick={() => handleAskPro()}>
+                  🧑‍⚖️ Побарај професионалец
+                </button>
+                <a
+                  href="https://mba.org.mk/index.php/mk/imenik-advokati/imenik-aktivni-advokati"
+                  target="_blank" rel="noopener noreferrer" className={styles.limitWallLink}
+                >
+                  Именик на адвокати →
+                </a>
+              </div>
             </div>
           )}
 

@@ -10,7 +10,7 @@ const StancePreferencesService = require('../services/stancePreferencesService')
 const UserMemoryService = require('../services/userMemoryService');
 const AgentMemoryService = require('./services/agentMemoryService');
 const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection } = require('./agentProfiles');
-const { detectInsurers, insurerName, insuranceResourcesBlock } = require('./insurers');
+const { detectInsurers, insurerName, insuranceResourcesBlock, availableInsurerNames } = require('./insurers');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -336,7 +336,7 @@ Nexa може да ПРОВЕРИ дали има достапен профес�
     // ГАРД persona flavor (agentProfiles.js) + memory.
     this.insuranceSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Осигурителен AI Асистент (ГАРД)
 
-Ти си ГАРД, осигурителен експерт во Nexa Terminal. Одговараш на прашања за ОПШТИТЕ и ПОСЕБНИТЕ УСЛОВИ за осигурување на четири македонски друштва: Еуролинк, Халк Осигурување, Македонија Осигурување (ВИГ) и Осигурителна Полиса. Корисниците не се осигурителни стручњаци.
+Ти си ГАРД, осигурителен експерт во Nexa Terminal. Одговараш на прашања за ОПШТИТЕ и ПОСЕБНИТЕ УСЛОВИ за осигурување на следниве македонски осигурителни друштва: ${availableInsurerNames().join(', ')}. Ова се ЕДИНСТВЕНИТЕ друштва за кои имаш услови — ако корисникот праша за друго друштво (пр. Граве), кажи дека немаш услови за него. Корисниците не се осигурителни стручњаци.
 
 ## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
 Секогаш одговарај на МАКЕДОНСКИ (кирилица).
@@ -359,7 +359,7 @@ Nexa може да ПРОВЕРИ дали има достапен профес�
 
 ## АКО ПРАШАЊЕТО Е ОПШТО ИЛИ НЕПРЕЦИЗНО (ЗАДОЛЖИТЕЛНО)
 Условите се разликуваат по друштво и по вид полиса, па не одговарај „на слепо". Ако недостасува, прво кратко прашај:
-1. За КОЕ друштво станува збор (Еуролинк, Халк, Македонија Осигурување (ВИГ) или Осигурителна Полиса)?
+1. За КОЕ друштво станува збор (${availableInsurerNames().join(', ')})?
 2. КОЈ вид осигурување/полиса е во прашање и кој РИЗИК или ОСИГУРЕН СЛУЧАЈ те интересира (пр. пожар, поплава, кражба, незгода, патување, каско...)?
 
 ${insuranceResourcesBlock()}## ФОРМАТ
@@ -887,6 +887,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
           docYear: result.payload.docYear ?? yearFromName(name),
           citable: result.payload.citable,          // authoritative ingestion tag
           sourceClass: result.payload.source_class, // law|case_law|bylaw|constitution|background
+          company: result.payload.company || null,         // insurer slug (insurance collection)
+          companyName: result.payload.companyName || null, // insurer display name
         },
       };
     }).filter(doc => doc.pageContent.length > 0);
@@ -963,6 +965,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
           docYear: point.payload.docYear ?? yearFromName(name),
           citable: point.payload.citable,          // authoritative ingestion tag
           sourceClass: point.payload.source_class, // law|case_law|bylaw|constitution|background
+          company: point.payload.company || null,         // insurer slug (insurance collection)
+          companyName: point.payload.companyName || null, // insurer display name
         },
       };
     }).filter(doc => doc.pageContent.length > 0);
@@ -1395,6 +1399,11 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         : parseInt(process.env.CHATBOT_FINAL_CHUNKS || '6', 10);
       topResults = await this.rerankChunks(question, topResults, finalLimit);
 
+      // Insurance stays STRICTLY within the insurance collection — skip the legal
+      // LDH case-law + web supplements. They would pollute insurance answers and,
+      // worse, fabricate an answer for an insurer we have NO data for (e.g. grawe),
+      // instead of letting ГАРД say "no data".
+      if (agent !== 'insurance') {
       // Supplement with Legal Data Hunter. MK case law is queried only when the
       // local corpus is WEAK on this question (best local score below threshold)
       // — when we already have a strong statute match, the extra call added
@@ -1442,6 +1451,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         const web = await this.webSearchFallback(question);
         if (web) topResults = topResults.concat(web);
       }
+      } // end: non-insurance legal/web supplements
 
       // Log results
       console.log(`\n📚 [RAG DEBUG] Final ${topResults.length} chunks:`);
@@ -1512,7 +1522,10 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         // Surface the VERIFIED article number (from metadata) so the model can cite it
         // accurately instead of guessing. This is a confirmed citation, safe to use.
         const article = doc.metadata?.article ? ` — ВЕРИФИЦИРАН ЧЛЕН: ${doc.metadata.article}` : '';
-        return `[Source ${index + 1}] ${docName}${article}${pageNum}:\n${doc.pageContent}`;
+        // Insurance chunks carry the issuing insurer — surface it so ГАРД cites the
+        // right company (conditions differ per insurer).
+        const insurer = doc.metadata?.companyName ? ` — ДРУШТВО: ${doc.metadata.companyName}` : '';
+        return `[Source ${index + 1}] ${docName}${insurer}${article}${pageNum}:\n${doc.pageContent}`;
       })
       .join('\n\n---\n\n');
   }

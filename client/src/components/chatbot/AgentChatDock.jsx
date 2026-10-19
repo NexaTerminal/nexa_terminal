@@ -7,6 +7,8 @@ import { getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
+import { fetchActiveProForConversation, mergeProMessages } from '../../lib/proChat';
+import ProProfileModal from './ProProfileModal';
 import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from './AgentChatDock.module.css';
 
@@ -50,6 +52,17 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const [error, setError] = useState(null);
   const [proNotice, setProNotice] = useState(null);
   const [proBusy, setProBusy] = useState(false);
+  // Scoped pro hand-off: `proInviteMode` arms the flow and `proCutoff` snapshots
+  // messages.length at the click, so only messages AFTER it are shared with the pro.
+  const [proInviteMode, setProInviteMode] = useState(false);
+  const [proCutoff, setProCutoff] = useState(null);
+  // Human-in-the-loop: claimed pro linked to this conversation + their replies.
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [proRequestId, setProRequestId] = useState(null);
+  const [proMsgs, setProMsgs] = useState([]);
+  const [proProfile, setProProfile] = useState(null);   // assigned Pro's public profile
+  const [userRevealed, setUserRevealed] = useState(false); // did the user reveal identity?
+  const [showProModal, setShowProModal] = useState(false);
   const endRef = useRef(null);
   const sendRef = useRef(null);
   // Refs so the seed effect + send() always read the latest without stale closures.
@@ -57,7 +70,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const convIdRef = useRef(null);
   const contextRef = useRef(context);
   contextRef.current = context;
-  const setConv = (id) => { convIdRef.current = id; };
+  const setConv = (id) => { convIdRef.current = id; setActiveConvId(id); };
   const didInitRef = useRef(false);
 
   const agent = getAgent(agentKey);
@@ -82,12 +95,29 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         setMessages(conv.messages.map((m) => ({
           role: m.type === 'ai' ? 'ai' : 'user',
           content: m.type === 'ai' ? cleanAi(m.content) : m.content,
+          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
         })));
         setConv(String(conv._id));
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Poll the linked (claimed) pro request so the pro's replies stream into the
+  // balloon. Non-marketing only; polls every ~15s while a conversation exists.
+  useEffect(() => {
+    if (isMarketing || !activeConvId) { setProRequestId(null); setProMsgs([]); setProProfile(null); setUserRevealed(false); return; }
+    let cancelled = false;
+    const load = async () => {
+      const r = await fetchActiveProForConversation(activeConvId);
+      if (cancelled) return;
+      if (r) { setProRequestId(r.id); setProMsgs(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); }
+      else { setProRequestId(null); setProMsgs([]); setProProfile(null); setUserRevealed(false); }
+    };
+    load();
+    const iv = setInterval(load, 15000);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [activeConvId, isMarketing]);
 
   // Auto-ask the seed message when the window is opened/re-opened with one
   // (e.g. „Прегледај со …" hands an artifact to the agent for review). A fresh
@@ -110,8 +140,13 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     if (!q || loading) return;
     setInput('');
     setError(null);
-    setMessages((prev) => [...prev, { role: 'user', content: q }]);
+    setMessages((prev) => [...prev, { role: 'user', content: q, timestamp: new Date() }]);
     setLoading(true);
+    // Shared thread: mirror the user's message to the pro + make the AI defer.
+    const proActive = !isMarketing && !!proRequestId;
+    if (proActive) {
+      ProRequestsApiService.addMessage(proRequestId, q).catch(() => { /* non-fatal */ });
+    }
     try {
       let convId = convIdRef.current;
       if (!convId) {
@@ -122,9 +157,9 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
       }
       const res = isMarketing
         ? await api.sendMessage(convId, q)
-        : await api.sendMessage(convId, q, agent.key);
+        : await api.sendMessage(convId, q, agent.key, null, proActive);
       if (res?.success) {
-        setMessages((prev) => [...prev, { role: 'ai', content: stripSuggestions(res.data.answer) }]);
+        setMessages((prev) => [...prev, { role: 'ai', content: stripSuggestions(res.data.answer), timestamp: new Date() }]);
       } else {
         setError(res?.message || 'Се случи грешка. Обидете се повторно.');
       }
@@ -136,14 +171,38 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   };
   sendRef.current = send;
 
-  // „Покани професионалец" — invite a human pro into this conversation (group-chat
-  // style), straight from the dock. Creates a pro request from the chat so far.
-  const handleAddPro = async () => {
+  // „Покани професионалец" — scoped human hand-off. Clicking does NOT grab the
+  // earlier chat: it marks a cutoff, and the user then writes (and the AI answers)
+  // what they want the pro to see. Only messages AFTER this point are shared, so
+  // previous, unrelated conversation stays private.
+  const enterProInvite = () => {
+    if (proBusy || proInviteMode) return;
+    setProCutoff(messages.length);
+    setProInviteMode(true);
+    setError(null); setProNotice(null);
+  };
+
+  const cancelProInvite = () => {
     if (proBusy) return;
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-    const q = (lastUser?.content || input).trim();
-    if (!q) { setError('Прво напишете прашање за да поканите професионалец.'); return; }
-    const excerpt = messages.slice(-6).map((m) => `${m.role === 'user' ? 'Јас' : agent.name}: ${m.content}`).join('\n\n');
+    setProInviteMode(false);
+    setProCutoff(null);
+  };
+
+  // At least one user message must exist after the cutoff before we can send.
+  const proScopedTurns = proCutoff == null ? [] : messages.slice(proCutoff);
+  const proReady = proScopedTurns.some((m) => m.role === 'user');
+
+  const submitProInvite = async () => {
+    if (proBusy) return;
+    const userTurns = proScopedTurns.filter((m) => m.role === 'user');
+    if (!userTurns.length) {
+      setError('Напишете што сакате да го прашате професионалецот пред да го испратите барањето.');
+      return;
+    }
+    const q = userTurns[userTurns.length - 1].content.trim();
+    // Only the post-click turns ride onto the Pro board (summary is derived from
+    // this same excerpt server-side) — never the earlier conversation.
+    const excerpt = proScopedTurns.map((m) => `${m.role === 'user' ? 'Јас' : agent.name}: ${m.content}`).join('\n\n');
     setProBusy(true); setError(null); setProNotice(null);
     try {
       const res = await ProRequestsApiService.create({
@@ -153,10 +212,24 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         context: { question: q, conversationId: convIdRef.current, transcriptExcerpt: excerpt },
         consentVersion: CURRENT_VERSIONS.proRequest,
       });
+      if (res?.success) { setProInviteMode(false); setProCutoff(null); }
       setProNotice(res?.success
         ? 'Го зачувавме барањето и проверуваме дали има достапен професионалец. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано.'
         : (res?.message || 'Грешка при поканата.'));
     } catch (e) { setProNotice(e?.message || 'Грешка при поканата.'); }
+    finally { setProBusy(false); }
+  };
+
+  // User toggles whether the assigned Pro can see their identity. Anonymous by default.
+  const toggleReveal = async () => {
+    if (!proRequestId || proBusy) return;
+    const next = !userRevealed;
+    if (next && !window.confirm('Да го откриете вашиот идентитет (име и компанија) на професионалецот?')) return;
+    setProBusy(true);
+    try {
+      const res = await ProRequestsApiService.reveal(proRequestId, next);
+      if (res?.success) setUserRevealed(next);
+    } catch (_) { /* best-effort */ }
     finally { setProBusy(false); }
   };
 
@@ -178,10 +251,11 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         </span>
         <span className={styles.hdActions}>
           {!isMarketing && (
-            <span role="button" tabIndex={0} className={styles.iconBtn} title="Провери за достапен професионалец"
-              aria-label="Провери за достапен професионалец"
-              onClick={stop(handleAddPro)}
-              onKeyDown={(e) => { if (e.key === 'Enter') stop(handleAddPro)(e); }}>
+            <span role="button" tabIndex={0}
+              className={`${styles.iconBtn} ${proInviteMode ? styles.iconBtnActive : ''}`}
+              title="Покани професионалец" aria-label="Покани професионалец"
+              onClick={stop(enterProInvite)}
+              onKeyDown={(e) => { if (e.key === 'Enter') stop(enterProInvite)(e); }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
             </span>
           )}
@@ -205,6 +279,19 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
 
       {!minimized && (
         <>
+          {proProfile && (
+            <div className={styles.proBar}>
+              <button type="button" className={styles.proBarName} onClick={() => setShowProModal(true)}>
+                🧑‍⚖️ {proProfile.name || 'Професионалец'} <span className={styles.proBarInfo}>ℹ︎</span>
+              </button>
+              <button type="button" className={styles.proBarReveal} onClick={toggleReveal} disabled={proBusy}>
+                {userRevealed ? 'Идентитетот е откриен' : 'Анонимни сте · Откриј идентитет'}
+              </button>
+            </div>
+          )}
+          {showProModal && (
+            <ProProfileModal profile={proProfile} onClose={() => setShowProModal(false)} />
+          )}
           <div className={styles.body}>
             {messages.length === 0 ? (
               <div className={styles.welcome}>
@@ -217,15 +304,27 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
                 </div>
               </div>
             ) : (
-              messages.map((m, i) => (
-                <div key={i} className={`${styles.row} ${m.role === 'user' ? styles.rowUser : styles.rowAi}`}>
-                  {m.role === 'ai' && agent.photo && <img src={agent.photo} alt="" className={styles.msgAvatar} />}
-                  <div className={`${styles.bubble} ${m.role === 'user' ? styles.bubbleUser : styles.bubbleAi}`}>
-                    {m.role === 'ai'
-                      ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-                      : m.content}
+              mergeProMessages(messages, proMsgs).map((m, i) => (
+                m.type === 'pro' ? (
+                  <div key={`pro-${m.messageId}`} className={`${styles.row} ${styles.rowPro}`}>
+                    <div className={`${styles.bubble} ${styles.bubblePro}`}>
+                      <button type="button" className={styles.proAuthor}
+                        onClick={() => proProfile && setShowProModal(true)}>
+                        🧑‍⚖️ {m.author}
+                      </button>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div key={i} className={`${styles.row} ${m.role === 'user' ? styles.rowUser : styles.rowAi}`}>
+                    {m.role === 'ai' && agent.photo && <img src={agent.photo} alt="" className={styles.msgAvatar} />}
+                    <div className={`${styles.bubble} ${m.role === 'user' ? styles.bubbleUser : styles.bubbleAi}`}>
+                      {m.role === 'ai'
+                        ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                        : m.content}
+                    </div>
+                  </div>
+                )
               ))
             )}
             {loading && (
@@ -242,12 +341,33 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
 
           {proNotice && <div className={styles.proNotice}>🧑‍⚖️ {proNotice}</div>}
 
+          {proInviteMode && (
+            <div className={styles.proInvite}>
+              <span className={styles.proInviteText}>
+                🧑‍⚖️ Напишете што сакате да го прашате професионалецот. Само пораките од тука натаму ќе му бидат споделени — претходниот разговор останува приватен.
+              </span>
+              <span className={styles.proInviteDisclaimer}>
+                Со испраќањето, секоја понатамошна комуникација е исклучиво меѓу вас и професионалецот. NEXA AMD е само канал за поврзување — не зема провизија, не е страна во договорот и не одговара за дадените совети, упатства или за исходот.
+              </span>
+              <span className={styles.proInviteActions}>
+                <button type="button" className={styles.proInviteSend}
+                  onClick={submitProInvite} disabled={proBusy || !proReady}>
+                  {proBusy ? 'Се испраќа…' : 'Испрати барање'}
+                </button>
+                <button type="button" className={styles.proInviteCancel}
+                  onClick={cancelProInvite} disabled={proBusy}>
+                  Откажи
+                </button>
+              </span>
+            </div>
+          )}
+
           <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(); }}>
             <input
               className={styles.input}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`Напиши порака до ${agent.name}…`}
+              placeholder={proInviteMode ? 'Што сакате да го прашате професионалецот?…' : `Напиши порака до ${agent.name}…`}
               maxLength={500}
               disabled={loading}
             />

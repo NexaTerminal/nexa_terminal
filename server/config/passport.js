@@ -152,9 +152,9 @@ module.exports = (db) => {
             isVerified: false,
             emailVerified: true, // Google has verified the email
             role: 'user',
-            // Google users never see the signup-form chooser — ask them once on
-            // first terminal entry (TierOnboardingModal reads this flag).
-            needsTierOnboarding: true,
+            // Plan is decided by the storefront / invite in the OAuth callback —
+            // never by a first-login modal (the TierOnboardingModal was removed).
+            needsTierOnboarding: false,
             companyInfo: {
               companyName: '',
               mission: '',

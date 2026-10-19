@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
 import { showsMarketing, showsLeads, showsTopicsQA, interiorProduct } from '../../lib/tier';
+import { BILLING_UI_ENABLED } from '../../config/billing';
 import Notifications from '../terminal/Notifications';
 
 // Inline SVG icons matching the sidebar style (stroke-only, currentColor).
@@ -359,14 +360,16 @@ const Header = ({ isTerminal = false }) => {
               <span className={styles['dropdown-icon']}><DropdownIcon name="card" /></span>
               Сметка
             </Link>
-            <Link
-              to="/terminal/billing"
-              className={styles['dropdown-item']}
-              onClick={() => setProfileDropdownOpen(false)}
-            >
-              <span className={styles['dropdown-icon']}><DropdownIcon name="receipt" /></span>
-              Сметководство
-            </Link>
+            {BILLING_UI_ENABLED && (
+              <Link
+                to="/terminal/billing"
+                className={styles['dropdown-item']}
+                onClick={() => setProfileDropdownOpen(false)}
+              >
+                <span className={styles['dropdown-icon']}><DropdownIcon name="receipt" /></span>
+                Сметководство
+              </Link>
+            )}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -667,9 +670,11 @@ const Header = ({ isTerminal = false }) => {
             <Link to="/terminal/subscription" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметка</span>
             </Link>
-            <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
-              <span>Сметководство</span>
-            </Link>
+            {BILLING_UI_ENABLED && (
+              <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+                <span>Сметководство</span>
+              </Link>
+            )}
             <button
               className={styles['mobile-menu-item']}
               onClick={() => { setMobileMenuOpen(false); handleLogout(); }}

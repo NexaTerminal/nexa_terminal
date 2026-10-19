@@ -29,6 +29,7 @@ export default function ProviderProfile() {
   const [areas, setAreas] = useState([]);        // [{ area, count, cap, held, full }]
   const [selected, setSelected] = useState([]);  // string[]
   const [citiesText, setCitiesText] = useState('');
+  const [website, setWebsite] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +45,7 @@ export default function ProviderProfile() {
       setAreas(data.areas || []);
       setSelected(data.profile?.practiceAreas || []);
       setCitiesText((data.profile?.cities || []).join(', '));
+      setWebsite(data.profile?.website || '');
     } catch (e) {
       setError(e.response?.data?.message || 'Грешка при вчитување.');
     } finally {
@@ -63,7 +65,7 @@ export default function ProviderProfile() {
     try {
       const cities = citiesText.split(',').map((c) => c.trim()).filter(Boolean);
       const res = await axios.put('/api/admin-user/provider-profile',
-        { practiceAreas: selected, cities },
+        { practiceAreas: selected, cities, website: website.trim() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSelected(res.data?.profile?.practiceAreas || selected);
@@ -137,6 +139,16 @@ export default function ProviderProfile() {
               onChange={(e) => setCitiesText(e.target.value)}
             />
             <p className={styles.hint}>Одделете со запирка. Празно значи дека прифаќате случаи од сите градови.</p>
+
+            <div className={styles.sectionLabel}>Веб-страница</div>
+            <input
+              type="text"
+              className={styles.citiesInput}
+              placeholder="пр. www.mojakancelarija.mk"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+            <p className={styles.hint}>Се прикажува во вашиот профил кога клиент ќе ве отвори во разговор.</p>
 
             <div className={styles.actions}>
               <button className={styles.btnPrimary} onClick={save} disabled={saving}>

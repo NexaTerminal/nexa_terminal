@@ -38,6 +38,11 @@ class ProRequestsApiService {
     return ApiService.post(`/pro-requests/${id}/claim`, { acceptLiability, consentVersion });
   }
 
+  // Requester reveals (or re-hides) their identity to the assigned Pro.
+  static reveal(id, revealed = true) {
+    return ApiService.post(`/pro-requests/${id}/reveal`, { revealed });
+  }
+
   static reject(id, reason) {
     return ApiService.post(`/pro-requests/${id}/reject`, { reason });
   }

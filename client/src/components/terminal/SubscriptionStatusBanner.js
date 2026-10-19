@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { visibleTier } from '../../lib/tier';
+import { BILLING_UI_ENABLED } from '../../config/billing';
 import styles from './SubscriptionStatusBanner.module.css';
 
 const daysRemaining = (d) => {
@@ -38,7 +39,7 @@ export default function SubscriptionStatusBanner({ flush = false }) {
   const isBasic = visibleTier(currentUser) === 'B';
 
   useEffect(() => {
-    if (!token || isBasic) return;
+    if (!BILLING_UI_ENABLED || !token || isBasic) return;
     let cancelled = false;
     const load = () => axios
       .get('/api/subscription/me', { headers: { Authorization: `Bearer ${token}` } })
@@ -55,7 +56,8 @@ export default function SubscriptionStatusBanner({ flush = false }) {
     };
   }, [token, isBasic]);
 
-  if (isBasic || !loaded || !sub) return null;
+  // Billing UI globally hidden while pricing is undecided (see config/billing).
+  if (!BILLING_UI_ENABLED || isBasic || !loaded || !sub) return null;
 
   const status = sub.status;
   const days = daysRemaining(sub.endsAt);

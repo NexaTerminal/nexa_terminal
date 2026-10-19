@@ -681,7 +681,21 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     })();
   }
 
-  async askQuestion(question, userId, conversationId = null, agent = 'legal', fromAgent = null) {
+  /**
+   * Prefix directive used when a human professional has joined the conversation
+   * (claimed pro request). The AI must stay helpful but stop acting as the final
+   * authority and actively defer to the human. Prepended to the stance prefix.
+   */
+  _humanProDirective() {
+    return (
+      'ВАЖНО — во овој разговор е вклучен човек-професионалец (адвокат/експерт) кого корисникот го поканил. ' +
+      'Дај краток и корисен одговор, но НЕ однесувај се како конечен авторитет. ' +
+      'Секогаш упати го корисникот да провери со својот професионалец и прашај што мисли професионалецот за ова ' +
+      '(на пр. „Што мисли вашиот професионалец за ова?“).\n\n'
+    );
+  }
+
+  async askQuestion(question, userId, conversationId = null, agent = 'legal', fromAgent = null, humanProActive = false) {
     try {
       // Validate inputs
       if (!question || question.trim().length === 0) {
@@ -766,7 +780,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // and stance preferences are injected as a structured prefix above the
       // system prompt — any part may be empty. Order: agent flavor · hand-off
       // note · durable user memory · stance/persona.
-      const stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
+      let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
+      if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
@@ -1700,7 +1715,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    * @param {string} conversationId - Conversation ID
    * @param {Function} onEvent - Callback: ({type, data}) => void
    */
-  async askQuestionStream(question, userId, conversationId, onEvent, agent = 'legal', fromAgent = null) {
+  async askQuestionStream(question, userId, conversationId, onEvent, agent = 'legal', fromAgent = null, humanProActive = false) {
     try {
       if (!question || question.trim().length === 0) {
         throw new Error('Question cannot be empty');
@@ -1773,7 +1788,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         : question;
 
       // Stream tokens. Prefix = agent flavor · hand-off · memory · stance.
-      const stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
+      let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
+      if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
       let fullResponse = '';
       const stream = await chain.stream({
         stancePrefix,

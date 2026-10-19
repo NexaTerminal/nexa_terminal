@@ -157,7 +157,6 @@ const AiTeamBand = () => {
       <div className={styles.aiBandHero}>
         <div className={styles.aiBandHeroText}>
           <h2 className={styles.aiBandTitle}>{company ? `Тимот на ${company} е тука` : 'Твојот тим е тука'}</h2>
-          <p className={styles.aiBandSubtitle}>Прашај кого сакаш — одговара веднаш, бесплатно.</p>
         </div>
         <Link to="/terminal/ai-team" className={styles.groupAll}>
           Сите <ArrowIcon />

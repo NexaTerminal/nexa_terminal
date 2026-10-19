@@ -18,10 +18,10 @@ export default function Redeem() {
   const code = params.get('code');
   const prospectId = params.get('p'); // cold-invite tracking id
   // Display hints carried by the invite link (the real grant is resolved
-  // server-side from the code). Default to Pro/90 for older links.
+  // server-side from the code). Default to Pro / 180-day pilot for older links.
   const isBasic = params.get('plan') === 'basic';
   const tierWord = isBasic ? 'Basic' : 'Pro';
-  const days = Math.min(365, Math.max(1, parseInt(params.get('days'), 10) || 90));
+  const days = Math.min(365, Math.max(1, parseInt(params.get('days'), 10) || 180));
 
   useEffect(() => {
     if (code) localStorage.setItem(PENDING_PROMO_KEY, code);

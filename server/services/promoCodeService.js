@@ -44,7 +44,7 @@ class PromoCodeService {
    * sales link can offer more than the standard 8-day self-serve trial. The
    * window starts at redeem time (first login via the link), not at mint time.
    */
-  async create({ code, plan = 'pro', cycle = 'monthly', promoDays = 90, maxRedemptions, expiresAt, createdBy }) {
+  async create({ code, plan = 'pro', cycle = 'monthly', promoDays = 180, maxRedemptions, expiresAt, createdBy }) {
     const normalized = normalize(code);
     if (!normalized) throw claimError('INVALID', 'Кодот е задолжителен.');
     if (!/^[A-Z0-9_-]{3,40}$/.test(normalized)) {

@@ -472,6 +472,24 @@ async function initializeServices(database) {
     console.error('HR module init failed:', e.message);
   }
 
+  // --- Weekly lead digest (Monday) — teaser of active Inquiry Board leads to
+  // active Pro lawyers. The only outbound email to Pro under the free-Basic /
+  // invite-only-Pro model (billing reminders are disabled). ---
+  try {
+    const LeadDigestService = require('./services/leadDigestService');
+    const LeadDigestScheduler = require('./services/leadDigestScheduler');
+
+    const leadDigestService = new LeadDigestService(database, require('./services/emailService'));
+    app.locals.leadDigestService = leadDigestService;
+
+    const leadDigestScheduler = new LeadDigestScheduler(leadDigestService);
+    leadDigestScheduler.start();
+    app.locals.leadDigestScheduler = leadDigestScheduler;
+    console.log('✅ Lead digest ready (неделен преглед на лиди, понеделник 09:00)');
+  } catch (e) {
+    console.error('Lead digest init failed:', e.message);
+  }
+
   // --- Cases module (Предмети — управување со предмети + потсетници за рокови) ---
   try {
     const CasesService = require('./services/casesService');
@@ -633,9 +651,13 @@ async function initializeServices(database) {
       console.error('⚠️  Outreach/drip init failed:', e.message);
     }
 
-    // Trial → paid reminders: emails a subscription-offer proforma to promo-trial
-    // users during MK bank working hours (Mon–Fri 08–14). Idempotent per stage.
-    try {
+    // Trial → paid reminders DISABLED under the free-Basic / invite-only-Pro
+    // model: Basic is free-forever and the Pro pilot ends in a manual lock (no
+    // auto-charge), so no proforma / subscription-offer emails are sent to
+    // anyone. The service + scheduler are left in the tree (unwired) so this is
+    // reversible when paid plans return — see client/src/config/billing.js.
+    // The only outbound email to Pro lawyers is the weekly lead digest below.
+    if (false) try {
       const TrialReminderService   = require('./services/trialReminderService');
       const TrialReminderScheduler = require('./services/trialReminderScheduler');
       const trialReminderService   = new TrialReminderService(database, emailService);

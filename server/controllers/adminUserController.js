@@ -15,7 +15,8 @@ const providerCapService = require('../services/providerCapService');
 // want leads for. Areas must be from the enum; caps are enforced server-side.
 const providerProfileSchema = Joi.object({
   practiceAreas: Joi.array().items(Joi.string().valid(...PRACTICE_AREAS)).max(PRACTICE_AREAS.length).default([]),
-  cities: Joi.array().items(Joi.string().trim().max(60)).max(30).default([])
+  cities: Joi.array().items(Joi.string().trim().max(60)).max(30).default([]),
+  website: Joi.string().trim().max(200).allow('', null).default('')
 }).unknown(false);
 
 // Language field intentionally absent — invite emails are always Macedonian.
@@ -231,7 +232,7 @@ class AdminUserController {
       }
       res.json({
         success: true,
-        profile: { practiceAreas: mine, cities: su.cities || [] },
+        profile: { practiceAreas: mine, cities: su.cities || [], website: su.website || '' },
         areas
       });
     } catch (err) {
@@ -269,10 +270,12 @@ class AdminUserController {
       }
 
       const cities = [...new Set((value.cities || []).map((c) => c.trim()).filter(Boolean))];
+      const website = (value.website || '').trim();
       const nextSuperUser = {
         ...(req.user.superUser || {}),
         practiceAreas: desired,
         cities,
+        website,
         topicsSlotsPerQuarter: req.user.superUser?.topicsSlotsPerQuarter ?? 2,
         blogPostsPerMonth:     req.user.superUser?.blogPostsPerMonth     ?? 2,
         lastAssignedAt:        req.user.superUser?.lastAssignedAt        ?? null
@@ -285,12 +288,12 @@ class AdminUserController {
         try {
           await this.auditLoggingService.log({
             actorId: req.user._id, action: 'provider.profile_updated',
-            targetUserId: req.user._id, meta: { practiceAreas: desired, cities }
+            targetUserId: req.user._id, meta: { practiceAreas: desired, cities, website }
           });
         } catch (e) { /* non-critical */ }
       }
 
-      res.json({ success: true, profile: { practiceAreas: desired, cities } });
+      res.json({ success: true, profile: { practiceAreas: desired, cities, website } });
     } catch (err) {
       console.error('[admin-user/provider-profile PUT] error:', err);
       res.status(400).json({ success: false, message: err.message });

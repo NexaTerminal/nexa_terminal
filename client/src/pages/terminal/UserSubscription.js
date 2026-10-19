@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import { PROMO_FLASH_KEY } from '../../components/PromoRedeemWatcher';
+import { BILLING_UI_ENABLED } from '../../config/billing';
 import styles from './UserAccount.module.css';
 
 const PLAN_LABEL = {
@@ -132,14 +133,17 @@ export default function UserSubscriptionPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <span className={styles.eyebrow}>Сметка</span>
-          <h1 className={styles.title}>Претплата</h1>
+          <h1 className={styles.title}>{BILLING_UI_ENABLED ? 'Претплата' : 'Поставки на сметка'}</h1>
           <p className={styles.lead}>
-            Преглед на Вашиот план и состојба. Можете да изберете нов план или
-            да обновите постоен во секое време.
+            {BILLING_UI_ENABLED
+              ? 'Преглед на Вашиот план и состојба. Можете да изберете нов план или да обновите постоен во секое време.'
+              : 'Управувајте со корисничкото име и лозинката за Вашата сметка.'}
           </p>
         </header>
 
-        {loading ? (
+        {/* Subscription / plan / expiry — hidden while billing is off
+            (see config/billing). Account + password below stay available. */}
+        {BILLING_UI_ENABLED && (loading ? (
           <div className={styles.spinner}>Се вчитува…</div>
         ) : err ? (
           <div className={styles.toastError}>{err}</div>
@@ -212,10 +216,10 @@ export default function UserSubscriptionPage() {
               </section>
             )}
           </>
-        )}
+        ))}
 
         {/* ── Locked onboarding: enter code OR choose a plan ───────────── */}
-        {!isAdminRole && sub && ['none', 'suspended', 'cancelled'].includes(sub.status) && (
+        {BILLING_UI_ENABLED && !isAdminRole && sub && ['none', 'suspended', 'cancelled'].includes(sub.status) && (
           <section className={styles.panel}>
             <div className={styles.panelHead}>Активирајте го пристапот</div>
             <p className={styles.lead} style={{ fontSize: 13.5, margin: '0 0 12px' }}>
@@ -247,7 +251,7 @@ export default function UserSubscriptionPage() {
         )}
 
         {/* ── Promo redemption result when NOT in the locked block above ── */}
-        {redeemMsg && !(sub && ['none', 'suspended', 'cancelled'].includes(sub.status)) && (
+        {BILLING_UI_ENABLED && redeemMsg && !(sub && ['none', 'suspended', 'cancelled'].includes(sub.status)) && (
           <section className={styles.panel}>
             <div className={redeemMsg.ok ? styles.toastOk : styles.toastError}>{redeemMsg.msg}</div>
           </section>

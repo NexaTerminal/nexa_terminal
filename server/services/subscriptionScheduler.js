@@ -17,6 +17,12 @@ class SubscriptionScheduler {
     this.emailService = emailService;
     this.jobs = [];
     this.isRunning = false;
+    // Free-Basic / invite-only-Pro model: no billing emails. This daily cron is
+    // kept ONLY as the expiry → suspend safety net (so a 180-day Pro pilot locks
+    // on time). Every reminder / suspension email is gated off; the Pro pilot
+    // ends in a silent lock and the operator reaches out personally. Flip to true
+    // when paid plans + billing emails return (see client/src/config/billing.js).
+    this.emailsEnabled = false;
   }
 
   startAll() {
@@ -54,11 +60,13 @@ class SubscriptionScheduler {
       const sub = user.subscription || {};
 
       try {
-        const tpl = this._buildTemplate(due.type, { name, sub, language });
-        if (tpl) {
-          await this.emailService.sendEmail(user.email, tpl.subject, tpl.html);
-          await this.subscriptionService.markReminderSent(user._id, due.type);
-          remindersSent++;
+        if (this.emailsEnabled) {
+          const tpl = this._buildTemplate(due.type, { name, sub, language });
+          if (tpl) {
+            await this.emailService.sendEmail(user.email, tpl.subject, tpl.html);
+            await this.subscriptionService.markReminderSent(user._id, due.type);
+            remindersSent++;
+          }
         }
 
         if (due.type === 'paid-expired') {
@@ -78,8 +86,10 @@ class SubscriptionScheduler {
     for (const user of expiredGrace) {
       try {
         await this.subscriptionService.suspend(user._id, { reason: 'auto: grace expired' });
-        const tpl = subscriptionEmails.subscriptionSuspended({ name: user.fullName || user.username }, user.language || 'mk');
-        await this.emailService.sendEmail(user.email, tpl.subject, tpl.html);
+        if (this.emailsEnabled) {
+          const tpl = subscriptionEmails.subscriptionSuspended({ name: user.fullName || user.username }, user.language || 'mk');
+          await this.emailService.sendEmail(user.email, tpl.subject, tpl.html);
+        }
         suspended++;
       } catch (e) {
         console.error('[SubscriptionScheduler] grace-suspend failed:', e.message);

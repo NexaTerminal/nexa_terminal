@@ -338,7 +338,7 @@ router.get('/conversations/:id', authenticateJWT, async (req, res) => {
 router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const conversationId = req.params.id;
-    const { question, agent, from } = req.body;
+    const { question, agent, from, humanProActive } = req.body;
     const userId = req.user._id.toString();
     const conversationService = getConversationService(req);
 
@@ -361,7 +361,7 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     await conversationService.getConversation(conversationId, userId);
 
     // Ask the chatbot with conversation context
-    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from);
+    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, !!humanProActive);
 
     try {
       req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
@@ -443,7 +443,7 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
 router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), async (req, res) => {
   try {
     const conversationId = req.params.id;
-    const { question, agent, from } = req.body;
+    const { question, agent, from, humanProActive } = req.body;
     const userId = req.user._id.toString();
     const conversationService = getConversationService(req);
 
@@ -496,7 +496,7 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
     await chatBotService.askQuestionStream(question, userId, conversationId, (event) => {
       if (clientDisconnected) return;
       res.write(`data: ${JSON.stringify(event)}\n\n`);
-    }, agent, from);
+    }, agent, from, !!humanProActive);
 
     // Send credits info as final event
     if (!clientDisconnected && creditsRemaining !== null) {

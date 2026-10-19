@@ -13,6 +13,8 @@ import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAna
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
+import { fetchActiveProForConversation, mergeProMessages } from '../../lib/proChat';
+import ProProfileModal from '../../components/chatbot/ProProfileModal';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
@@ -89,6 +91,17 @@ const AIChat = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   // Per-character relationship note — powers the "welcome back" greeting.
   const [agentMemoryNote, setAgentMemoryNote] = useState('');
+
+  // Human-in-the-loop: a claimed pro linked to THIS conversation. When present,
+  // the pro's replies are merged into the timeline, the user's new messages are
+  // mirrored to the pro's thread, and the AI defers to the human.
+  const [proRequestId, setProRequestId] = useState(null);
+  const [assignedProName, setAssignedProName] = useState(null);
+  const [proMessages, setProMessages] = useState([]);
+  const [proProfile, setProProfile] = useState(null);
+  const [userRevealed, setUserRevealed] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+  const [revealBusy, setRevealBusy] = useState(false);
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -168,6 +181,41 @@ const AIChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Poll the linked (claimed) pro request for this conversation so the pro's
+  // replies stream into the chat. Polls every ~15s + on window focus; cleared
+  // when the conversation changes or the component unmounts.
+  useEffect(() => {
+    if (!currentConversationId) {
+      setProRequestId(null); setAssignedProName(null); setProMessages([]); setProProfile(null); setUserRevealed(false);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const r = await fetchActiveProForConversation(currentConversationId);
+      if (cancelled) return;
+      if (r) { setProRequestId(r.id); setAssignedProName(r.assignedProName); setProMessages(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); }
+      else { setProRequestId(null); setAssignedProName(null); setProMessages([]); setProProfile(null); setUserRevealed(false); }
+    };
+    load();
+    const iv = setInterval(load, 15000);
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    return () => { cancelled = true; clearInterval(iv); window.removeEventListener('focus', onFocus); };
+  }, [currentConversationId]);
+
+  // User toggles whether the assigned Pro can see their identity. Anonymous by default.
+  const toggleReveal = async () => {
+    if (!proRequestId || revealBusy) return;
+    const next = !userRevealed;
+    if (next && !window.confirm('Да го откриете вашиот идентитет (име и компанија) на професионалецот?')) return;
+    setRevealBusy(true);
+    try {
+      const res = await ProRequestsApiService.reveal(proRequestId, next);
+      if (res?.success) setUserRevealed(next);
+    } catch (_) { /* best-effort */ }
+    finally { setRevealBusy(false); }
+  };
 
   /**
    * Fetch user's weekly question limits
@@ -343,6 +391,13 @@ const AIChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     const questionText = question;
+    // Shared thread: when a human pro is in the loop, mirror the user's message
+    // into the pro's thread so they see the follow-up (fire-and-forget), and tell
+    // the server to make the AI defer to the human.
+    const proActive = !!proRequestId;
+    if (proActive) {
+      ProRequestsApiService.addMessage(proRequestId, questionText).catch(() => { /* non-fatal */ });
+    }
     // Hand-off origin applies only to THIS (first) message after a switch.
     const fromAgent = handoffFrom;
     setHandoffFrom(null);
@@ -432,7 +487,7 @@ const AIChat = () => {
           setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
           setIsStreaming(false);
         },
-      }, agent, fromAgent);
+      }, agent, fromAgent, proActive);
 
     } catch (err) {
       console.error('Error asking question:', err);
@@ -446,7 +501,7 @@ const AIChat = () => {
 
         let conversationId = currentConversationId;
         const data = await handleCreditOperation(
-          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent, fromAgent),
+          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent, fromAgent, proActive),
           'AI прашање',
           1
         );
@@ -535,6 +590,13 @@ const AIChat = () => {
       day: 'numeric'
     });
   };
+
+  // Timeline shown to the user = conversation turns (tagged with their original
+  // index for feedback/pro-card handlers) merged with the pro's replies.
+  const displayMessages = mergeProMessages(
+    messages.map((m, i) => ({ ...m, _idx: i })),
+    proMessages
+  );
 
   return (
     <div>
@@ -682,7 +744,44 @@ const AIChat = () => {
               </div>
             ) : (
               <div className={styles.messagesList}>
-                {messages.map((message, index) => {
+                {proProfile && (
+                  <div className={styles.proBar}>
+                    <button type="button" className={styles.proBarName} onClick={() => setShowProModal(true)}>
+                      🧑‍⚖️ {proProfile.name || 'Професионалец'} <span aria-hidden="true">ℹ︎</span>
+                    </button>
+                    <button type="button" className={styles.proBarReveal} onClick={toggleReveal} disabled={revealBusy}>
+                      {userRevealed ? 'Идентитетот е откриен' : 'Анонимни сте · Откриј идентитет'}
+                    </button>
+                  </div>
+                )}
+                {showProModal && (
+                  <ProProfileModal profile={proProfile} onClose={() => setShowProModal(false)} />
+                )}
+                {displayMessages.map((message) => {
+                  // Human pro reply — rendered as its own bubble; never triggers
+                  // the AI (step 5) and carries no feedback/pro-card affordances.
+                  if (message.type === 'pro') {
+                    return (
+                      <div key={`pro-${message.messageId}`} className={`${styles.messageRow} ${styles.rowPro}`}>
+                        <div className={styles.bubbleCol}>
+                          <div className={styles.messageHeader}>
+                            <span className={styles.messageAuthor}
+                              style={proProfile ? { cursor: 'pointer' } : undefined}
+                              onClick={() => proProfile && setShowProModal(true)}>
+                              🧑‍⚖️ {message.author} · Професионалец
+                            </span>
+                            <span className={styles.messageTime}>
+                              {message.timestamp.toLocaleTimeString('mk-MK', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div className={`${styles.bubble} ${styles.bubblePro}`}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  const index = message._idx;
                   const isAi = message.type === 'ai';
                   const { clean: displayContent, handoff, askPro } = isAi
                     ? splitMarkers(message.content)

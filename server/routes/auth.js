@@ -110,23 +110,24 @@ router.get('/google/callback',
         } catch (_) { /* keep fallback */ }
       }
 
-      // Brand-new Google account (no subscription, or 'none') → start the 8-day
-      // free trial for the plan matching the storefront. initTrial is idempotent
-      // and reloads role, so we re-issue the token from the fresh user doc.
+      // Brand-new Google account (no subscription, or 'none') → provision per the
+      // free-Basic model: SMB (Basic) accounts get perpetual free access
+      // immediately; Pro (lawyer) accounts stay LOCKED — Pro is invite-only, so a
+      // fresh leads.* Google signup is locked and only activated when the
+      // PromoRedeemWatcher applies the invite code they arrived with. No trials.
       let user = req.user;
       try {
         const sub = req.app.locals.subscriptionService;
         const st = user.subscription?.status;
         if (sub && (!st || st === 'none')) {
           const { isValidPlan } = require('../constants/roles');
-          // Provision a provisional plan (form choice in `state.plan` if present,
-          // else domain default). The user is ALWAYS asked to confirm on first
-          // login via the TierOnboardingModal — needsTierOnboarding stays true
-          // (set at account creation). If a Pro licence came from the form, stash
-          // it so the modal can prefill.
           const explicit = isValidPlan(chosenPlan);
           const plan = explicit ? chosenPlan : (sf === 'leads' ? 'pro' : 'basic');
-          await sub.initTrial(user._id, { plan });
+          if (plan === 'pro') {
+            await sub.initLocked(user._id);
+          } else {
+            await sub.initFreeBasic(user._id);
+          }
           if (plan === 'pro' && String(lic || '').trim()) {
             try {
               await req.app.locals.db.collection('users').updateOne(
@@ -140,7 +141,7 @@ router.get('/google/callback',
           if (fresh) user = fresh;
         }
       } catch (e) {
-        console.error('initTrial after Google signup warning:', e.message);
+        console.error('subscription init after Google signup warning:', e.message);
       }
 
       const token = authController.generateToken(user);

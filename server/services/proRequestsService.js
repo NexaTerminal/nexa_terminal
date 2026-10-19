@@ -91,12 +91,14 @@ class ProRequestsService {
     };
   }
 
-  static _publicMessage(m) {
+  static _publicMessage(m, maskUser = false) {
     return {
       _id: String(m._id),
       authorId: m.authorId ? String(m.authorId) : null,
       authorRole: m.authorRole,
-      authorName: m.authorName || null,
+      // The requester (SMB) stays anonymous to the Pro until they reveal — so a
+      // user-authored message shows no name on Pro-facing views.
+      authorName: (maskUser && m.authorRole === 'user') ? 'Анонимен корисник' : (m.authorName || null),
       body: m.body || '',
       kind: m.kind || 'message',
       amount: m.amount ?? null,
@@ -106,8 +108,11 @@ class ProRequestsService {
   }
 
   // Shape a request for API responses (stringify ids, normalize messages).
-  static present(doc) {
+  // `viewerRole` ∈ 'user' (owner) | 'pro' (assigned) | 'admin' | undefined.
+  // A Pro sees the requester as anonymous until `userRevealed` is set by the user.
+  static present(doc, viewerRole) {
     if (!doc) return null;
+    const maskUser = viewerRole === 'pro' && !doc.userRevealed;
     return {
       _id: String(doc._id),
       type: doc.type,
@@ -117,14 +122,21 @@ class ProRequestsService {
       category: doc.category || null,
       context: doc.context || {},
       userId: String(doc.userId),
-      userEmail: doc.userEmail || null,
-      userName: doc.userName || null,
-      companyName: doc.companyName || null,
+      userRevealed: !!doc.userRevealed,
+      userEmail: maskUser ? null : (doc.userEmail || null),
+      userName: maskUser ? null : (doc.userName || null),
+      companyName: maskUser ? null : (doc.companyName || null),
       assignedProId: doc.assignedProId ? String(doc.assignedProId) : null,
       assignedProName: doc.assignedProName || null,
       assignedProEmail: doc.assignedProEmail || null,
+      // Pro's public profile — always visible to the user (from the Pro's account).
+      assignedProCity: doc.assignedProCity || null,
+      assignedProAddress: doc.assignedProAddress || null,
+      assignedProWebsite: doc.assignedProWebsite || null,
+      assignedProPhone: doc.assignedProPhone || null,
+      assignedProLicense: doc.assignedProLicense || null,
       rejectionReason: doc.rejectionReason || null,
-      messages: (doc.messages || []).map(ProRequestsService._publicMessage),
+      messages: (doc.messages || []).map((m) => ProRequestsService._publicMessage(m, maskUser)),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
       openedAt: doc.openedAt || null,
@@ -133,8 +145,8 @@ class ProRequestsService {
     };
   }
 
-  // Board view for Pros BEFORE they claim: enough to decide, without exposing the
-  // requester's direct contact details (revealed once claimed → thread).
+  // Board view for Pros BEFORE they claim: enough to decide, WITHOUT exposing the
+  // requester's identity (the SMB is anonymous by default — never show company).
   static presentForBoard(doc) {
     if (!doc) return null;
     return {
@@ -143,7 +155,7 @@ class ProRequestsService {
       status: doc.status,
       subject: doc.subject,
       category: doc.category || null,
-      companyName: doc.companyName || null,
+      companyName: null, // anonymous — requester identity is never on the board
       aiSummary: doc.context?.aiSummary || null,
       question: doc.context?.question || null,
       transcript: doc.context?.transcriptExcerpt || null,
@@ -189,6 +201,7 @@ class ProRequestsService {
       category: categoryForAgent(agent),
       context,
       ...ProRequestsService._userSnapshot(user),
+      userRevealed: false, // SMB is anonymous to the Pro until they opt to reveal
       consent: {
         acceptedAt: now,
         version: Number(input.consentVersion) || 1,
@@ -219,7 +232,7 @@ class ProRequestsService {
     await this._ensureIndexes();
     const id = ProRequestsService.toObjectId(proId);
     const docs = await this.col.find({ assignedProId: id }).sort({ updatedAt: -1 }).toArray();
-    return docs.map(ProRequestsService.present);
+    return docs.map((d) => ProRequestsService.present(d, 'pro'));
   }
 
   async listForAdmin({ status } = {}) {
@@ -243,9 +256,42 @@ class ProRequestsService {
     return { doc, owner, assigned, isAdmin: !!isAdmin };
   }
 
+  // Raw (unmasked) notification targets for server-side emails/notifications.
+  // NEVER sent to a Pro client — kept separate from present() so masking the
+  // user's identity on the Pro view doesn't break "new message" emails.
+  static _notifyTargets(doc) {
+    return {
+      userEmail: doc.userEmail || null,
+      userId: doc.userId ? String(doc.userId) : null,
+      assignedProEmail: doc.assignedProEmail || null,
+      assignedProId: doc.assignedProId ? String(doc.assignedProId) : null,
+      subject: doc.subject || null,
+    };
+  }
+
+  // Map access flags → the viewerRole that drives anonymity masking in present().
+  static _viewerRole({ owner, assigned, isAdmin }) {
+    if (isAdmin) return 'admin';
+    if (owner) return 'user';
+    if (assigned) return 'pro';
+    return undefined;
+  }
+
   async getForActor(actor, id, isAdmin) {
-    const { doc } = await this._getForActor(actor, id, isAdmin);
-    return ProRequestsService.present(doc);
+    const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
+    return ProRequestsService.present(doc, ProRequestsService._viewerRole({ owner, assigned, isAdmin }));
+  }
+
+  // Owner (SMB) opts to reveal / re-hide their identity to the assigned Pro.
+  async setRevealed(actor, id, revealed, isAdmin) {
+    const { doc, owner } = await this._getForActor(actor, id, isAdmin);
+    if (!owner && !isAdmin) throw forbidden();
+    const now = new Date();
+    await this.col.updateOne(
+      { _id: doc._id },
+      { $set: { userRevealed: !!revealed, userRevealedAt: revealed ? now : null, updatedAt: now } }
+    );
+    return ProRequestsService.present({ ...doc, userRevealed: !!revealed, updatedAt: now }, 'user');
   }
 
   // ── Thread ──────────────────────────────────────────────────────────────────
@@ -271,12 +317,19 @@ class ProRequestsService {
       { _id: doc._id },
       { $push: { messages: message }, $set: { updatedAt: new Date() } }
     );
-    return { request: ProRequestsService.present({ ...doc, messages: [...doc.messages, message], updatedAt: new Date() }), message: ProRequestsService._publicMessage(message), authorRole };
+    const viewerRole = ProRequestsService._viewerRole({ owner, assigned, isAdmin });
+    const maskUser = viewerRole === 'pro' && !doc.userRevealed;
+    return {
+      request: ProRequestsService.present({ ...doc, messages: [...doc.messages, message], updatedAt: new Date() }, viewerRole),
+      message: ProRequestsService._publicMessage(message, maskUser),
+      authorRole,
+      targets: ProRequestsService._notifyTargets(doc),
+    };
   }
 
   // Structured price offer — assigned Pro only.
   async addQuote(actor, id, { amount, currency, body }, isAdmin) {
-    const { doc, assigned } = await this._getForActor(actor, id, isAdmin);
+    const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
     if (!assigned && !isAdmin) throw forbidden();
     if (doc.status !== 'active') throw invalid('Разговорот не е активен.');
     const amt = Number(amount);
@@ -297,7 +350,12 @@ class ProRequestsService {
       { _id: doc._id },
       { $push: { messages: message }, $set: { updatedAt: new Date() } }
     );
-    return { request: ProRequestsService.present({ ...doc, messages: [...doc.messages, message], updatedAt: new Date() }), message: ProRequestsService._publicMessage(message) };
+    const viewerRole = ProRequestsService._viewerRole({ owner, assigned, isAdmin });
+    return {
+      request: ProRequestsService.present({ ...doc, messages: [...doc.messages, message], updatedAt: new Date() }, viewerRole),
+      message: ProRequestsService._publicMessage(message),
+      targets: ProRequestsService._notifyTargets(doc),
+    };
   }
 
   // ── Board model: auto-broadcast → first Pro claims ───────────────────────────
@@ -338,6 +396,14 @@ class ProRequestsService {
           assignedProId: proUser._id,
           assignedProName: clamp(proUser.name || proUser.username || proUser.companyInfo?.companyName, 160) || null,
           assignedProEmail: clamp(proUser.email, 200) || null,
+          // Snapshot the Pro's public profile so the user can always see who they
+          // are dealing with. City + website come from the provider profile
+          // (superUser), address/phone/license from the account where available.
+          assignedProCity: clamp((proUser.superUser?.cities || []).join(', '), 200) || null,
+          assignedProWebsite: clamp(proUser.superUser?.website || proUser.companyInfo?.website, 200) || null,
+          assignedProAddress: clamp(proUser.companyInfo?.address || proUser.companyInfo?.companyAddress, 300) || null,
+          assignedProPhone: clamp(proUser.companyInfo?.phone, 64) || null,
+          assignedProLicense: clamp(proUser.proVerification?.license, 80) || null,
           claimedAt: now,
           updatedAt: now,
           proConsent: { acceptedAt: now, version: Number(consent?.version) || 1 },
@@ -347,7 +413,9 @@ class ProRequestsService {
     );
     const updated = res?.value || res;
     if (!updated || !updated._id) throw invalid('Ова барање штотуку беше преземено од друг професионалец.');
-    return ProRequestsService.present(updated);
+    // Claimer is the Pro → present with the user still anonymous; return raw
+    // targets separately so the "a Pro joined" email still reaches the user.
+    return { item: ProRequestsService.present(updated, 'pro'), targets: ProRequestsService._notifyTargets(updated) };
   }
 
   // Every Pro to notify when a conversation opens — all Pros can join, so all are

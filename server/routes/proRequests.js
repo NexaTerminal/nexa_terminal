@@ -15,6 +15,7 @@ router.get('/:id', c.get);
 router.post('/:id/messages', c.addMessage);
 router.post('/:id/quote', c.addQuote);
 router.post('/:id/claim', c.claim);                 // Pro claims an open request (first-come)
+router.post('/:id/reveal', c.reveal);               // requester reveals/hides identity to the Pro
 router.post('/:id/reject', c.reject);               // admin removes a request
 router.post('/:id/close', c.close);
 

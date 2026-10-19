@@ -303,10 +303,10 @@ class AuthController {
         role: intendedRole,
         intendedPlan: planChoice,
         ...(proVerification ? { proVerification } : {}),
-        // Every new account is asked to confirm its type on first login via the
-        // TierOnboardingModal — regardless of signup method or storefront. The
-        // signup-form choice (if any) just pre-selects the modal.
-        needsTierOnboarding: true,
+        // Plan is decided by the storefront (nexa.mk → Basic) and, for Pro, by the
+        // invite link that is redeemed — never by a first-login modal. The old
+        // TierOnboardingModal has been removed; no account should be flagged for it.
+        needsTierOnboarding: false,
         referredBy: referredByCode,
         companyInfo: {
           companyName: '',

@@ -149,16 +149,17 @@ exports.create = async (req, res) => {
 // ── Thread ──────────────────────────────────────────────────────────────────────
 exports.addMessage = async (req, res) => {
   try {
-    const { request, message, authorRole } = await make(req).addMessage(req.user, req.params.id, req.body?.body, isAdmin(req));
-    // Notify the counterpart.
+    const { request, message, authorRole, targets } = await make(req).addMessage(req.user, req.params.id, req.body?.body, isAdmin(req));
+    // Notify the counterpart. Use raw `targets` (not the masked `request`, which
+    // hides the anonymous user's email on the Pro view).
     const link = `${APP_URL()}/terminal/requests`;
-    const body = `<p>Нова порака во барањето „${esc(request.subject)}".</p><p><a href="${link}">Отвори го разговорот</a></p>`;
+    const body = `<p>Нова порака во барањето „${esc(targets.subject)}".</p><p><a href="${link}">Отвори го разговорот</a></p>`;
     if (authorRole === 'user') {
-      notify(request.assignedProEmail, 'Нова порака од клиент', body);
-      notifyInApp(req, request.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: request.subject, actionUrl: '/terminal/pro/conversations', severity: 'info' });
+      notify(targets.assignedProEmail, 'Нова порака од клиент', body);
+      notifyInApp(req, targets.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: targets.subject, actionUrl: '/terminal/pro/conversations', severity: 'info' });
     } else {
-      notify(request.userEmail, 'Нова порака од професионалец', body);
-      notifyInApp(req, request.userId, { type: 'pro_request_message', title: 'Нова порака од професионалец', message: request.subject, actionUrl: '/terminal/requests', severity: 'info' });
+      notify(targets.userEmail, 'Нова порака од професионалец', body);
+      notifyInApp(req, targets.userId, { type: 'pro_request_message', title: 'Нова порака од професионалец', message: targets.subject, actionUrl: '/terminal/requests', severity: 'info' });
     }
     return res.json({ success: true, item: request, message });
   } catch (err) { return handle(res, err); }
@@ -167,16 +168,25 @@ exports.addMessage = async (req, res) => {
 exports.addQuote = async (req, res) => {
   try {
     const { amount, currency, body } = req.body || {};
-    const { request, message } = await make(req).addQuote(req.user, req.params.id, { amount, currency, body }, isAdmin(req));
+    const { request, message, targets } = await make(req).addQuote(req.user, req.params.id, { amount, currency, body }, isAdmin(req));
     const link = `${APP_URL()}/terminal/requests`;
     notify(
-      request.userEmail,
+      targets.userEmail,
       'Понуда за цена од професионалец',
-      `<p>Професионалецот предложи цена за „${esc(request.subject)}": <strong>${esc(message.amount)} ${esc(message.currency)}</strong>.</p>
+      `<p>Професионалецот предложи цена за „${esc(targets.subject)}": <strong>${esc(message.amount)} ${esc(message.currency)}</strong>.</p>
        ${message.body ? `<p>${esc(message.body)}</p>` : ''}
        <p><a href="${link}">Отвори го разговорот</a></p>`
     );
     return res.json({ success: true, item: request, message });
+  } catch (err) { return handle(res, err); }
+};
+
+// Requester (SMB) reveals / re-hides their identity to the assigned Pro.
+exports.reveal = async (req, res) => {
+  try {
+    const revealed = req.body?.revealed !== false; // default true
+    const item = await make(req).setRevealed(req.user, req.params.id, revealed, isAdmin(req));
+    return res.json({ success: true, item });
   } catch (err) { return handle(res, err); }
 };
 
@@ -200,19 +210,19 @@ exports.claim = async (req, res) => {
     if (!req.body?.acceptLiability) {
       return handle(res, { code: 'INVALID_INPUT', message: 'Мора да ја потврдите професионалната одговорност за да се приклучите.', fields: ['acceptLiability'] });
     }
-    const item = await make(req).claim(req.user, req.params.id, { version: req.body?.consentVersion });
+    const { item, targets } = await make(req).claim(req.user, req.params.id, { version: req.body?.consentVersion });
     const link = `${APP_URL()}/terminal/requests`;
     notify(
-      item.userEmail,
+      targets.userEmail,
       'Професионалец се приклучи во вашето барање',
-      `<p><strong>${esc(item.assignedProName || 'Професионалец')}</strong> се приклучи во вашето барање „${esc(item.subject)}" и може да ви помогне.</p>
+      `<p><strong>${esc(item.assignedProName || 'Професионалец')}</strong> се приклучи во вашето барање „${esc(targets.subject)}" и може да ви помогне.</p>
        <p><a href="${link}">Отвори го разговорот</a></p>
        <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
     );
-    notifyInApp(req, item.userId, {
+    notifyInApp(req, targets.userId, {
       type: 'pro_request_joined',
       title: 'Професионалец се приклучи',
-      message: `${item.assignedProName || 'Професионалец'} се приклучи во „${item.subject}"`,
+      message: `${item.assignedProName || 'Професионалец'} се приклучи во „${targets.subject}"`,
       actionUrl: '/terminal/requests',
       severity: 'success',
     });

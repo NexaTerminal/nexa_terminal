@@ -1315,7 +1315,7 @@
   background: #FFFFFF;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
-  padding: 10px 14px 6px;
+  padding: 7px 14px 5px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 .actionHeader { margin-bottom: 4px; }
@@ -1347,19 +1347,19 @@
 .actionGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 .actionTile {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 10px 11px;
+  gap: 9px;
+  padding: 6px 10px;
   background: #fff;
   border: 1px solid #eef1f5;
   border-radius: 11px;
   text-decoration: none;
   color: inherit;
-  min-height: 52px;
+  min-height: 40px;
   transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background-color 0.18s;
 }
 .actionTile:hover {
@@ -1371,9 +1371,9 @@
 }
 .actionIconWrap {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 29px;
+  height: 29px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1655,16 +1655,18 @@
    SHORTCUT GROUPS inside ActionGridCard
    ============================================================ */
 .shortcutGroup {
-  padding: 12px 0 4px;
+  padding: 8px 0 2px;
   border-top: 1px solid #f1f5f9;
 }
+/* No header now — the first group shouldn't start with a divider line. */
+.actionCard .shortcutGroup:first-child { border-top: none; padding-top: 2px; }
 
 /* Shared section head — used by the AI band and every shortcut group. */
 .groupHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 .groupTitle {
   font-size: 11px;

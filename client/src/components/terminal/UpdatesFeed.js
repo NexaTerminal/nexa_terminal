@@ -150,11 +150,13 @@ const UpdatesFeed = () => {
 // character avatar to open the chat dock; "Сите" links to the full AI Team page.
 const AiTeamBand = () => {
   const { openChat } = useChatDock();
+  const { currentUser } = useAuth();
+  const company = currentUser?.companyInfo?.companyName?.trim();
   return (
     <div className={styles.aiBand}>
       <div className={styles.aiBandHero}>
         <div className={styles.aiBandHeroText}>
-          <h2 className={styles.aiBandTitle}>Твојот тим е тука</h2>
+          <h2 className={styles.aiBandTitle}>{company ? `Тимот на ${company} е тука` : 'Твојот тим е тука'}</h2>
           <p className={styles.aiBandSubtitle}>Прашај кого сакаш — одговара веднаш, бесплатно.</p>
         </div>
         <Link to="/terminal/ai-team" className={styles.groupAll}>
@@ -232,33 +234,14 @@ const TemplateRow = () => (
   </div>
 );
 
-// Quick-actions are kept but collapsed by default, so the Известувања feed sits
-// right under the AI team hero and reads like a scrollable feed. One tap expands.
-const ActionGridCard = () => {
-  const [open, setOpen] = useState(false);
-  return (
-    <section className={styles.actionCard} aria-label="Брзи дејства">
-      <button
-        type="button"
-        className={styles.actionToggle}
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-      >
-        <span className={styles.eyebrow}>
-          <span className={`${styles.eyebrowDot} ${styles.dotBlue}`} aria-hidden />
-          Брзи дејства
-        </span>
-        <span className={`${styles.actionChevron} ${open ? styles.actionChevronOpen : ''}`} aria-hidden><ArrowIcon /></span>
-      </button>
-      {open && (
-        <>
-          <SuggestedActions />
-          <TemplateRow />
-        </>
-      )}
-    </section>
-  );
-};
+// Quick-actions: always visible (static) and compact, so the Известувања feed
+// below stays in view without a tap to expand.
+const ActionGridCard = () => (
+  <section className={styles.actionCard} aria-label="Брзи дејства">
+    <SuggestedActions />
+    <TemplateRow />
+  </section>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 

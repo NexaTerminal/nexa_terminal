@@ -88,24 +88,29 @@ async function check(req, res, next, subscriptionService) {
 
     const eff = await subscriptionService.effectiveStatus(effUser);
 
-    // Access is granted only while an ACTIVE subscription is UNEXPIRED, or grace
-    // is live. Checking endsAt at request time (rather than trusting the stored
-    // status) means an expired subscription loses access immediately — we never
-    // depend on the nightly cron having run to flip status → suspended.
-    const endsAtMs = eff.endsAt      ? new Date(eff.endsAt).getTime()      : 0;
+    // Access is granted while an ACTIVE subscription is UNEXPIRED, or grace is
+    // live. A null endsAt on an ACTIVE subscription means PERPETUAL access
+    // (free-forever Basic) — it never expires. Checking endsAt at request time
+    // (rather than trusting the stored status) means a dated subscription that
+    // has lapsed loses access immediately — we never depend on the nightly cron
+    // having run to flip status → suspended. Mirrors hasFeatureAccess.
     const graceMs  = eff.graceEndsAt ? new Date(eff.graceEndsAt).getTime() : 0;
     const isActive = eff.status === SUBSCRIPTION_STATUSES.ACTIVE;
+    const perpetual = isActive && !eff.endsAt;                 // null endsAt = never expires
+    const endsAtMs = eff.endsAt ? new Date(eff.endsAt).getTime() : 0;
+    const unexpired = isActive && eff.endsAt && endsAtMs > nowMs;
 
-    if ((isActive && endsAtMs > nowMs) || graceMs > nowMs) {
+    if (perpetual || unexpired || graceMs > nowMs) {
       req.subscription = eff;
       return next();
     }
 
-    // Lapsed active with no live grace → self-heal the stored status to
+    // Lapsed DATED active with no live grace → self-heal the stored status to
     // 'suspended' so the admin dashboard reflects reality without waiting for
-    // the cron. Only for the user's own subscription (sub-seats inherit the
-    // parent's state; the parent's own request / cron handles that side).
-    if (isActive && endsAtMs <= nowMs && eff.source === 'self') {
+    // the cron. Perpetual (null endsAt) subscriptions are excluded above and
+    // never reach here. Only for the user's own subscription (sub-seats inherit
+    // the parent's state; the parent's own request / cron handles that side).
+    if (isActive && eff.endsAt && endsAtMs <= nowMs && eff.source === 'self') {
       try {
         await subscriptionService.suspend(effUser._id || effUser.id, { reason: 'auto: expired (request-time)' });
         eff.status = SUBSCRIPTION_STATUSES.SUSPENDED;

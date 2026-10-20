@@ -131,13 +131,19 @@ module.exports = (db) => {
           // leads signup must carry a valid founder invite in the OAuth `state`,
           // otherwise we create NOTHING (no locked dead-end). nexa.mk/main is
           // unaffected — free Basic self-serve stays open.
-          let sfState = 'main', inviteState = '';
+          let sfState = 'main', inviteState = '', codeState = '';
           try {
             const sp = new URLSearchParams(req?.query?.state || '');
             sfState = sp.get('sf') || 'main';
             inviteState = sp.get('invite') || '';
+            codeState = sp.get('code') || '';
           } catch (_) { /* bare/legacy state → treated as main */ }
-          if (sfState === 'leads' && !isValidFounderInvite(inviteState)) {
+          // Two valid invitations unlock a new leads (Pro) account: the reusable
+          // founder env-token (/join) OR a promo code from a /redeem campaign link
+          // (the code itself is validated + redeemed later). Neither → blocked, so
+          // there is no self-serve Pro signup and no locked dead-end.
+          const invited = isValidFounderInvite(inviteState) || !!codeState.trim();
+          if (sfState === 'leads' && !invited) {
             return done(null, false, { message: 'Пристапот за адвокати е само по покана.', code: 'INVITE_REQUIRED' });
           }
 

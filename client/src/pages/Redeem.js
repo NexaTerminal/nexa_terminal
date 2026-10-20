@@ -66,6 +66,10 @@ export default function Redeem() {
     const state = new URLSearchParams();
     state.set('sf', getStorefront());
     state.set('origin', window.location.origin);
+    // Carry the promo code so the server-side leads invite gate recognises this
+    // as an invited signup (the code itself is redeemed client-side post-auth by
+    // PromoRedeemWatcher). Without this, the gate would block the new account.
+    if (code) state.set('code', code);
     window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
   };
 

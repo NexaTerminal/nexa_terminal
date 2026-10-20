@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ApiService from '../../services/api';
 import styles from '../../styles/terminal/Notifications.module.css';
 
 // Inline SVG icons (stroke-only, currentColor) — the app avoids icon-font deps
@@ -31,91 +32,37 @@ const Notifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
-      }
+      // Route through ApiService so the base URL and auth/CSRF handling match
+      // the rest of the app (the old hand-rolled fetch hardcoded a localhost
+      // CSRF URL that failed in production, so reads worked but writes didn't).
+      const data = await ApiService.get('/notifications');
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
     } catch (error) {
       // Silently handle notification fetch errors
     }
   };
 
   const markAsRead = async (notificationId) => {
+    // Optimistic: reflect the read state immediately so the UI clears even if
+    // the user navigates away via actionUrl right after.
+    setNotifications(prev => prev.map(notif =>
+      notif.id === notificationId ? { ...notif, read: true } : notif
+    ));
+    setUnreadCount(prev => Math.max(0, prev - 1));
     try {
-      // Get CSRF token
-      const csrfResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/csrf-token`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (!csrfResponse.ok) {
-        throw new Error('Failed to get CSRF token');
-      }
-
-      const { csrfToken } = await csrfResponse.json();
-
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setNotifications(notifications.map(notif => 
-          notif.id === notificationId ? { ...notif, read: true } : notif
-        ));
-        setUnreadCount(Math.max(0, unreadCount - 1));
-      }
+      await ApiService.put(`/notifications/${notificationId}/read`, {});
     } catch (error) {
-      // Silently handle mark as read errors
+      // Silently handle mark as read errors (optimistic state already applied)
     }
   };
 
   const markAllAsRead = async () => {
     try {
       setLoading(true);
-      
-      // Get CSRF token
-      const csrfResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5002/api'}/csrf-token`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (!csrfResponse.ok) {
-        throw new Error('Failed to get CSRF token');
-      }
-
-      const { csrfToken } = await csrfResponse.json();
-
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/notifications/read-all', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setNotifications(notifications.map(notif => ({ ...notif, read: true })));
-        setUnreadCount(0);
-      }
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      setUnreadCount(0);
+      await ApiService.put('/notifications/read-all', {});
     } catch (error) {
       // Silently handle mark all as read errors
     } finally {
@@ -171,11 +118,13 @@ const Notifications = () => {
     return `пред ${Math.floor(diffInMinutes / 1440)} дена`;
   };
 
-  const handleNotificationClick = (notification) => {
+  const handleNotificationClick = async (notification) => {
+    // Await the mark-read BEFORE navigating — a full-page nav via actionUrl
+    // aborts any in-flight request, which is why reads weren't sticking.
     if (!notification.read) {
-      markAsRead(notification.id);
+      await markAsRead(notification.id);
     }
-    
+
     if (notification.actionUrl) {
       // Navigate to the action URL
       window.location.href = notification.actionUrl;

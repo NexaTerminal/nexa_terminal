@@ -66,10 +66,19 @@ export default function Redeem() {
     const state = new URLSearchParams();
     state.set('sf', getStorefront());
     state.set('origin', window.location.origin);
-    // Carry the promo code so the server-side leads invite gate recognises this
-    // as an invited signup (the code itself is redeemed client-side post-auth by
-    // PromoRedeemWatcher). Without this, the gate would block the new account.
-    if (code) state.set('code', code);
+    // Carry the promo code so the server redeems it DURING the OAuth callback
+    // (account is Pro before any redirect — no cross-origin localStorage race).
+    // Clear the stashed copy so PromoRedeemWatcher doesn't then re-redeem an
+    // already-used code and flash a spurious error.
+    if (code) {
+      state.set('code', code);
+      // On leads the server redeems during the callback → drop the stash so the
+      // watcher doesn't double-redeem. On main the watcher still applies it
+      // (same origin, no cross-domain race).
+      if (getStorefront() === 'leads') {
+        try { localStorage.removeItem(PENDING_PROMO_KEY); } catch (_) { /* ignore */ }
+      }
+    }
     window.location.href = `${apiURL}/auth/google?state=${encodeURIComponent(state.toString())}`;
   };
 

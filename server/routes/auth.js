@@ -119,6 +119,7 @@ router.get('/google/callback',
       let chosenPlan = '';   // identity the user picked in the signup UI
       let lic = '';          // lawyer licence / ЕМБС (Pro signups only)
       let invite = '';       // founder invite token (leads.* instant-Pro)
+      let code = '';         // promo code from a /redeem campaign link
       if (rawState.includes('sf=') || rawState.includes('redirect=') || rawState.includes('origin=')) {
         const sp = new URLSearchParams(rawState);
         redirect = sp.get('redirect') || '';
@@ -127,6 +128,7 @@ router.get('/google/callback',
         chosenPlan = sp.get('plan') || '';
         lic = sp.get('lic') || '';
         invite = sp.get('invite') || '';
+        code = sp.get('code') || '';
       } else {
         redirect = rawState;
       }
@@ -149,6 +151,7 @@ router.get('/google/callback',
           const explicit = isValidPlan(chosenPlan);
           const plan = explicit ? chosenPlan : (sf === 'leads' ? 'pro' : 'basic');
           const hasFounderInvite = sf === 'leads' && isValidFounderInvite(invite);
+          const codeTrim = String(code || '').trim();
           if (plan === 'pro' && hasFounderInvite) {
             // Reuse the proven activation path (role→admin_user, plan→pro,
             // status→active, Founding-20 cap enforced). No code, no locked step.
@@ -158,8 +161,24 @@ router.get('/google/callback',
               console.error('founder-invite Pro activation warning:', e.message);
               await sub.initLocked(user._id);
             }
+          } else if (sf === 'leads' && codeTrim) {
+            // Promo-code campaign link (/redeem?code=…). Redeem SERVER-SIDE here so
+            // the account is already Pro before any redirect — otherwise the code,
+            // stashed in leads.* localStorage, is stranded when the canonical
+            // redirect sends a still-locked account to nexa.mk. Invalid → locked.
+            try {
+              const promoSvc = req.app.locals.promoCodeService;
+              const codeDoc = await promoSvc.claim(codeTrim, user._id);
+              await sub.redeemPromo(user._id, {
+                plan: codeDoc.plan, cycle: codeDoc.cycle, code: codeDoc.code,
+                durationDays: codeDoc.promoDays || 90
+              });
+            } catch (e) {
+              console.error('promo-code Pro activation (google) failed:', e.message);
+              await sub.initLocked(user._id);
+            }
           } else if (plan === 'pro') {
-            await sub.initLocked(user._id); // defensive fallback (no valid invite)
+            await sub.initLocked(user._id); // defensive fallback (no valid invite/code)
           } else {
             await sub.initFreeBasic(user._id);
           }

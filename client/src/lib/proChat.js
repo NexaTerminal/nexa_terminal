@@ -12,7 +12,10 @@ import ProRequestsApiService from '../services/proRequestsApi';
 
 /**
  * Find the active (claimed) pro request linked to this conversation, with its
- * pro-authored messages normalized to the chat message shape ({ type: 'pro' }).
+ * human thread normalized to the chat message shape: pro turns as { type: 'pro' }
+ * and the user's own turns as { type: 'user', role: 'user' } (both chat surfaces
+ * read one or the other). While a pro is active the user's messages go ONLY to
+ * this thread (no AI call, no credits), so the thread is their source of truth.
  * Returns null when there is no live human in the loop.
  */
 export async function fetchActiveProForConversation(conversationId) {
@@ -36,14 +39,8 @@ export async function fetchActiveProForConversation(conversationId) {
   const req = matches[0];
 
   const proMessages = (req.messages || [])
-    .filter((m) => m.authorRole === 'pro' && (m.body || '').trim())
-    .map((m) => ({
-      type: 'pro',
-      content: m.body,
-      author: m.authorName || req.assignedProName || 'Професионалец',
-      timestamp: new Date(m.createdAt),
-      messageId: m._id,
-    }));
+    .filter((m) => (m.authorRole === 'pro' || m.authorRole === 'user') && (m.body || '').trim())
+    .map((m) => toThreadMessage(m, req.assignedProName));
 
   return {
     id: req._id,
@@ -59,17 +56,45 @@ export async function fetchActiveProForConversation(conversationId) {
       license: req.assignedProLicense || null,
     },
     userRevealed: !!req.userRevealed,
+    emailMuted: !!req.emailMuted?.user, // the user's own email opt-out for this conversation
     proMessages,
   };
 }
 
 /**
- * Merge AI/user turns with pro turns into a single timeline, stable-sorted by
- * time, so pro bubbles land in chronological position. No-op when there are no
- * pro messages (keeps the original array identity for cheap renders).
+ * Normalize one pro_requests thread message (as returned by the API, e.g. the
+ * `message` of an addMessage response) to the chat timeline shape.
+ */
+export function toThreadMessage(m, assignedProName = null) {
+  const isPro = m.authorRole === 'pro';
+  return {
+    type: isPro ? 'pro' : 'user',
+    role: isPro ? 'pro' : 'user',
+    content: m.body,
+    author: isPro ? (m.authorName || assignedProName || 'Професионалец') : null,
+    timestamp: new Date(m.createdAt),
+    messageId: m._id,
+    fromProThread: true,
+  };
+}
+
+/**
+ * Merge AI/user turns with the human thread into a single timeline, stable-sorted
+ * by time, so thread bubbles land in chronological position. No-op when there
+ * are no thread messages (keeps the original array identity for cheap renders).
+ * A thread user turn whose text already exists as a conversation user turn is
+ * dropped — older messages were mirrored into both stores.
  */
 export function mergeProMessages(convMessages = [], proMessages = []) {
   if (!proMessages || !proMessages.length) return convMessages;
+  const convUserTexts = new Set(
+    convMessages
+      .filter((m) => (m.type || m.role) === 'user')
+      .map((m) => (m.content || '').trim())
+  );
+  proMessages = proMessages.filter(
+    (m) => m.type === 'pro' || !convUserTexts.has((m.content || '').trim())
+  );
   const toTime = (m) => {
     const t = m.timestamp ? new Date(m.timestamp).getTime() : 0;
     return Number.isNaN(t) ? 0 : t;

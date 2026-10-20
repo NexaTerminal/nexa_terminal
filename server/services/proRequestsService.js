@@ -20,6 +20,8 @@
  */
 
 const { ObjectId } = require('mongodb');
+const { redactPii, redactPiiKeepLines, REDACTED } = require('../utils/redactPii');
+const { anonymizeForPro } = require('./aiSummaryService');
 
 const COLLECTION = 'pro_requests';
 
@@ -53,6 +55,31 @@ function isPro(user) {
 
 const clamp = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 const oneOf = (v, list, dflt) => (list.includes(v) ? v : dflt);
+
+// Form fields that identify a person or company inside a document preview link.
+const IDENTITY_KEY = /name|address|pin|embg|edb|tax|manager|representative|email|phone|iban|account|bank|passport|idcard|birth|signat/i;
+
+/**
+ * Document preview links (`/preview/<type>?data=<base64(encodeURIComponent(JSON))>`)
+ * carry the whole form — company + employee identity, EMBG. For the Pro, blank the
+ * identity fields and pattern-redact the rest, so they review the document's
+ * substance without learning who it's for. Other links pass through unchanged.
+ */
+function redactDocumentRef(ref) {
+  if (!ref) return null;
+  const m = String(ref).match(/^(.*\/preview\/[^?]+\?data=)([^&#]+)(.*)$/);
+  if (!m) return ref;
+  try {
+    const data = JSON.parse(decodeURIComponent(Buffer.from(decodeURIComponent(m[2]), 'base64').toString('utf8')));
+    for (const [k, v] of Object.entries(data)) {
+      if (typeof v !== 'string' || !v) continue;
+      data[k] = IDENTITY_KEY.test(k) ? REDACTED : redactPii(v);
+    }
+    return m[1] + Buffer.from(encodeURIComponent(JSON.stringify(data))).toString('base64') + m[3];
+  } catch {
+    return null; // unparseable → never leak the raw form data
+  }
+}
 
 function invalid(message, fields) {
   const e = new Error(message); e.code = 'INVALID_INPUT'; if (fields) e.fields = fields; return e;
@@ -99,7 +126,9 @@ class ProRequestsService {
       // The requester (SMB) stays anonymous to the Pro until they reveal — so a
       // user-authored message shows no name on Pro-facing views.
       authorName: (maskUser && m.authorRole === 'user') ? 'Анонимен корисник' : (m.authorName || null),
-      body: m.body || '',
+      // The Pro reads the anonymized copy of the user's words (personal data
+      // redacted at send time); legacy messages fall back to pattern redaction.
+      body: (maskUser && m.authorRole === 'user') ? (m.bodyForPro || redactPiiKeepLines(m.body)) : (m.body || ''),
       kind: m.kind || 'message',
       amount: m.amount ?? null,
       currency: m.currency || null,
@@ -107,20 +136,50 @@ class ProRequestsService {
     };
   }
 
+  // An active conversation is waiting on the Pro when the user spoke last — or
+  // nobody has written since the Pro joined (the original question is pending).
+  static awaitingPro(doc) {
+    if (!doc || doc.status !== 'active') return false;
+    const last = (doc.messages || [])[(doc.messages || []).length - 1];
+    return !last || last.authorRole === 'user';
+  }
+
+  // What a Pro may see of the request's text: the anonymized copy made at create
+  // time (`context.proSafe`), or — for requests created before it existed — the
+  // raw text through pattern redaction. Never the raw user text.
+  static _proSafe(doc) {
+    const ctx = doc.context || {};
+    const ps = ctx.proSafe;
+    return {
+      subject: ps ? ps.subject : redactPii(doc.subject),
+      context: {
+        question: ps ? ps.question : (ctx.question ? redactPii(ctx.question) : null),
+        conversationId: ctx.conversationId || null,
+        transcriptExcerpt: ps ? ps.transcript : (ctx.transcriptExcerpt ? redactPiiKeepLines(ctx.transcriptExcerpt) : null),
+        documentRef: ps ? ps.documentRef : redactDocumentRef(ctx.documentRef),
+        documentName: ps ? ps.documentName : (ctx.documentName ? redactPii(ctx.documentName) : null),
+        aiSummary: ctx.aiSummary || null, // already anonymized at create time
+      },
+    };
+  }
+
   // Shape a request for API responses (stringify ids, normalize messages).
   // `viewerRole` ∈ 'user' (owner) | 'pro' (assigned) | 'admin' | undefined.
-  // A Pro sees the requester as anonymous until `userRevealed` is set by the user.
+  // A Pro sees the requester as anonymous until `userRevealed` is set by the user:
+  // identity fields are hidden AND every user-authored text is the anonymized copy.
   static present(doc, viewerRole) {
     if (!doc) return null;
     const maskUser = viewerRole === 'pro' && !doc.userRevealed;
+    const { proSafe, ...rawContext } = doc.context || {};
+    const safe = maskUser ? ProRequestsService._proSafe(doc) : null;
     return {
       _id: String(doc._id),
       type: doc.type,
       status: doc.status,
-      subject: doc.subject,
+      subject: safe ? safe.subject : doc.subject,
       agent: doc.agent || null,
       category: doc.category || null,
-      context: doc.context || {},
+      context: safe ? safe.context : rawContext,
       userId: String(doc.userId),
       userRevealed: !!doc.userRevealed,
       userEmail: maskUser ? null : (doc.userEmail || null),
@@ -136,6 +195,9 @@ class ProRequestsService {
       assignedProPhone: doc.assignedProPhone || null,
       assignedProLicense: doc.assignedProLicense || null,
       rejectionReason: doc.rejectionReason || null,
+      // Per-side email opt-out for this conversation (bell notifications stay on).
+      emailMuted: { user: !!doc.emailMuted?.user, pro: !!doc.emailMuted?.pro },
+      awaitingPro: ProRequestsService.awaitingPro(doc),
       messages: (doc.messages || []).map((m) => ProRequestsService._publicMessage(m, maskUser)),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -149,17 +211,18 @@ class ProRequestsService {
   // requester's identity (the SMB is anonymous by default — never show company).
   static presentForBoard(doc) {
     if (!doc) return null;
+    const safe = ProRequestsService._proSafe(doc);
     return {
       _id: String(doc._id),
       type: doc.type,
       status: doc.status,
-      subject: doc.subject,
+      subject: safe.subject,
       category: doc.category || null,
       companyName: null, // anonymous — requester identity is never on the board
-      aiSummary: doc.context?.aiSummary || null,
-      question: doc.context?.question || null,
-      transcript: doc.context?.transcriptExcerpt || null,
-      documentName: doc.context?.documentName || null,
+      aiSummary: safe.context.aiSummary,
+      question: safe.context.question,
+      transcript: safe.context.transcriptExcerpt,
+      documentName: safe.context.documentName,
       createdAt: doc.createdAt,
       openedAt: doc.openedAt || null,
     };
@@ -186,6 +249,21 @@ class ProRequestsService {
       documentRef: clamp(ctxIn.documentRef, 600) || null,
       documentName: clamp(ctxIn.documentName, 240) || null,
       aiSummary: clamp(aiSummary, 4000) || null,
+    };
+
+    // Pro-facing copy of the user's text, anonymized once here so the board, the
+    // Pro's thread view and Pro emails never carry raw personal data.
+    const anon = await anonymizeForPro({
+      subject,
+      question: context.question,
+      transcript: context.transcriptExcerpt,
+    });
+    context.proSafe = {
+      subject: clamp(anon.subject, 240) || 'Барање за професионалец',
+      question: anon.question || null,
+      transcript: anon.transcript || null,
+      documentRef: redactDocumentRef(context.documentRef),
+      documentName: context.documentName ? redactPii(context.documentName) : null,
     };
 
     const agent = clamp(input.agent, 40) || null;
@@ -217,7 +295,8 @@ class ProRequestsService {
       closedAt: null,
     };
     const { insertedId } = await this.col.insertOne(doc);
-    return ProRequestsService.present({ ...doc, _id: insertedId });
+    // `proSubject` is for Pro-facing notifications (the owner's item keeps the raw subject).
+    return { item: ProRequestsService.present({ ...doc, _id: insertedId }), proSubject: context.proSafe.subject };
   }
 
   // ── Reads (role-scoped) ─────────────────────────────────────────────────────
@@ -266,6 +345,9 @@ class ProRequestsService {
       assignedProEmail: doc.assignedProEmail || null,
       assignedProId: doc.assignedProId ? String(doc.assignedProId) : null,
       subject: doc.subject || null,
+      proSubject: ProRequestsService._proSafe(doc).subject || null, // for Pro-facing emails/bells
+      userEmailMuted: !!doc.emailMuted?.user,
+      proEmailMuted: !!doc.emailMuted?.pro,
     };
   }
 
@@ -294,6 +376,35 @@ class ProRequestsService {
     return ProRequestsService.present({ ...doc, userRevealed: !!revealed, updatedAt: now }, 'user');
   }
 
+  // Either side turns the per-step emails for THIS conversation on/off for themselves.
+  async setEmailMuted(actor, id, muted, isAdmin) {
+    const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
+    if (!owner && !assigned) throw forbidden();
+    const side = owner ? 'user' : 'pro';
+    const now = new Date();
+    await this.col.updateOne({ _id: doc._id }, { $set: { [`emailMuted.${side}`]: !!muted, updatedAt: now } });
+    const viewerRole = ProRequestsService._viewerRole({ owner, assigned, isAdmin });
+    return ProRequestsService.present({ ...doc, emailMuted: { ...(doc.emailMuted || {}), [side]: !!muted }, updatedAt: now }, viewerRole);
+  }
+
+  // Active conversations assigned to this Pro that wait on their reply (badge +
+  // banner). Subjects are the anonymized Pro-facing copy.
+  async unansweredForPro(proId) {
+    await this._ensureIndexes();
+    const id = ProRequestsService.toObjectId(proId);
+    const docs = await this.col
+      .find({ assignedProId: id, status: 'active' })
+      .project({ status: 1, subject: 1, context: 1, messages: { $slice: -1 }, updatedAt: 1, claimedAt: 1 })
+      .toArray();
+    const items = docs.filter(ProRequestsService.awaitingPro).map((d) => ({
+      _id: String(d._id),
+      subject: ProRequestsService._proSafe(d).subject,
+      since: (d.messages && d.messages[0]?.createdAt) || d.claimedAt || d.updatedAt,
+    }));
+    items.sort((a, b) => new Date(a.since) - new Date(b.since)); // longest-waiting first
+    return { count: items.length, items };
+  }
+
   // ── Thread ──────────────────────────────────────────────────────────────────
   async addMessage(actor, id, body, isAdmin) {
     const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
@@ -302,12 +413,15 @@ class ProRequestsService {
     if (!text) throw invalid('Пораката не може да биде празна.');
 
     const authorRole = isAdmin ? 'admin' : owner ? 'user' : 'pro';
+    // The user's words reach the Pro only as an anonymized copy.
+    const bodyForPro = authorRole === 'user' ? (await anonymizeForPro({ body: text })).body : undefined;
     const message = {
       _id: new ObjectId(),
       authorId: actor._id,
       authorRole,
       authorName: clamp(actor.name || actor.username || actor.companyInfo?.companyName, 160) || null,
       body: text,
+      ...(bodyForPro ? { bodyForPro } : {}),
       kind: 'message',
       amount: null,
       currency: null,
@@ -324,6 +438,7 @@ class ProRequestsService {
       message: ProRequestsService._publicMessage(message, maskUser),
       authorRole,
       targets: ProRequestsService._notifyTargets(doc),
+      proBody: bodyForPro || text, // what the Pro may read of this message (email)
     };
   }
 
@@ -451,12 +566,18 @@ class ProRequestsService {
 
   // ── Close (owner or assigned Pro or admin) ───────────────────────────────────
   async close(actor, id, isAdmin) {
-    const { doc } = await this._getForActor(actor, id, isAdmin);
+    const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
     if (doc.status !== 'active') throw invalid('Само активно барање може да се затвори.');
     const now = new Date();
     await this.col.updateOne({ _id: doc._id }, { $set: { status: 'closed', updatedAt: now, closedAt: now } });
-    return ProRequestsService.present({ ...doc, status: 'closed', updatedAt: now, closedAt: now });
+    const viewerRole = ProRequestsService._viewerRole({ owner, assigned, isAdmin });
+    return {
+      item: ProRequestsService.present({ ...doc, status: 'closed', updatedAt: now, closedAt: now }, viewerRole),
+      closedBy: viewerRole,
+      targets: ProRequestsService._notifyTargets(doc),
+    };
   }
 }
 
 module.exports = ProRequestsService;
+module.exports.redactDocumentRef = redactDocumentRef;

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../../../components/common/Header';
-import Sidebar from '../../../components/terminal/Sidebar';
+import Sidebar, { PRO_UNANSWERED_EVENT } from '../../../components/terminal/Sidebar';
 import ProRequestThread from '../../../components/proRequests/ProRequestThread';
 import AiTranscript from '../../../components/proRequests/AiTranscript';
 import ProRequestsApiService from '../../../services/proRequestsApi';
@@ -40,6 +40,7 @@ function statusLine(i, view) {
   }
   if (i.status === 'active') {
     if (view === 'mine') return i.assignedProName ? `💬 ${i.assignedProName}` : '💬 Во разговор';
+    if (view === 'pro' && i.awaitingPro) return '🔴 Чека ваш одговор';
     return `💬 ${i.companyName || i.userName || 'Во разговор'}`;
   }
   if (i.status === 'closed') return '✓ Завршено';
@@ -79,8 +80,9 @@ export default function RequestsPage({ view = 'mine' }) {
   const isOpenItem = (i) => i && i.status === 'open';
   const proSide = view === 'pro' || view === 'board';
 
-  const load = useCallback(async () => {
-    setLoading(true); setError(null);
+  // `quiet` = background refresh (no spinner, no error banner churn).
+  const load = useCallback(async ({ quiet = false } = {}) => {
+    if (!quiet) { setLoading(true); setError(null); }
     try {
       if (view === 'pro') {
         const [b, m] = await Promise.all([ProRequestsApiService.board(), ProRequestsApiService.list('assigned')]);
@@ -94,11 +96,40 @@ export default function RequestsPage({ view = 'mine' }) {
         const res = await ProRequestsApiService.list(view);
         if (res.success) setItems(res.items || []); else setError(res.message || 'Грешка при вчитување.');
       }
-    } catch (e) { setError(e.message || 'Грешка при вчитување.'); }
-    finally { setLoading(false); }
+    } catch (e) { if (!quiet) setError(e.message || 'Грешка при вчитување.'); }
+    finally { if (!quiet) setLoading(false); }
   }, [view]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Keep the list fresh in the background (new invitations, "awaiting reply"
+  // markers on conversations that aren't open) — every minute + on focus.
+  useEffect(() => {
+    const refresh = () => load({ quiet: true });
+    const iv = setInterval(refresh, 60000);
+    window.addEventListener('focus', refresh);
+    return () => { clearInterval(iv); window.removeEventListener('focus', refresh); };
+  }, [load]);
+
+  // Live thread: while an active conversation is open, re-fetch it every ~15s
+  // (+ on window focus) so each side sees the other's new messages without
+  // having to reopen the request.
+  const selectedId = selected?._id;
+  const selectedActive = selected?.status === 'active';
+  useEffect(() => {
+    if (!selectedId || !selectedActive) return;
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const res = await ProRequestsApiService.get(selectedId);
+        if (!cancelled && res?.success && res.item) onUpdated(res.item);
+      } catch (_) { /* transient — next tick retries */ }
+    };
+    const iv = setInterval(refresh, 15000);
+    window.addEventListener('focus', refresh);
+    return () => { cancelled = true; clearInterval(iv); window.removeEventListener('focus', refresh); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, selectedActive]);
 
   async function openRequest(item) {
     setRejectReason(''); setNotice(null);
@@ -127,7 +158,10 @@ export default function RequestsPage({ view = 'mine' }) {
   function onUpdated(updated) {
     setSelected(updated);
     setItems((prev) => prev.map((i) => (i._id === updated._id ? { ...i, ...updated } : i)));
+    if (proSide) window.dispatchEvent(new Event(PRO_UNANSWERED_EVENT)); // sidebar badge
   }
+
+  const awaitingCount = view === 'pro' ? items.filter((i) => i.awaitingPro).length : 0;
 
   async function reject() {
     if (acting) return;
@@ -156,6 +190,11 @@ export default function RequestsPage({ view = 'mine' }) {
 
           {error && <div className={styles.errorBanner}>⚠️ {error}</div>}
           {notice && <div className={styles.noticeBanner}>✓ {notice}</div>}
+          {awaitingCount > 0 && (
+            <div className={styles.awaitingBanner}>
+              🔴 {awaitingCount === 1 ? '1 разговор чека' : `${awaitingCount} разговори чекаат`} ваш одговор.
+            </div>
+          )}
 
           <div className={styles.layout}>
             {/* List */}

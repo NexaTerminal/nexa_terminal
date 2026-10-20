@@ -12,7 +12,7 @@
  */
 
 const OpenAI = require('openai');
-const { redactPii } = require('../utils/redactPii');
+const { redactPii, redactPiiKeepLines } = require('../utils/redactPii');
 const aiModels = require('../config/aiModels');
 
 const MODEL = aiModels.OPENAI_UTILITY_MODEL;
@@ -81,4 +81,54 @@ async function summarizeConversation({ subject, question, transcript, type } = {
   }
 }
 
-module.exports = { summarizeConversation };
+/**
+ * Anonymize user-authored text before a Pro sees it. Takes a map of fields
+ * ({ question, transcript, ... }) and returns the same keys with personal data
+ * replaced by neutral descriptors — names of people/companies, addresses,
+ * contacts, IDs. The legal substance is kept verbatim so the Pro can still help.
+ * redactPii always runs on top (catches contacts/IDs even if the LLM misses one);
+ * on any failure / missing key the deterministic redaction alone is returned.
+ * @param {Object<string,string>} fields
+ * @returns {Promise<Object<string,string>>}
+ */
+async function anonymizeForPro(fields = {}) {
+  const input = {};
+  for (const [k, v] of Object.entries(fields)) {
+    const t = clip(v, 6000);
+    if (t) input[k] = t;
+  }
+  const out = {};
+  for (const k of Object.keys(fields)) out[k] = input[k] ? redactPiiKeepLines(input[k]) : (fields[k] ?? null);
+  const api = client();
+  if (!api || !Object.keys(input).length) return out;
+
+  try {
+    const sys =
+      'Ти си алатка за анонимизација. Добиваш JSON објект со текстови што корисник (сопственик на бизнис) ги напишал или ги добил од правен AI. ' +
+      'Врати JSON објект со ИСТИТЕ клучеви, каде секој текст е анонимизиран: замени ги имињата на лица и фирми, адресите, е-поштата, телефоните, ' +
+      'ЕМБГ/ЕДБ/матични броеви, броеви на сметки, регистарски таблички и секој друг податок што може да го открие идентитетот на корисникот или трети лица ' +
+      'со неутрални описи во загради (на пр. [корисникот], [фирмата], [вработен], [друга страна], [адреса]). ' +
+      'Ова важи и за САМО лично име или презиме, прекар или кратенка (на пр. „Марија доцни“ → „[вработен] доцни“), во СЕКОЈ клуч, вклучително и транскриптот. ' +
+      'Износите, роковите, датумите и броевите на членови од закони задржи ги. Задржи ги новите редови. ' +
+      'Сè друго (правната суштина, прашањата, фактите, AI одговорите) задржи го ДОСЛОВНО — не скратувај, не резимирај, не додавај ништо.';
+    const resp = await api.chat.completions.create(aiModels.completionParams({
+      model: MODEL,
+      temperature: 0,
+      max_tokens: 3000,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: sys },
+        { role: 'user', content: JSON.stringify(input) },
+      ],
+    }, { effort: aiModels.EFFORT_UTILITY }));
+    const parsed = JSON.parse(resp?.choices?.[0]?.message?.content || '{}');
+    for (const k of Object.keys(input)) {
+      if (typeof parsed[k] === 'string' && parsed[k].trim()) out[k] = redactPiiKeepLines(parsed[k]);
+    }
+  } catch (e) {
+    console.warn('[aiSummary] anonymizeForPro failed, using pattern redaction:', e.message);
+  }
+  return out;
+}
+
+module.exports = { summarizeConversation, anonymizeForPro };

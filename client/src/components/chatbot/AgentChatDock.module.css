@@ -110,7 +110,7 @@
 
 /* Active-Pro bar: always-visible identity chip + anonymity toggle. */
 .proBar {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px;
   margin: 0 10px 6px; padding: 7px 10px; border-radius: 10px;
   background: #fffbeb; border: 1px solid #fde68a;
 }

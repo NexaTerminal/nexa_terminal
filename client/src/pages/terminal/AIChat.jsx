@@ -13,7 +13,7 @@ import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAna
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
-import { fetchActiveProForConversation, mergeProMessages } from '../../lib/proChat';
+import { fetchActiveProForConversation, mergeProMessages, toThreadMessage } from '../../lib/proChat';
 import ProProfileModal from '../../components/chatbot/ProProfileModal';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
@@ -194,7 +194,7 @@ const AIChat = () => {
     const load = async () => {
       const r = await fetchActiveProForConversation(currentConversationId);
       if (cancelled) return;
-      if (r) { setProRequestId(r.id); setAssignedProName(r.assignedProName); setProMessages(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); }
+      if (r) { setProRequestId(r.id); setAssignedProName(r.assignedProName); setProMessages(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); setEmailMuted(r.emailMuted); }
       else { setProRequestId(null); setAssignedProName(null); setProMessages([]); setProProfile(null); setUserRevealed(false); }
     };
     load();
@@ -203,6 +203,18 @@ const AIChat = () => {
     window.addEventListener('focus', onFocus);
     return () => { cancelled = true; clearInterval(iv); window.removeEventListener('focus', onFocus); };
   }, [currentConversationId]);
+
+  // Per-conversation email opt-out (bell notifications stay on).
+  const [emailMuted, setEmailMuted] = useState(false);
+  const toggleEmails = async () => {
+    if (!proRequestId) return;
+    const next = !emailMuted;
+    setEmailMuted(next);
+    try {
+      const res = await ProRequestsApiService.setEmailMuted(proRequestId, next);
+      if (!res?.success) setEmailMuted(!next);
+    } catch (_) { setEmailMuted(!next); }
+  };
 
   // User toggles whether the assigned Pro can see their identity. Anonymous by default.
   const toggleReveal = async () => {
@@ -299,12 +311,16 @@ const AIChat = () => {
    * gated behind the proRequest terms (data-sharing consent).
    */
   const handleAskPro = (reason = null, msgIndex = null) => {
-    const lastUser = [...messages].reverse().find((m) => m.type === 'user');
-    const q = (lastUser?.content || question).trim();
+    // Share ONLY the exchange being escalated — the user's question + the AI
+    // answer(s) to it — never the user's earlier messages. When invoked from an
+    // AI message's card, that message's question; otherwise the latest one.
+    const end = msgIndex != null ? msgIndex + 1 : messages.length;
+    let qIdx = -1;
+    for (let i = end - 1; i >= 0; i--) { if (messages[i].type === 'user') { qIdx = i; break; } }
+    const q = (qIdx >= 0 ? messages[qIdx].content : question).trim();
     if (!q) { setError('Прво напишете или поставете прашање.'); return; }
-    const excerpt = messages
-      .slice(-6)
-      .map((m) => `${m.type === 'user' ? 'Јас' : activeAgent.name}: ${m.content}`)
+    const excerpt = (qIdx >= 0 ? messages.slice(qIdx, end) : [])
+      .map((m) => `${m.type === 'user' ? 'Корисник' : activeAgent.name}: ${m.content}`)
       .join('\n\n');
     // No heavy consent modal — inviting creates the request directly. Consent is
     // implied (and the one-line disclaimer lives in the conversation); consentVersion
@@ -377,7 +393,14 @@ const AIChat = () => {
 
     if (!question.trim()) return;
 
-    if (limits.remaining <= 0) {
+    // Human pro in the loop → the message goes ONLY to the pro's thread. No AI
+    // call, so it costs no credits and doesn't count toward the weekly AI quota.
+    if (proRequestId) {
+      await sendToPro();
+      return;
+    }
+
+    if (outOfQuota) {
       // The dedicated limit-wall card (below) communicates this + offers the pro
       // hand-off; no raw error banner needed.
       return;
@@ -391,13 +414,6 @@ const AIChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     const questionText = question;
-    // Shared thread: when a human pro is in the loop, mirror the user's message
-    // into the pro's thread so they see the follow-up (fire-and-forget), and tell
-    // the server to make the AI defer to the human.
-    const proActive = !!proRequestId;
-    if (proActive) {
-      ProRequestsApiService.addMessage(proRequestId, questionText).catch(() => { /* non-fatal */ });
-    }
     // Hand-off origin applies only to THIS (first) message after a switch.
     const fromAgent = handoffFrom;
     setHandoffFrom(null);
@@ -487,7 +503,7 @@ const AIChat = () => {
           setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
           setIsStreaming(false);
         },
-      }, agent, fromAgent, proActive);
+      }, agent, fromAgent);
 
     } catch (err) {
       console.error('Error asking question:', err);
@@ -501,7 +517,7 @@ const AIChat = () => {
 
         let conversationId = currentConversationId;
         const data = await handleCreditOperation(
-          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent, fromAgent, proActive),
+          async () => ChatbotApiService.sendMessage(conversationId, questionText, agent, fromAgent),
           'AI прашање',
           1
         );
@@ -533,6 +549,33 @@ const AIChat = () => {
         setError('Не можевме да се поврземе со серверот. Ве молиме обидете се повторно.');
         setMessages(prev => prev.filter(m => m.type !== 'ai' || m.content));
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Shared human thread: post the user's message to the assigned pro. The thread
+   * (not the AI conversation) stores it, so it's appended to proMessages and the
+   * poll keeps it in sync. On failure the text goes back into the input.
+   */
+  const sendToPro = async () => {
+    const text = question.trim();
+    setQuestion('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    setError(null);
+    setIsLoading(true);
+    try {
+      const res = await ProRequestsApiService.addMessage(proRequestId, text);
+      if (res?.success && res.message) {
+        setProMessages(prev => [...prev, toThreadMessage(res.message, assignedProName)]);
+      } else {
+        setQuestion(text);
+        setError(res?.message || 'Пораката не е испратена. Обидете се повторно.');
+      }
+    } catch (e) {
+      setQuestion(text);
+      setError(e?.message || 'Пораката не е испратена. Обидете се повторно.');
     } finally {
       setIsLoading(false);
     }
@@ -593,6 +636,9 @@ const AIChat = () => {
 
   // Timeline shown to the user = conversation turns (tagged with their original
   // index for feedback/pro-card handlers) merged with the pro's replies.
+  // Out of weekly AI questions — but talking to an active pro is still free.
+  const outOfQuota = limits.remaining <= 0 && !proRequestId;
+
   const displayMessages = mergeProMessages(
     messages.map((m, i) => ({ ...m, _idx: i })),
     proMessages
@@ -752,6 +798,10 @@ const AIChat = () => {
                     <button type="button" className={styles.proBarReveal} onClick={toggleReveal} disabled={revealBusy}>
                       {userRevealed ? 'Идентитетот е откриен' : 'Анонимни сте · Откриј идентитет'}
                     </button>
+                    <button type="button" className={styles.proBarReveal} onClick={toggleEmails}
+                      title="Известувања по е-пошта за секоја нова порака во овој разговор">
+                      {emailMuted ? '🔕 Е-пошта: исклучена' : '📧 Е-пошта: вклучена'}
+                    </button>
                   </div>
                 )}
                 {showProModal && (
@@ -789,7 +839,7 @@ const AIChat = () => {
                   const handoffAgent = handoff ? getAgent(handoff) : null;
                   return (
                   <div
-                    key={index}
+                    key={index ?? `thread-${message.messageId}`}
                     className={`${styles.messageRow} ${
                       message.type === 'user' ? styles.rowUser : styles.rowAi
                     }`}
@@ -961,7 +1011,7 @@ const AIChat = () => {
           )}
 
           {/* Weekly-limit wall — graceful, turns the wall into the pro hand-off moment */}
-          {limits.remaining <= 0 && (
+          {outOfQuota && (
             <div className={styles.limitWall}>
               <div className={styles.limitWallText}>
                 <strong>Ги искористивте бесплатните прашања за оваа недела.</strong>
@@ -998,21 +1048,21 @@ const AIChat = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    if (question.trim() && !isLoading && !isStreaming && limits.remaining > 0) {
+                    if (question.trim() && !isLoading && !isStreaming && !outOfQuota) {
                       handleSubmit(e);
                     }
                   }
                 }}
-                placeholder="Поставете ваше прашање..."
+                placeholder={proRequestId ? 'Пишете му на професионалецот...' : 'Поставете ваше прашање...'}
                 className={styles.input}
-                disabled={isLoading || isStreaming || limits.remaining <= 0}
+                disabled={isLoading || isStreaming || outOfQuota}
                 maxLength={500}
                 rows={1}
               />
               <button
                 type="submit"
-                className={`${styles.sendButton} ${question.trim() && !isLoading && !isStreaming && limits.remaining > 0 ? styles.sendButtonActive : ''}`}
-                disabled={isLoading || isStreaming || !question.trim() || limits.remaining <= 0}
+                className={`${styles.sendButton} ${question.trim() && !isLoading && !isStreaming && !outOfQuota ? styles.sendButtonActive : ''}`}
+                disabled={isLoading || isStreaming || !question.trim() || outOfQuota}
                 aria-label="Испрати"
               >
                 {isLoading || isStreaming ? (

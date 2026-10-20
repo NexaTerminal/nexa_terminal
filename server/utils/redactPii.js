@@ -26,4 +26,10 @@ function redactPii(text) {
     .trim();
 }
 
-module.exports = { redactPii, REDACTED };
+// Same, line by line — keeps the paragraph structure of multi-line text
+// (transcripts, chat messages) instead of collapsing it into one line.
+function redactPiiKeepLines(text) {
+  return String(text == null ? '' : text).split('\n').map(redactPii).join('\n').trim();
+}
+
+module.exports = { redactPii, redactPiiKeepLines, REDACTED };

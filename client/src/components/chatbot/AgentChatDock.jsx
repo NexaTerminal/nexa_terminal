@@ -7,7 +7,7 @@ import { getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
-import { fetchActiveProForConversation, mergeProMessages } from '../../lib/proChat';
+import { fetchActiveProForConversation, mergeProMessages, toThreadMessage } from '../../lib/proChat';
 import ProProfileModal from './ProProfileModal';
 import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from './AgentChatDock.module.css';
@@ -62,6 +62,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const [proMsgs, setProMsgs] = useState([]);
   const [proProfile, setProProfile] = useState(null);   // assigned Pro's public profile
   const [userRevealed, setUserRevealed] = useState(false); // did the user reveal identity?
+  const [emailMuted, setEmailMuted] = useState(false);     // user's email opt-out for this conversation
   const [showProModal, setShowProModal] = useState(false);
   const endRef = useRef(null);
   const sendRef = useRef(null);
@@ -111,7 +112,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     const load = async () => {
       const r = await fetchActiveProForConversation(activeConvId);
       if (cancelled) return;
-      if (r) { setProRequestId(r.id); setProMsgs(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); }
+      if (r) { setProRequestId(r.id); setProMsgs(r.proMessages); setProProfile(r.proProfile); setUserRevealed(r.userRevealed); setEmailMuted(r.emailMuted); }
       else { setProRequestId(null); setProMsgs([]); setProProfile(null); setUserRevealed(false); }
     };
     load();
@@ -140,13 +141,23 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     if (!q || loading) return;
     setInput('');
     setError(null);
+    // Human pro in the loop → the message goes ONLY to the pro's thread. No AI
+    // call, so it costs no credits and doesn't count toward the weekly AI quota.
+    if (!isMarketing && proRequestId) {
+      setLoading(true);
+      try {
+        const res = await ProRequestsApiService.addMessage(proRequestId, q);
+        if (res?.success && res.message) setProMsgs((prev) => [...prev, toThreadMessage(res.message)]);
+        else { setInput(q); setError(res?.message || 'Пораката не е испратена. Обидете се повторно.'); }
+      } catch (e) {
+        setInput(q); setError(e?.message || 'Пораката не е испратена. Обидете се повторно.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     setMessages((prev) => [...prev, { role: 'user', content: q, timestamp: new Date() }]);
     setLoading(true);
-    // Shared thread: mirror the user's message to the pro + make the AI defer.
-    const proActive = !isMarketing && !!proRequestId;
-    if (proActive) {
-      ProRequestsApiService.addMessage(proRequestId, q).catch(() => { /* non-fatal */ });
-    }
     try {
       let convId = convIdRef.current;
       if (!convId) {
@@ -157,7 +168,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
       }
       const res = isMarketing
         ? await api.sendMessage(convId, q)
-        : await api.sendMessage(convId, q, agent.key, null, proActive);
+        : await api.sendMessage(convId, q, agent.key);
       if (res?.success) {
         setMessages((prev) => [...prev, { role: 'ai', content: stripSuggestions(res.data.answer), timestamp: new Date() }]);
       } else {
@@ -233,6 +244,17 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     finally { setProBusy(false); }
   };
 
+  // Per-conversation email opt-out (bell notifications stay on).
+  const toggleEmails = async () => {
+    if (!proRequestId) return;
+    const next = !emailMuted;
+    setEmailMuted(next);
+    try {
+      const res = await ProRequestsApiService.setEmailMuted(proRequestId, next);
+      if (!res?.success) setEmailMuted(!next);
+    } catch (_) { setEmailMuted(!next); }
+  };
+
   const stop = (fn) => (e) => { e.stopPropagation(); fn(); };
 
   return (
@@ -286,6 +308,10 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
               </button>
               <button type="button" className={styles.proBarReveal} onClick={toggleReveal} disabled={proBusy}>
                 {userRevealed ? 'Идентитетот е откриен' : 'Анонимни сте · Откриј идентитет'}
+              </button>
+              <button type="button" className={styles.proBarReveal} onClick={toggleEmails}
+                title="Известувања по е-пошта за секоја нова порака во овој разговор">
+                {emailMuted ? '🔕 Е-пошта' : '📧 Е-пошта'}
               </button>
             </div>
           )}

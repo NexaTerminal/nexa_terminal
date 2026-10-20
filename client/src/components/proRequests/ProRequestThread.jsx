@@ -47,6 +47,20 @@ export default function ProRequestThread({ request, role, onUpdated }) {
     finally { setSending(false); }
   }
 
+  // This side's step-email opt-out for the conversation (bell stays on).
+  const mySide = role === 'pro' ? 'pro' : 'user';
+  const emailMuted = !!request.emailMuted?.[mySide];
+  async function toggleEmails() {
+    if (sending || role === 'admin') return;
+    setSending(true); setError(null);
+    try {
+      const res = await ProRequestsApiService.setEmailMuted(request._id, !emailMuted);
+      if (res.success) onUpdated?.(res.item);
+      else setError(res.message || 'Грешка.');
+    } catch (e) { setError(e.message || 'Грешка.'); }
+    finally { setSending(false); }
+  }
+
   async function closeRequest() {
     if (sending) return;
     setSending(true); setError(null);
@@ -147,6 +161,12 @@ export default function ProRequestThread({ request, role, onUpdated }) {
           <div className={styles.toolbar}>
             {canQuote && !showQuote && (
               <button className={styles.linkBtn} onClick={() => setShowQuote(true)}>💰 Понуди цена</button>
+            )}
+            {role !== 'admin' && (
+              <button className={styles.linkBtn} onClick={toggleEmails} disabled={sending}
+                title="Известувања по е-пошта за секоја нова порака во овој разговор">
+                {emailMuted ? '🔕 Е-пошта: исклучена' : '📧 Е-пошта: вклучена'}
+              </button>
             )}
             <button className={styles.linkBtn} onClick={closeRequest} disabled={sending}>Затвори барање</button>
           </div>

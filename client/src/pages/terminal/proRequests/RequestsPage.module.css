@@ -98,6 +98,10 @@
   background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;
   padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.9rem;
 }
+.awaitingBanner {
+  background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+  padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.9rem; font-weight: 600;
+}
 
 /* Join card — "enter the chat" (chat-balloon CTA, implied consent). */
 .joinCard {

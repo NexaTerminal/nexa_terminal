@@ -50,6 +50,16 @@ class ProRequestsApiService {
   static close(id) {
     return ApiService.post(`/pro-requests/${id}/close`, {});
   }
+
+  // Turn this conversation's step emails off/on for the caller's side.
+  static setEmailMuted(id, muted) {
+    return ApiService.post(`/pro-requests/${id}/email-prefs`, { muted: !!muted });
+  }
+
+  // Pro: active conversations waiting on their reply ({ count, items }).
+  static unanswered() {
+    return ApiService.get('/pro-requests/unanswered');
+  }
 }
 
 export default ProRequestsApiService;

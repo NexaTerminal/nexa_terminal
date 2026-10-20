@@ -216,6 +216,21 @@
   text-overflow: ellipsis;
 }
 
+/* Count badge on a leaf item (e.g. Pro conversations awaiting a reply). */
+.menu-badge {
+  flex-shrink: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
 /* ========================================
    SUBMENU STYLES
    ======================================== */

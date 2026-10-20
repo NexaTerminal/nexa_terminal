@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildSidebarSections } from '../../config/nav';
+import ProRequestsApiService from '../../services/proRequestsApi';
 import styles from '../../styles/terminal/Sidebar.module.css';
 
 /**
@@ -36,10 +37,40 @@ const Icon = ({ name }) => {
 // sidebar stays the way the user arranged it.
 const SECTIONS_STORAGE_KEY = 'nexa_sidebar_sections_v1';
 
+// Pros: count of active conversations waiting on their reply → badge on
+// „Разговори". Polls every minute + on focus; pages that change it (sending a
+// reply) dispatch PRO_UNANSWERED_EVENT for an immediate refresh.
+export const PRO_UNANSWERED_EVENT = 'nexa:pro-unanswered-refresh';
+function useProUnanswered(user) {
+  const [count, setCount] = useState(0);
+  const isPro = user?.role === 'admin_user' || user?.role === 'admin';
+  useEffect(() => {
+    if (!isPro) { setCount(0); return; }
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await ProRequestsApiService.unanswered();
+        if (!cancelled && res?.success) setCount(res.count || 0);
+      } catch (_) { /* badge is best-effort */ }
+    };
+    load();
+    const iv = setInterval(load, 60000);
+    window.addEventListener('focus', load);
+    window.addEventListener(PRO_UNANSWERED_EVENT, load);
+    return () => {
+      cancelled = true; clearInterval(iv);
+      window.removeEventListener('focus', load);
+      window.removeEventListener(PRO_UNANSWERED_EVENT, load);
+    };
+  }, [isPro]);
+  return count;
+}
+
 const Sidebar = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const location = useLocation();
+  const proUnanswered = useProUnanswered(currentUser);
   const [openGroups, setOpenGroups] = useState({});
   const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
@@ -141,6 +172,9 @@ const Sidebar = () => {
         >
           {item.icon && <span className={styles['menu-icon']}><Icon name={item.icon} /></span>}
           <span className={styles['menu-label']}>{item.label}</span>
+          {item.key === 'pro-conversations' && proUnanswered > 0 && (
+            <span className={styles['menu-badge']} title="Разговори што чекаат ваш одговор">{proUnanswered}</span>
+          )}
         </Link>
       );
     }

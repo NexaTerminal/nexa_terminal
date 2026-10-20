@@ -4,6 +4,21 @@ const passport = require('passport');
 const { authenticateJWT } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 const RateLimitingService = require('../middleware/rateLimiting');
+const { isValidFounderInvite } = require('../utils/founderInvite');
+
+// Hosts the OAuth round-trip may return to (guards against open redirects).
+const ALLOWED_OAUTH_HOSTS = new Set(['localhost', 'leads.localhost', 'nexa.mk', 'www.nexa.mk', 'leads.nexa.mk']);
+function resolveClientUrl(rawState) {
+  let clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+  try {
+    const origin = new URLSearchParams(rawState || '').get('origin') || '';
+    if (origin) {
+      const u = new URL(origin);
+      if (ALLOWED_OAUTH_HOSTS.has(u.hostname)) clientURL = u.origin;
+    }
+  } catch (_) { /* keep fallback */ }
+  return clientURL;
+}
 
 // Admin user creation route (gated by ADMIN_SETUP_KEY in the controller; rate-limited)
 router.post('/create-admin', RateLimitingService.createLoginLimiter(), authController.createAdmin);
@@ -76,7 +91,23 @@ router.get('/google', (req, res, next) => {
 
 // Google OAuth callback
 router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+      if (err) {
+        console.error('Google OAuth error:', err);
+        return res.redirect(`${resolveClientUrl(req.query.state)}/login?error=oauth_failed`);
+      }
+      if (!user) {
+        // Rejected BEFORE any account was created — e.g. a leads signup without a
+        // valid founder invite. Bounce back to the originating host's login with
+        // a flag so the UI explains access is invite-only.
+        const flag = info?.code === 'INVITE_REQUIRED' ? 'needInvite=1' : 'error=oauth_failed';
+        return res.redirect(`${resolveClientUrl(req.query.state)}/login?${flag}`);
+      }
+      req.user = user;
+      return next();
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       // State carries the post-login redirect + the storefront the user signed
@@ -87,6 +118,7 @@ router.get('/google/callback',
       let origin = '';
       let chosenPlan = '';   // identity the user picked in the signup UI
       let lic = '';          // lawyer licence / ЕМБС (Pro signups only)
+      let invite = '';       // founder invite token (leads.* instant-Pro)
       if (rawState.includes('sf=') || rawState.includes('redirect=') || rawState.includes('origin=')) {
         const sp = new URLSearchParams(rawState);
         redirect = sp.get('redirect') || '';
@@ -94,27 +126,20 @@ router.get('/google/callback',
         origin = sp.get('origin') || '';
         chosenPlan = sp.get('plan') || '';
         lic = sp.get('lic') || '';
+        invite = sp.get('invite') || '';
       } else {
         redirect = rawState;
       }
 
       // Return to the storefront host the user started from (so the Pro shell
-      // shows on leads.*). Validated against an allowlist to avoid open redirects;
-      // otherwise fall back to the configured CLIENT_URL.
-      const ALLOWED_HOSTS = new Set(['localhost', 'leads.localhost', 'nexa.mk', 'www.nexa.mk', 'leads.nexa.mk']);
-      let clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
-      if (origin) {
-        try {
-          const u = new URL(origin);
-          if (ALLOWED_HOSTS.has(u.hostname)) clientURL = u.origin;
-        } catch (_) { /* keep fallback */ }
-      }
+      // shows on leads.*); validated against an allowlist to avoid open redirects.
+      const clientURL = resolveClientUrl(rawState);
 
-      // Brand-new Google account (no subscription, or 'none') → provision per the
-      // free-Basic model: SMB (Basic) accounts get perpetual free access
-      // immediately; Pro (lawyer) accounts stay LOCKED — Pro is invite-only, so a
-      // fresh leads.* Google signup is locked and only activated when the
-      // PromoRedeemWatcher applies the invite code they arrived with. No trials.
+      // Brand-new Google account (no subscription, or 'none') → provision:
+      //  - main (nexa.mk)  → free-forever Basic immediately.
+      //  - leads (Pro)     → a valid founder invite grants INSTANT active Pro
+      //    (the strategy already rejected leads signups without one). The locked
+      //    path is only a defensive fallback and is effectively unreachable now.
       let user = req.user;
       try {
         const sub = req.app.locals.subscriptionService;
@@ -123,8 +148,18 @@ router.get('/google/callback',
           const { isValidPlan } = require('../constants/roles');
           const explicit = isValidPlan(chosenPlan);
           const plan = explicit ? chosenPlan : (sf === 'leads' ? 'pro' : 'basic');
-          if (plan === 'pro') {
-            await sub.initLocked(user._id);
+          const hasFounderInvite = sf === 'leads' && isValidFounderInvite(invite);
+          if (plan === 'pro' && hasFounderInvite) {
+            // Reuse the proven activation path (role→admin_user, plan→pro,
+            // status→active, Founding-20 cap enforced). No code, no locked step.
+            try {
+              await sub.redeemPromo(user._id, { plan: 'pro', cycle: 'quarterly', code: 'FOUNDER-INVITE', durationDays: 180 });
+            } catch (e) {
+              console.error('founder-invite Pro activation warning:', e.message);
+              await sub.initLocked(user._id);
+            }
+          } else if (plan === 'pro') {
+            await sub.initLocked(user._id); // defensive fallback (no valid invite)
           } else {
             await sub.initFreeBasic(user._id);
           }

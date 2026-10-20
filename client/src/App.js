@@ -243,6 +243,7 @@ import VerificationRequired from './components/common/VerificationRequired';
 import PrivateRoute from './components/common/PrivateRoute';
 import AuthCallback from './components/common/AuthCallback';
 import Redeem from './pages/Redeem';
+import Join from './pages/Join';
 import PromoRedeemWatcher from './components/PromoRedeemWatcher';
 
 import './styles/global.css';
@@ -270,6 +271,7 @@ function App() {
       <Route path="/" element={getStorefront() === 'leads' ? <LeadsHome /> : <Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/redeem" element={<Redeem />} />
+      <Route path="/join" element={<Join />} />
       <Route path="/proverka" element={<Proverka />} />
       <Route path="/proverka-rabotodavac" element={<EmployerBadgeCheck />} />
       <Route path="/badge/:token" element={<BadgeVerify />} />

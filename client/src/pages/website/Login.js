@@ -70,6 +70,17 @@ const Login = () => {
     }
   }, [currentUser, navigate, location, t]);
 
+  // A blocked leads signup (Google sign-in without a valid founder invite)
+  // bounces back here with ?needInvite=1. Pro is invite-only, so show the
+  // request-access panel + an explanation instead of a dead signup button.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('needInvite') === '1') {
+      setIsLogin(false);
+      setError('Пристапот за адвокати е само по покана. Оставете ги вашите податоци — ќе ве контактираме со линк за активација.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

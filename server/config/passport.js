@@ -7,6 +7,7 @@ const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const bcrypt = require("bcryptjs");
 const UserService = require("../services/userService");
+const { isValidFounderInvite } = require("../utils/founderInvite");
 
 // JWT options — no hardcoded secret fallback. server.js aborts at boot if
 // JWT_SECRET is unset, so a public default key can never be used to verify tokens.
@@ -99,8 +100,9 @@ module.exports = (db) => {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
           callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
+          passReqToCallback: true, // read OAuth `state` (storefront + founder invite)
         },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req, accessToken, refreshToken, profile, done) => {
         try {
           const googleEmail = profile.emails?.[0]?.value;
           if (!googleEmail) return done(new Error('Google profile has no email'), false);
@@ -125,8 +127,22 @@ module.exports = (db) => {
             return done(null, user);
           }
 
-          // New account via Google. Eligibility check uses the normalized email
-          // so a user can't bypass the lock with `+aliases` or Gmail dots.
+          // New account via Google. Pro (leads.nexa.mk) is invite-only: a fresh
+          // leads signup must carry a valid founder invite in the OAuth `state`,
+          // otherwise we create NOTHING (no locked dead-end). nexa.mk/main is
+          // unaffected — free Basic self-serve stays open.
+          let sfState = 'main', inviteState = '';
+          try {
+            const sp = new URLSearchParams(req?.query?.state || '');
+            sfState = sp.get('sf') || 'main';
+            inviteState = sp.get('invite') || '';
+          } catch (_) { /* bare/legacy state → treated as main */ }
+          if (sfState === 'leads' && !isValidFounderInvite(inviteState)) {
+            return done(null, false, { message: 'Пристапот за адвокати е само по покана.', code: 'INVITE_REQUIRED' });
+          }
+
+          // Eligibility check uses the normalized email so a user can't bypass
+          // the lock with `+aliases` or Gmail dots.
           try {
             await userService.assertEmailEligibleForNewAccount(normalized);
           } catch (e) {

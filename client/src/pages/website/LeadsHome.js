@@ -246,7 +246,7 @@ export default function LeadsHome() {
 
             <p className={styles.footNote}>
               {T('Немате профил?', 'No account?')}{' '}
-              <Link to="/login" className={styles.smallLink}>{T('Регистрирајте се', 'Create one')}</Link>
+              <Link to="/login?needInvite=1" className={styles.smallLink}>{T('Побарај пристап', 'Request access')}</Link>
             </p>
           </div>
       </aside>

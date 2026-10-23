@@ -332,9 +332,13 @@ button {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-modern */
 }
 
-button:hover:not(:disabled) {
-  background-color: var(--color-primary-300);
-  transform: scale(1.05);
+/* Hover only on devices that really hover — on phones a tap leaves :hover
+   "stuck", so buttons stayed enlarged and recoloured after being tapped. */
+@media (hover: hover) {
+  button:hover:not(:disabled) {
+    background-color: var(--color-primary-300);
+    transform: scale(1.05);
+  }
 }
 
 button:active:not(:disabled) {

@@ -1,0 +1,150 @@
+/* „Разговори" corner bar — LinkedIn-style, rightmost item of the chat dock.
+   Flat and quiet: hairline borders, small radius, no shadows. */
+.bar {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Neutralise the global button look (radius, padding, scale-on-hover). */
+.bar button {
+  appearance: none;
+  margin: 0;
+  min-height: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  line-height: inherit;
+  transform: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.bar button:hover:not(:disabled),
+.bar button:active:not(:disabled) { transform: none; }
+.bar button:focus:not(:disabled) { outline: none; }
+.bar button:focus-visible { outline: 2px solid var(--color-primary, #1E4DB7); outline-offset: -2px; }
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: #0f172a;
+}
+.barOpen .head { border-bottom: 1px solid #e2e8f0; }
+.bar .head:hover:not(:disabled) { background: #f8fafc; }
+
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-primary, #1E4DB7); color: #fff;
+  font-size: 0.8rem; font-weight: 600; flex-shrink: 0;
+}
+.label { flex: 1; font-size: 0.9rem; font-weight: 600; letter-spacing: -0.005em; }
+.badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: #dc2626; color: #fff; font-size: 0.68rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.chevron { color: #94a3b8; flex-shrink: 0; }
+
+/* Expanded panel */
+.panel { display: flex; flex-direction: column; height: min(460px, calc(100vh - 120px)); }
+
+.tabs { display: flex; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; padding: 0 6px; }
+.bar .tab {
+  flex: 1; padding: 10px 8px; background: none; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-size: 0.8rem; font-weight: 500; color: #64748b; cursor: pointer;
+  justify-content: center;
+}
+.bar .tab:hover:not(:disabled) { background: none; color: #0f172a; }
+.bar .tabActive { color: #0f172a; font-weight: 600; border-bottom-color: #0f172a; }
+
+.list { flex: 1; min-height: 0; overflow-y: auto; }
+
+.bar .row {
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%;
+  padding: 10px 14px; background: #fff; color: inherit; border: none;
+  border-bottom: 1px solid #f1f5f9; text-align: left; cursor: pointer;
+}
+.bar .row:hover:not(:disabled) { background: #f8fafc; }
+.rowAvatar {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; object-position: 50% 18%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #f1f5f9; font-size: 0.95rem;
+}
+.rowAvatarPro { background: #fef3c7; color: #92400e; font-weight: 600; }
+.rowText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rowTop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.rowName { font-size: 0.84rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rowTime { font-size: 0.68rem; font-weight: 400; color: #94a3b8; flex-shrink: 0; }
+.rowSub, .rowStatus { font-size: 0.76rem; font-weight: 400; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rowStatus { font-size: 0.7rem; }
+.rowUnread .rowName, .rowUnread .rowSub { font-weight: 700; color: #0f172a; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary, #1E4DB7); flex-shrink: 0; }
+
+.invites {
+  display: block; margin: 8px 12px; padding: 8px 10px; border-radius: 4px;
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+  font-size: 0.78rem; font-weight: 600; text-decoration: none;
+}
+.invites:hover { background: #fef3c7; }
+.note { padding: 22px 18px; font-size: 0.8rem; line-height: 1.5; color: #64748b; text-align: center; }
+
+.footer {
+  flex-shrink: 0; padding: 10px 14px; border-top: 1px solid #e2e8f0;
+  font-size: 0.78rem; font-weight: 500; color: #475569; text-decoration: none; text-align: center;
+}
+.footer:hover { background: #f8fafc; color: #0f172a; }
+
+/* Keep page content clear of the bar. */
+:global(body.nexa-msgbar-on) { padding-bottom: 56px; }
+
+/* Mobile: round bubble in the corner; expanded = full-screen sheet. */
+@media (max-width: 560px) {
+  :global(body.nexa-msgbar-on) { padding-bottom: 80px; }
+  :global(body.nexa-msgsheet-open) { overflow: hidden; }
+  .bar {
+    position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: 52px;
+    border: none; border-radius: 50%; overflow: visible;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.25); /* only shadow: a floating bubble needs separation */
+  }
+  .chatOpen { display: none; }
+  .bar .head {
+    width: 52px; height: 52px; padding: 0; justify-content: center; border-radius: 50%;
+    position: relative; background: var(--color-primary, #1E4DB7);
+  }
+  .bar .head:hover:not(:disabled) { background: var(--color-primary, #1E4DB7); }
+  .label, .chevron { display: none; }
+  .avatar { background: transparent; }
+  .badge { position: absolute; top: -2px; right: -2px; }
+  .barOpen {
+    inset: 0; width: auto; border-radius: 0; z-index: 1300; box-shadow: none;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .barOpen .head {
+    width: 100%; height: 52px; border-radius: 0; padding: 0 16px; justify-content: flex-start;
+  }
+  .bar.barOpen .head, .bar.barOpen .head:hover:not(:disabled) { background: #fff; border-radius: 0; }
+  .barOpen .label, .barOpen .chevron { display: inline; }
+  .barOpen .avatar { background: var(--color-primary, #1E4DB7); }
+  .barOpen .badge { position: static; }
+  .barOpen .panel { height: calc(100vh - 52px); height: calc(100dvh - 52px - env(safe-area-inset-top, 0px)); }
+  .barOpen .footer { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .bar .tab { padding: 12px 8px; font-size: 0.86rem; }
+  .bar .row { padding: 12px 16px; }
+}

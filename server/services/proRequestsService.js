@@ -129,7 +129,8 @@ class ProRequestsService {
       authorName: (maskUser && m.authorRole === 'user') ? 'Анонимен корисник' : (m.authorName || null),
       // The Pro reads the anonymized copy of the user's words (personal data
       // redacted at send time); legacy messages fall back to pattern redaction.
-      body: (maskUser && m.authorRole === 'user') ? (m.bodyForPro || redactPiiKeepLines(m.body)) : (m.body || ''),
+      // AI answers in the group echo the user's question, so the Pro gets the anonymized copy too.
+      body: (maskUser && (m.authorRole === 'user' || m.authorRole === 'ai')) ? (m.bodyForPro || redactPiiKeepLines(m.body)) : (m.body || ''),
       kind: m.kind || 'message',
       amount: m.amount ?? null,
       currency: m.currency || null,
@@ -141,8 +142,18 @@ class ProRequestsService {
   // nobody has written since the Pro joined (the original question is pending).
   static awaitingPro(doc) {
     if (!doc || doc.status !== 'active') return false;
-    const last = (doc.messages || [])[(doc.messages || []).length - 1];
+    // AI answers (group chat, user called @ai) don't change whose turn it is.
+    const human = (doc.messages || []).filter((m) => m.authorRole !== 'ai');
+    const last = human[human.length - 1];
     return !last || last.authorRole === 'user';
+  }
+
+  // Pro/admin messages the owner hasn't seen yet (after `seenAt.user`, which is
+  // stamped whenever the owner opens or writes in the conversation).
+  static unreadForUser(doc) {
+    const seen = doc?.seenAt?.user ? new Date(doc.seenAt.user).getTime() : 0;
+    return (doc?.messages || []).filter((m) =>
+      (m.authorRole === 'pro' || m.authorRole === 'admin') && new Date(m.createdAt).getTime() > seen).length;
   }
 
   // What a Pro may see of the request's text: the anonymized copy made at create
@@ -199,6 +210,7 @@ class ProRequestsService {
       // Per-side email opt-out for this conversation (bell notifications stay on).
       emailMuted: { user: !!doc.emailMuted?.user, pro: !!doc.emailMuted?.pro },
       awaitingPro: ProRequestsService.awaitingPro(doc),
+      unreadForUser: viewerRole === 'user' ? ProRequestsService.unreadForUser(doc) : 0,
       messages: (doc.messages || []).map((m) => ProRequestsService._publicMessage(m, maskUser)),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -305,7 +317,7 @@ class ProRequestsService {
     await this._ensureIndexes();
     const id = ProRequestsService.toObjectId(userId);
     const docs = await this.col.find({ userId: id }).sort({ updatedAt: -1 }).toArray();
-    return docs.map(ProRequestsService.present);
+    return docs.map((d) => ProRequestsService.present(d, 'user'));
   }
 
   async listForPro(proId) {
@@ -362,6 +374,11 @@ class ProRequestsService {
 
   async getForActor(actor, id, isAdmin) {
     const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
+    if (owner && !isAdmin) {
+      const seenAt = { ...(doc.seenAt || {}), user: new Date() };
+      await this.col.updateOne({ _id: doc._id }, { $set: { 'seenAt.user': seenAt.user } });
+      doc.seenAt = seenAt;
+    }
     return ProRequestsService.present(doc, ProRequestsService._viewerRole({ owner, assigned, isAdmin }));
   }
 
@@ -406,6 +423,18 @@ class ProRequestsService {
     return { count: items.length, items };
   }
 
+  // Owner's conversations with pro replies they haven't seen (messaging-bar badge).
+  async unreadSummaryForUser(userId) {
+    await this._ensureIndexes();
+    const id = ProRequestsService.toObjectId(userId);
+    const docs = await this.col
+      .find({ userId: id, status: { $in: ['active', 'closed'] } })
+      .project({ seenAt: 1, 'messages.authorRole': 1, 'messages.createdAt': 1 })
+      .toArray();
+    const count = docs.filter((d) => ProRequestsService.unreadForUser(d) > 0).length;
+    return { count };
+  }
+
   // ── Thread ──────────────────────────────────────────────────────────────────
   async addMessage(actor, id, body, isAdmin) {
     const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
@@ -430,7 +459,8 @@ class ProRequestsService {
     };
     await this.col.updateOne(
       { _id: doc._id },
-      { $push: { messages: message }, $set: { updatedAt: new Date() } }
+      // Writing in the thread means the owner has seen everything before it.
+      { $push: { messages: message }, $set: { updatedAt: new Date(), ...(authorRole === 'user' ? { 'seenAt.user': message.createdAt } : {}) } }
     );
     const viewerRole = ProRequestsService._viewerRole({ owner, assigned, isAdmin });
     const maskUser = viewerRole === 'pro' && !doc.userRevealed;
@@ -441,6 +471,33 @@ class ProRequestsService {
       targets: ProRequestsService._notifyTargets(doc),
       proBody: bodyForPro || text, // what the Pro may read of this message (email)
     };
+  }
+
+  // Group chat: the user called the AI character (@ai) while a Pro is in the
+  // conversation — mirror the AI's answer into the thread so the Pro sees it.
+  // Server-side only (from the chatbot route); never exposed as an endpoint.
+  async addAiMessage(requestId, { agentName, body }) {
+    const _id = ProRequestsService.toObjectId(requestId);
+    const text = clamp(body, 6000);
+    if (!_id || !text) return null;
+    const bodyForPro = (await anonymizeForPro({ body: text })).body;
+    const message = {
+      _id: new ObjectId(),
+      authorId: null,
+      authorRole: 'ai',
+      authorName: clamp(agentName, 80) || 'AI',
+      body: text,
+      ...(bodyForPro ? { bodyForPro } : {}),
+      kind: 'message',
+      amount: null,
+      currency: null,
+      createdAt: new Date(),
+    };
+    await this.col.updateOne(
+      { _id, status: 'active' },
+      { $push: { messages: message }, $set: { updatedAt: new Date() } }
+    );
+    return message;
   }
 
   // Structured price offer — assigned Pro only.

@@ -35,3 +35,14 @@
 @media (max-width: 900px) {
   .bar { padding: 5px 16px; justify-content: flex-start; }
 }
+
+/* Phones: a pinned 60px strip covered composers (AI chat) and modal buttons on
+   a small screen — so here it's a plain footer at the end of the page instead. */
+@media (max-width: 560px) {
+  .bar {
+    position: static;
+    padding: 12px 16px;
+    background: transparent;
+    backdrop-filter: none;
+  }
+}

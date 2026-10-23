@@ -101,3 +101,16 @@ export function mergeProMessages(convMessages = [], proMessages = []) {
   };
   return [...convMessages, ...proMessages].sort((a, b) => toTime(a) - toTime(b));
 }
+
+/**
+ * Group chat (user + AI character + human pro): once a pro is in, the AI only
+ * answers when the user calls it — „@ai" (also @аи / @<character name>).
+ */
+export function mentionsAi(text, agentName = '') {
+  const names = ['ai', 'аи', 'ај', String(agentName || '').toLowerCase()]
+    .filter(Boolean).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`(^|\\s)@(${names.join('|')})(?=$|[\\s,.!?:;])`, 'iu').test(String(text || ''));
+}
+
+export const AI_MENTION_TIP = (agentName) =>
+  `Ова е групен разговор. ${agentName || 'AI'} е сè уште тука — напишете @ai во пораката ако сакате и AI да одговори.`;

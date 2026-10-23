@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChatDock } from '../../contexts/ChatDockContext';
@@ -7,8 +7,11 @@ import { getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
-import { fetchActiveProForConversation, mergeProMessages, toThreadMessage } from '../../lib/proChat';
+import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi, AI_MENTION_TIP } from '../../lib/proChat';
 import ProProfileModal from './ProProfileModal';
+import MessagingBar from './MessagingBar';
+import ProChatWindow from './ProChatWindow';
+import { useAuth } from '../../contexts/AuthContext';
 import { CURRENT_VERSIONS } from '../../data/featureTerms';
 import styles from './AgentChatDock.module.css';
 
@@ -18,17 +21,38 @@ const stripSuggestions = (t) => (t || '').replace(/\[SUGGESTIONS\][\s\S]*?\[\/SU
 const cleanAi = (t) => stripSuggestions((t || '').replace(/\[\[HANDOFF:[a-z]*\]\]/ig, '')).trim();
 
 /**
- * AgentChatDock — the footer dock. Renders one ChatWindow per open agent,
- * Facebook-style, lined up from the right edge. Each window keeps its own
- * conversation state for as long as it stays open.
+ * AgentChatDock — the footer dock. The „Разговори" MessagingBar sits in the
+ * corner (terminal only); chat windows line up to its left, Facebook-style:
+ * AI agents (ChatWindow) and human pro conversations (`pro:<id>` → ProChatWindow).
+ * Each window keeps its own state for as long as it stays open.
  */
+const FULL_CONVERSATION_PAGES = [
+  '/terminal/ai-chat', '/terminal/marketing-ai', '/terminal/requests',
+  '/terminal/pro/conversations', '/terminal/pro/requests', '/terminal/admin-user/requests',
+];
+
 export default function AgentChatDock() {
   const { windows = [], closeChat, toggleMinimize } = useChatDock();
-  if (windows.length === 0) return null;
+  const { currentUser } = useAuth();
+  const { pathname } = useLocation();
+  // Hidden on the full conversation pages — they are the messaging screen and
+  // the bar would sit on their composer (LinkedIn hides its bar on /messaging too).
+  const showBar = !!currentUser && pathname.startsWith('/terminal')
+    && !FULL_CONVERSATION_PAGES.some((p) => pathname.startsWith(p));
+  if (!showBar && windows.length === 0) return null;
 
   return (
     <div className={styles.dockBar}>
-      {windows.map((w) => (
+      {showBar && <MessagingBar />}
+      {windows.map((w) => (w.key.startsWith('pro:') ? (
+        <ProChatWindow
+          key={w.key}
+          requestId={w.key.slice(4)}
+          minimized={w.minimized}
+          onClose={() => closeChat(w.key)}
+          onToggle={() => toggleMinimize(w.key)}
+        />
+      ) : (
         <ChatWindow
           key={w.key}
           agentKey={w.key}
@@ -39,7 +63,7 @@ export default function AgentChatDock() {
           onClose={() => closeChat(w.key)}
           onToggle={() => toggleMinimize(w.key)}
         />
-      ))}
+      )))}
     </div>
   );
 }
@@ -154,13 +178,24 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
       }
     }
     if (liveProId) {
+      // Group chat: the message always goes to the group (pro thread); the AI
+      // answers only when the user calls it with @ai / @<name>.
+      const callAi = mentionsAi(q, agent.name) && convIdRef.current;
       setLoading(true);
       try {
         const res = await ProRequestsApiService.addMessage(liveProId, q);
-        if (res?.success && res.message) setProMsgs((prev) => [...prev, toThreadMessage(res.message)]);
-        else { setInput(q); setError(res?.message || 'Пораката не е испратена. Обидете се повторно.'); }
+        if (!(res?.success && res.message)) {
+          setInput(q); setError(res?.message || 'Пораката не е испратена. Обидете се повторно.');
+          return;
+        }
+        if (!callAi) { setProMsgs((prev) => [...prev, toThreadMessage(res.message)]); return; }
+        // Conversation copy of the user turn (the thread copy is de-duplicated on merge).
+        setMessages((prev) => [...prev, { role: 'user', content: q, timestamp: new Date() }]);
+        const ai = await api.sendMessage(convIdRef.current, q, agent.key, null, true, true);
+        if (ai?.success) setMessages((prev) => [...prev, { role: 'ai', content: stripSuggestions(ai.data.answer), timestamp: new Date() }]);
+        else setError(ai?.message || 'AI не одговори. Обидете се повторно.');
       } catch (e) {
-        setInput(q); setError(e?.message || 'Пораката не е испратена. Обидете се повторно.');
+        setError(e?.message || 'Пораката не е испратена. Обидете се повторно.');
       } finally {
         setLoading(false);
       }
@@ -275,11 +310,18 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
           {agent.photo
             ? <img src={agent.photo} alt={agent.name} className={styles.hdAvatar} />
             : <span className={styles.hdAvatarFallback}>{agent.icon}</span>}
+          {proProfile && (
+            <span className={styles.hdAvatarStack} aria-hidden="true">
+              {(proProfile.name || 'П').trim().charAt(0).toUpperCase()}
+            </span>
+          )}
           <span className={styles.hdText}>
-            <span className={styles.hdName}>{agent.name}</span>
-            <span className={styles.hdRole}>{agent.role}</span>
+            <span className={styles.hdName}>{proProfile ? 'Групен разговор' : agent.name}</span>
+            <span className={styles.hdRole}>
+              {proProfile ? `${agent.name} · ${proProfile.name || 'Професионалец'} · Вие` : agent.role}
+            </span>
           </span>
-          <span className={styles.onlineDot} aria-hidden="true" />
+          {!proProfile && <span className={styles.onlineDot} aria-hidden="true" />}
         </span>
         <span className={styles.hdActions}>
           {!isMarketing && (
@@ -398,12 +440,23 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
             </div>
           )}
 
+          {proProfile && (
+            <div className={styles.groupTip}>
+              <span>💡 {AI_MENTION_TIP(agent.name)}</span>
+              {!mentionsAi(input, agent.name) && (
+                <button type="button" className={styles.mentionChip}
+                  onClick={() => setInput((v) => `@ai ${v}`.trimEnd() + ' ')}>@ai</button>
+              )}
+            </div>
+          )}
+
           <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(); }}>
             <input
               className={styles.input}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={proInviteMode ? 'Што сакате да го прашате професионалецот?…' : `Напиши порака до ${agent.name}…`}
+              placeholder={proInviteMode ? 'Што сакате да го прашате професионалецот?…'
+                : proProfile ? 'Порака до групата… (@ai за AI)' : `Напиши порака до ${agent.name}…`}
               maxLength={500}
               disabled={loading}
             />

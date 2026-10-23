@@ -1,6 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../../../components/common/Header';
-import Sidebar, { PRO_UNANSWERED_EVENT } from '../../../components/terminal/Sidebar';
+import Sidebar from '../../../components/terminal/Sidebar';
+import { refreshInbox } from '../../../lib/inbox';
+import { useAuth } from '../../../contexts/AuthContext';
+import { viewerRoleFor, counterpartName } from '../../../components/chatbot/ProChatWindow';
 import ProRequestThread from '../../../components/proRequests/ProRequestThread';
 import AiTranscript from '../../../components/proRequests/AiTranscript';
 import ProRequestsApiService from '../../../services/proRequestsApi';
@@ -67,6 +71,7 @@ function timeAgo(d) {
  * pro/assigned→pro, admin→admin.
  */
 export default function RequestsPage({ view = 'mine' }) {
+  const { currentUser } = useAuth();
   const role = view === 'admin' ? 'admin' : (view === 'assigned' || view === 'pro' || view === 'board') ? 'pro' : 'user';
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -136,9 +141,20 @@ export default function RequestsPage({ view = 'mine' }) {
     if (proSide && isOpenItem(item)) { setSelected(item); return; } // preloaded board snapshot
     try {
       const res = await ProRequestsApiService.get(item._id);
-      if (res.success) setSelected(res.item);
+      if (res.success) { setSelected(res.item); refreshInbox(); } // opening marks pro replies as seen
     } catch (e) { setError(e.message); }
   }
+
+  // Deep link from the messaging bar's „full page" button: ?id=<request id>.
+  const [searchParams] = useSearchParams();
+  const deepLinkId = searchParams.get('id');
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (!deepLinkId || deepLinked.current || loading) return;
+    deepLinked.current = true;
+    openRequest(items.find((i) => i._id === deepLinkId) || { _id: deepLinkId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, loading, items]);
 
   async function claim() {
     if (acting || !selected) return;
@@ -158,7 +174,7 @@ export default function RequestsPage({ view = 'mine' }) {
   function onUpdated(updated) {
     setSelected(updated);
     setItems((prev) => prev.map((i) => (i._id === updated._id ? { ...i, ...updated } : i)));
-    if (proSide) window.dispatchEvent(new Event(PRO_UNANSWERED_EVENT)); // sidebar badge
+    refreshInbox(); // messaging-bar badge
   }
 
   const awaitingCount = view === 'pro' ? items.filter((i) => i.awaitingPro).length : 0;
@@ -208,26 +224,32 @@ export default function RequestsPage({ view = 'mine' }) {
                     : 'Нема разговори.'}
                 </p>
               ) : (
-                items.map((i) => (
-                  <button
-                    key={i._id}
-                    className={`${styles.listItem} ${selected?._id === i._id ? styles.listItemActive : ''} ${isOpenItem(i) && proSide ? styles.listItemOpen : ''}`}
-                    onClick={() => openRequest(i)}
-                  >
-                    <span className={styles.rowAvatar} aria-hidden>{isOpenItem(i) && proSide ? '📨' : '⚖️'}</span>
-                    <span className={styles.rowBody}>
-                      <span className={styles.rowTop}>
+                items.map((i) => {
+                  // LinkedIn-style inbox row: who it's with, the topic, then status.
+                  const invite = isOpenItem(i) && proSide;
+                  const who = view === 'admin'
+                    ? (i.companyName || i.userName || i.userEmail || '—')
+                    : invite ? 'Отворена покана' : counterpartName(i, viewerRoleFor(i, currentUser));
+                  const unread = view === 'mine' ? i.unreadForUser > 0 : !!i.awaitingPro;
+                  return (
+                    <button
+                      key={i._id}
+                      className={`${styles.listItem} ${selected?._id === i._id ? styles.listItemActive : ''} ${invite ? styles.listItemOpen : ''} ${unread ? styles.listItemUnread : ''}`}
+                      onClick={() => openRequest(i)}
+                    >
+                      <span className={styles.rowAvatar} aria-hidden>{invite ? '📨' : who.trim().charAt(0).toUpperCase()}</span>
+                      <span className={styles.rowBody}>
+                        <span className={styles.rowTop}>
+                          <span className={styles.rowName}>{who}</span>
+                          <span className={styles.rowTime}>{timeAgo(i.updatedAt || i.createdAt)}</span>
+                        </span>
                         <span className={styles.rowSubject}>{i.subject}</span>
-                        <span className={styles.rowTime}>{timeAgo(i.updatedAt || i.createdAt)}</span>
+                        {view !== 'admin' && <span className={styles.rowStatus}>{statusLine(i, view)}</span>}
                       </span>
-                      <span className={styles.rowStatus}>
-                        {view === 'admin'
-                          ? (i.companyName || i.userName || i.userEmail || '—')
-                          : statusLine(i, view)}
-                      </span>
-                    </span>
-                  </button>
-                ))
+                      {unread && <span className={styles.unreadDot} aria-label="Ново" />}
+                    </button>
+                  );
+                })
               )}
             </aside>
 

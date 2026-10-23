@@ -6,6 +6,7 @@ const chatBotService = require('../chatbot/ChatBotService');
 const AgentMemoryService = require('../chatbot/services/agentMemoryService');
 const UserMemoryService = require('../services/userMemoryService');
 const { getAgentName } = require('../chatbot/agentProfiles');
+const ProRequestsService = require('../services/proRequestsService');
 
 /**
  * Chatbot Routes
@@ -32,22 +33,44 @@ const { getAgentName } = require('../chatbot/agentProfiles');
 async function proActiveFor(req, conversationId) {
   try {
     const db = req.app.locals.db;
-    if (!db) return false;
-    const hit = await db.collection('pro_requests').findOne(
+    if (!db) return null;
+    return await db.collection('pro_requests').findOne(
       { 'context.conversationId': String(conversationId), status: 'active' },
       { projection: { _id: 1 } }
     );
-    return !!hit;
   } catch (_) {
-    return false; // never block the AI on a lookup error
+    return null; // never block the AI on a lookup error
   }
 }
 
 const PRO_ACTIVE_RESPONSE = {
   success: false,
   code: 'PRO_ACTIVE',
-  message: 'Во овој разговор е вклучен професионалец — пораките одат до него, а AI не одговара. Освежете ја страницата ако не ги гледате неговите одговори.',
+  message: 'Во овој разговор е вклучен професионалец — пораките одат до него. Напишете @ai во пораката ако сакате и AI да одговори.',
 };
+
+// Group chat: with a Pro in the conversation the AI only answers when the owner
+// explicitly calls it (@ai / @<name>) — the client sends `groupMention`.
+const isGroupMention = (body, question) => !!body?.groupMention && /@/.test(question || '');
+
+const cleanAiForThread = (t) => String(t || '')
+  .replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/g, '')
+  .replace(/\[\[HANDOFF:[a-z]*\]\]/gi, '')
+  .trim();
+
+// Mirror the AI's group answer into the Pro's thread (best-effort).
+async function mirrorAiToProThread(req, proReq, agent, answer) {
+  try {
+    const db = req.app.locals.db;
+    if (!db || !proReq) return;
+    await new ProRequestsService(db).addAiMessage(proReq._id, {
+      agentName: getAgentName(agent) || 'AI',
+      body: cleanAiForThread(answer),
+    });
+  } catch (err) {
+    console.error('Mirroring AI answer to pro thread failed:', err.message);
+  }
+}
 
 /**
  * @route   POST /api/chatbot/ask
@@ -384,10 +407,12 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     // Verify conversation belongs to user
     await conversationService.getConversation(conversationId, userId);
 
-    if (await proActiveFor(req, conversationId)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    const proReq = await proActiveFor(req, conversationId);
+    if (proReq && !isGroupMention(req.body, question)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
 
     // Ask the chatbot with conversation context
-    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, !!humanProActive);
+    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, !!humanProActive || !!proReq);
+    if (proReq) await mirrorAiToProThread(req, proReq, agent, response?.answer);
 
     try {
       req.app.locals.activityLogger?.analyticsService?.trackActivity(String(userId), 'ai_query', {
@@ -483,7 +508,8 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
     // Verify conversation belongs to user
     await conversationService.getConversation(conversationId, userId);
 
-    if (await proActiveFor(req, conversationId)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    const proReq = await proActiveFor(req, conversationId);
+    if (proReq && !isGroupMention(req.body, question)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
 
     // Deduct credits BEFORE streaming starts
     const creditService = req.app.locals.creditService;
@@ -520,11 +546,14 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
     let clientDisconnected = false;
     req.on('close', () => { clientDisconnected = true; });
 
-    // Stream the response
+    // Stream the response (collect the text when it must be mirrored to a Pro thread)
+    let streamedAnswer = '';
     await chatBotService.askQuestionStream(question, userId, conversationId, (event) => {
+      if (proReq && event?.type === 'token' && typeof event.data === 'string') streamedAnswer += event.data;
       if (clientDisconnected) return;
       res.write(`data: ${JSON.stringify(event)}\n\n`);
-    }, agent, from, !!humanProActive);
+    }, agent, from, !!humanProActive || !!proReq);
+    if (proReq) await mirrorAiToProThread(req, proReq, agent, streamedAnswer);
 
     // Send credits info as final event
     if (!clientDisconnected && creditsRemaining !== null) {

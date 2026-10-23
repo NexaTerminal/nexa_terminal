@@ -7,6 +7,7 @@ router.use(authenticateJWT);
 
 // Static collections — must precede '/:id' so they aren't read as an id.
 router.get('/board', c.board);
+router.get('/unread', c.unread);                   // Requester: conversations with unseen pro replies
 router.get('/unanswered', c.unanswered);         // Pro: conversations awaiting their reply
 
 router.get('/', c.list);

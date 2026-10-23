@@ -60,6 +60,11 @@ class ProRequestsApiService {
   static unanswered() {
     return ApiService.get('/pro-requests/unanswered');
   }
+
+  // Requester: conversations with pro replies not seen yet ({ count }).
+  static unread() {
+    return ApiService.get('/pro-requests/unread');
+  }
 }
 
 export default ProRequestsApiService;

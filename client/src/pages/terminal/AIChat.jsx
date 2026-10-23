@@ -13,7 +13,7 @@ import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAna
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
-import { fetchActiveProForConversation, mergeProMessages, toThreadMessage } from '../../lib/proChat';
+import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi, AI_MENTION_TIP } from '../../lib/proChat';
 import ProProfileModal from '../../components/chatbot/ProProfileModal';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
@@ -406,9 +406,14 @@ const AIChat = () => {
         liveProId = r.id;
       }
     }
+    // Group chat: with a pro in, every message goes to the group; the AI also
+    // answers only when the user calls it (@ai / @<character name>).
+    let groupText = null;
     if (liveProId) {
-      await sendToPro(liveProId);
-      return;
+      const text = question.trim();
+      const sent = await sendToPro(liveProId);
+      if (!sent || !currentConversationId || !mentionsAi(text, activeAgent?.name)) return;
+      groupText = text;
     }
 
     if (outOfQuota) {
@@ -417,14 +422,14 @@ const AIChat = () => {
       return;
     }
 
+    const questionText = groupText ?? question;
     const userMessage = {
       type: 'user',
-      content: question,
+      content: questionText,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const questionText = question;
     // Hand-off origin applies only to THIS (first) message after a switch.
     const fromAgent = handoffFrom;
     setHandoffFrom(null);
@@ -514,7 +519,7 @@ const AIChat = () => {
           setMessages(prev => prev.filter(m => !(m.type === 'ai' && m.isStreaming && !m.content)));
           setIsStreaming(false);
         },
-      }, agent, fromAgent);
+      }, agent, fromAgent, !!groupText, !!groupText);
 
     } catch (err) {
       console.error('Error asking question:', err);
@@ -580,16 +585,17 @@ const AIChat = () => {
       const res = await ProRequestsApiService.addMessage(requestId, text);
       if (res?.success && res.message) {
         setProMessages(prev => [...prev, toThreadMessage(res.message, assignedProName)]);
-      } else {
-        setQuestion(text);
-        setError(res?.message || 'Пораката не е испратена. Обидете се повторно.');
+        return true;
       }
+      setQuestion(text);
+      setError(res?.message || 'Пораката не е испратена. Обидете се повторно.');
     } catch (e) {
       setQuestion(text);
       setError(e?.message || 'Пораката не е испратена. Обидете се повторно.');
     } finally {
       setIsLoading(false);
     }
+    return false;
   };
 
   /**
@@ -813,6 +819,17 @@ const AIChat = () => {
                       title="Известувања по е-пошта за секоја нова порака во овој разговор">
                       {emailMuted ? '🔕 Е-пошта: исклучена' : '📧 Е-пошта: вклучена'}
                     </button>
+                  </div>
+                )}
+                {proProfile && (
+                  <div className={styles.groupTip}>
+                    <span>💡 {AI_MENTION_TIP(activeAgent?.name)}</span>
+                    {!mentionsAi(question, activeAgent?.name) && (
+                      <button type="button" className={styles.mentionChip}
+                        onClick={() => { setQuestion((v) => `@ai ${v}`.trimEnd() + ' '); textareaRef.current?.focus(); }}>
+                        @ai
+                      </button>
+                    )}
                   </div>
                 )}
                 {showProModal && (
@@ -1064,7 +1081,7 @@ const AIChat = () => {
                     }
                   }
                 }}
-                placeholder={proRequestId ? 'Пишете му на професионалецот...' : 'Поставете ваше прашање...'}
+                placeholder={proRequestId ? 'Порака до групата… (@ai за AI)' : 'Поставете ваше прашање...'}
                 className={styles.input}
                 disabled={isLoading || isStreaming || outOfQuota}
                 maxLength={500}

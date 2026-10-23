@@ -279,6 +279,14 @@ exports.emailPrefs = async (req, res) => {
 };
 
 // Pro: active conversations waiting on their reply (sidebar badge + banner).
+// Requester: conversations with pro replies they haven't seen yet ({ count }).
+exports.unread = async (req, res) => {
+  try {
+    const { count } = await make(req).unreadSummaryForUser(req.user._id);
+    return res.json({ success: true, count });
+  } catch (err) { return handle(res, err); }
+};
+
 exports.unanswered = async (req, res) => {
   try {
     if (!isProOrAdmin(req)) return res.json({ success: true, count: 0, items: [] });

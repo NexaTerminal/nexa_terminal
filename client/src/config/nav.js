@@ -66,10 +66,8 @@ const contracts = {
 
 const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/terminal/ai-team' };
 
-// „Моите барања" — the requester side of Ask-a-Pro (consults + document reviews).
-const myRequests = { key: 'my-requests', icon: 'inbox', label: 'Разговори', path: '/terminal/requests' };
-// „Разговори" — one page for Pros: open invitations to join + their own conversations.
-const proConversations = { key: 'pro-conversations', icon: 'inbox', label: 'Разговори', path: '/terminal/pro/conversations', visible: showsLeads };
+// „Разговори" (requester + Pro conversations) moved out of the sidebar into the
+// corner messaging bar — components/chatbot/MessagingBar.jsx.
 // „Сите барања" — admin-only oversight of every Ask-a-Pro request; admin can reject
 // (remove) an open request from here. Requests auto-publish, so this is for cleanup.
 const adminRequests = { key: 'admin-requests', icon: 'inbox', label: 'Сите барања', path: '/terminal/admin-user/requests', visible: (user) => user?.role === 'admin' };
@@ -135,7 +133,7 @@ const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
   {
     key: 'administration', label: 'Администрација',
-    items: [documents, contracts, myRequests, adminRequests, screening]
+    items: [documents, contracts, adminRequests, screening]
   },
   {
     key: 'human-resources', label: 'Човечки ресурси',
@@ -170,11 +168,11 @@ const proSections = [
   // Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [leads, proConversations, topicsqa, proBlog, proClients]
+    items: [leads, topicsqa, proBlog, proClients]
   },
   {
     key: 'pro-tools', label: 'Алатки',
-    items: [proDocuments, contractAnalysis, myRequests, cases, legalScreening, characterCheck, interviews]
+    items: [proDocuments, contractAnalysis, cases, legalScreening, characterCheck, interviews]
   },
   {
     key: 'education-sec', label: 'Едукација',

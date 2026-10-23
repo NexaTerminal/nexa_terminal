@@ -1031,6 +1031,10 @@ function registerRoutes() {
     // „Ask a Pro" / Барања — AI→human handoff (JWT-Bearer; header auth, cross-domain SPA)
     '/pro-requests',
     /^\/pro-requests\/.*$/,
+    // Notification bell — mark read / read-all (JWT-Bearer). Without this the PUTs
+    // failed CSRF whenever a concurrent response rotated the csrfToken cookie, so
+    // read state never persisted and notifications came back unread on next poll.
+    /^\/notifications\/.*$/,
   ];
 
   // Apply CSRF exemptions only if CSRF is enabled

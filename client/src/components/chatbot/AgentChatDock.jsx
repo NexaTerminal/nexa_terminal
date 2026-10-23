@@ -143,10 +143,20 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     setError(null);
     // Human pro in the loop → the message goes ONLY to the pro's thread. No AI
     // call, so it costs no credits and doesn't count toward the weekly AI quota.
-    if (!isMarketing && proRequestId) {
+    // Re-check right before asking the AI: a pro may have joined since the last poll.
+    let liveProId = isMarketing ? null : proRequestId;
+    if (!isMarketing && !liveProId && convIdRef.current) {
+      const r = await fetchActiveProForConversation(convIdRef.current);
+      if (r) {
+        setProRequestId(r.id); setProMsgs(r.proMessages); setProProfile(r.proProfile);
+        setUserRevealed(r.userRevealed); setEmailMuted(r.emailMuted);
+        liveProId = r.id;
+      }
+    }
+    if (liveProId) {
       setLoading(true);
       try {
-        const res = await ProRequestsApiService.addMessage(proRequestId, q);
+        const res = await ProRequestsApiService.addMessage(liveProId, q);
         if (res?.success && res.message) setProMsgs((prev) => [...prev, toThreadMessage(res.message)]);
         else { setInput(q); setError(res?.message || 'Пораката не е испратена. Обидете се повторно.'); }
       } catch (e) {

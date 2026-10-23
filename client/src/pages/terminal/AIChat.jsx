@@ -395,8 +395,19 @@ const AIChat = () => {
 
     // Human pro in the loop → the message goes ONLY to the pro's thread. No AI
     // call, so it costs no credits and doesn't count toward the weekly AI quota.
-    if (proRequestId) {
-      await sendToPro();
+    // Re-check right before asking the AI: a pro may have joined since the last
+    // 15s poll (the server refuses the AI call in that case anyway).
+    let liveProId = proRequestId;
+    if (!liveProId && currentConversationId) {
+      const r = await fetchActiveProForConversation(currentConversationId);
+      if (r) {
+        setProRequestId(r.id); setAssignedProName(r.assignedProName); setProMessages(r.proMessages);
+        setProProfile(r.proProfile); setUserRevealed(r.userRevealed); setEmailMuted(r.emailMuted);
+        liveProId = r.id;
+      }
+    }
+    if (liveProId) {
+      await sendToPro(liveProId);
       return;
     }
 
@@ -559,14 +570,14 @@ const AIChat = () => {
    * (not the AI conversation) stores it, so it's appended to proMessages and the
    * poll keeps it in sync. On failure the text goes back into the input.
    */
-  const sendToPro = async () => {
+  const sendToPro = async (requestId = proRequestId) => {
     const text = question.trim();
     setQuestion('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setError(null);
     setIsLoading(true);
     try {
-      const res = await ProRequestsApiService.addMessage(proRequestId, text);
+      const res = await ProRequestsApiService.addMessage(requestId, text);
       if (res?.success && res.message) {
         setProMessages(prev => [...prev, toThreadMessage(res.message, assignedProName)]);
       } else {

@@ -25,6 +25,30 @@ const { getAgentName } = require('../chatbot/agentProfiles');
  * - PUT /api/chatbot/conversations/:id/title - Update conversation title
  */
 
+// While a human Pro is in a conversation the user talks to the Pro, not the AI:
+// the client sends those messages to the pro_requests thread. This server-side
+// guard catches stale clients / other entry points so the AI never jumps into a
+// human↔human conversation (and no credit or weekly question is spent).
+async function proActiveFor(req, conversationId) {
+  try {
+    const db = req.app.locals.db;
+    if (!db) return false;
+    const hit = await db.collection('pro_requests').findOne(
+      { 'context.conversationId': String(conversationId), status: 'active' },
+      { projection: { _id: 1 } }
+    );
+    return !!hit;
+  } catch (_) {
+    return false; // never block the AI on a lookup error
+  }
+}
+
+const PRO_ACTIVE_RESPONSE = {
+  success: false,
+  code: 'PRO_ACTIVE',
+  message: 'Во овој разговор е вклучен професионалец — пораките одат до него, а AI не одговара. Освежете ја страницата ако не ги гледате неговите одговори.',
+};
+
 /**
  * @route   POST /api/chatbot/ask
  * @desc    Ask a question to the AI chatbot
@@ -360,6 +384,8 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     // Verify conversation belongs to user
     await conversationService.getConversation(conversationId, userId);
 
+    if (await proActiveFor(req, conversationId)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+
     // Ask the chatbot with conversation context
     const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, !!humanProActive);
 
@@ -456,6 +482,8 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
 
     // Verify conversation belongs to user
     await conversationService.getConversation(conversationId, userId);
+
+    if (await proActiveFor(req, conversationId)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
 
     // Deduct credits BEFORE streaming starts
     const creditService = req.app.locals.creditService;

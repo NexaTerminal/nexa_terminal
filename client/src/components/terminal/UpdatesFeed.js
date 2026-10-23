@@ -6,6 +6,7 @@ import { visibleTier } from '../../lib/tier';
 import { AI_AGENTS } from '../../config/aiAgents';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import UpdateModal from './UpdateModal';
+import { resolveBlogImage } from '../../utils/blogImage';
 import styles from '../../styles/terminal/UpdatesFeed.module.css';
 
 const PREVIEW_WORDS = 50;
@@ -23,9 +24,20 @@ const previewBody = (text = '', n = PREVIEW_WORDS) => {
  * Top: quick-action shortcuts + (tier B/C) summary tiles — navigation value.
  * Below: "Updates / Известувања" — admin-authored, dated notices that are
  * member-only (regulatory changes, deadlines, do-this-now nudges with a CTA
- * that links into the product). This is NOT the public blog; blogs live only
- * on the public site now.
+ * that links into the product). Latest public blog articles are interleaved
+ * with the notices by date; each opens /blog/<slug> in a new tab, where the logged-in
+ * member sees the full (members-only) article.
  */
+
+const BLOG_LIMIT = 10;
+
+const stripHtml = (html = '') => String(html).replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+
+// One stream of notices and articles, newest first.
+const mergeByDate = (updates, blogs) => [
+  ...updates.map(item => ({ kind: 'update', item, ts: new Date(item.publishedAt || item.createdAt || 0).getTime() })),
+  ...blogs.map(item => ({ kind: 'blog', item, ts: new Date(item.createdAt || 0).getTime() })),
+].sort((a, b) => b.ts - a.ts);
 
 // Suggested actions — benefit-driven tiles that nudge feature discovery.
 // `icon` keys into ICONS; `accent` tints the icon wrap and hover border.
@@ -83,6 +95,16 @@ const UpdatesFeed = () => {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+
+  // Public list endpoint (excerpts only); newest first.
+  useEffect(() => {
+    let cancelled = false;
+    ApiService.get('/blog')
+      .then(data => { if (!cancelled) setBlogs(Array.isArray(data) ? data.slice(0, BLOG_LIMIT) : []); })
+      .catch(() => { /* feed still works without articles */ });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,20 +143,27 @@ const UpdatesFeed = () => {
         <ActionGridCard />
 
         <div className={styles.sectionBreak} role="separator" aria-hidden="true">
-          <span className={styles.sectionBreakLabel}>Известувања</span>
+          <span className={styles.sectionBreakLabel}>Известувања и статии</span>
         </div>
 
         {loading && updates.length === 0 && (
           <div className={styles.feedLoading}>Се вчитува…</div>
         )}
 
-        {!loading && updates.length === 0 && (
+        {!loading && updates.length === 0 && blogs.length === 0 && (
           <div className={styles.topicEmpty}>Сè уште нема известувања.</div>
         )}
 
-        {updates.map(u => (
-          <UpdateCard key={u._id} update={u} onOpen={() => setOpenId(u._id)} onPatch={patchItem} />
+        {mergeByDate(updates, blogs).map(({ kind, item }) => (kind === 'update'
+          ? <UpdateCard key={item._id} update={item} onOpen={() => setOpenId(item._id)} onPatch={patchItem} />
+          : <BlogCard key={`blog-${item._id}`} post={item} />
         ))}
+
+        {blogs.length > 0 && (
+          <a href="/blog" target="_blank" rel="noopener noreferrer" className={styles.feedAllBlogs}>
+            Сите статии на блогот <ArrowIcon />
+          </a>
+        )}
       </div>
 
       {openItem && (
@@ -297,6 +326,33 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
     </article>
   );
 };
+
+// Blog article in the feed — opens the full article page in a new tab.
+const BlogCard = ({ post }) => (
+  <article className={styles.blogPost}>
+    <a
+      href={`/blog/${post.slug || post._id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${styles.blogPostBody} ${styles.feedBlogBody}`}
+    >
+      {post.featuredImage && (
+        <div className={styles.blogPostImage}>
+          <img src={resolveBlogImage(post.featuredImage)} alt="" loading="lazy" />
+        </div>
+      )}
+      <div className={styles.blogPostContent}>
+        <div className={styles.blogPostMeta}>
+          <span className={styles.feedBlogBadge}>Статија</span>
+          <span className={styles.blogPostTime}>{fmtDate(post.createdAt)}</span>
+        </div>
+        <h3 className={styles.blogPostTitle}>{post.title}</h3>
+        {post.excerpt && <p className={styles.blogPostExcerpt}>{stripHtml(post.excerpt)}</p>}
+        <span className={styles.feedBlogRead}>Прочитај ја статијата ↗</span>
+      </div>
+    </a>
+  </article>
+);
 
 // ─── Tier B / C dashboard tiles ────────────────────────────────────────
 const BcTileRow = ({ tier }) => {

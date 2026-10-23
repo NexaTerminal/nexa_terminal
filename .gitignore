@@ -110,3 +110,5 @@ ds-bundle/
 .design-sync/learnings/
 .design-sync/node_modules
 client/.ds-dist/
+server/accounting sources/**/*.pdf
+server/accounting sources/**/*.docx

@@ -59,7 +59,7 @@ const quoteBody = (text) => `<blockquote style="margin:8px 0;padding:8px 12px;bo
 const snippet = (text) => { const t = String(text || '').replace(/\s+/g, ' ').trim(); return t.length > 120 ? `${t.slice(0, 117)}…` : t; };
 
 const TYPE_LABEL = { consult: 'Прашање до професионалец', contract_review: 'Преглед на договор' };
-const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување' };
+const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување', accounting: 'Сметководство' };
 const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 // Liability line shown to both sides — the Pro owns their advice; AI is informational.
 const LIABILITY_NOTE =

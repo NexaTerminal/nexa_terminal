@@ -21,7 +21,7 @@ const STATUS_CLASS = {
   rejected: 'badgeRejected',
 };
 const TYPE_LABEL = { consult: 'Прашање', contract_review: 'Преглед на договор' };
-const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување' };
+const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување', accounting: 'Сметководство' };
 
 const TITLES = {
   mine: { h1: 'Разговори со професионалци', sub: 'Поканувате професионалец од вашите AI разговори — првиот што ќе се приклучи ви одговара тука.' },

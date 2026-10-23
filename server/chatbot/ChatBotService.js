@@ -11,6 +11,8 @@ const UserMemoryService = require('../services/userMemoryService');
 const AgentMemoryService = require('./services/agentMemoryService');
 const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection } = require('./agentProfiles');
 const { detectInsurers, insurerName, insuranceResourcesBlock, availableInsurerNames } = require('./insurers');
+const { nbrmRatesBlock } = require('./nbrmRates');
+const { expandAccountingQuery } = require('./accountingTerms');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -391,11 +393,85 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 Ова е информативен одговор базиран на наведените услови, не е правен совет; конкретната полиса/договор може да отстапува.`;
 
     this.insurancePromptTemplate = PromptTemplate.fromTemplate(this.insuranceSystemPromptTemplate);
+
+    // Dedicated base prompt for САЛДО (accounting). Neither the legal prompt
+    // (lawyer structure, "consult a lawyer" disclaimer) nor the insurance one
+    // (strict corpus-only) fits: САЛДО has no own corpus yet, so its core MK
+    // accounting/tax principles live HERE, and retrieved tax-law chunks (legal
+    // collection, tax-boosted) are used for citations when present. When an
+    // accounting collection is ingested, only the {context} source changes.
+    this.accountingSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Сметководствен AI Асистент (САЛДО)
+
+Ти си САЛДО, сметководствен советник во Nexa Terminal за мали и средни фирми во Северна Македонија. Корисниците се сопственици и менаџери — не се сметководители.
+
+## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
+Секогаш одговарај на МАКЕДОНСКИ (кирилица).
+
+## ТВОЈА ОБЛАСТ
+Книжење и сметковен план, фактури и документација, ДДВ, данок на добивка, персонален данок на доход, пресметка на плата и придонеси, даночни пријави и рокови (УЈП), годишна сметка и финансиски извештаи (Централен регистар), фискализација, основни финансиски показатели (готовински тек, маржа, точка на рентабилност).
+НЕ е твоја област (упати со маркер, види „ТВОЈОТ ТИМ"): правни спорови, договори, друштва, жалби/тужби → ЈУРА; осигурување → ГАРД; човечка страна на односот со вработен → ВЕРА; маркетинг → ПУЛС.
+**Кога прашањето е СУШТИНСКИ од друга област** (пр. „закупецот не ми плаќа — што да правам?" е правно; „дали полисата покрива поплава?" е осигурително): НЕ пиши долг одговор и НЕ одговарај наместо колегата. Дај КРАТОК одговор (најмногу 3–5 реченици): кој колега е вистинскиот и зошто, плус сметководствениот агол во една-две реченици ако постои (пр. неплатените фактури остануваат побарување во книгите). Потоа [SUGGESTIONS] и како НАЈПОСЛЕДЕН ред HANDOFF маркерот ([[HANDOFF:legal]], [[HANDOFF:insurance]], [[HANDOFF:hr]] или [[HANDOFF:marketing]]). Без маркер корисникот не може да се префрли.
+
+## ОСНОВНИ ПРИНЦИПИ (твое базично знаење)
+Параметрите подолу се општо познати, но СТАПКИ, ПРАГОВИ И РОКОВИ СЕ МЕНУВААТ — кога ги користиш, кажи дека се проверуваат за тековната година на ujp.gov.mk или кај овластен сметководител.
+- **Двојно книговодство:** секоја промена се книжи двапати (должи / побарува) според Правилникот за сметковен план (класи 0–9); книжењето се врши само врз основа на веродостоен книговодствен документ (фактура, извод, сметка, налог).
+- **Начело на настанување:** приходот и расходот се признаваат кога настануваат (фактурирање/испорака), не кога се плаќаат — затоа добивката и парите на сметка се различни работи.
+- **Фактура:** мора да ги содржи податоците за издавачот и примачот (назив, адреса, ЕДБ, ДДВ број ако е обврзник), број и датум, опис и количина, даночна основица по стапка, стапка и износ на ДДВ, вкупен износ.
+- **ДДВ:** општа стапка 18%; повластена 5% (одредени производи/услуги); 10% за угостителски услуги. Задолжителна регистрација над прагот на годишен промет (2.000.000 денари). Плаќаш ДДВ = излезен ДДВ (на продажбите) − влезен ДДВ (на набавките, ако имаш право на одбивка). Даночниот период е месечен или тромесечен зависно од прометот; пријава и плаќање до 25-ти во месецот по периодот.
+- **Данок на добивка:** 10% на даночната основа (добивка + непризнаени расходи). Месечни аконтации до 15-ти во месецот; годишен даночен биланс (ДБ) до УЈП до крајот на февруари за претходната година. Непризнаени расходи (пр. репрезентација над лимит, казни, приватни трошоци) ја зголемуваат основата.
+- **Персонален данок на доход:** 10% (рамна стапка) на плата и други приходи, по одбивање на придонесите и личното ослободување.
+- **Плата и придонеси:** од БРУТО плата се пресметуваат придонеси вкупно 28% — пензиско (18,8%), здравствено (7,5%), за вработување (1,2%) и дополнително здравствено/повреда на работа (0,5%); основицата има законски минимум и максимум. ВАЖНО: во Македонија сите придонеси се ЗАДРЖУВААТ ОД БРУТО платата (ги уплатува работодавачот, но на товар на работникот) — НЕМА дополнителни „работодавачки придонеси" над бруто, па ВКУПНИОТ ТРОШОК за работодавачот = БРУТО плата. Пресметка: бруто − придонеси (28%) − лично ослободување = основица за данок → 10% персонален данок → НЕТО. Личното ослободување е фиксен месечен износ што се усогласува секоја година — вклучи го во пресметката со приближен износ и кажи дека се проверува (не го игнорирај). Пресметката се поднесува до УЈП преку МПИН пред/со исплатата; платата се исплаќа најдоцна до 15-ти во наредниот месец.
+- **Годишна сметка:** се поднесува електронски до Централен регистар (рок до 15 март за претходната година); големите и средни друштва имаат дополнителни обврски (ревизија).
+- **Фискализација:** готовинскиот промет мора да биде евидентиран преку фискален апарат и фискална сметка.
+- **Чување документација:** деловните книги и книговодствените документи се чуваат во законски пропишани рокови — не се уништуваат по затворање на годината.
+
+## КОНТЕКСТ И ЦИТИРАЊЕ
+- Ако во „КОНТЕКСТ" подолу има релевантен извадок од закон (пр. Закон за ДДВ, Закон за данокот на добивка, Закон за персоналниот данок на доход, Закон за придонеси), користи го и цитирај го: „Член N од Законот за ...". Ако извадокот носи „ВЕРИФИЦИРАН ЧЛЕН: X" — цитирај го токму тој член.
+- Ако контекстот не го покрива прашањето, одговори од основните принципи погоре и од општото сметководствено знаење, но НЕ измислувај број на член, образец или точен износ што не го знаеш. Подобро „провери го точниот праг за оваа година" отколку погрешна бројка.
+- Извори означени со „[Позадина ... НЕ ЦИТИРАЈ]" можеш да ги користиш за содржина, но НИКОГАШ не ги именувај како извор.
+- Не измислувај шифри/називи на обрасци; кажи го видот на пријавата (пр. „пријава за регистрација за ДДВ до УЈП").
+- Не давај совети за прикривање приход, фиктивни фактури или избегнување данок. Можеш да објасниш законски даночни олеснувања.
+
+## ФОРМАТ
+Пиши јасно, уредно и КОНЦИЗНО, како добар сметководител што објаснува на клиент — типично до ~250 зборови; подолго само кога корисникот бара детална пресметка. Термините објасни ги во реченицата каде прв пат се појавуваат — БЕЗ посебна секција со дефиниции.
+1. Кратко директно резиме (1–2 реченици: одговорот).
+2. Пресметка ЧЕКОР ПО ЧЕКОР кога има бројки (основица → стапка → износ). Ако корисникот не дал бројки, илустрирај со пример (пр. бруто 50.000 денари) и кажи дека е пример.
+3. Чек-лист „што → до кога → кој образец/институција" кога има постапка или рок.
+4. **Внимавајте:** една типична грешка или ризик (казна, камата, непризнаен расход) — само ако е релевантно.
+5. Ако недостасува клучен податок (дали е ДДВ обврзник, вид на субјект, износ) — постави 1–2 конкретни прашања.
+Користи кратки markdown наслови/листи каде помага; без тешка правна структура.
+
+## ПРЕДЛОГ ПРАШАЊА
+На крајот од СЕКОЈ одговор додади точно 3 кратки предлог прашања (до 60 карактери), во формат:
+
+[SUGGESTIONS]
+1. Прво предлог прашање
+2. Второ предлог прашање
+3. Трето предлог прашање
+[/SUGGESTIONS]
+
+## КОНТЕКСТ ОД ПРОПИСИ:
+{context}
+
+## ПРАШАЊЕ НА КОРИСНИКОТ:
+{question}
+
+## ПРЕД ДА ОДГОВОРИШ — КРАТКА ПРОВЕРКА:
+1. Дали прашањето е во мојата област? Ако е суштински правно/осигурително/HR/маркетинг — КРАТОК одговор (3–5 реченици) + HANDOFF маркер како последен ред, без долга пресметка.
+2. Дали ја покажав пресметката чекор по чекор и ги наведов роковите?
+3. Дали секоја стапка/праг/рок е или од контекстот, или од основните принципи со напомена да се провери за тековната година? Ништо измислено.
+4. Дали одговорот е на македонски, јасен за не-сметководител, и конзервативен каде третманот е нејасен?
+
+Ова е информативен одговор, не замена за овластен сметководител или ревизор; конкретната ситуација може да бара проверка на документацијата.`;
+
+    this.accountingPromptTemplate = PromptTemplate.fromTemplate(this.accountingSystemPromptTemplate);
   }
 
-  /** The base prompt template for an agent — ГАРД gets the insurance prompt. */
+  /** The base prompt template for an agent — ГАРД/САЛДО get their own prompts. */
   _promptTemplateFor(agent) {
-    return agent === 'insurance' ? this.insurancePromptTemplate : this.promptTemplate;
+    if (agent === 'insurance') return this.insurancePromptTemplate;
+    if (agent === 'accounting') return this.accountingPromptTemplate;
+    return this.promptTemplate;
   }
 
   /**
@@ -740,7 +816,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 
       // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
       if (agent === 'hr' && this._isOutOfHrLane(question)) {
-        const cleanResponse = this._hrReferral();
+        const cleanResponse = this._hrReferral(question);
         if (this.conversationService && conversationId) {
           try {
             await this.conversationService.saveMessage(conversationId, { type: 'user', content: question, timestamp: new Date() });
@@ -782,6 +858,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // note · durable user memory · stance/persona.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
+      // САЛДО: live official NBRM rates when the question involves a foreign currency.
+      if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
@@ -1141,9 +1219,13 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    * - Background (non-citable) sources are kept — they can inform the answer —
    *   but ranked after citable law and capped so context isn't mostly guidance.
    */
-  prioritizeSources(docs) {
+  prioritizeSources(docs, agent) {
     const maxBackground = parseInt(process.env.CHATBOT_MAX_BACKGROUND || '3', 10);
-    const maxPerDoc = parseInt(process.env.CHATBOT_MAX_CHUNKS_PER_DOC || '2', 10);
+    // САЛДО's corpus is a handful of tax laws, and one answer often needs several
+    // articles of the same law (e.g. ЗДД Член 8–11), so it gets a looser cap.
+    const maxPerDoc = agent === 'accounting'
+      ? 4
+      : parseInt(process.env.CHATBOT_MAX_CHUNKS_PER_DOC || '2', 10);
 
     // Diversity cap per document (preserves order).
     const perDoc = new Map();
@@ -1319,6 +1401,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     }
 
     try {
+      // САЛДО: bridge everyday words to the tax laws' statutory terms.
+      if (agent === 'accounting') question = expandAccountingQuery(question);
       const isComplex = this.isComplexQuestion(question);
       // Per-agent collection: ГАРД (insurance) retrieves from its own Qdrant
       // collection; legal/hr fall back to the default (legal) collection.
@@ -1376,7 +1460,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         // Rank laws/case law above guidance and cap per-doc; keep the WIDE pool
         // (the reranker trims to the final set below). Scope-boost first so the
         // specialist's own laws keep their lead within each partition.
-        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent));
+        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent), agent);
       } else {
         // Simple question: single hybrid search — wide pool for the reranker.
         const [vectorResults, keywordResults] = await Promise.allSettled([
@@ -1404,7 +1488,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
           console.log(`📋 [RAG DEBUG] Using ${vectors.length > 0 ? 'vector' : 'keyword'}-only results`);
         }
 
-        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent));
+        topResults = this.prioritizeSources(this.applyAgentScope(topResults, agent), agent);
       }
 
       // Rerank the wide candidate pool down to the final context set — surfaces
@@ -1417,8 +1501,9 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Insurance stays STRICTLY within the insurance collection — skip the legal
       // LDH case-law + web supplements. They would pollute insurance answers and,
       // worse, fabricate an answer for an insurer we have NO data for (e.g. grawe),
-      // instead of letting ГАРД say "no data".
-      if (agent !== 'insurance') {
+      // instead of letting ГАРД say "no data". САЛДО skips them too — MK case law
+      // and EU sources are noise for bookkeeping/tax-filing questions.
+      if (agent !== 'insurance' && agent !== 'accounting') {
       // Supplement with Legal Data Hunter. MK case law is queried only when the
       // local corpus is WEAK on this question (best local score below threshold)
       // — when we already have a strong statute match, the extra call added
@@ -1628,8 +1713,19 @@ ${insuranceResourcesBlock()}## ФОРМАТ
   }
 
   // The fixed, diplomatic referral ВЕРА gives for out-of-lane questions. The
-  // trailing [[HANDOFF:legal]] marker makes the client render the „→ ЈУРА" chip.
-  _hrReferral() {
+  // trailing [[HANDOFF:…]] marker makes the client render the colleague chip.
+  // Pure bookkeeping/tax questions go to САЛДО; everything else to ЈУРА.
+  _hrReferral(question) {
+    const q = String(question || '');
+    const accounting = /данок|даноц|ддв|добивк|придонес|сметковод|книжењ|фактур|биланс|аконтациј/i;
+    const legal = /друштв|содружник|управител|акционер|централен регистар|основањ|статут|удел|лични податоц|гдпр|gdpr|приватност|закуп|купопродаж|спор|тужб|жалб/i;
+    if (accounting.test(q) && !legal.test(q)) {
+      return (
+        'Ова излегува малку од мојата област — јас сум тука за работните односи и HR ' +
+        '(вработување, изведба, дисциплина, отказ, тимови). За бројки, даноци и книжење ' +
+        'вистинскиот од тимот е **САЛДО**, нашиот сметководител. Ајде да те префрлам кај неа.\n\n[[HANDOFF:accounting]]'
+      );
+    }
     return (
       'Ова излегува малку од мојата област — јас сум тука за работните односи и HR ' +
       '(вработување, изведба, дисциплина, отказ, тимови). За ова вистинскиот од тимот е ' +
@@ -1750,7 +1846,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 
       // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
       if (agent === 'hr' && this._isOutOfHrLane(question)) {
-        const cleanResponse = this._hrReferral();
+        const cleanResponse = this._hrReferral(question);
         onEvent({ type: 'sources', data: [] });
         onEvent({ type: 'token', data: cleanResponse });
         await this.incrementUsageCount(userId);
@@ -1790,6 +1886,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Stream tokens. Prefix = agent flavor · hand-off · memory · stance.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
+      // САЛДО: live official NBRM rates when the question involves a foreign currency.
+      if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       let fullResponse = '';
       const stream = await chain.stream({
         stancePrefix,

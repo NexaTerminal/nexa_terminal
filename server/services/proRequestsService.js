@@ -40,6 +40,7 @@ const AGENT_TO_CATEGORY = Object.freeze({
   marketing: 'marketing',
   people: 'hr',
   insurance: 'insurance',
+  accounting: 'accounting',
 });
 const DEFAULT_CATEGORY = 'legal';
 

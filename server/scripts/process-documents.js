@@ -43,8 +43,17 @@ const { QdrantClient } = require('@qdrant/js-client-rest');
  *   delete any chunk not present on disk. You will be warned and must confirm.
  */
 
-// Configuration
-const LEGAL_SOURCES_FOLDER = path.join(__dirname, '../legal sources');
+/** Value of a `--flag value` CLI argument, or null. */
+function argValue(flag) {
+  const i = process.argv.indexOf(flag);
+  return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : null;
+}
+
+// Configuration. --dir / --collection let the same pipeline feed other
+// corpora, e.g. САЛДО's accounting collection:
+//   node scripts/process-documents.js --dir "accounting sources" --collection nexa_accounting_docs
+const LEGAL_SOURCES_FOLDER = path.join(__dirname, '..', argValue('--dir') || 'legal sources');
+const TARGET_COLLECTION = argValue('--collection') || process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
 const VECTOR_STORE_PATH = path.join(__dirname, '../chatbot/vector_store');
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;
@@ -555,7 +564,7 @@ async function upsertPoints(collectionName, points) {
  */
 async function mergeVectorStore(documents, excludedFileNames) {
   console.log('🔮 Merge-safe ingestion — embedding new/updated chunks...\n');
-  const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+  const collectionName = TARGET_COLLECTION;
   console.log(`  Target collection: ${collectionName}\n`);
 
   const vectors = await embedChunks(documents);
@@ -588,7 +597,7 @@ async function mergeVectorStore(documents, excludedFileNames) {
  */
 async function hardRebuildVectorStore(documents) {
   console.log('💥 HARD REBUILD — dropping and recreating the collection...\n');
-  const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+  const collectionName = TARGET_COLLECTION;
 
   const vectors = await embedChunks(documents);
 
@@ -647,7 +656,7 @@ async function main() {
     // ONLY from the folder, deleting any chunk (e.g. recovered case law) that is
     // not on disk. Require an explicit confirmation before doing that.
     if (hardRebuild) {
-      const collectionName = process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';
+      const collectionName = TARGET_COLLECTION;
       let existing = null;
       try {
         const c = await qdrantClient.getCollection(collectionName);

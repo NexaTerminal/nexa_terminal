@@ -11,7 +11,9 @@
  * getAgent()'s fallback, so old links/data still work. ПУЛС (marketing) runs on
  * its own engine/page. ГАРД (insurance) is LIVE — it runs on the same RAG engine
  * as the lawyers but the server routes it to its own Qdrant collection
- * (nexa_insurance_docs); see server/chatbot/agentProfiles.js.
+ * (nexa_insurance_docs); see server/chatbot/agentProfiles.js. САЛДО (accounting)
+ * runs on the same engine with its own base prompt; it uses the legal corpus
+ * (tax laws) until a dedicated accounting collection is configured.
  *
  * `engine` tells the UI how to run the agent:
  *  - 'legal'     → served by AIChat on the RAG engine (ChatBotService); `key` is
@@ -91,6 +93,25 @@ export const AI_AGENTS = [
       'Што покрива осигурувањето на имот од пожар кај Халк?',
       'Кои се исклучоците кај патничкото осигурување на Еуролинк?',
       'Што да внимавам пред да пријавам штета — рокови и обврски?',
+    ],
+  },
+  {
+    key: 'accounting',
+    name: 'САЛДО',
+    role: 'Сметководствен советник',
+    tagline: 'Книжење, ДДВ, даноци, плати и рокови',
+    tags: ['ДДВ', 'Данок на добивка', 'Плати', 'Фактури', 'Рокови'],
+    bio: 'САЛДО е твојот сметководител за секојдневните бројки — ДДВ, данок на добивка, пресметка на плата и придонеси, фактури, книжење и даночни рокови. Смирено и прецизно ти ја покажува пресметката чекор по чекор и ти кажува што, до кога и каде треба да се пријави, за да немаш казни и камати.',
+    greeting: 'Кажи ми што треба да пресметаме или пријавиме — ДДВ, плата, данок на добивка, фактура или книжење. Ако имаш бројки, напиши ги; ако не, ќе ти покажам на пример. Ќе ти кажам и до кога и каде се пријавува.',
+    icon: '🧮',
+    photo: '/ai-team/nova.png',
+    accent: '#7C3AED',
+    engine: 'legal',
+    hasContractReview: false,
+    starters: [
+      'Колку чини вработен со нето плата од 40.000 денари?',
+      'Кога морам да се регистрирам за ДДВ?',
+      'Кои трошоци не се признаваат за данок на добивка?',
     ],
   },
 ];

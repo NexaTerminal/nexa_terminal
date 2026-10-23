@@ -26,7 +26,7 @@ import styles from '../../styles/terminal/AIChat.module.css';
 // We parse it at render time so it works for streamed, fallback and loaded messages
 // alike: the key drives the „Префрли се на <Име> →" chip; the marker is stripped
 // from the displayed text (incl. any trailing partial fragment mid-stream).
-const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|insurance|marketing)\]\]/i;
+const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|insurance|accounting|marketing)\]\]/i;
 // AI-suggested human handoff: [[ASK_PRO: short reason why a human helps]] on the
 // final line. The captured reason is shown in the inline "invite a pro" card.
 const ASK_PRO_RE = /\[\[ASK_PRO:\s*([^\]]*?)\]\]/i;

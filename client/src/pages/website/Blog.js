@@ -243,6 +243,9 @@ export default function Blog() {
                           </span>
                         )}
                         <span className={styles.featuredDate}>{formatDate(featuredPost.createdAt)}</span>
+                        {featuredPost.membersOnly !== false && (
+                          <span className={styles.membersBadge}>🔒 За членови</span>
+                        )}
                       </div>
                       <h2 className={styles.featuredTitle}>{featuredPost.title}</h2>
                       <p className={styles.featuredExcerpt}>
@@ -281,6 +284,9 @@ export default function Blog() {
                                 </span>
                               )}
                               <span className={styles.cardDate}>{formatDate(post.createdAt)}</span>
+                              {post.membersOnly !== false && (
+                                <span className={styles.membersBadge}>🔒 За членови</span>
+                              )}
                             </div>
                             <h2 className={styles.cardTitle}>{post.title}</h2>
                             <p className={styles.cardExcerpt}>

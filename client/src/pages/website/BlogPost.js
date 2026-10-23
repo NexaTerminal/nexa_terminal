@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import PublicNavbarV2 from '../../components/website/PublicNavbarV2';
 import LoginModal from '../../components/common/LoginModal';
+import { useAuth } from '../../contexts/AuthContext';
 import PublicFooterV2 from '../../components/website/PublicFooterV2';
 import '../../styles/website/brand.css';
 import SEOHelmet from '../../components/seo/SEOHelmet';
@@ -37,6 +38,16 @@ function isLegalCategory(category) {
 }
 
 // Detect Мартин's posts so we can swap in the full canonical profile.
+// Newsletter unlock tokens (?nl=) are remembered per post on this device, so a
+// subscriber who comes back later still sees the full article.
+const NL_KEY = (key) => `blogNl:${key}`;
+function readStoredNl(key) {
+  try { return localStorage.getItem(NL_KEY(key)); } catch { return null; }
+}
+function storeNl(keys, token) {
+  try { keys.filter(Boolean).forEach(k => token ? localStorage.setItem(NL_KEY(k), token) : localStorage.removeItem(NL_KEY(k))); } catch { /* storage blocked */ }
+}
+
 function isMartinAuthor(author) {
   const n = (author?.name || '').trim().toLowerCase();
   if (!n) return false;
@@ -54,9 +65,15 @@ export default function BlogPost() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showScrollModal, setShowScrollModal] = useState(false);
   const [hasTriggeredModal, setHasTriggeredModal] = useState(false);
+  const [nlAttempted, setNlAttempted] = useState(false);
+  const { token } = useAuth();
 
+  // Refetch on login too: a members-only teaser becomes the full article.
   useEffect(() => {
     fetchPost();
+  }, [id, token]);
+
+  useEffect(() => {
     fetchSuggestedPosts();
   }, [id]);
 
@@ -71,7 +88,13 @@ export default function BlogPost() {
 
   async function fetchPost() {
     try {
-      const response = await api.get(`/blog/${id}`);
+      const nl = new URLSearchParams(location.search).get('nl') || readStoredNl(id);
+      const response = await api.get(`/blog/${id}${nl ? `?nl=${encodeURIComponent(nl)}` : ''}`);
+      if (nl) {
+        setNlAttempted(true);
+        if (response.unlockedVia === 'newsletter') storeNl([response.slug, response._id], nl);
+        else if (response.locked) storeNl([response.slug, response._id, id], null); // expired
+      }
       setPost(response);
     } catch (error) {
       console.error('Error fetching post:', error);
@@ -94,8 +117,11 @@ export default function BlogPost() {
     }
   }
 
-  // Scroll-triggered and exit-intent signup modal
+  // Scroll-triggered and exit-intent signup modal — only for anonymous readers of
+  // public posts (locked posts have the gate; newsletter readers get a soft CTA).
+  const allowScrollModal = !!post && !post.locked && !post.unlockedVia && !token;
   useEffect(() => {
+    if (!allowScrollModal) return;
     // Check if already dismissed today
     const dismissed = localStorage.getItem('blogModalDismissed');
     if (dismissed) {
@@ -138,7 +164,7 @@ export default function BlogPost() {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [hasTriggeredModal]);
+  }, [hasTriggeredModal, allowScrollModal]);
 
   const handleDismissModal = () => {
     setShowScrollModal(false);
@@ -152,11 +178,12 @@ export default function BlogPost() {
 
   // Reading time estimate
   const readingTime = useMemo(() => {
+    if (post?.readingTime) return post.readingTime; // server value = full article, even when locked
     if (!post?.content) return 0;
     const text = post.content.replace(/<[^>]*>/g, '').trim();
     const words = text.split(/\s+/).filter(Boolean).length;
     return Math.max(1, Math.round(words / 200));
-  }, [post?.content]);
+  }, [post?.content, post?.readingTime]);
 
   // Helper to decode HTML entities
   const decodeHtmlEntities = (text) => {
@@ -185,7 +212,7 @@ export default function BlogPost() {
     return { headings: extracted, contentWithIds: modified };
   }, [post?.content]);
 
-  const showToc = headings.length >= 3;
+  const showToc = headings.length >= 3 && !post?.locked;
   const [tocCollapsed, setTocCollapsed] = useState(false);
   const [authorExpanded, setAuthorExpanded] = useState(false);
 
@@ -198,7 +225,7 @@ export default function BlogPost() {
     const paragraphs = content.split(/<\/p>/i);
     const splitPoint = Math.floor(paragraphs.length * 0.7);
 
-    if (paragraphs.length <= 2) {
+    if (paragraphs.length <= 2 || post.locked) {
       return { contentBefore: content, contentAfter: '' };
     }
 
@@ -206,7 +233,7 @@ export default function BlogPost() {
     const after = paragraphs.slice(splitPoint).join('</p>');
 
     return { contentBefore: before, contentAfter: after };
-  }, [post?.content, contentWithIds]);
+  }, [post?.content, post?.locked, contentWithIds]);
 
   // Get promoted tool data
   const promotedTool = useMemo(() => {
@@ -411,8 +438,38 @@ export default function BlogPost() {
           dangerouslySetInnerHTML={{ __html: sanitizeHTML(contentBefore) }}
         />
 
+        {/* Members-only gate: teaser fades out into a free-profile prompt */}
+        {post.locked && (
+          <section className={styles.membersGate}>
+            <div className={styles.membersGateFade} aria-hidden />
+            <div className={styles.membersGateBox}>
+              <p className={styles.membersGateLabel}>🔒 Статија за членови</p>
+              <h3 className={styles.membersGateTitle}>
+                {nlAttempted
+                  ? 'Линкот од билтенот истече — продолжете со бесплатен профил'
+                  : 'Прочитајте ја целата статија со бесплатен профил'}
+              </h3>
+              <p className={styles.membersGateText}>
+                Регистрацијата е бесплатна и трае еден клик преку Google. Со профил добивате:
+              </p>
+              <ul className={styles.membersGateList}>
+                <li>Пристап до сите статии на блогот</li>
+                <li>AI правен асистент за вашите прашања</li>
+                <li>Бесплатни правни документи за вашата фирма</li>
+              </ul>
+              <button onClick={() => setShowLoginModal(true)} className={styles.ctaButton}>
+                Продолжи со читање
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <p className={styles.membersGateNote}>Веќе имате профил? Најавете се со истото копче.</p>
+            </div>
+          </section>
+        )}
+
         {/* Inline CTA Banner */}
-        {promotedTool && promotedTool.id !== 'none' && (
+        {!post.locked && promotedTool && promotedTool.id !== 'none' && (
           <div className={styles.ctaBanner}>
             <div className={`${styles.ctaInner} ${promotedTool.videoUrl ? styles.ctaWithVideo : ''}`}>
               <div className={styles.ctaText}>
@@ -448,6 +505,19 @@ export default function BlogPost() {
             className={styles.content}
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(contentAfter) }}
           />
+        )}
+
+        {/* Newsletter readers: full article unlocked, soft nudge to create a profile */}
+        {post.unlockedVia === 'newsletter' && !token && (
+          <section className={styles.newsletterNudge}>
+            <p className={styles.newsletterNudgeText}>
+              Ја читате оваа статија преку нашиот билтен. Со <strong>бесплатен профил</strong> ги
+              читате сите статии и добивате AI правен асистент.
+            </p>
+            <button onClick={() => setShowLoginModal(true)} className={styles.newsletterNudgeButton}>
+              Отвори бесплатен профил
+            </button>
+          </section>
         )}
 
         {/* Author card — only on legal posts; Мартин's posts show his full canonical profile */}
@@ -687,7 +757,7 @@ export default function BlogPost() {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        redirectPath="/terminal"
+        redirectPath={post.locked || post.unlockedVia === 'newsletter' ? location.pathname : '/terminal'}
       />
 
       <PublicFooterV2 />

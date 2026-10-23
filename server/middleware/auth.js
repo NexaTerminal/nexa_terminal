@@ -25,6 +25,16 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
+// Optional JWT: sets req.user when a valid token is present, never rejects.
+// Used by public routes that show more to logged-in users (e.g. full blog posts).
+const optionalAuthJWT = (req, res, next) => {
+  if (!req.headers.authorization) return next();
+  passport.authenticate('jwt', { session: false }, (err, user) => {
+    if (!err && user) req.user = user;
+    next();
+  })(req, res, next);
+};
+
 // Check if user is admin — gates the entire /terminal/admin API surface.
 const isAdmin = async (req, res, next) => {
   try {
@@ -74,6 +84,7 @@ const validateRequest = (schema) => {
 
 module.exports = {
   authenticateJWT,
+  optionalAuthJWT,
   isAdmin,
   checkProfileComplete,
   validateRequest

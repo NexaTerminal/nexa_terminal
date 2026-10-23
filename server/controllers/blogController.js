@@ -255,6 +255,7 @@ class BlogController {
         featuredImage,
         status = 'published',
         promotedTool = 'legal_health_check', // Default promoted tool
+        membersOnly = true, // Full text only for logged-in users / newsletter links
         // SEO fields
         metaTitle,
         metaDescription,
@@ -295,6 +296,7 @@ class BlogController {
         featuredImage: featuredImage || null,
         status,
         promotedTool, // Tool to promote at end of article
+        membersOnly: membersOnly !== false,
         // SEO metadata
         metaTitle: metaTitle || title.trim(),
         metaDescription: metaDescription || plainTextContent.substring(0, 155),

@@ -62,6 +62,7 @@ const AddBlog = () => {
     status: 'published',
     tags: '',
     promotedTool: 'legal_health_check',
+    membersOnly: true,
     // SEO fields
     metaTitle: '',
     metaDescription: '',
@@ -111,8 +112,8 @@ const AddBlog = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = async (e) => {
@@ -147,6 +148,7 @@ const AddBlog = () => {
         status: formData.status,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
         promotedTool: formData.promotedTool,
+        membersOnly: formData.membersOnly,
         // SEO fields
         metaTitle: formData.metaTitle || formData.title,
         metaDescription: formData.metaDescription,
@@ -178,6 +180,7 @@ const AddBlog = () => {
         status: 'published',
         tags: '',
         promotedTool: 'legal_health_check',
+        membersOnly: true,
         metaTitle: '',
         metaDescription: '',
         focusKeyword: ''
@@ -386,6 +389,22 @@ const AddBlog = () => {
                   </select>
                   <small className={styles.helpText}>
                     Изберете која алатка ќе се прикаже на крајот од статијата
+                  </small>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="membersOnly">
+                    <input
+                      type="checkbox"
+                      id="membersOnly"
+                      name="membersOnly"
+                      checked={formData.membersOnly}
+                      onChange={handleInputChange}
+                    />{' '}
+                    🔒 Само за членови
+                  </label>
+                  <small className={styles.helpText}>
+                    Анонимните посетители гледаат само почеток од статијата. Целата е достапна за најавени корисници и преку линкот за билтен.
                   </small>
                 </div>
 

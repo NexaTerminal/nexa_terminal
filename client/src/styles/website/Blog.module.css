@@ -393,6 +393,17 @@
   color: #3b82f6;
 }
 
+.membersBadge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .cardDate {
   font-size: 0.75rem;
   color: #94a3b8;

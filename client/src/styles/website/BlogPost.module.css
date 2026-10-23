@@ -548,6 +548,126 @@
 }
 
 /* ========================================
+   MEMBERS-ONLY GATE + NEWSLETTER NUDGE
+   ======================================== */
+.membersGate {
+  position: relative;
+  margin: 0 0 3rem;
+}
+
+.membersGateFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -9rem;
+  height: 9rem;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 100%);
+  pointer-events: none;
+}
+
+.membersGateBox {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.membersGateLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #fbbf24;
+  margin: 0 0 0.875rem;
+}
+
+.membersGateTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 0.75rem;
+  color: #ffffff;
+}
+
+.membersGateText {
+  color: #94a3b8;
+  margin: 0 0 1rem;
+  line-height: 1.6;
+}
+
+.membersGateList {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 1.75rem;
+  max-width: 360px;
+  text-align: left;
+  color: #e2e8f0;
+}
+
+.membersGateList li {
+  padding: 0.3rem 0 0.3rem 1.6rem;
+  position: relative;
+}
+
+.membersGateList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.membersGateNote {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 1rem 0 0;
+}
+
+.newsletterNudge {
+  margin: 2.5rem 0;
+  padding: 1.5rem;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.newsletterNudgeText {
+  flex: 1 1 280px;
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.55;
+}
+
+.newsletterNudgeButton {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newsletterNudgeButton:hover {
+  background: #1e293b;
+}
+
+@media (max-width: 480px) {
+  .membersGateBox {
+    padding: 2rem 1.25rem;
+  }
+
+  .membersGateTitle {
+    font-size: 1.25rem;
+  }
+}
+
+/* ========================================
    BACK SECTION
    ======================================== */
 

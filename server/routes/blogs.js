@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateJWT, isAdmin } = require('../middleware/auth');
 const blogController = require('../controllers/blogController');
+const newsletterToken = require('../utils/blogNewsletterToken');
 
 // PUBLIC ROUTES - No authentication required for external access
 // Get all published blog posts (public)
@@ -16,6 +17,20 @@ router.get('/', authenticateJWT, blogController.getAllBlogs);
 
 // Get single blog post by ID (authenticated users can view)
 router.get('/:id', authenticateJWT, blogController.getBlogById);
+
+// Signed newsletter link that unlocks a members-only post for 30 days (admin only)
+router.get('/:id/newsletter-link', authenticateJWT, isAdmin, async (req, res) => {
+  try {
+    const blog = await req.app.locals.db.collection('blogs')
+      .findOne({ _id: req.params.id }, { projection: { _id: 1, slug: 1 } });
+    if (!blog) return res.status(404).json({ message: 'Blog post not found' });
+    const { token, expiresAt } = newsletterToken.sign(blog._id);
+    res.json({ path: `/blog/${blog.slug || blog._id}?nl=${token}`, expiresAt });
+  } catch (error) {
+    console.error('Error creating newsletter link:', error);
+    res.status(500).json({ message: 'Failed to create newsletter link' });
+  }
+});
 
 // Create new blog post (admin only)
 router.post('/', authenticateJWT, isAdmin, blogController.upload.single('image'), blogController.createBlog);

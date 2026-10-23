@@ -61,6 +61,19 @@ const ManageBlogs = () => {
     }
   };
 
+  // Signed link (30 days) that unlocks this members-only post for newsletter readers
+  const handleCopyNewsletterLink = async (blog) => {
+    try {
+      const { path, expiresAt } = await ApiService.get(`/blogs/${blog.id}/newsletter-link`);
+      const url = `${window.location.origin}${path}`;
+      await navigator.clipboard.writeText(url);
+      setError('');
+      setSuccess(`Линкот за билтен е копиран (важи до ${formatDate(expiresAt)}): ${url}`);
+    } catch (err) {
+      setError('Грешка при креирање на линк за билтен');
+    }
+  };
+
   const handlePreview = (blog) => {
     const identifier = blog.slug || blog.id;
     window.open(`/blog/${identifier}`, '_blank');
@@ -166,6 +179,13 @@ const ManageBlogs = () => {
                               className={styles.deleteButton}
                             >
                               Избриши
+                            </button>
+                            <button
+                              onClick={() => handleCopyNewsletterLink(blog)}
+                              className={styles.previewButton}
+                              title="Копира линк што ја отклучува целата статија 30 дена — за Mailjet билтенот"
+                            >
+                              Линк за билтен
                             </button>
                             <button
                               onClick={() => handlePreview(blog)}

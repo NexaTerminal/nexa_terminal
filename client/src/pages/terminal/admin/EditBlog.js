@@ -61,6 +61,7 @@ const EditBlog = () => {
     status: 'published',
     tags: '',
     promotedTool: 'legal_health_check',
+    membersOnly: true,
     metaTitle: '',
     metaDescription: '',
     focusKeyword: ''
@@ -111,6 +112,7 @@ const EditBlog = () => {
             status: blog.status || 'published',
             tags: Array.isArray(blog.tags) ? blog.tags.join(', ') : '',
             promotedTool: blog.promotedTool || 'legal_health_check',
+            membersOnly: blog.membersOnly !== false,
             metaTitle: blog.metaTitle || '',
             metaDescription: blog.metaDescription || '',
             focusKeyword: blog.focusKeyword || ''
@@ -136,8 +138,8 @@ const EditBlog = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = async (e) => {
@@ -169,6 +171,7 @@ const EditBlog = () => {
         status: formData.status,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
         promotedTool: formData.promotedTool,
+        membersOnly: formData.membersOnly,
         metaTitle: formData.metaTitle || formData.title,
         metaDescription: formData.metaDescription,
         focusKeyword: formData.focusKeyword
@@ -399,6 +402,22 @@ const EditBlog = () => {
                   </select>
                   <small className={styles.helpText}>
                     Изберете која алатка ќе се прикаже на крајот од статијата
+                  </small>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="membersOnly">
+                    <input
+                      type="checkbox"
+                      id="membersOnly"
+                      name="membersOnly"
+                      checked={formData.membersOnly}
+                      onChange={handleInputChange}
+                    />{' '}
+                    🔒 Само за членови
+                  </label>
+                  <small className={styles.helpText}>
+                    Анонимните посетители гледаат само почеток од статијата. Целата е достапна за најавени корисници и преку линкот за билтен.
                   </small>
                 </div>
 

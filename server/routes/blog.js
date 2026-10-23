@@ -1,6 +1,26 @@
 const express = require('express');
 const router = express.Router();
-// Public blog routes - no authentication required
+const { optionalAuthJWT } = require('../middleware/auth');
+const newsletterToken = require('../utils/blogNewsletterToken');
+// Public blog routes - no authentication required.
+// Full article text is a member benefit: anonymous readers get a teaser unless
+// they arrive via a signed newsletter link (?nl=). See tasks/blog-members-gate-plan.md
+
+const TEASER_RATIO = 0.35;
+const TEASER_MIN_BLOCKS = 2;
+
+// Cut HTML to the first ~35% of its top-level blocks (paragraphs, headings, lists...).
+function buildTeaser(html) {
+  const blocks = html.match(/[\s\S]*?<\/(p|h[1-6]|ul|ol|blockquote|table|figure|div)>/gi) || [];
+  if (blocks.length <= TEASER_MIN_BLOCKS) return { teaser: blocks[0] || '', locked: blocks.length > 1 };
+  const keep = Math.max(TEASER_MIN_BLOCKS, Math.ceil(blocks.length * TEASER_RATIO));
+  return { teaser: blocks.slice(0, keep).join(''), locked: keep < blocks.length };
+}
+
+function readingMinutes(html) {
+  const words = (html || '').replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
 
 /**
  * Helper function to format plain text into HTML paragraphs
@@ -63,7 +83,8 @@ router.get('/', async (req, res) => {
         tags: 1,
         createdAt: 1,
         'author.name': 1,
-        views: 1
+        views: 1,
+        membersOnly: 1
         // NOTE: Explicitly exclude 'content' for public API
       })
       .toArray();
@@ -86,12 +107,11 @@ router.get('/', async (req, res) => {
 
 /**
  * GET /api/blog/:id
- * Public route - Get single blog post by ID with FULL content
- * Returns: Blog post with full content and promotedTool for banner display
- *
- * NOTE: Full content now publicly available - promotional banner shows at end
+ * Public route - Get single blog post by slug or ID.
+ * Full content for logged-in users or a valid newsletter token (?nl=);
+ * otherwise members-only posts return a teaser with `locked: true`.
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuthJWT, async (req, res) => {
   try {
     const { id } = req.params;
     const db = req.app.locals.db;
@@ -114,7 +134,8 @@ router.get('/:id', async (req, res) => {
       promotedTool: 1,
       metaTitle: 1,
       metaDescription: 1,
-      focusKeyword: 1
+      focusKeyword: 1,
+      membersOnly: 1
     };
 
     // Try to find by slug first, then fall back to _id
@@ -144,12 +165,31 @@ router.get('/:id', async (req, res) => {
     }
 
     // Format content and excerpt to ensure proper paragraph structure
+    const content = formatTextToParagraphs(blog.content);
     const formattedBlog = {
       ...blog,
-      content: formatTextToParagraphs(blog.content),
+      content,
       excerpt: formatTextToParagraphs(blog.excerpt),
-      promotedTool: blog.promotedTool || 'legal_health_check' // Default to legal health check
+      promotedTool: blog.promotedTool || 'legal_health_check', // Default to legal health check
+      readingTime: readingMinutes(content),
+      locked: false,
+      unlockedVia: null
     };
+
+    // Missing flag = members-only (default on for all posts).
+    if (blog.membersOnly !== false) {
+      if (req.user) {
+        formattedBlog.unlockedVia = 'member';
+      } else if (req.query.nl && newsletterToken.verify(blog._id, String(req.query.nl))) {
+        formattedBlog.unlockedVia = 'newsletter';
+      } else {
+        const { teaser, locked } = buildTeaser(content);
+        if (locked) {
+          formattedBlog.content = teaser;
+          formattedBlog.locked = true;
+        }
+      }
+    }
 
     res.json(formattedBlog);
   } catch (error) {

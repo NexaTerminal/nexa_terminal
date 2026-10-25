@@ -46,6 +46,10 @@ function notifyInApp(req, userId, opts) {
 // Conversation-step email to one side, unless that side muted emails for this
 // conversation (the toggle lives in the chat). Bell notifications are separate
 // and always fire.
+// Pro-facing conversation emails (board broadcast to every Pro, new client
+// message, conversation closed) are OFF — they reached every Pro and felt
+// spammy. Pros still get the in-app bell. Set PRO_CHAT_EMAILS=on to restore.
+const PRO_CHAT_EMAILS = () => process.env.PRO_CHAT_EMAILS === 'on';
 const USER_LINK = () => `${APP_URL()}/terminal/requests`;
 const PRO_LINK = () => `${APP_URL()}/terminal/pro/conversations`;
 function stepEmail(to, muted, subject, html, link) {
@@ -65,14 +69,14 @@ const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '
 const LIABILITY_NOTE =
   'Напомена: AI одговорите се информативни и не се правен совет. Ако професионалец се приклучи и даде совет, тој е професионално одговорен за точноста на својот совет.';
 
-// Broadcast an open request to every Pro (bell + email) + confirm to the requester.
+// Broadcast an open request to every Pro (bell; email only if PRO_CHAT_EMAILS=on) + confirm to the requester.
 // Pros only ever get the anonymized subject (`proSubject`) + the anonymized summary.
 async function broadcastToBoard(req, svc, item, summary, proSubject) {
   const pros = await svc.eligibleProsForCategory(item.category);
   const boardLink = `${APP_URL()}/terminal/pro/conversations`;
   const summaryHtml = esc(item.context?.aiSummary || summary || '').replace(/\n/g, '<br/>');
   for (const p of pros) {
-    notify(
+    if (PRO_CHAT_EMAILS()) notify(
       p.email,
       `Ново барање на таблата: ${esc(proSubject)}`,
       `<p>Пристигна ново барање од корисник на Nexa што бара помош или проверка од професионалец.</p>
@@ -169,7 +173,7 @@ exports.addMessage = async (req, res) => {
     // Notify the counterpart (email unless muted + bell). Use raw `targets` (not
     // the masked `request`); the Pro only ever gets the anonymized subject/text.
     if (authorRole === 'user') {
-      stepEmail(targets.assignedProEmail, targets.proEmailMuted, 'Нова порака од клиент',
+      stepEmail(targets.assignedProEmail, targets.proEmailMuted || !PRO_CHAT_EMAILS(), 'Нова порака од клиент',
         `<p>Клиентот напиша нова порака во „${esc(targets.proSubject)}":</p>${quoteBody(proBody)}`, PRO_LINK());
       notifyInApp(req, targets.assignedProId, { type: 'pro_request_message', title: 'Нова порака од клиент', message: snippet(proBody), actionUrl: '/terminal/pro/conversations', severity: 'info' });
     } else {
@@ -262,7 +266,7 @@ exports.close = async (req, res) => {
       notifyInApp(req, targets.userId, { type: 'pro_request_closed', title: 'Разговорот е затворен', message: snippet(targets.subject), actionUrl: '/terminal/requests', severity: 'info' });
     }
     if (closedBy !== 'pro') {
-      stepEmail(targets.assignedProEmail, targets.proEmailMuted, 'Разговорот е затворен',
+      stepEmail(targets.assignedProEmail, targets.proEmailMuted || !PRO_CHAT_EMAILS(), 'Разговорот е затворен',
         `<p>Разговорот „${esc(targets.proSubject)}" е затворен.</p>`, PRO_LINK());
       notifyInApp(req, targets.assignedProId, { type: 'pro_request_closed', title: 'Разговорот е затворен', message: snippet(targets.proSubject), actionUrl: '/terminal/pro/conversations', severity: 'info' });
     }

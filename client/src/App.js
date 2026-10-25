@@ -155,6 +155,7 @@ import AIChat from './pages/terminal/AIChat';
 import AITeamHome from './pages/terminal/AITeamHome';
 import { ChatDockProvider } from './contexts/ChatDockContext';
 import AgentChatDock from './components/chatbot/AgentChatDock';
+import { ActivityTracker } from './lib/activityTracker';
 import MarketingAIChat from './pages/terminal/MarketingAIChat';
 import ContractAnalysis from './pages/terminal/ContractAnalysis';
 import RequestsPage from './pages/terminal/proRequests/RequestsPage';
@@ -542,6 +543,7 @@ function App() {
       <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
     </Routes>
     <AgentChatDock />
+    <ActivityTracker />
     </ChatDockProvider>
   );
 }

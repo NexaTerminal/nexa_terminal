@@ -120,6 +120,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser()); // For CSRF token cookies
 
+// Per-user request log (method/route/status/duration → user_events) for the
+// admin activity timeline. No bodies; background polls de-duplicated.
+app.use(require('./middleware/requestLog'));
+
 // Input sanitization
 app.use(sanitizeRequest); // Sanitize all incoming requests
 
@@ -187,6 +191,10 @@ app.use('/api/provider-response', require('./routes/providerResponse'));
 
 // Mount public blog routes BEFORE CSRF middleware (public API for SEO)
 app.use('/api/blog', require('./routes/blog'));
+
+// Client activity beacons (page views, time spent, clicks) — JWT-Bearer, before CSRF
+// so keepalive flushes on page exit never fail on a rotated CSRF cookie.
+app.use('/api/activity', require('./routes/activity'));
 
 // Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
 app.use('/api/seo', require('./routes/seo'));

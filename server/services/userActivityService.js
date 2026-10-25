@@ -2,13 +2,15 @@
 
 /**
  * User activity aggregator — pure read. Builds a chronological list of
- * events for a single user by gathering timestamps from collections we
- * already write to (no new fields, no new writes).
+ * events for a single user: milestones gathered from the collections we
+ * already write to, merged with the fine-grained `user_events` log (page views
+ * with active time + scroll depth, clicks, API requests, sessions).
  *
  * Each event: { at: Date, type, label, meta?: object }
  */
 
 const { ObjectId } = require('mongodb');
+const UserEventsService = require('./userEventsService');
 
 const toObjectId = (v) => {
   if (v instanceof ObjectId) return v;
@@ -33,6 +35,30 @@ async function readSafe(db, name, filter, projection, limit = 100) {
 class UserActivityService {
   constructor(db) {
     this.db = db;
+  }
+
+  /**
+   * One page of the timeline, newest first: up to `limit` fine-grained events
+   * before `before`, plus every milestone inside that same time window.
+   * Returns { events, nextBefore, summary? (first page only) }.
+   */
+  async getTimelinePage(userId, { before = null, limit = 150, kinds = null } = {}) {
+    const fine = new UserEventsService(this.db);
+    const rows = await fine.page(userId, { before, limit, kinds });
+    const full = rows.length >= limit;
+    const windowStart = full ? rows[rows.length - 1].at : null;
+    const end = before ? new Date(before) : null;
+    const wantMilestones = !kinds || kinds.includes('milestone');
+    const milestones = wantMilestones
+      ? (await this.getActivity(userId, { limit: 2000 })).filter((e) =>
+        (!end || e.at < end) && (!windowStart || e.at >= windowStart))
+      : [];
+    const events = [...rows.map(fineToEvent), ...milestones].sort((a, b) => b.at - a.at);
+    return {
+      events,
+      nextBefore: full ? windowStart : null,
+      ...(before ? {} : { summary: await fine.summary(userId) }),
+    };
   }
 
   async getActivity(userId, { limit = 200 } = {}) {
@@ -111,7 +137,7 @@ class UserActivityService {
     }
 
     // ── Blog submissions ──────────────────────────────────────────────
-    const subs = await readSafe(this.db, 'blogSubmissions',
+    const subs = await readSafe(this.db, 'blog_submissions',
       { authorId: uid },
       { title: 1, status: 1, createdAt: 1, submittedAt: 1, publishedAt: 1 },
       30
@@ -123,8 +149,8 @@ class UserActivityService {
     }
 
     // ── Inquiry signals (expressed interest) ──────────────────────────
-    const signals = await readSafe(this.db, 'inquirySignals',
-      { userId: uid },
+    const signals = await readSafe(this.db, 'inquiry_interest_signals',
+      { memberId: uid },
       { status: 1, createdAt: 1, inquiryId: 1 },
       30
     );
@@ -133,8 +159,8 @@ class UserActivityService {
     }
 
     // ── Topics Q&A submissions ────────────────────────────────────────
-    const topics = await readSafe(this.db, 'topicSubmissions',
-      { userId: uid },
+    const topics = await readSafe(this.db, 'qa_submissions',
+      { authorId: uid },
       { status: 1, requestedAt: 1, submittedAt: 1, publishedAt: 1 },
       30
     );
@@ -142,6 +168,37 @@ class UserActivityService {
       if (t.requestedAt) push(t.requestedAt, 'topic.requested', 'Барано отворање на Q&A тема');
       if (t.submittedAt) push(t.submittedAt, 'topic.submitted', 'Q&A одговор поднесен');
       if (t.publishedAt) push(t.publishedAt, 'topic.published', 'Q&A одговор објавен');
+    }
+
+    // ── Conversations with professionals (Разговори) ─────────────────
+    const proReqs = await readSafe(this.db, 'pro_requests',
+      { $or: [{ userId: uid }, { assignedProId: uid }] },
+      { userId: 1, subject: 1, status: 1, createdAt: 1, claimedAt: 1, closedAt: 1, assignedProName: 1, messages: 1 },
+      50
+    );
+    for (const r of proReqs) {
+      const asOwner = String(r.userId) === String(uid);
+      const subj = r.subject || '(без наслов)';
+      const mine = (r.messages || []).filter((m) => String(m.authorId) === String(uid)).length;
+      if (asOwner) push(r.createdAt, 'convo.invite', `Покана до професионалец: ${subj}`);
+      if (r.claimedAt) {
+        push(r.claimedAt, 'convo.joined', asOwner
+          ? `Професионалец се приклучи (${r.assignedProName || '—'}): ${subj}`
+          : `Се приклучи во разговор: ${subj}`);
+      }
+      if (mine) push(r.closedAt || r.claimedAt || r.createdAt, 'convo.messages', `${mine} испратени пораки во „${subj}"`);
+      if (r.closedAt) push(r.closedAt, 'convo.closed', `Разговорот е затворен: ${subj}`);
+    }
+
+    // ── AI conversations (one milestone per thread) ──────────────────
+    const aiConvs = await readSafe(this.db, 'chatbot_conversations',
+      { userId: { $in: [uid, String(uid)] } },
+      { title: 1, agent: 1, createdAt: 1, messageCount: 1 },
+      80
+    );
+    for (const c of aiConvs) {
+      push(c.createdAt, 'ai.conversation',
+        `Нов AI разговор${c.agent ? ` (${c.agent})` : ''}: ${c.title || '—'}${c.messageCount ? ` · ${c.messageCount} пораки` : ''}`);
     }
 
     // ── Admin audit log entries that target this user ────────────────
@@ -236,6 +293,32 @@ class UserActivityService {
     // Sort + cap.
     events.sort((a, b) => b.at.getTime() - a.at.getTime());
     return events.slice(0, limit);
+  }
+}
+
+// user_events row → timeline event.
+function fmtMs(ms) {
+  const s = Math.round((ms || 0) / 1000);
+  if (s < 60) return `${s}с`;
+  const m = Math.floor(s / 60);
+  return m < 60 ? `${m}м ${s % 60}с` : `${Math.floor(m / 60)}ч ${m % 60}м`;
+}
+function fineToEvent(r) {
+  const meta = { sessionId: r.sessionId, path: r.path };
+  switch (r.kind) {
+    case 'page_view':
+      return { at: r.at, type: 'page.view', label: `Отвори: ${r.title || r.path}`,
+        meta: { ...meta, activeMs: r.activeMs, scrollPct: r.scrollPct,
+          detail: [r.activeMs != null ? fmtMs(r.activeMs) : null, r.scrollPct != null ? `${r.scrollPct}% прочитано` : null].filter(Boolean).join(' · ') } };
+    case 'click':
+      return { at: r.at, type: 'click.ui', label: `Клик: ${r.label || r.target || '—'}`, meta: { ...meta, target: r.target } };
+    case 'api':
+      return { at: r.at, type: 'api.request', label: `${r.method} ${r.route}`,
+        meta: { status: r.status, durationMs: r.durationMs, detail: `${r.status} · ${r.durationMs} ms` } };
+    case 'session_start':
+      return { at: r.at, type: 'session.start', label: 'Нова сесија', meta };
+    default:
+      return { at: r.at, type: `event.${r.kind}`, label: r.kind, meta };
   }
 }
 

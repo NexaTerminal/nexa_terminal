@@ -11,6 +11,8 @@
     "features": "node toggle-features.js",
     "features:help": "node toggle-features.js",
     "backup": "node scripts/backup.js",
+    "restore": "node scripts/restore.js",
+    "fresh-start": "node scripts/fresh-start.js",
     "drive-auth": "node scripts/google-drive-auth.js"
   },
   "dependencies": {

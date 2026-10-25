@@ -391,16 +391,21 @@ class AdminUsersController {
   /**
    * GET /api/admin/all-users/:id/activity
    *
-   * Aggregates a chronological event timeline for a single user from the
-   * collections we already write to (no schema changes / no new writes).
+   * Chronological timeline for one user: milestones + fine-grained user_events
+   * (pages, time spent, clicks, requests). Paginated: ?before=<ISO>&kinds=a,b&limit=.
    */
   async getActivity(req, res) {
     try {
       const db = req.app.locals.db || req.app.locals.database;
       const UserActivityService = require('../services/userActivityService');
       const svc = new UserActivityService(db);
-      const events = await svc.getActivity(req.params.id, { limit: 200 });
-      res.json({ success: true, events });
+      const kinds = req.query.kinds ? String(req.query.kinds).split(',').filter(Boolean) : null;
+      const page = await svc.getTimelinePage(req.params.id, {
+        before: req.query.before || null,
+        limit: Math.min(parseInt(req.query.limit, 10) || 150, 500),
+        kinds,
+      });
+      res.json({ success: true, ...page });
     } catch (err) {
       console.error('[admin/all-users activity] error:', err);
       res.status(500).json({ success: false, message: err.message });

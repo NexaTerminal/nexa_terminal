@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import styles from './AllUsers.module.css';
+import UserActivityLog from '../../../components/admin/UserActivityLog';
 
 // A user is either Basic or Pro (plus the non-customer account types). This
 // derives the ONE tier badge from the same precedence the gating engine uses
@@ -415,52 +416,6 @@ function CredsReveal({ email, tempPassword, onClose }) {
   );
 }
 
-// ---------- activity timeline ----------
-const ACTIVITY_BADGE = {
-  account:    { color: '#0B1220', bg: '#F1F5F9' },
-  sub:        { color: '#15803D', bg: '#ECFDF5' },
-  invoice:    { color: '#1d4ed8', bg: '#EFF6FF' },
-  doc:        { color: '#0B1220', bg: '#F1F5F9' },
-  compliance: { color: '#92400E', bg: '#FFFBEB' },
-  blog:       { color: '#1e4db7', bg: '#EEF4FF' },
-  lead:       { color: '#7c3aed', bg: '#F5F3FF' },
-  topic:      { color: '#0E7490', bg: '#ECFEFF' },
-  admin:      { color: '#B91C1C', bg: '#FEF2F2' },
-  credit:     { color: '#9a3412', bg: '#FFF7ED' },
-  event:      { color: '#0f766e', bg: '#F0FDFA' }
-};
-function ActivityTimeline({ events, loading }) {
-  if (loading) {
-    return <div style={{ padding: '12px 0', color: '#64748b', fontSize: 13 }}>Се вчитува…</div>;
-  }
-  if (!events || events.length === 0) {
-    return <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px dashed #e5e7eb', borderRadius: 8, color: '#64748b', fontSize: 13 }}>Нема забележани активности.</div>;
-  }
-  return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 4px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto' }}>
-      {events.map((e, i) => {
-        const family = (e.type || '').split('.')[0];
-        const tag = ACTIVITY_BADGE[family] || ACTIVITY_BADGE.account;
-        const d = new Date(e.at);
-        const when = d.toLocaleString('mk-MK', {
-          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'
-        });
-        return (
-          <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 12px', background: '#fff', border: '1px solid #f1f5f9', borderRadius: 8 }}>
-            <span style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999, background: tag.bg, color: tag.color, whiteSpace: 'nowrap' }}>
-              {family}
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, color: '#0B1220' }}>{e.label}</div>
-              <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 2 }}>{when}</div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 // ---------- small stat box ----------
 function StatBox({ label, value }) {
   return (
@@ -479,10 +434,6 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
   const [err, setErr] = useState('');
   const [showRoleForm, setShowRoleForm] = useState(false);
 
-  // Activity timeline
-  const [activity, setActivity] = useState(null); // null = unloaded, [] = empty
-  const [activityLoading, setActivityLoading] = useState(false);
-
   const reload = useCallback(async () => {
     setLoading(true); setErr('');
     try {
@@ -495,17 +446,6 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
   }, [userId, token]);
 
   useEffect(() => { reload(); }, [reload]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setActivityLoading(true);
-    axios.get(`/api/admin/all-users/${userId}/activity`,
-      { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => { if (!cancelled) setActivity(res.data?.events || []); })
-      .catch(() => { if (!cancelled) setActivity([]); })
-      .finally(() => { if (!cancelled) setActivityLoading(false); });
-    return () => { cancelled = true; };
-  }, [userId, token]);
 
   const doAction = async (label, fn) => {
     setBusy(true); setErr('');
@@ -640,7 +580,7 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
             )}
 
             <h4 className={styles.subhead}>Активност (хронолошки)</h4>
-            <ActivityTimeline events={activity} loading={activityLoading} />
+            <UserActivityLog userId={userId} token={token} />
 
             <h4 className={styles.subhead}>Акции</h4>
             <div className={styles.actionGrid}>

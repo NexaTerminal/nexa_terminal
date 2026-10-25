@@ -4,15 +4,15 @@
  * Request log → user_events (kind 'api') for the admin activity timeline.
  *
  * Records method, route (ids collapsed to :id), status and duration for every
- * API request made with a valid Bearer JWT. Never records bodies or query values.
- * Background polling (same user + method + route repeated within POLL_WINDOW_MS)
- * is recorded once, so 15–60 s refresh loops don't flood the log.
+ * state-changing API request (POST/PUT/PATCH/DELETE) made with a valid Bearer
+ * JWT — the user's actions. Reads (GET) aren't logged: what the user looked at
+ * is already captured client-side as page views with active time. Never
+ * records bodies or query values.
  */
 
 const jwt = require('jsonwebtoken');
 const UserEventsService = require('../services/userEventsService');
 
-const POLL_WINDOW_MS = 60 * 1000;
 const SKIP = [/^\/api\/csrf-token/, /^\/api\/health/, /^\/api\/activity\//, /^\/api\/public\//];
 
 // Collapse ids so the same endpoint groups together: ObjectIds, UUIDs, numbers, long slugs-with-digits.
@@ -24,17 +24,6 @@ function normalizeRoute(url) {
     .slice(0, 200);
 }
 
-const recent = new Map(); // `${userId} ${method} ${route}` → last logged ms
-function isRepeat(key, now) {
-  const last = recent.get(key);
-  recent.set(key, now);
-  if (recent.size > 5000) { // cheap bound: drop the oldest half
-    let i = 0;
-    for (const k of recent.keys()) { if (i++ > 2500) break; recent.delete(k); }
-  }
-  return last !== undefined && now - last < POLL_WINDOW_MS;
-}
-
 function userIdFrom(req) {
   const h = req.headers.authorization || '';
   if (!h.startsWith('Bearer ') || !process.env.JWT_SECRET) return null;
@@ -42,7 +31,8 @@ function userIdFrom(req) {
 }
 
 module.exports = function requestLog(req, res, next) {
-  if (!req.originalUrl.startsWith('/api/') || req.method === 'OPTIONS' || SKIP.some((r) => r.test(req.originalUrl))) {
+  if (!req.originalUrl.startsWith('/api/') || ['GET', 'HEAD', 'OPTIONS'].includes(req.method)
+    || SKIP.some((r) => r.test(req.originalUrl))) {
     return next();
   }
   const started = process.hrtime.bigint();
@@ -51,7 +41,6 @@ module.exports = function requestLog(req, res, next) {
     const userId = userIdFrom(req);
     if (!db || !userId) return;
     const route = normalizeRoute(req.originalUrl);
-    if (req.method === 'GET' && isRepeat(`${userId} ${route}`, Date.now())) return;
     const durationMs = Math.round(Number(process.hrtime.bigint() - started) / 1e6);
     new UserEventsService(db)
       .addApiEvent(userId, { method: req.method, route, status: res.statusCode, durationMs })

@@ -9,10 +9,11 @@ import styles from './UserActivityLog.module.css';
  */
 
 const FILTERS = [
-  { key: 'all', label: 'Сè', kinds: null },
+  // Default view = what the person did and saw; technical requests only under their own filter.
+  { key: 'all', label: 'Сè', kinds: 'page_view,session_start,click,milestone' },
   { key: 'pages', label: 'Страници', kinds: 'page_view,session_start' },
   { key: 'clicks', label: 'Кликови', kinds: 'click' },
-  { key: 'api', label: 'Барања (API)', kinds: 'api' },
+  { key: 'api', label: 'Акции (API)', kinds: 'api' },
   { key: 'milestones', label: 'Настани', kinds: 'milestone' },
 ];
 
@@ -79,7 +80,7 @@ export default function UserActivityLog({ userId, token }) {
             <Stat label="Сесии" value={summary.sessions} />
             <Stat label="Страници" value={summary.pageViews} />
             <Stat label="Кликови" value={summary.clicks} />
-            <Stat label="Барања" value={summary.requests} />
+            <Stat label="Акции" value={summary.requests} />
           </div>
           {summary.topPages?.length > 0 && (
             <div className={styles.topPages}>

@@ -196,6 +196,9 @@ app.use('/api/blog', require('./routes/blog'));
 // so keepalive flushes on page exit never fail on a rotated CSRF cookie.
 app.use('/api/activity', require('./routes/activity'));
 
+// „Мои податоци" — the user's own export / erase of AI history + activity log (JWT-Bearer).
+app.use('/api/my-data', require('./routes/myData'));
+
 // Mount SEO routes BEFORE CSRF middleware (sitemap, robots.txt)
 app.use('/api/seo', require('./routes/seo'));
 

@@ -13,7 +13,7 @@
 const jwt = require('jsonwebtoken');
 const UserEventsService = require('../services/userEventsService');
 
-const SKIP = [/^\/api\/csrf-token/, /^\/api\/health/, /^\/api\/activity\//, /^\/api\/public\//];
+const SKIP = [/^\/api\/csrf-token/, /^\/api\/health/, /^\/api\/activity\//, /^\/api\/public\//, /^\/api\/my-data\//];
 
 // Collapse ids so the same endpoint groups together: ObjectIds, UUIDs, numbers, long slugs-with-digits.
 function normalizeRoute(url) {

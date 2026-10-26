@@ -146,6 +146,7 @@ import HRReport from './pages/terminal/hhc/HRReport';
 import Contact from './pages/terminal/Contact';
 import Disclaimer from './pages/terminal/Disclaimer';
 import TerminalPrivacyPolicy from './pages/terminal/PrivacyPolicy';
+import MyData from './pages/terminal/MyData';
 import TerminalTermsAndConditions from './pages/terminal/TermsAndConditions';
 // EditProfile (/terminal/profile) removed — account settings live in the
 // Header profile dropdown (Профил / Сметка / Сметководство / Лозинка).
@@ -416,6 +417,7 @@ function App() {
       <Route path="/terminal/find-lawyer" element={<Navigate to="/terminal/sourcing" replace />} />
       <Route path="/terminal/disclaimer" element={<PrivateRoute><Disclaimer /></PrivateRoute>} />
       <Route path="/terminal/privacy-policy" element={<PrivateRoute><TerminalPrivacyPolicy /></PrivateRoute>} />
+      <Route path="/terminal/my-data" element={<PrivateRoute><MyData /></PrivateRoute>} />
       <Route path="/terminal/terms-conditions" element={<PrivateRoute><TerminalTermsAndConditions /></PrivateRoute>} />
       {/* /terminal/user merged into /terminal/subscription (Сметка + Лозинка) */}
       <Route path="/terminal/user" element={<Navigate to="/terminal/subscription" replace />} />

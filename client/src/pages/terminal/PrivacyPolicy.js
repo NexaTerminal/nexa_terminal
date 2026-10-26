@@ -1,72 +1,37 @@
-import React from 'react';
-import Header from '../../components/common/Header';
-import Sidebar from '../../components/terminal/Sidebar';
-import styles from '../../styles/terminal/Contact.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import TerminalShell from '../../components/terminal/TerminalShell';
+import styles from './MyData.module.css';
 
-const PrivacyPolicy = () => {
-  const navigate = useNavigate();
+/**
+ * In-app privacy policy — the SAME text as the public /privacy-policy (website
+ * i18n `privacy.*`), so there is one policy to keep correct.
+ */
 
+const SECTIONS = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11'];
+
+export default function PrivacyPolicy() {
+  const { t } = useTranslation('website');
   return (
-    <div>
-      <Header isTerminal={true} />
-      <div className={styles['dashboard-layout']}>
-        <Sidebar />
-        <main className={styles['dashboard-main']}>
-          <div className={styles['contact-container']}>
-            <div className={styles['contact-header']}>
-              <button onClick={() => navigate('/terminal')} className={styles['back-button']}>
-                ← Назад кон Dashboard
-              </button>
-              <h1>Политика за приватност</h1>
-              <p>Како Nexa Terminal ги заштитува вашите лични податоци</p>
+    <TerminalShell>
+      <div className={styles.page}>
+        <header>
+          <span className={styles.eyebrow}>Приватност</span>
+          <h1 className={styles.title}>{t('privacy.title')}</h1>
+          <p className={styles.small}>{t('privacy.updated')}</p>
+        </header>
+        <section className={styles.panel}>
+          {SECTIONS.map((s) => (
+            <div key={s}>
+              <h2 className={styles.panelHead}>{t(`privacy.${s}H`)}</h2>
+              <p className={styles.lead}>{t(`privacy.${s}`)}</p>
             </div>
-
-            <div className={styles['contact-form']}>
-              <p style={{fontSize: '0.875rem', color: '#737373', fontStyle: 'italic', marginBottom: '2rem', padding: '1rem', background: '#f3f4f6', borderRadius: '8px', textAlign: 'center'}}>
-                Последно ажурирано: Декември 2025 година
-              </p>
-
-              {/* Introduction */}
-              <section style={{marginBottom: '3rem'}}>
-                <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>1. Вовед</h2>
-                <p>
-                  Добредојдовте на Nexa Terminal. Вашата приватност е од клучно значење за нас. Оваа Политика за приватност објаснува кои податоци ги собираме, како ги користиме и како ги заштитуваме вашите лични податоци во согласност со Законот за заштита на лични податоци на Република Северна Македонија и GDPR принципите.
-                </p>
-                <p>
-                  <strong>Контролор на податоци / Сопственик на платформата:</strong> Друштво за услуги НЕКСА АМД ДООЕЛ Скопје, со седиште на БУЛЕВАР ПАРТИЗАНСКИ ОДРЕД 102/2-14. Контакт телефон: <a href="tel:+38978534258" style={{color: 'var(--color-primary)'}}>+389 78 534 258</a>.
-                </p>
-                <div style={{background: '#FEF3C7', borderLeft: '4px solid #F59E0B', padding: '1.25rem', margin: '1.5rem 0', borderRadius: '8px'}}>
-                  <p style={{color: '#92400E', margin: 0, fontWeight: 500}}><strong>Важно:</strong> Nexa Terminal НЕ ги чува документите кои ги генерирате. Вашите документи се креираат во реално време и се испраќаат директно до вас. Податоците што ги внесувате во формуларите се бришат веднаш по генерирањето на документот.</p>
-                </div>
-              </section>
-
-              {/* Rest of the content - condensed for brevity */}
-              <section style={{marginBottom: '3rem'}}>
-                <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>2. Кои податоци ги собираме</h2>
-                <p>Повеќе детали за собраните податоци може да најдете на нашата јавна <a href="/privacy-policy" target="_blank" style={{color: 'var(--color-primary)', textDecoration: 'underline'}}>страница за приватност</a>.</p>
-                <p>Накратко, ние собираме: корисничка сметка, информации за компанија и податоци за употреба на платформата. <strong>НЕ ги чуваме генерираните документи.</strong></p>
-              </section>
-
-              <section style={{marginBottom: '3rem'}}>
-                <h2 style={{fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '2px solid #e5e7eb'}}>Вашите права според GDPR</h2>
-                <p>Имате право на пристап, исправка, бришење, ограничување, преносливост и приговор во врска со вашите податоци.</p>
-                <p>За да ги остварите вашите права, контактирајте не на: <a href="mailto:info@nexa.mk" style={{color: 'var(--color-primary)'}}>info@nexa.mk</a></p>
-              </section>
-
-              <div style={{background: 'linear-gradient(135deg, #1E4DB7 0%, #3B82F6 100%)', color: 'white', padding: '2rem', borderRadius: '12px', textAlign: 'center', marginTop: '2rem'}}>
-                <h3 style={{color: 'white', marginBottom: '1rem'}}>Контакт за прашања за приватност</h3>
-                <p><strong>Контролор на податоци:</strong> Друштво за услуги НЕКСА АМД ДООЕЛ Скопје</p>
-                <p><strong>Email:</strong> <a href="mailto:info@nexa.mk" style={{color: 'white', textDecoration: 'underline'}}>info@nexa.mk</a></p>
-                <p><strong>Телефон:</strong> <a href="tel:+38978534258" style={{color: 'white', textDecoration: 'underline'}}>+389 78 534 258</a></p>
-                <p>Целосната политика за приватност е достапна на: <a href="/privacy-policy" target="_blank" style={{color: 'white', textDecoration: 'underline'}}>nexa.mk/privacy-policy</a></p>
-              </div>
-            </div>
-          </div>
-        </main>
+          ))}
+        </section>
+        <p className={styles.small}>
+          Вашите AI податоци и дневникот на активност ги управувате на <Link to="/terminal/my-data">Мои податоци</Link>.
+        </p>
       </div>
-    </div>
+    </TerminalShell>
   );
-};
-
-export default PrivacyPolicy;
+}

@@ -1,0 +1,53 @@
+.page { max-width: 760px; margin: 0 auto; padding: 32px 32px 64px; display: flex; flex-direction: column; gap: 18px; }
+
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1e4db7; }
+.title { font-size: 24px; font-weight: 700; color: #0B1220; margin: 4px 0 6px; }
+.lead { font-size: 14px; color: #475569; line-height: 1.55; margin: 0; }
+
+.panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.panelHead { font-size: 16px; font-weight: 700; color: #0B1220; margin: 0; }
+
+.points { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.55; color: #334155; }
+.points strong { color: #0B1220; }
+
+.small { font-size: 13px; color: #64748b; line-height: 1.5; margin: 0; }
+.small a { color: #1e4db7; }
+.muted { font-size: 14px; color: #64748b; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat { border: 1px solid #eef0f3; border-radius: 4px; padding: 10px 12px; background: #fafbfc; }
+.statValue { font-size: 20px; font-weight: 700; color: #0B1220; }
+.statLabel { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.eraseRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #f1f5f9; }
+.eraseRow:first-of-type { border-top: 0; padding-top: 0; }
+.eraseTitle { font-size: 14px; font-weight: 600; color: #0B1220; margin-bottom: 2px; }
+.confirm { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Explicit resets — the global button style (radius, shadow, scale) must not leak in. */
+.btnPrimary, .btnOutline, .btnDanger, .btnGhost {
+  font: inherit; font-size: 14px; font-weight: 600; line-height: 1.2;
+  border-radius: 4px; box-shadow: none; transform: none; cursor: pointer;
+  padding: 9px 14px; white-space: nowrap; flex-shrink: 0;
+}
+.btnPrimary { background: #1e4db7; color: #fff; border: 1px solid #1e4db7; }
+.btnPrimary:hover:not(:disabled) { background: #183f96; transform: none; }
+.btnOutline { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
+.btnOutline:hover:not(:disabled) { background: #fef2f2; transform: none; }
+.btnDanger { background: #b91c1c; color: #fff; border: 1px solid #b91c1c; }
+.btnDanger:hover:not(:disabled) { background: #991b1b; transform: none; }
+.btnGhost { background: transparent; color: #475569; border: 1px solid #e5e7eb; }
+.btnGhost:hover:not(:disabled) { background: #f8fafc; transform: none; }
+.btnPrimary:disabled, .btnOutline:disabled, .btnDanger:disabled, .btnGhost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.error { padding: 10px 14px; border-radius: 4px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-size: 14px; }
+.notice { padding: 10px 14px; border-radius: 4px; background: #ecfdf5; color: #15803d; border: 1px solid #bbf7d0; font-size: 14px; }
+
+@media (max-width: 600px) {
+  .page { padding: 20px 16px 48px; }
+  .eraseRow { flex-direction: column; align-items: stretch; }
+  .confirm { flex-direction: column; }
+  .btnPrimary, .btnOutline, .btnDanger, .btnGhost { width: 100%; white-space: normal; }
+}

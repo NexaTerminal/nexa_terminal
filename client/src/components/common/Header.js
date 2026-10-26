@@ -16,6 +16,7 @@ const DropdownIcon = ({ name }) => {
     case 'card':     return (<svg {...c}><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>);
     case 'receipt':  return (<svg {...c}><path d="M5 3h14v18l-3-2-3 2-3-2-3 2-2-1.5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>);
     case 'users':    return (<svg {...c}><circle cx="9" cy="9" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 11a3 3 0 0 0 0-6"/><path d="M21 20a6 6 0 0 0-5-5.9"/></svg>);
+    case 'shield':   return (<svg {...c}><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>);
     case 'logout':   return (<svg {...c}><path d="M10 17l-5-5 5-5"/><path d="M5 12h12"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg>);
     case 'sliders':  return (<svg {...c}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>);
     case 'badge':    return (<svg {...c}><circle cx="12" cy="9" r="6"/><path d="M9 14.5 8 22l4-2.5L16 22l-1-7.5"/></svg>);
@@ -360,6 +361,14 @@ const Header = ({ isTerminal = false }) => {
               <span className={styles['dropdown-icon']}><DropdownIcon name="card" /></span>
               Сметка
             </Link>
+            <Link
+              to="/terminal/my-data"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}><DropdownIcon name="shield" /></span>
+              Мои податоци
+            </Link>
             {BILLING_UI_ENABLED && (
               <Link
                 to="/terminal/billing"
@@ -669,6 +678,9 @@ const Header = ({ isTerminal = false }) => {
             </Link>
             <Link to="/terminal/subscription" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметка</span>
+            </Link>
+            <Link to="/terminal/my-data" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+              <span>Мои податоци</span>
             </Link>
             {BILLING_UI_ENABLED && (
               <Link to="/terminal/billing" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>

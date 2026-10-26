@@ -13,7 +13,7 @@ const { ObjectId } = require('mongodb');
  * re-prompt (e.g. after a version bump).
  */
 
-const FEATURES = ['blog', 'case', 'topic', 'fair', 'tender', 'newsletterAd', 'proRequest'];
+const FEATURES = ['blog', 'case', 'topic', 'fair', 'tender', 'newsletterAd', 'proRequest', 'proJoin'];
 
 function userId(req) {
   const id = req.user && (req.user._id || req.user.id);

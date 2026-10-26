@@ -8,6 +8,9 @@ import { viewerRoleFor, counterpartName } from '../../../components/chatbot/ProC
 import ProRequestThread from '../../../components/proRequests/ProRequestThread';
 import AiTranscript from '../../../components/proRequests/AiTranscript';
 import ProRequestsApiService from '../../../services/proRequestsApi';
+import FeatureTermsModal from '../../../components/terminal/FeatureTermsModal';
+import useTermsGate from '../../../hooks/useTermsGate';
+import { CURRENT_VERSIONS } from '../../../data/featureTerms';
 import styles from './RequestsPage.module.css';
 
 const STATUS_LABEL = {
@@ -72,6 +75,7 @@ function timeAgo(d) {
  */
 export default function RequestsPage({ view = 'mine' }) {
   const { currentUser } = useAuth();
+  const { requireTerms, termsModal } = useTermsGate();
   const role = view === 'admin' ? 'admin' : (view === 'assigned' || view === 'pro' || view === 'board') ? 'pro' : 'user';
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -156,12 +160,17 @@ export default function RequestsPage({ view = 'mine' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLinkId, loading, items]);
 
-  async function claim() {
+  // First join shows the confidentiality terms once (recorded per user); later joins go straight in.
+  function claim() {
     if (acting || !selected) return;
+    requireTerms('proJoin', doClaim);
+  }
+
+  async function doClaim() {
+    if (!selected) return;
     setActing(true); setError(null);
     try {
-      // Joining the conversation = accepting the terms (implied consent).
-      const res = await ProRequestsApiService.claim(selected._id, { acceptLiability: true, consentVersion: 1 });
+      const res = await ProRequestsApiService.claim(selected._id, { acceptLiability: true, consentVersion: CURRENT_VERSIONS.proJoin });
       if (res.success) {
         setNotice('Се приклучивте во разговорот.');
         if (view === 'pro') { setSelected(res.item); load(); }
@@ -342,6 +351,7 @@ export default function RequestsPage({ view = 'mine' }) {
           </div>
         </div>
       </main>
+      {termsModal && <FeatureTermsModal {...termsModal} />}
     </div>
   );
 }

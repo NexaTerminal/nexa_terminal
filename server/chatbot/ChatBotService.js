@@ -13,6 +13,7 @@ const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, get
 const { detectInsurers, insurerName, insuranceResourcesBlock, availableInsurerNames } = require('./insurers');
 const { nbrmRatesBlock } = require('./nbrmRates');
 const { expandAccountingQuery } = require('./accountingTerms');
+const { validateCitations } = require('./citationValidator');
 
 // Macedonian stopwords for keyword extraction (words that carry no legal
 // meaning in a search). Short words (<4 chars) are dropped separately.
@@ -762,6 +763,42 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    * (claimed pro request). The AI must stay helpful but stop acting as the final
    * authority and actively defer to the human. Prepended to the stance prefix.
    */
+  /**
+   * Check every „Член N" in the answer against the retrieved citable articles
+   * (citationValidator). Unverified numbers get an inline ⚠ + footnote; the
+   * outcome is logged to ai_citation_checks (90-day TTL) so we can see which
+   * character invents articles. Never throws — on failure the answer passes as is.
+   */
+  _checkCitations(answer, docs, { userId, agent, conversationId } = {}) {
+    let result;
+    try {
+      result = validateCitations(answer, docs, isCitableSource);
+    } catch (e) {
+      console.warn('[citations] validation failed:', e.message);
+      return { text: answer, citations: [], unverified: [], cited: 0 };
+    }
+    if (result.unverified.length) {
+      console.warn(`⚠️  [citations] ${agent}: unverified article(s) ${result.unverified.join(', ')}`);
+    }
+    if (this.db && result.cited > 0) {
+      const col = this.db.collection('ai_citation_checks');
+      if (!this._citationIndexReady) {
+        this._citationIndexReady = true;
+        col.createIndex({ at: 1 }, { expireAfterSeconds: 90 * 24 * 3600 }).catch(() => {});
+      }
+      col.insertOne({
+        at: new Date(),
+        userId: userId ? String(userId) : null,
+        agent,
+        conversationId: conversationId ? String(conversationId) : null,
+        cited: result.cited,
+        verified: result.citations.map(c => c.article),
+        unverified: result.unverified,
+      }).catch(e => console.warn('[citations] log failed:', e.message));
+    }
+    return result;
+  }
+
   _humanProDirective() {
     return (
       'ВАЖНО — ова е групен разговор: корисникот, ти и човек-професионалец (адвокат/експерт) кого корисникот го поканил. ' +
@@ -872,8 +909,11 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       console.log(`✓ [RAG DEBUG] LLM response received in ${llmTime}ms (${response.length} characters)`);
       console.log(`\n✅ [RAG DEBUG] Full RAG pipeline completed successfully\n`);
 
-      // Parse suggestions from response
-      const { cleanResponse, suggestions } = this.parseSuggestions(response);
+      // Parse suggestions from response, then verify every cited article.
+      const parsed = this.parseSuggestions(response);
+      const { suggestions } = parsed;
+      const check = this._checkCitations(parsed.cleanResponse, relevantDocs, { userId, agent, conversationId });
+      const cleanResponse = check.text;
 
       // Step 5: Track usage (increment question count)
       await this.incrementUsageCount(userId);
@@ -897,6 +937,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
               pageNumber: doc.metadata?.pageNumber || null,
               snippet: doc.pageContent?.substring(0, 200) || ''
             })),
+            citations: check.citations,
+            unverifiedCitations: check.unverified,
             timestamp: new Date()
           });
 
@@ -915,6 +957,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       const result = {
         answer: cleanResponse,
         suggestions,
+        citations: check.citations,
+        unverifiedCitations: check.unverified,
         sources: relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
           documentName: doc.metadata?.documentName || 'Unknown',
           confidence: doc.metadata?.score || 0,
@@ -1902,11 +1946,20 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       }
 
       // Parse suggestions from the complete response
-      const { cleanResponse, suggestions } = this.parseSuggestions(fullResponse);
+      const parsed = this.parseSuggestions(fullResponse);
+      const { suggestions } = parsed;
 
       // Send suggestions event if any
       if (suggestions.length > 0) {
         onEvent({ type: 'suggestions', data: suggestions });
+      }
+
+      // Verify every cited article; the client swaps in the checked text
+      // (⚠ on unverified numbers) and shows the verified ones as chips.
+      const check = this._checkCitations(parsed.cleanResponse, relevantDocs, { userId, agent, conversationId });
+      const cleanResponse = check.text;
+      if (check.cited > 0) {
+        onEvent({ type: 'citations', data: { content: cleanResponse, citations: check.citations, unverified: check.unverified } });
       }
 
       // Track usage
@@ -1931,6 +1984,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
               confidence: doc.metadata?.score || 0,
               snippet: doc.pageContent?.substring(0, 200) || ''
             })),
+            citations: check.citations,
+            unverifiedCitations: check.unverified,
             timestamp: new Date()
           });
           messageId = aiMsg?.messageId || null;

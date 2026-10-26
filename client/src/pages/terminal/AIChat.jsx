@@ -15,6 +15,7 @@ import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
 import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi, AI_MENTION_TIP } from '../../lib/proChat';
 import ProProfileModal from '../../components/chatbot/ProProfileModal';
+import CitationChips from '../../components/chatbot/CitationChips';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
 import useCreditHandler from '../../hooks/useCreditHandler';
@@ -157,6 +158,8 @@ const AIChat = () => {
             type: msg.type,
             content: msg.content,
             sources: msg.sources || [],
+            citations: msg.citations || [],
+            unverifiedCitations: msg.unverifiedCitations || [],
             timestamp: new Date(msg.timestamp),
             messageId: msg.messageId || null,
             feedback: msg.feedback || null,
@@ -361,6 +364,8 @@ const AIChat = () => {
           type: msg.type,
           content: msg.content,
           sources: msg.sources || [],
+          citations: msg.citations || [],
+          unverifiedCitations: msg.unverifiedCitations || [],
           timestamp: new Date(msg.timestamp),
           messageId: msg.messageId || null,
           feedback: msg.feedback || null,
@@ -497,6 +502,18 @@ const AIChat = () => {
             return updated;
           });
         },
+        // Server-checked answer: replaces the streamed text (⚠ on unverified
+        // article numbers) and carries the verified citations for the chips.
+        onCitations: ({ content, citations, unverified }) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.type === 'ai') {
+              updated[updated.length - 1] = { ...last, content, citations, unverifiedCitations: unverified };
+            }
+            return updated;
+          });
+        },
         onDone: (data) => {
           if (data.creditsOnly) return;
           setMessages(prev => {
@@ -549,6 +566,8 @@ const AIChat = () => {
             type: 'ai',
             content: data.data.answer,
             sources: data.data.sources,
+            citations: data.data.citations || [],
+            unverifiedCitations: data.data.unverifiedCitations || [],
             suggestions: data.data.suggestions || [],
             timestamp: new Date()
           };
@@ -907,6 +926,10 @@ const AIChat = () => {
                           message.content
                         )}
                       </div>
+
+                      {isAi && !message.isStreaming && (message.citations?.length > 0 || message.unverifiedCitations?.length > 0) && (
+                        <CitationChips citations={message.citations || []} unverified={message.unverifiedCitations || []} />
+                      )}
 
                       {/* Feedback buttons for AI messages (not during streaming) */}
                       {message.type === 'ai' && !message.isStreaming && message.content && (

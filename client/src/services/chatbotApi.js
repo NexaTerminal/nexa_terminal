@@ -119,10 +119,10 @@ class ChatbotApiService {
    * Send a message and stream the response via SSE
    * @param {string} conversationId - Conversation ID
    * @param {string} question - User's question
-   * @param {Object} callbacks - { onToken, onSources, onSuggestions, onDone, onError }
+   * @param {Object} callbacks - { onToken, onSources, onSuggestions, onCitations, onDone, onError }
    * @returns {Promise<void>}
    */
-  static async sendMessageStream(conversationId, question, { onToken, onSources, onSuggestions, onDone, onError }, agent = null, from = null, humanProActive = false, groupMention = false) {
+  static async sendMessageStream(conversationId, question, { onToken, onSources, onSuggestions, onCitations, onDone, onError }, agent = null, from = null, humanProActive = false, groupMention = false) {
     const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
     const token = localStorage.getItem('token');
 
@@ -185,6 +185,7 @@ class ChatbotApiService {
             case 'sources': onSources?.(event.data); break;
             case 'done': onDone?.(event.data); break;
             case 'suggestions': onSuggestions?.(event.data); break;
+            case 'citations': onCitations?.(event.data); break;
             case 'credits': onDone?.({ ...event.data, creditsOnly: true }); break;
             case 'error': onError?.(event.data); break;
             default: break;

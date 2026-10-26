@@ -151,6 +151,8 @@ class ConversationService {
       if (messageData.type === 'ai') {
         if (messageData.sources) message.sources = messageData.sources;
         if (messageData.agent) message.agent = messageData.agent;
+        if (messageData.citations?.length) message.citations = messageData.citations;
+        if (messageData.unverifiedCitations?.length) message.unverifiedCitations = messageData.unverifiedCitations;
       }
 
       const result = await this.collection.updateOne(

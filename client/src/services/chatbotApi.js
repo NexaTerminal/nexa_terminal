@@ -215,6 +215,32 @@ class ChatbotApiService {
   }
 
   /**
+   * Move all of the user's conversations (one character's when agent is set) to the trash
+   * @param {string} [agent] - AI Team character key
+   */
+  static async deleteAllConversations(agent) {
+    const q = agent ? `?agent=${encodeURIComponent(agent)}` : '';
+    return ApiService.delete(`/chatbot/conversations${q}`);
+  }
+
+  /**
+   * Deleted conversations kept in the trash („Корпа") for 30 days
+   * @param {string} [agent] - AI Team character key
+   */
+  static async getTrash(agent) {
+    const q = agent ? `?agent=${encodeURIComponent(agent)}` : '';
+    return ApiService.get(`/chatbot/conversations/trash${q}`);
+  }
+
+  static async restoreConversation(conversationId) {
+    return ApiService.put(`/chatbot/conversations/${conversationId}/restore`, {});
+  }
+
+  static async purgeConversation(conversationId) {
+    return ApiService.delete(`/chatbot/conversations/${conversationId}/permanent`);
+  }
+
+  /**
    * Rate an AI message (thumbs up/down)
    * @param {string} conversationId - Conversation ID
    * @param {string} messageId - Message ID

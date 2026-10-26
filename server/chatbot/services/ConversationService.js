@@ -7,6 +7,12 @@
 const { ObjectId } = require('mongodb');
 const crypto = require('crypto');
 
+// Deleted threads sit in the user's „Корпа" (trash) this long, then a TTL index
+// on `purgeAt` (config/chatbotIndexes.js) removes them for good.
+const TRASH_DAYS = 30;
+// Matches live threads only (`deletedAt` missing or null).
+const NOT_DELETED = { deletedAt: null };
+
 class ConversationService {
   constructor(database) {
     this.db = database;
@@ -177,7 +183,7 @@ class ConversationService {
     try {
       // userId is optional: routes pass it for ownership checks; internal callers
       // (already-authorized RAG path) may omit it. Only filter when provided.
-      const query = { _id: new ObjectId(conversationId) };
+      const query = { _id: new ObjectId(conversationId), ...NOT_DELETED };
       if (userId !== undefined && userId !== null) {
         query.userId = userId.toString();
       }
@@ -204,7 +210,7 @@ class ConversationService {
    */
   async getUserConversations(userId, limit = 20, offset = 0, options = {}) {
     try {
-      const query = { userId: userId.toString() };
+      const query = { userId: userId.toString(), ...NOT_DELETED };
 
       // Add botType filter if specified
       if (options.botType) {
@@ -281,7 +287,7 @@ class ConversationService {
     try {
       if (!agent) return null;
       return await this.collection.findOne(
-        { userId: userId.toString(), agent },
+        { userId: userId.toString(), agent, ...NOT_DELETED },
         { sort: { updatedAt: -1 } }
       );
     } catch (error) {
@@ -300,7 +306,8 @@ class ConversationService {
       // Look for active conversation
       const activeConversation = await this.collection.findOne({
         userId: userId.toString(),
-        isActive: true
+        isActive: true,
+        ...NOT_DELETED
       });
 
       if (activeConversation) {
@@ -349,20 +356,30 @@ class ConversationService {
     }
   }
 
+  /** `$set` that moves a thread to the trash; purged automatically after TRASH_DAYS. */
+  static trashFields(now = new Date()) {
+    return {
+      deletedAt: now,
+      purgeAt: new Date(now.getTime() + TRASH_DAYS * 24 * 60 * 60 * 1000),
+      isActive: false
+    };
+  }
+
   /**
-   * Delete conversation
+   * Delete conversation — moves it to the trash („Корпа"), where it can be
+   * restored for TRASH_DAYS before it is permanently removed.
    * @param {string} conversationId - Conversation ID
    * @param {string} userId - User ID (for authorization)
    * @returns {Object} - { success: true }
    */
   async deleteConversation(conversationId, userId) {
     try {
-      const result = await this.collection.deleteOne({
-        _id: new ObjectId(conversationId),
-        userId: userId.toString()
-      });
+      const result = await this.collection.updateOne(
+        { _id: new ObjectId(conversationId), userId: userId.toString(), ...NOT_DELETED },
+        { $set: ConversationService.trashFields() }
+      );
 
-      if (result.deletedCount === 0) {
+      if (result.matchedCount === 0) {
         throw new Error('Conversation not found or unauthorized');
       }
 
@@ -371,6 +388,54 @@ class ConversationService {
       console.error('Error deleting conversation:', error);
       throw error;
     }
+  }
+
+  /**
+   * Move ALL of a user's live threads to the trash — scoped to one character
+   * when `agent` is given, otherwise every AI Team thread (marketing excluded).
+   * @returns {Object} - { success: true, count }
+   */
+  async deleteAllConversations(userId, options = {}) {
+    const query = { userId: userId.toString(), ...NOT_DELETED };
+    if (options.agent) query.agent = options.agent;
+    else query.botType = { $ne: 'marketing' };
+    const result = await this.collection.updateMany(query, { $set: ConversationService.trashFields() });
+    return { success: true, count: result.modifiedCount };
+  }
+
+  /**
+   * The user's trashed threads (newest deletion first), optionally per character.
+   * @returns {Object} - { conversations: [{ _id, title, deletedAt, purgeAt, messageCount, agent }] }
+   */
+  async getTrash(userId, options = {}) {
+    const query = { userId: userId.toString(), deletedAt: { $ne: null } };
+    if (options.agent) query.agent = options.agent;
+    const conversations = await this.collection
+      .find(query)
+      .sort({ deletedAt: -1 })
+      .limit(100)
+      .project({ _id: 1, title: 1, deletedAt: 1, purgeAt: 1, updatedAt: 1, messageCount: 1, agent: 1 })
+      .toArray();
+    return { conversations };
+  }
+
+  /** Bring a trashed thread back into the history list. */
+  async restoreConversation(conversationId, userId) {
+    const result = await this.collection.updateOne(
+      { _id: new ObjectId(conversationId), userId: userId.toString(), deletedAt: { $ne: null } },
+      { $unset: { deletedAt: '', purgeAt: '' } }
+    );
+    if (result.matchedCount === 0) throw new Error('Conversation not found or unauthorized');
+    return { success: true };
+  }
+
+  /** Permanently delete a thread that is already in the trash (no 30-day wait). */
+  async purgeConversation(conversationId, userId) {
+    const result = await this.collection.deleteOne({
+      _id: new ObjectId(conversationId), userId: userId.toString(), deletedAt: { $ne: null }
+    });
+    if (result.deletedCount === 0) throw new Error('Conversation not found or unauthorized');
+    return { success: true };
   }
 
   /**
@@ -506,3 +571,4 @@ class ConversationService {
 }
 
 module.exports = ConversationService;
+module.exports.TRASH_DAYS = TRASH_DAYS;

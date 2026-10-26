@@ -42,6 +42,15 @@ async function initializeChatbotDatabase(database) {
         name: 'isActive_userId_idx',
         key: { isActive: 1, userId: 1 },
         background: true
+      },
+      {
+        // Trash auto-purge: a deleted thread gets `purgeAt` = deletedAt + 30 days
+        // and MongoDB removes it once that date passes. Live threads have no
+        // `purgeAt`, so the TTL monitor never touches them.
+        name: 'purgeAt_ttl_idx',
+        key: { purgeAt: 1 },
+        background: true,
+        expireAfterSeconds: 0
       }
     ];
 
@@ -50,7 +59,8 @@ async function initializeChatbotDatabase(database) {
       try {
         await conversationsCollection.createIndex(index.key, {
           name: index.name,
-          background: index.background
+          background: index.background,
+          ...(index.expireAfterSeconds !== undefined && { expireAfterSeconds: index.expireAfterSeconds })
         });
         console.log(`✅ Created index: ${index.name}`);
       } catch (error) {

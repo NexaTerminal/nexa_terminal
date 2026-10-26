@@ -4,6 +4,7 @@ const { authenticateJWT } = require('../middleware/auth');
 const { checkCredits, deductCredits } = require('../middleware/creditMiddleware');
 const chatBotService = require('../chatbot/ChatBotService');
 const AgentMemoryService = require('../chatbot/services/agentMemoryService');
+const { TRASH_DAYS } = require('../chatbot/services/ConversationService');
 const UserMemoryService = require('../services/userMemoryService');
 const { getAgentName } = require('../chatbot/agentProfiles');
 const ProRequestsService = require('../services/proRequestsService');
@@ -340,6 +341,80 @@ router.get('/conversations/latest', authenticateJWT, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/chatbot/conversations/trash
+ * @desc    The user's deleted threads („Корпа"), kept 30 days before permanent
+ *          deletion. Must precede '/conversations/:id'.
+ * @query   agent? - only this character's threads
+ * @returns { conversations: array, retentionDays: number }
+ */
+router.get('/conversations/trash', authenticateJWT, async (req, res) => {
+  try {
+    const agent = req.query.agent ? String(req.query.agent) : undefined;
+    const result = await getConversationService(req).getTrash(req.user._id, { agent });
+    return res.status(200).json({ success: true, data: { ...result, retentionDays: TRASH_DAYS } });
+  } catch (error) {
+    console.error('❌ Error getting trash:', error);
+    return res.status(500).json({ success: false, message: 'Не можевме да ја вчитаме корпата.' });
+  }
+});
+
+/**
+ * @route   DELETE /api/chatbot/conversations
+ * @desc    Move ALL of the user's threads (or one character's, with ?agent=) to the trash
+ * @returns { count: number }
+ */
+router.delete('/conversations', authenticateJWT, async (req, res) => {
+  try {
+    const agent = req.query.agent ? String(req.query.agent) : undefined;
+    const result = await getConversationService(req).deleteAllConversations(req.user._id, { agent });
+    return res.status(200).json({
+      success: true,
+      data: { count: result.count },
+      message: `Разговорите се преместени во Корпа. Трајно се бришат по ${TRASH_DAYS} дена.`,
+    });
+  } catch (error) {
+    console.error('❌ Error deleting all conversations:', error);
+    return res.status(500).json({ success: false, message: 'Не можевме да ги избришеме разговорите.' });
+  }
+});
+
+/**
+ * @route   PUT /api/chatbot/conversations/:id/restore
+ * @desc    Restore a thread from the trash
+ */
+router.put('/conversations/:id/restore', authenticateJWT, async (req, res) => {
+  try {
+    await getConversationService(req).restoreConversation(req.params.id, req.user._id);
+    return res.status(200).json({ success: true, message: 'Конверзацијата е вратена.' });
+  } catch (error) {
+    console.error('❌ Error restoring conversation:', error);
+    const notFound = error.message.includes('not found');
+    return res.status(notFound ? 404 : 500).json({
+      success: false,
+      message: notFound ? 'Конверзацијата не е пронајдена во корпата.' : 'Не можевме да ја вратиме конверзацијата.',
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/chatbot/conversations/:id/permanent
+ * @desc    Permanently delete a thread that is already in the trash
+ */
+router.delete('/conversations/:id/permanent', authenticateJWT, async (req, res) => {
+  try {
+    await getConversationService(req).purgeConversation(req.params.id, req.user._id);
+    return res.status(200).json({ success: true, message: 'Конверзацијата е трајно избришана.' });
+  } catch (error) {
+    console.error('❌ Error purging conversation:', error);
+    const notFound = error.message.includes('not found');
+    return res.status(notFound ? 404 : 500).json({
+      success: false,
+      message: notFound ? 'Конверзацијата не е пронајдена во корпата.' : 'Не можевме трајно да ја избришеме конверзацијата.',
+    });
+  }
+});
+
+/**
  * @route   GET /api/chatbot/conversations/:id
  * @desc    Get single conversation with all messages
  * @access  Private (requires authentication)
@@ -623,7 +698,7 @@ router.put('/conversations/:id/archive', authenticateJWT, async (req, res) => {
 
 /**
  * @route   DELETE /api/chatbot/conversations/:id
- * @desc    Delete a conversation
+ * @desc    Delete a conversation (moves it to the 30-day trash)
  * @access  Private (requires authentication)
  * @returns { success: true }
  */
@@ -637,7 +712,7 @@ router.delete('/conversations/:id', authenticateJWT, async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Конверзацијата е избришана.',
+      message: 'Конверзацијата е преместена во Корпа.',
     });
 
   } catch (error) {

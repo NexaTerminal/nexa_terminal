@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import ConversationItem from './ConversationItem';
 import ChatbotApiService from '../../services/chatbotApi';
+import { getAgent } from '../../config/aiAgents';
 import styles from '../../styles/terminal/ConversationSidebar.module.css';
 
 /**
@@ -13,7 +15,13 @@ import styles from '../../styles/terminal/ConversationSidebar.module.css';
  * - Scrollable list of conversations
  * - Load more pagination
  * - Active conversation highlighting
+ * - „Корпа" (trash): deleted threads are kept 30 days (restore / delete forever),
+ *   then the server purges them; „Избриши ги сите" trashes every thread at once
  */
+
+const DAY_MS = 86400000;
+const daysLeft = (purgeAt) => Math.max(0, Math.ceil((new Date(purgeAt) - Date.now()) / DAY_MS));
+const daysLabel = (n) => `${n} ${n === 1 ? 'ден' : 'дена'}`;
 const ConversationSidebar = ({
   currentConversationId,
   onSelectConversation,
@@ -29,6 +37,15 @@ const ConversationSidebar = ({
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 20;
+
+  const [view, setView] = useState('list'); // 'list' | 'trash'
+  const [trash, setTrash] = useState([]);
+  const [trashLoading, setTrashLoading] = useState(false);
+  const [retentionDays, setRetentionDays] = useState(30);
+  const [purgeArmedId, setPurgeArmedId] = useState(null);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const agentName = agent ? getAgent(agent).name : null;
 
   // Fetch conversations
   const fetchConversations = async (reset = false) => {
@@ -63,8 +80,81 @@ const ConversationSidebar = ({
   // shows only its own threads).
   useEffect(() => {
     fetchConversations(true);
+    setView('list');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agent]);
+
+  const fetchTrash = async () => {
+    try {
+      setTrashLoading(true);
+      const response = await ChatbotApiService.getTrash(agent);
+      if (response.success) {
+        setTrash(response.data.conversations);
+        setRetentionDays(response.data.retentionDays || 30);
+      }
+    } catch (err) {
+      console.error('Error fetching trash:', err);
+    } finally {
+      setTrashLoading(false);
+    }
+  };
+
+  const openTrash = () => {
+    setView('trash');
+    setPurgeArmedId(null);
+    fetchTrash();
+  };
+
+  const handleRestore = async (conversationId) => {
+    try {
+      const response = await ChatbotApiService.restoreConversation(conversationId);
+      if (response.success) {
+        setTrash((prev) => prev.filter((c) => c._id !== conversationId));
+        fetchConversations(true);
+      }
+    } catch (err) {
+      console.error('Error restoring conversation:', err);
+      alert('Не можевме да ја вратиме конверзацијата.');
+    }
+  };
+
+  // Two-step: first click arms the button, second click deletes for good.
+  const handlePurge = async (conversationId) => {
+    if (purgeArmedId !== conversationId) {
+      setPurgeArmedId(conversationId);
+      return;
+    }
+    try {
+      const response = await ChatbotApiService.purgeConversation(conversationId);
+      if (response.success) setTrash((prev) => prev.filter((c) => c._id !== conversationId));
+    } catch (err) {
+      console.error('Error purging conversation:', err);
+      alert('Не можевме трајно да ја избришеме конверзацијата.');
+    } finally {
+      setPurgeArmedId(null);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      setDeletingAll(true);
+      const response = await ChatbotApiService.deleteAllConversations(agent);
+      if (response.success) {
+        setConversations([]);
+        setHasMore(false);
+        setOffset(0);
+        setShowDeleteAll(false);
+        onNewConversation();
+      } else {
+        alert('Не можевме да ги избришеме разговорите.');
+      }
+    } catch (err) {
+      console.error('Error deleting all conversations:', err);
+      alert('Грешка при бришење на разговорите.');
+    } finally {
+      setDeletingAll(false);
+    }
+  };
 
   // Refresh when trigger changes (after sending a message)
   useEffect(() => {
@@ -168,9 +258,49 @@ const ConversationSidebar = ({
         </button>
       </div>
 
-      {/* Conversations List */}
+      {/* Conversations List / Trash */}
       <div className={styles.conversationListContainer}>
-        {isLoading && conversations.length === 0 ? (
+        {view === 'trash' ? (
+          <div className={styles.trashView}>
+            <button type="button" className={styles.trashBack} onClick={() => setView('list')}>
+              ← Назад кон разговорите
+            </button>
+            <p className={styles.trashNote}>
+              Избришаните разговори се чуваат {daysLabel(retentionDays)}, а потоа трајно се бришат.
+            </p>
+            {trashLoading && trash.length === 0 ? (
+              <div className={styles.loadingMessage}>Вчитување...</div>
+            ) : trash.length === 0 ? (
+              <div className={styles.emptyConversations}><p>Корпата е празна.</p></div>
+            ) : (
+              <div className={styles.conversationList}>
+                {trash.map((c) => (
+                  <div key={c._id} className={styles.trashItem}>
+                    <div className={styles.conversationTitle}>{c.title}</div>
+                    <div className={styles.conversationMeta}>
+                      <span className={styles.conversationTime}>
+                        Трајно се брише за {daysLabel(daysLeft(c.purgeAt))}
+                      </span>
+                    </div>
+                    <div className={styles.trashActions}>
+                      <button type="button" className={styles.trashRestoreBtn} onClick={() => handleRestore(c._id)}>
+                        Врати
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.trashPurgeBtn}
+                        onClick={() => handlePurge(c._id)}
+                        onMouseLeave={() => purgeArmedId === c._id && setPurgeArmedId(null)}
+                      >
+                        {purgeArmedId === c._id ? 'Потврди трајно бришење' : 'Избриши трајно'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : isLoading && conversations.length === 0 ? (
           <div className={styles.loadingMessage}>Вчитување...</div>
         ) : error ? (
           <div className={styles.errorMessage}>{error}</div>
@@ -216,7 +346,53 @@ const ConversationSidebar = ({
           </>
         )}
       </div>
+
+      {/* Footer: trash + erase all */}
+      {view === 'list' && (
+        <div className={styles.sidebarFooter}>
+          <button type="button" className={styles.footerBtn} onClick={openTrash}>
+            🗑 Корпа
+          </button>
+          {conversations.length > 0 && (
+            <button
+              type="button"
+              className={`${styles.footerBtn} ${styles.footerBtnDanger}`}
+              onClick={() => setShowDeleteAll(true)}
+            >
+              Избриши ги сите
+            </button>
+          )}
+        </div>
+      )}
     </div>
+
+    {showDeleteAll && createPortal(
+      <div className={styles.deleteModalOverlay} onClick={() => !deletingAll && setShowDeleteAll(false)}>
+        <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.deleteModalIcon}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </div>
+          <h3 className={styles.deleteModalTitle}>Избриши ги сите разговори</h3>
+          <p className={styles.deleteModalText}>
+            Сите разговори{agentName ? <> со <strong>{agentName}</strong></> : ''} ќе се преместат во Корпа.
+            Таму можете да ги вратите во наредните {daysLabel(retentionDays)}, а потоа трајно се бришат.
+          </p>
+          <div className={styles.deleteModalActions}>
+            <button className={styles.deleteModalCancel} onClick={() => setShowDeleteAll(false)} disabled={deletingAll}>
+              Откажи
+            </button>
+            <button className={styles.deleteModalConfirm} onClick={handleDeleteAll} disabled={deletingAll}>
+              {deletingAll ? 'Бришење...' : 'Избриши ги сите'}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 };

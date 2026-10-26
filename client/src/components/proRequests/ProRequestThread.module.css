@@ -43,6 +43,8 @@
 .rowLast { margin-bottom: 6px; }
 .avatar, .avatarSpacer { width: 28px; height: 28px; flex-shrink: 0; }
 .avatar {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
   border-radius: 50%; object-fit: cover; object-position: 50% 18%;
   display: inline-flex; align-items: center; justify-content: center;
   background: #e2e8f0; color: #334155; font-size: 0.75rem; font-weight: 700;

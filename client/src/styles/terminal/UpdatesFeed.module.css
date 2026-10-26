@@ -1789,6 +1789,8 @@
   transform: translateY(-2px);
 }
 .aiChipPhoto {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
   width: 52px;
   height: 52px;
   border-radius: 50%;

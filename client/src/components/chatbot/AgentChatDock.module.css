@@ -48,7 +48,10 @@
   flex-shrink: 0;
 }
 .hdLeft { display: flex; align-items: center; gap: 10px; min-width: 0; position: relative; }
-.hdAvatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; }
+.hdAvatar {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; }
 .hdAvatarFallback { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.2); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .hdText { display: flex; flex-direction: column; min-width: 0; }
 .hdName { font-size: 0.92rem; font-weight: 800; line-height: 1.1; }
@@ -79,7 +82,10 @@
 }
 
 .welcome { display: flex; flex-direction: column; align-items: center; text-align: center; margin: auto 0; padding: 10px; }
-.welcomeAvatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); margin-bottom: 10px; }
+.welcomeAvatar {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 64px; height: 64px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; box-shadow: 0 4px 16px rgba(0,0,0,0.12); margin-bottom: 10px; }
 .welcomeText { margin: 0 0 14px; font-size: 0.9rem; color: var(--color-neutral-700, #374151); }
 .starters { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .starterChip {
@@ -98,7 +104,10 @@
 .row { display: flex; gap: 8px; align-items: flex-end; }
 .rowAi { justify-content: flex-start; }
 .rowUser { justify-content: flex-end; }
-.msgAvatar { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; flex-shrink: 0; }
+.msgAvatar {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; flex-shrink: 0; }
 .bubble { max-width: 80%; padding: 9px 12px; border-radius: 14px; font-size: 0.87rem; line-height: 1.5; word-wrap: break-word; overflow-wrap: anywhere; }
 .bubbleAi { background: #fff; border: 1px solid var(--color-border, #e5e7eb); border-bottom-left-radius: 4px; color: var(--color-neutral-800, #1f2937); }
 .bubbleUser { background: var(--color-primary, #1E4DB7); color: #fff; border-bottom-right-radius: 4px; white-space: pre-wrap; }

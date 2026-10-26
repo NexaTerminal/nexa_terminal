@@ -120,10 +120,12 @@
 }
 .backBtn svg { display: block; }
 .backBtn:hover { background: var(--color-neutral-50, #f8f9fa); color: var(--color-primary, #1E4DB7); border-color: var(--color-primary, #1E4DB7); }
-.avatarWrap2 { position: relative; flex-shrink: 0; width: 48px; height: 48px; }
+.avatarWrap2 { position: relative; flex-shrink: 0; width: 53px; height: 53px; }
 .titleAvatar {
-  width: 48px;
-  height: 48px;
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 53px;
+  height: 53px;
   border-radius: 50%;
   object-fit: cover;
   object-position: 50% 18%;
@@ -148,7 +150,9 @@
 .rowUser { justify-content: flex-end; }
 .rowUser .bubbleCol { align-items: flex-end; }
 .msgAvatar {
-  width: 36px; height: 36px;
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 40px; height: 40px;
   border-radius: 50%;
   object-fit: cover;
   object-position: 50% 18%;
@@ -157,7 +161,7 @@
   border: 1px solid var(--color-border, #e5e7eb);
 }
 .msgAvatarFallback {
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--color-neutral-100, #f3f4f6);
@@ -204,7 +208,9 @@
   margin: auto 0;
 }
 .welcomeAvatar {
-  width: 96px; height: 96px;
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  width: 106px; height: 106px;
   border-radius: 50%;
   object-fit: cover;
   object-position: 50% 18%;
@@ -737,6 +743,8 @@
 }
 
 .handoffAvatar {
+  /* Always a true circle: never squeezed by flex, same face framing everywhere. */
+  aspect-ratio: 1 / 1; flex-shrink: 0; min-width: 0; max-width: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
   width: 22px;
   height: 22px;
   border-radius: 50%;

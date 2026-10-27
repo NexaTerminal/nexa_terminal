@@ -27,17 +27,18 @@ const ProRequestsService = require('../services/proRequestsService');
  * - PUT /api/chatbot/conversations/:id/title - Update conversation title
  */
 
-// While a human Pro is in a conversation the user talks to the Pro, not the AI:
-// the client sends those messages to the pro_requests thread. This server-side
-// guard catches stale clients / other entry points so the AI never jumps into a
+// From the moment the user invites a Pro (request `open`, waiting on the board)
+// and while the Pro is in (`active`), the user talks to the Pro, not the AI: the
+// client sends those messages to the pro_requests thread. This server-side guard
+// catches stale clients / other entry points so the AI never jumps into a
 // human↔human conversation (and no credit or weekly question is spent).
 async function proActiveFor(req, conversationId) {
   try {
     const db = req.app.locals.db;
     if (!db) return null;
     return await db.collection('pro_requests').findOne(
-      { 'context.conversationId': String(conversationId), status: 'active' },
-      { projection: { _id: 1 } }
+      { 'context.conversationId': String(conversationId), status: { $in: ['open', 'active'] } },
+      { projection: { _id: 1, assignedProName: 1, messages: { $slice: -GROUP_THREAD_FOR_AI } }, sort: { updatedAt: -1 } }
     );
   } catch (_) {
     return null; // never block the AI on a lookup error
@@ -47,12 +48,26 @@ async function proActiveFor(req, conversationId) {
 const PRO_ACTIVE_RESPONSE = {
   success: false,
   code: 'PRO_ACTIVE',
-  message: 'Во овој разговор е вклучен професионалец — пораките одат до него. Напишете @ai во пораката ако сакате и AI да одговори.',
+  message: 'Во овој разговор е поканет професионалец — пораките одат до него. Кликнете „Покани AI за коментар" ако сакате и AI да одговори.',
 };
 
 // Group chat: with a Pro in the conversation the AI only answers when the owner
-// explicitly calls it (@ai / @<name>) — the client sends `groupMention`.
-const isGroupMention = (body, question) => !!body?.groupMention && /@/.test(question || '');
+// explicitly invites it for one reply („Покани … за коментар" or @ai) — the
+// client sends `groupMention`.
+const isGroupMention = (body) => !!body?.groupMention;
+
+// How many recent user↔Pro thread messages the AI may read — ONLY on the turn
+// it was invited; otherwise it never sees the human conversation.
+const GROUP_THREAD_FOR_AI = 12;
+const groupThreadForAi = (proReq, agent) => (proReq?.messages || [])
+  .filter((m) => (m.body || '').trim())
+  .map((m) => {
+    const who = m.authorRole === 'pro' ? `Професионалец (${m.authorName || proReq.assignedProName || 'адвокат'})`
+      : m.authorRole === 'ai' ? (getAgentName(agent) || 'AI')
+      : m.authorRole === 'admin' ? 'Администратор' : 'Корисник';
+    return `${who}: ${String(m.body).slice(0, 1500)}`;
+  })
+  .join('\n');
 
 const cleanAiForThread = (t) => String(t || '')
   .replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/g, '')
@@ -483,10 +498,12 @@ router.post('/conversations/:id/ask', authenticateJWT, checkCredits(1), async (r
     await conversationService.getConversation(conversationId, userId);
 
     const proReq = await proActiveFor(req, conversationId);
-    if (proReq && !isGroupMention(req.body, question)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    if (proReq && !isGroupMention(req.body)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    // Invited into the group: the AI reads the recent user↔Pro thread for this one answer.
+    const groupContext = proReq ? (groupThreadForAi(proReq, agent) || true) : !!humanProActive;
 
     // Ask the chatbot with conversation context
-    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, !!humanProActive || !!proReq);
+    const response = await chatBotService.askQuestion(question, userId, conversationId, agent, from, groupContext);
     if (proReq) await mirrorAiToProThread(req, proReq, agent, response?.answer);
 
     try {
@@ -584,7 +601,9 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
     await conversationService.getConversation(conversationId, userId);
 
     const proReq = await proActiveFor(req, conversationId);
-    if (proReq && !isGroupMention(req.body, question)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    if (proReq && !isGroupMention(req.body)) return res.status(409).json(PRO_ACTIVE_RESPONSE);
+    // Invited into the group: the AI reads the recent user↔Pro thread for this one answer.
+    const groupContext = proReq ? (groupThreadForAi(proReq, agent) || true) : !!humanProActive;
 
     // Deduct credits BEFORE streaming starts
     const creditService = req.app.locals.creditService;
@@ -627,7 +646,7 @@ router.post('/conversations/:id/ask-stream', authenticateJWT, checkCredits(1), a
       if (proReq && event?.type === 'token' && typeof event.data === 'string') streamedAnswer += event.data;
       if (clientDisconnected) return;
       res.write(`data: ${JSON.stringify(event)}\n\n`);
-    }, agent, from, !!humanProActive || !!proReq);
+    }, agent, from, groupContext);
     if (proReq) await mirrorAiToProThread(req, proReq, agent, streamedAnswer);
 
     // Send credits info as final event

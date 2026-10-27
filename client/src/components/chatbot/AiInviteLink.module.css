@@ -1,0 +1,49 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 12px 6px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.waiting {
+  color: var(--color-text-muted, #64748b);
+}
+
+.link,
+.link:hover:not(:disabled),
+.link:active:not(:disabled),
+.link:focus:not(:disabled) {
+  /* undo the global <button> look (blue fill, shadow, hover zoom) — this is a link */
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  outline: none;
+  font: inherit;
+  line-height: inherit;
+  color: var(--color-primary, #1E4DB7);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.link:hover:not(:disabled),
+.link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.link.armed,
+.link.armed:hover:not(:disabled),
+.link.armed:focus:not(:disabled) {
+  color: #047857;
+  font-weight: 600;
+}

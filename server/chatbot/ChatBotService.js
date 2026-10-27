@@ -799,10 +799,12 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     return result;
   }
 
-  _humanProDirective() {
+  // `thread` = recent user↔Pro messages, passed ONLY when the user invited the AI.
+  _humanProDirective(thread = '') {
     return (
       'ВАЖНО — ова е групен разговор: корисникот, ти и човек-професионалец (адвокат/експерт) кого корисникот го поканил. ' +
-      'Корисникот те повика експлицитно (@ai) — професионалецот ќе го види твојот одговор. ' +
+      'Корисникот те покани експлицитно за еден коментар — професионалецот ќе го види твојот одговор. ' +
+      (thread ? `Последните пораки меѓу корисникот и професионалецот (за контекст):\n${thread}\n\n` : '') +
       'Дај краток и корисен одговор (факти, членови од закон), не му противречи на професионалецот и НЕ однесувај се како конечен авторитет. ' +
       'Секогаш упати го корисникот да провери со својот професионалец и прашај што мисли професионалецот за ова ' +
       '(на пр. „Што мисли вашиот професионалец за ова?“).\n\n'
@@ -895,7 +897,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // system prompt — any part may be empty. Order: agent flavor · hand-off
       // note · durable user memory · stance/persona.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
-      if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
+      if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
       // САЛДО: live official NBRM rates when the question involves a foreign currency.
       if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
@@ -1930,7 +1932,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 
       // Stream tokens. Prefix = agent flavor · hand-off · memory · stance.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
-      if (humanProActive) stancePrefix = this._humanProDirective() + stancePrefix;
+      if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
       // САЛДО: live official NBRM rates when the question involves a foreign currency.
       if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       let fullResponse = '';

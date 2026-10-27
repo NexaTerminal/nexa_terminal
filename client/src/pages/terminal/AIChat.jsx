@@ -13,7 +13,8 @@ import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAna
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
 import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
-import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi, AI_MENTION_TIP } from '../../lib/proChat';
+import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi } from '../../lib/proChat';
+import AiInviteLink from '../../components/chatbot/AiInviteLink';
 import ProProfileModal from '../../components/chatbot/ProProfileModal';
 import CitationChips from '../../components/chatbot/CitationChips';
 import InsufficientCreditsModal from '../../components/common/InsufficientCreditsModal';
@@ -100,6 +101,8 @@ const AIChat = () => {
   const [assignedProName, setAssignedProName] = useState(null);
   const [proMessages, setProMessages] = useState([]);
   const [proProfile, setProProfile] = useState(null);
+  // Group chat: user invited the AI to answer their NEXT message (one reply only).
+  const [aiArmed, setAiArmed] = useState(false);
   const [userRevealed, setUserRevealed] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [revealBusy, setRevealBusy] = useState(false);
@@ -342,6 +345,8 @@ const AIChat = () => {
           // IMPORTANT: no pro users yet — do NOT promise a response. Frame it as
           // "we'll check availability".
           setProNotice('Го зачувавме вашето барање и проверуваме дали има достапен професионалец што може да се вклучи. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано.');
+          // From now on messages go to the Pro thread; the AI waits to be invited.
+          if (res.item?._id) setProRequestId(res.item._id);
           if (msgIndex != null) setProCardState((s) => ({ ...s, [msgIndex]: 'invited' }));
         } else setError(res.message || 'Грешка при испраќање на барањето.');
       } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
@@ -411,13 +416,15 @@ const AIChat = () => {
         liveProId = r.id;
       }
     }
-    // Group chat: with a pro in, every message goes to the group; the AI also
-    // answers only when the user calls it (@ai / @<character name>).
+    // Group chat: once a pro is invited, every message goes to the group; the AI
+    // answers only when the user invited it for this one message (link or @ai).
     let groupText = null;
     if (liveProId) {
       const text = question.trim();
+      const invited = aiArmed || mentionsAi(text, activeAgent?.name);
+      setAiArmed(false); // one invite = one AI reply
       const sent = await sendToPro(liveProId);
-      if (!sent || !currentConversationId || !mentionsAi(text, activeAgent?.name)) return;
+      if (!sent || !currentConversationId || !invited) return;
       groupText = text;
     }
 
@@ -840,17 +847,6 @@ const AIChat = () => {
                     </button>
                   </div>
                 )}
-                {proProfile && (
-                  <div className={styles.groupTip}>
-                    <span>💡 {AI_MENTION_TIP(activeAgent?.name)}</span>
-                    {!mentionsAi(question, activeAgent?.name) && (
-                      <button type="button" className={styles.mentionChip}
-                        onClick={() => { setQuestion((v) => `@ai ${v}`.trimEnd() + ' '); textareaRef.current?.focus(); }}>
-                        @ai
-                      </button>
-                    )}
-                  </div>
-                )}
                 {showProModal && (
                   <ProProfileModal profile={proProfile} onClose={() => setShowProModal(false)} />
                 )}
@@ -1087,6 +1083,10 @@ const AIChat = () => {
 
           {/* Input form */}
           <div className={styles.inputContainer}>
+            {proRequestId && (
+              <AiInviteLink agentName={activeAgent?.name || 'AI'} armed={aiArmed} waiting={!proProfile}
+                onToggle={() => { setAiArmed((v) => !v); textareaRef.current?.focus(); }} />
+            )}
             <form onSubmit={handleSubmit} className={styles.inputForm}>
               <textarea
                 ref={textareaRef}
@@ -1104,7 +1104,7 @@ const AIChat = () => {
                     }
                   }
                 }}
-                placeholder={proRequestId ? 'Порака до групата… (@ai за AI)' : 'Поставете ваше прашање...'}
+                placeholder={proRequestId ? (aiArmed ? `Порака до групата — одговара и ${activeAgent?.name}…` : 'Порака до професионалецот…') : 'Поставете ваше прашање...'}
                 className={styles.input}
                 disabled={isLoading || isStreaming || outOfQuota}
                 maxLength={500}

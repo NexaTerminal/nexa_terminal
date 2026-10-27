@@ -417,20 +417,6 @@
 .proBarReveal:hover { border-color: #a1a1aa; }
 .proBarReveal:disabled { opacity: 0.6; cursor: default; }
 
-/* Group chat (user + AI + pro): teach the @ai mention. */
-.groupTip {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; border-radius: 10px;
-  background: #eff6ff; border: 1px solid #bfdbfe;
-  font-size: 0.82rem; line-height: 1.45; color: #1e3a8a;
-}
-.mentionChip {
-  flex-shrink: 0; padding: 4px 11px; border-radius: 999px; cursor: pointer;
-  background: var(--color-primary, #1E4DB7); color: #fff; border: none;
-  font-size: 0.8rem; font-weight: 700;
-}
-.mentionChip:hover { background: var(--color-primary-dark, #163a8a); }
-
 .message {
   padding: var(--spacing-4, 1rem) var(--spacing-5, 1.25rem);
   border-radius: var(--radius-lg, 12px);

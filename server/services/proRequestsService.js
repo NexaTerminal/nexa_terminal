@@ -438,7 +438,10 @@ class ProRequestsService {
   // ── Thread ──────────────────────────────────────────────────────────────────
   async addMessage(actor, id, body, isAdmin) {
     const { doc, owner, assigned } = await this._getForActor(actor, id, isAdmin);
-    if (doc.status !== 'active') throw invalid('Разговорот не е активен.');
+    // While the invite waits on the board (`open`) the owner can already write —
+    // the Pro who claims it reads those messages in the thread.
+    const canWrite = doc.status === 'active' || (doc.status === 'open' && (owner || isAdmin));
+    if (!canWrite) throw invalid('Разговорот не е активен.');
     const text = clamp(body, 6000);
     if (!text) throw invalid('Пораката не може да биде празна.');
 
@@ -494,7 +497,7 @@ class ProRequestsService {
       createdAt: new Date(),
     };
     await this.col.updateOne(
-      { _id, status: 'active' },
+      { _id, status: { $in: ['open', 'active'] } },
       { $push: { messages: message }, $set: { updatedAt: new Date() } }
     );
     return message;

@@ -11,12 +11,15 @@
 import ProRequestsApiService from '../services/proRequestsApi';
 
 /**
- * Find the active (claimed) pro request linked to this conversation, with its
+ * Find the pro request linked to this conversation — invited and waiting on the
+ * board (`open`) or claimed (`active`) — with its
  * human thread normalized to the chat message shape: pro turns as { type: 'pro' }
  * and the user's own turns as { type: 'user', role: 'user' } (both chat surfaces
  * read one or the other). While a pro is active the user's messages go ONLY to
  * this thread (no AI call, no credits), so the thread is their source of truth.
- * Returns null when there is no live human in the loop.
+ * From the invite on, the AI stays silent unless the user invites it for a reply.
+ * `proProfile` is null while the invite is still waiting (`status: 'open'`).
+ * Returns null when there is no human in the loop.
  */
 export async function fetchActiveProForConversation(conversationId) {
   if (!conversationId) return null;
@@ -29,13 +32,13 @@ export async function fetchActiveProForConversation(conversationId) {
   if (!res?.success || !Array.isArray(res.items)) return null;
 
   const matches = res.items.filter(
-    (r) => r?.status === 'active' && r?.context?.conversationId === String(conversationId)
+    (r) => (r?.status === 'active' || r?.status === 'open') && r?.context?.conversationId === String(conversationId)
   );
   if (!matches.length) return null;
 
-  // Most recently updated active request wins (one conversation can only have
-  // one live pro at a time in practice).
-  matches.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+  // A claimed (active) request beats a waiting one; then the most recently updated.
+  matches.sort((a, b) => (b.status === 'active') - (a.status === 'active')
+    || new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
   const req = matches[0];
 
   const proMessages = (req.messages || [])
@@ -44,9 +47,10 @@ export async function fetchActiveProForConversation(conversationId) {
 
   return {
     id: req._id,
+    status: req.status,
     assignedProName: req.assignedProName || null,
-    // Pro's public profile — always visible/reachable to the user.
-    proProfile: {
+    // Pro's public profile — always visible/reachable to the user (once claimed).
+    proProfile: req.status !== 'active' ? null : {
       name: req.assignedProName || null,
       email: req.assignedProEmail || null,
       city: req.assignedProCity || null,
@@ -103,8 +107,9 @@ export function mergeProMessages(convMessages = [], proMessages = []) {
 }
 
 /**
- * Group chat (user + AI character + human pro): once a pro is in, the AI only
- * answers when the user calls it — „@ai" (also @аи / @<character name>).
+ * Group chat (user + AI character + human pro): once a pro is invited, the AI only
+ * answers when the user invites it for one reply — the „Покани … за коментар"
+ * link (AiInviteLink) or typing „@ai" (also @аи / @<character name>).
  */
 export function mentionsAi(text, agentName = '') {
   const names = ['ai', 'аи', 'ај', String(agentName || '').toLowerCase()]
@@ -112,5 +117,3 @@ export function mentionsAi(text, agentName = '') {
   return new RegExp(`(^|\\s)@(${names.join('|')})(?=$|[\\s,.!?:;])`, 'iu').test(String(text || ''));
 }
 
-export const AI_MENTION_TIP = (agentName) =>
-  `Ова е групен разговор. ${agentName || 'AI'} е сè уште тука — напишете @ai во пораката ако сакате и AI да одговори.`;

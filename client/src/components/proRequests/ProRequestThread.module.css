@@ -145,15 +145,7 @@
 .compact .toolbar:empty { display: none; }
 .compact .composer { align-items: center; }
 
-/* Group chat: AI character message (user called @ai) + the @ai tip. */
-.groupTip {
-  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px;
-  background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.76rem; line-height: 1.4; color: #1e3a8a;
-}
-.mentionChip {
-  flex-shrink: 0; padding: 3px 9px; border-radius: 999px; cursor: pointer;
-  background: var(--color-primary, #1E4DB7); color: #fff; border: none; font-size: 0.76rem; font-weight: 700;
-}
+/* Group chat: AI character message (user invited the AI). */
 .compact .aiHistory { margin-bottom: 4px; }
 
 @media (max-width: 560px) {

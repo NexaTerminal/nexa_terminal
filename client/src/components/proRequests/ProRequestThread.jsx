@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import ProRequestsApiService from '../../services/proRequestsApi';
 import ChatbotApiService from '../../services/chatbotApi';
 import { getAgent } from '../../config/aiAgents';
-import { mentionsAi, AI_MENTION_TIP } from '../../lib/proChat';
+import { mentionsAi } from '../../lib/proChat';
+import AiInviteLink from '../chatbot/AiInviteLink';
 import AiTranscript from './AiTranscript';
 import styles from './ProRequestThread.module.css';
 
@@ -31,6 +32,8 @@ export default function ProRequestThread({ request, role, onUpdated, compact = f
   const convId = request.context?.conversationId;
   const canCallAi = role === 'user' && active && !!aiAgent && !!convId;
   const [aiThinking, setAiThinking] = useState(false);
+  // User invited the AI to answer their NEXT message (one reply only).
+  const [aiArmed, setAiArmed] = useState(false);
 
   async function send() {
     const text = body.trim();
@@ -40,7 +43,9 @@ export default function ProRequestThread({ request, role, onUpdated, compact = f
       const res = await ProRequestsApiService.addMessage(request._id, text);
       if (!res.success) { setError(res.message || 'Грешка при испраќање.'); return; }
       setBody(''); onUpdated?.(res.item);
-      if (canCallAi && mentionsAi(text, aiAgent.name)) {
+      const invited = canCallAi && (aiArmed || mentionsAi(text, aiAgent.name));
+      setAiArmed(false); // one invite = one AI reply
+      if (invited) {
         // The server mirrors the AI answer into this thread; re-fetch to show it.
         setAiThinking(true);
         const ai = await ChatbotApiService.sendMessage(convId, text, request.agent, null, true, true);
@@ -190,13 +195,7 @@ export default function ProRequestThread({ request, role, onUpdated, compact = f
           </p>
 
           {canCallAi && (
-            <div className={styles.groupTip}>
-              <span>💡 {AI_MENTION_TIP(aiAgent.name)}</span>
-              {!mentionsAi(body, aiAgent.name) && (
-                <button type="button" className={styles.mentionChip}
-                  onClick={() => setBody((v) => `@ai ${v}`.trimEnd() + ' ')}>@ai</button>
-              )}
-            </div>
+            <AiInviteLink agentName={aiAgent.name} armed={aiArmed} onToggle={() => setAiArmed((v) => !v)} />
           )}
 
           <div className={styles.composer}>
@@ -208,7 +207,7 @@ export default function ProRequestThread({ request, role, onUpdated, compact = f
                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={canCallAi ? 'Порака до групата… (@ai за AI)' : 'Напиши порака…'}
+              placeholder={aiArmed ? `Порака до групата — одговара и ${aiAgent?.name}…` : 'Напиши порака…'}
               className={styles.input}
               rows={1}
               disabled={sending}

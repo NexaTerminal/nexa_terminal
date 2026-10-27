@@ -11,6 +11,7 @@ const tierService = require('../services/tierService');
 const emailService = require('../services/emailService');
 const aiSummaryService = require('../services/aiSummaryService');
 const userNotifications = require('../services/userNotificationService');
+const { getAgentName } = require('../chatbot/agentProfiles');
 
 const make = (req) => new ProRequestsService(req.app.locals.db);
 const isAdmin = (req) => tierService.visibleTier(req.user) === 'ADMIN';
@@ -128,12 +129,52 @@ exports.get = async (req, res) => {
 };
 
 // ── Create (requester) ──────────────────────────────────────────────────────────
+// The Pro's intro covers ONLY the user's current session with the AI character:
+// the latest messages of the linked conversation with no pause longer than
+// SESSION_GAP_MS between them (earlier sessions in the same thread stay private).
+const SESSION_GAP_MS = 60 * 60 * 1000;
+const SESSION_MAX_MESSAGES = 16;
+const cleanAi = (t) => String(t || '')
+  .replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/g, '')
+  .replace(/\[\[HANDOFF:[a-z]*\]\]/gi, '')
+  .trim();
+
+async function currentSessionTranscript(req, conversationId, agent) {
+  const conversationService = req.app.locals.conversationService;
+  if (!conversationId || !conversationService) return null;
+  try {
+    const conv = await conversationService.getConversation(String(conversationId), req.user._id);
+    const msgs = (conv.messages || []).filter((m) => (m.content || '').trim());
+    if (!msgs.length) return null;
+    let start = msgs.length - 1;
+    while (start > 0 && msgs.length - start < SESSION_MAX_MESSAGES) {
+      const gap = new Date(msgs[start].timestamp) - new Date(msgs[start - 1].timestamp);
+      if (!(gap <= SESSION_GAP_MS)) break;
+      start -= 1;
+    }
+    const aiName = getAgentName(agent || conv.agent) || 'AI';
+    const turns = msgs.slice(start)
+      .map((m) => `${m.type === 'user' ? 'Јас' : aiName}: ${m.type === 'user' ? m.content.trim() : cleanAi(m.content).slice(0, 1500)}`);
+    // Stored excerpts are capped (6000 chars) — drop the OLDEST turns, keep the latest.
+    while (turns.length > 1 && turns.join('\n\n').length > 5800) turns.shift();
+    return turns.join('\n\n');
+  } catch (_) {
+    return null; // not the caller's conversation / not found → keep the client excerpt
+  }
+}
+
 exports.create = async (req, res) => {
   try {
     // Summarize the AI↔user conversation up-front so the admin reviews a clean
     // brief before approving, and the same text rides onto the Pro board. Fails
     // safe (trimmed fallback) — never blocks creation.
     const ctx = req.body?.context || {};
+    // From a chat: the transcript is built server-side from the current session only.
+    const session = await currentSessionTranscript(req, ctx.conversationId, req.body?.agent);
+    if (session) {
+      ctx.transcriptExcerpt = session;
+      req.body.context = ctx;
+    }
     const summary = await aiSummaryService.summarizeConversation({
       subject: req.body?.subject,
       question: ctx.question,

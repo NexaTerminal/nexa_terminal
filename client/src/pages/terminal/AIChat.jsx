@@ -317,6 +317,10 @@ const AIChat = () => {
    * gated behind the proRequest terms (data-sharing consent).
    */
   const handleAskPro = (reason = null, msgIndex = null) => {
+    // Wait for the AI's answer to land, so the Pro's session summary includes it.
+    if (isLoading || isStreaming) { setError('Почекајте AI да го заврши одговорот, па побарајте професионалец.'); return; }
+    // The excerpt below is a fallback: when the chat is saved, the server builds
+    // the Pro's intro from the user's current session (see proRequestsController).
     // Share ONLY the exchange being escalated — the user's question + the AI
     // answer(s) to it — never the user's earlier messages. When invoked from an
     // AI message's card, that message's question; otherwise the latest one.

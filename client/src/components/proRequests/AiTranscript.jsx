@@ -2,8 +2,8 @@ import React from 'react';
 import styles from './ProRequestThread.module.css';
 
 /**
- * Renders the original AI conversation (question + AI answer) that preceded the
- * human handoff, so the whole history is visible and recorded in the thread. Parses
+ * Renders the user's session with the AI character that preceded the human
+ * handoff: first a short AI summary (the Pro's intro), then the turns. Parses
  * the stored transcript excerpt ("Speaker: text" turns joined by blank lines); falls
  * back to the question + AI summary when no transcript is available.
  */
@@ -26,7 +26,13 @@ export default function AiTranscript({ text, summary, question }) {
 
   return (
     <div className={styles.aiHistory}>
-      <div className={styles.aiHistoryLabel}>📜 Разговор со AI</div>
+      {!fallback && summary && (
+        <div className={styles.aiSummary}>
+          <div className={styles.aiHistoryLabel}>Резиме на разговорот</div>
+          <div className={styles.aiSummaryText}>{summary}</div>
+        </div>
+      )}
+      <div className={styles.aiHistoryLabel}>Разговор со AI</div>
       {!fallback
         ? turns.map((t, i) => {
             const isUser = t.speaker === 'Јас' || t.speaker === 'Јас ';

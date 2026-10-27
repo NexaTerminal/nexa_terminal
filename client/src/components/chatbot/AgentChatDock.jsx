@@ -235,6 +235,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const inviteSent = !!activeConvId && proInvitedConv === activeConvId;
   const inviteProNow = async () => {
     if (proBusy || inviteSent || proRequestId) return;
+    // Wait for the AI's answer to land, so the Pro's summary includes it.
+    if (loading) { setError('Почекајте AI да го заврши одговорот, па поканете професионалец.'); return; }
     let qIdx = -1;
     for (let i = messages.length - 1; i >= 0; i--) { if (messages[i].role === 'user') { qIdx = i; break; } }
     if (qIdx < 0) { setError('Прво поставете прашање, па поканете професионалец.'); return; }

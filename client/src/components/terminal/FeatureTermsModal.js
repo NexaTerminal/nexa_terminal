@@ -44,8 +44,8 @@ const FeatureTermsModal = ({ feature, isOpen, onAccept, onDecline }) => {
           <h2>{cfg.title}</h2>
           <p className={styles.scrollInstruction}>
             {!hasScrolledToBottom
-              ? '⬇️ Ве молиме прочитајте ги целосно условите (скролајте до крај)'
-              : '✅ Ги прочитавте условите'}
+              ? 'Прочитајте ги условите до крај за да продолжите.'
+              : 'Ги прочитавте условите.'}
           </p>
         </div>
 
@@ -68,7 +68,7 @@ const FeatureTermsModal = ({ feature, isOpen, onAccept, onDecline }) => {
             ))}
             <div className={styles.fullTermsLink}>
               <p>
-                📄 Целосните општи услови:{' '}
+                Целосните општи услови:{' '}
                 <a href="/terms-conditions" target="_blank" rel="noopener noreferrer">
                   nexa.mk/terms-conditions
                 </a>

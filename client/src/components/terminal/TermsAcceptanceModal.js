@@ -68,7 +68,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
         <div className={styles.modalHeader}>
           <h2>Услови за користење</h2>
           <p className={styles.scrollInstruction}>
-            {!hasScrolledToBottom ? '⬇️ Ве молиме прочитајте ги целосно условите (скролајте до крај)' : '✅ Ги прочитавте условите'}
+            {!hasScrolledToBottom ? 'Прочитајте ги условите до крај за да продолжите.' : 'Ги прочитавте условите.'}
           </p>
         </div>
 
@@ -246,7 +246,7 @@ const TermsAcceptanceModal = ({ isOpen, onAccept, onDecline }) => {
 
             <div className={styles.fullTermsLink}>
               <p>
-                📄 Целосните Услови за користење може да ги прочитате на:{' '}
+                Целосните Услови за користење може да ги прочитате на:{' '}
                 <a href="/terms-conditions" target="_blank" rel="noopener noreferrer">
                   nexa.mk/terms-conditions
                 </a>

@@ -78,13 +78,22 @@ class LeadDigestService {
   async sendWeeklyDigest(now = new Date(), { dryRun = false, force = false } = {}) {
     const weekKey = LeadDigestService.weekKey(now);
 
-    if (!force && !dryRun) {
-      const already = await this.runs.findOne({ weekKey });
-      if (already) return { skipped: true, reason: 'already_sent', weekKey };
+    // Claim the week atomically (_id is always unique) BEFORE sending: two
+    // server instances firing the cron at the same second must not both send.
+    if (!dryRun) {
+      const claim = await this.runs.updateOne(
+        { _id: weekKey },
+        { $setOnInsert: { weekKey, claimedAt: new Date() } },
+        { upsert: true }
+      );
+      // Runs logged before this fix used random _ids — honour those too.
+      const legacy = await this.runs.findOne({ weekKey, _id: { $ne: weekKey } });
+      if (!force && (!claim.upsertedCount || legacy)) return { skipped: true, reason: 'already_sent', weekKey };
     }
 
     const leads = await this.getActiveLeads(MAX_LEADS);
     if (leads.length < MIN_LEADS) {
+      if (!dryRun) await this.runs.updateOne({ _id: weekKey }, { $set: { skippedAt: new Date(), reason: 'too_few_leads' } });
       return { skipped: true, reason: 'too_few_leads', leadCount: leads.length, weekKey };
     }
 
@@ -109,9 +118,10 @@ class LeadDigestService {
       }
     }
 
-    await this.runs.insertOne({
-      weekKey, sentAt: new Date(), leadCount: leads.length, recipientCount: lawyers.length, sent
-    });
+    await this.runs.updateOne(
+      { _id: weekKey },
+      { $set: { sentAt: new Date(), leadCount: leads.length, recipientCount: lawyers.length, sent } }
+    );
 
     return { sent, recipientCount: lawyers.length, leadCount: leads.length, weekKey };
   }

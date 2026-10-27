@@ -9,6 +9,7 @@
 const Joi = require('joi');
 const { ObjectId } = require('mongodb');
 const { ROLES, PRACTICE_AREAS } = require('../constants/roles');
+const { proEventEmailsEnabled } = require('../utils/proEmailPolicy');
 
 const inboundSchema = Joi.object({
   sourceSite:   Joi.string().valid('samodaprasham','immigration','macedoniancitizenship','company','iplaw','topics','nexa').required(),
@@ -313,7 +314,7 @@ class LeadsController {
   // ---------------- helpers ---------------- //
 
   async _notifyOffered(candidate, lead) {
-    if (!this.emailService || !candidate.email) return;
+    if (!this.emailService || !candidate.email || !proEventEmailsEnabled()) return; // Pros: weekly digest only
     const subject = `Нов лид е достапен — ${lead.practiceArea}`;
     const payload = lead.payload || {};
     const html = `
@@ -330,7 +331,7 @@ class LeadsController {
   }
 
   async _notifyAssignee(assignee, lead) {
-    if (!this.emailService || !assignee.email) return;
+    if (!this.emailService || !assignee.email || !proEventEmailsEnabled()) return; // Pros: weekly digest only
     const lang = assignee.language || 'mk';
     const subject = lang === 'mk'
       ? `Нов клиент е насочен до вас — ${lead.practiceArea}`

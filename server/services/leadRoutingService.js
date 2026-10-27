@@ -18,6 +18,7 @@
 
 const { ObjectId } = require('mongodb');
 const { ROLES } = require('../constants/roles');
+const { proEventEmailsEnabled } = require('../utils/proEmailPolicy');
 
 function pickAssignee(lead, candidates) {
   if (!lead || !Array.isArray(candidates) || candidates.length === 0) return null;
@@ -83,7 +84,7 @@ class LeadRoutingService {
     );
 
     // Best-effort email + socket emit
-    if (this.emailService && chosen.email) {
+    if (this.emailService && chosen.email && proEventEmailsEnabled()) { // Pros: weekly digest only
       try {
         const lang = chosen.language || 'mk';
         const subject = lang === 'mk'

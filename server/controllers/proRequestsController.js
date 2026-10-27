@@ -49,7 +49,7 @@ function notifyInApp(req, userId, opts) {
 // Pro-facing conversation emails (board broadcast to every Pro, new client
 // message, conversation closed) are OFF — they reached every Pro and felt
 // spammy. Pros still get the in-app bell. Set PRO_CHAT_EMAILS=on to restore.
-const PRO_CHAT_EMAILS = () => process.env.PRO_CHAT_EMAILS === 'on';
+const PRO_CHAT_EMAILS = require('../utils/proEmailPolicy').proEventEmailsEnabled;
 const USER_LINK = () => `${APP_URL()}/terminal/requests`;
 const PRO_LINK = () => `${APP_URL()}/terminal/pro/conversations`;
 function stepEmail(to, muted, subject, html, link) {

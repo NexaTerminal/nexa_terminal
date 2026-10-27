@@ -325,11 +325,11 @@ export default function Interviews({ type = 'scan' }) {
               </button>
             </div>
           </div>
-          {/* Design: ВЕРА drafts role-specific interview questions. */}
+          {/* Design: Вера drafts role-specific interview questions. */}
           <div style={{ margin: '4px 0 10px' }}>
             <AskAgentButton
               agentKey="hr"
-              label="Предложи прашања со ВЕРА"
+              label="Предложи прашања со Вера"
               seed={type === 'exit'
                 ? `Помогни ми да подготвам прашања за излезно интервју со вработен${form.role ? ` (улога „${form.role.trim()}")` : ''} — предложи 6–8 прашања што ќе откријат зошто заминува и што да подобриме.`
                 : `Помогни ми да подготвам прашања за интервју за вработување${form.role ? ` за улога „${form.role.trim()}"` : ''} — предложи 6–8 добри прашања за да го проценам кандидатот.`}
@@ -396,11 +396,11 @@ export default function Interviews({ type = 'scan' }) {
                     {detail ? (
                       <>
                         <Transcript detail={detail} />
-                        {/* Interpret: hand the interview summary to ВЕРА. */}
+                        {/* Interpret: hand the interview summary to Вера. */}
                         <div style={{ marginTop: 14 }}>
                           <AskAgentButton
                             agentKey="hr"
-                            label="Разговарај со ВЕРА за резултатите"
+                            label="Разговарај со Вера за резултатите"
                             seed={type === 'exit'
                               ? `Еве го излезното интервју на вработениот ${detail.subjectName}${detail.role ? ` (улога „${detail.role}")` : ''}. Зошто заминал, кои се обрасците и што да подобрам за задржување на вработените?`
                               : `Еве го резимето од интервјуто за вработување на кандидатот ${detail.subjectName}${detail.role ? ` за улога „${detail.role}"` : ''}. Што ми кажува за него (јаки страни, грижи) и кои се следните чекори?`}

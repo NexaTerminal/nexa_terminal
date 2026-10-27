@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import { AI_AGENTS } from '../../config/aiAgents';
+import AgentName from './AgentName';
 import ProRequestsApiService from '../../services/proRequestsApi';
 import ChatbotApiService from '../../services/chatbotApi';
 import { useInboxCount, isProUser } from '../../lib/inbox';
@@ -178,7 +179,7 @@ export default function MessagingBar() {
                     : <span className={styles.rowAvatar} aria-hidden>{a.icon}</span>}
                   <span className={styles.rowText}>
                     <span className={styles.rowTop}>
-                      <span className={styles.rowName}>{a.name}</span>
+                      <span className={styles.rowName}><AgentName name={a.name} /></span>
                       {last && <span className={styles.rowTime}>{fmtWhen(last.updatedAt)}</span>}
                     </span>
                     <span className={styles.rowSub}>{last?.title || a.role}</span>

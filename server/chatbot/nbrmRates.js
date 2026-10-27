@@ -1,9 +1,9 @@
 /**
- * Official NBRM (National Bank of North Macedonia) exchange rates for САЛДО.
+ * Official NBRM (National Bank of North Macedonia) exchange rates for Дина.
  *
  * When an accounting question mentions a foreign currency (or exchange rates in
  * general), ChatBotService appends a short block with the official NBRM middle
- * rates to САЛДО's prompt prefix, so conversions use the real daily rate
+ * rates to Дина's prompt prefix, so conversions use the real daily rate
  * instead of a guessed one. Free public JSON service, no key:
  *   https://www.nbrm.mk/KLServiceNOV/GetExchangeRate?StartDate=dd.MM.yyyy&EndDate=dd.MM.yyyy&format=json
  * Failures are silent (returns '') — the answer just goes without live rates.

@@ -165,11 +165,11 @@ const HRReport = () => {
                 <p>{assessment.gradeDescription}</p>
               </div>
 
-              {/* Interpret: hand the HR health-check to ВЕРА for prioritized advice. */}
+              {/* Interpret: hand the HR health-check to Вера for prioritized advice. */}
               <div style={{ marginTop: 14, textAlign: 'center' }}>
                 <AskAgentButton
                   agentKey="hr"
-                  label="Разговарај со ВЕРА за извештајот"
+                  label="Разговарај со Вера за извештајот"
                   seed={`Еве го мојот HR health check извештај (резултат ${assessment.score}/${assessment.maxScore}, ${assessment.grade}). Кои работи со вработените и HR процеси да ги подобрам прво и како да почнам?`}
                   context={{
                     kind: 'HR health check извештај',

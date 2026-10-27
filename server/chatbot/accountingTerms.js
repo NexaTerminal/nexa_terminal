@@ -1,10 +1,10 @@
 /**
- * Retrieval vocabulary bridge for САЛДО (accounting).
+ * Retrieval vocabulary bridge for Дина (accounting).
  *
  * Users ask in everyday words ("трошоци што не се признаваат", "кирија"), the
  * tax laws use statutory terms ("непризнаени расходи за даночни цели",
  * "закупнина"). Hybrid search misses the right article when the two don't
- * overlap, so we append the statutory terms to САЛДО's SEARCH query only (the
+ * overlap, so we append the statutory terms to Дина's SEARCH query only (the
  * LLM still sees the user's original question). Substring matching on purpose:
  * JS \b is ASCII-only and useless around Cyrillic.
  */

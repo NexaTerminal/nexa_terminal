@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import { getAgent } from '../../config/aiAgents';
+import AgentName from './AgentName';
 import ChatbotApiService from '../../services/chatbotApi';
 import MarketingBotApiService from '../../services/marketingBotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
@@ -301,7 +302,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
             </span>
           )}
           <span className={styles.hdText}>
-            <span className={styles.hdName}>{proProfile ? 'Групен разговор' : agent.name}</span>
+            <span className={styles.hdName}>{proProfile ? 'Групен разговор' : <AgentName name={agent.name} />}</span>
             <span className={styles.hdRole}>
               {proProfile ? `${agent.name} · ${proProfile.name || 'Професионалец'} · Вие` : agent.role}
             </span>

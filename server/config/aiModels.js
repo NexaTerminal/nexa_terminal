@@ -27,8 +27,8 @@
 const DEFAULT_MODEL = 'gpt-5-mini';
 
 // --- Role models (all default to gpt-5-mini) ---
-const OPENAI_MODEL = process.env.OPENAI_MODEL || DEFAULT_MODEL;             // main answers (ЈУРА/ВЕРА/ГАРД, LHC narrative)
-const OPENAI_MARKETING_MODEL = process.env.OPENAI_MARKETING_MODEL || DEFAULT_MODEL; // ПУЛС
+const OPENAI_MODEL = process.env.OPENAI_MODEL || DEFAULT_MODEL;             // main answers (Лекс/Вера/Стојан, LHC narrative)
+const OPENAI_MARKETING_MODEL = process.env.OPENAI_MARKETING_MODEL || DEFAULT_MODEL; // Миа
 const OPENAI_UTILITY_MODEL = process.env.OPENAI_UTILITY_MODEL || DEFAULT_MODEL;     // condensation, decomposition, rerank, JSON extraction, summaries
 
 // --- Feature models: default to the ROLE they belong to ---

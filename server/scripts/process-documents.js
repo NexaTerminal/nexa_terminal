@@ -50,7 +50,7 @@ function argValue(flag) {
 }
 
 // Configuration. --dir / --collection let the same pipeline feed other
-// corpora, e.g. САЛДО's accounting collection:
+// corpora, e.g. Дина's accounting collection:
 //   node scripts/process-documents.js --dir "accounting sources" --collection nexa_accounting_docs
 const LEGAL_SOURCES_FOLDER = path.join(__dirname, '..', argValue('--dir') || 'legal sources');
 const TARGET_COLLECTION = argValue('--collection') || process.env.QDRANT_COLLECTION_NAME || 'nexa_legal_docs';

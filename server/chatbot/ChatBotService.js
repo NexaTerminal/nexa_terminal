@@ -330,16 +330,16 @@ Nexa може да ПРОВЕРИ дали има достапен профес�
 
     this.promptTemplate = PromptTemplate.fromTemplate(this.systemPromptTemplate);
 
-    // Dedicated base prompt for ГАРД (insurance). The legal prompt above actively
+    // Dedicated base prompt for Стојан (insurance). The legal prompt above actively
     // pushes the model the WRONG way for insurance — it mandates invented
     // "примери од пракса", law-citation hierarchy, and a general-knowledge
     // fallback. Insurance needs the opposite: quote the EXACT provision text of
     // the insurer's conditions, stay strictly grounded, and ask for the insurer +
     // policy type when the question is general. {stancePrefix} still carries the
-    // ГАРД persona flavor (agentProfiles.js) + memory.
-    this.insuranceSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Осигурителен AI Асистент (ГАРД)
+    // Стојан persona flavor (agentProfiles.js) + memory.
+    this.insuranceSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Осигурителен AI Асистент (Стојан)
 
-Ти си ГАРД, осигурителен експерт во Nexa Terminal. Одговараш на прашања за ОПШТИТЕ и ПОСЕБНИТЕ УСЛОВИ за осигурување на следниве македонски осигурителни друштва: ${availableInsurerNames().join(', ')}. Ова се ЕДИНСТВЕНИТЕ друштва за кои имаш услови — ако корисникот праша за друго друштво (пр. Граве), кажи дека немаш услови за него. Корисниците не се осигурителни стручњаци.
+Ти си Стојан, осигурителен експерт во Nexa Terminal. Одговараш на прашања за ОПШТИТЕ и ПОСЕБНИТЕ УСЛОВИ за осигурување на следниве македонски осигурителни друштва: ${availableInsurerNames().join(', ')}. Ова се ЕДИНСТВЕНИТЕ друштва за кои имаш услови — ако корисникот праша за друго друштво (пр. Граве), кажи дека немаш услови за него. Корисниците не се осигурителни стручњаци.
 
 ## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
 Секогаш одговарај на МАКЕДОНСКИ (кирилица).
@@ -395,22 +395,22 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 
     this.insurancePromptTemplate = PromptTemplate.fromTemplate(this.insuranceSystemPromptTemplate);
 
-    // Dedicated base prompt for САЛДО (accounting). Neither the legal prompt
+    // Dedicated base prompt for Дина (accounting). Neither the legal prompt
     // (lawyer structure, "consult a lawyer" disclaimer) nor the insurance one
-    // (strict corpus-only) fits: САЛДО has no own corpus yet, so its core MK
+    // (strict corpus-only) fits: Дина has no own corpus yet, so its core MK
     // accounting/tax principles live HERE, and retrieved tax-law chunks (legal
     // collection, tax-boosted) are used for citations when present. When an
     // accounting collection is ingested, only the {context} source changes.
-    this.accountingSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Сметководствен AI Асистент (САЛДО)
+    this.accountingSystemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Сметководствен AI Асистент (Дина)
 
-Ти си САЛДО, сметководствен советник во Nexa Terminal за мали и средни фирми во Северна Македонија. Корисниците се сопственици и менаџери — не се сметководители.
+Ти си Дина, сметководствена советничка во Nexa Terminal за мали и средни фирми во Северна Македонија. Корисниците се сопственици и менаџери — не се сметководители.
 
 ## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
 Секогаш одговарај на МАКЕДОНСКИ (кирилица).
 
 ## ТВОЈА ОБЛАСТ
 Книжење и сметковен план, фактури и документација, ДДВ, данок на добивка, персонален данок на доход, пресметка на плата и придонеси, даночни пријави и рокови (УЈП), годишна сметка и финансиски извештаи (Централен регистар), фискализација, основни финансиски показатели (готовински тек, маржа, точка на рентабилност).
-НЕ е твоја област (упати со маркер, види „ТВОЈОТ ТИМ"): правни спорови, договори, друштва, жалби/тужби → ЈУРА; осигурување → ГАРД; човечка страна на односот со вработен → ВЕРА; маркетинг → ПУЛС.
+НЕ е твоја област (упати со маркер, види „ТВОЈОТ ТИМ"): правни спорови, договори, друштва, жалби/тужби → Лекс; осигурување → Стојан; човечка страна на односот со вработен → Вера; маркетинг → Миа.
 **Кога прашањето е СУШТИНСКИ од друга област** (пр. „закупецот не ми плаќа — што да правам?" е правно; „дали полисата покрива поплава?" е осигурително): НЕ пиши долг одговор и НЕ одговарај наместо колегата. Дај КРАТОК одговор (најмногу 3–5 реченици): кој колега е вистинскиот и зошто, плус сметководствениот агол во една-две реченици ако постои (пр. неплатените фактури остануваат побарување во книгите). Потоа [SUGGESTIONS] и како НАЈПОСЛЕДЕН ред HANDOFF маркерот ([[HANDOFF:legal]], [[HANDOFF:insurance]], [[HANDOFF:hr]] или [[HANDOFF:marketing]]). Без маркер корисникот не може да се префрли.
 
 ## ОСНОВНИ ПРИНЦИПИ (твое базично знаење)
@@ -468,7 +468,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     this.accountingPromptTemplate = PromptTemplate.fromTemplate(this.accountingSystemPromptTemplate);
   }
 
-  /** The base prompt template for an agent — ГАРД/САЛДО get their own prompts. */
+  /** The base prompt template for an agent — Стојан/Дина get their own prompts. */
   _promptTemplateFor(agent) {
     if (agent === 'insurance') return this.insurancePromptTemplate;
     if (agent === 'accounting') return this.accountingPromptTemplate;
@@ -677,8 +677,8 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    *
    * NOTE: the user's global Stance Preferences / persona picker ("direct",
    * "mentor", …) are DELIBERATELY NOT applied here. Each AI character has its own
-   * fixed personality (ЈУРА = direct/risk-finder, ВЕРА = diplomatic/cautious,
-   * ГАРД = specific, ПУЛС = enthusiastic) and a user-level tone setting must not
+   * fixed personality (Лекс = direct/risk-finder, Вера = diplomatic/cautious,
+   * Стојан = specific, Миа = enthusiastic) and a user-level tone setting must not
    * override it — the character IS the personality. Memory stays (that's
    * what-we-know-about-you, not how-to-speak).
    */
@@ -854,7 +854,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
       const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
 
-      // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
+      // HR lane gate: Вера hard-refers non-employment questions to Лекс.
       if (agent === 'hr' && this._isOutOfHrLane(question)) {
         const cleanResponse = this._hrReferral(question);
         if (this.conversationService && conversationId) {
@@ -880,7 +880,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       console.log(context.substring(0, 500) + (context.length > 500 ? '...' : ''));
       console.log('─'.repeat(70));
 
-      // Step 4: Create the RAG chain (ГАРД uses the insurance base prompt)
+      // Step 4: Create the RAG chain (Стојан uses the insurance base prompt)
       const chain = RunnableSequence.from([
         this._promptTemplateFor(agent),
         this.chatModel,
@@ -898,7 +898,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // note · durable user memory · stance/persona.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
-      // САЛДО: live official NBRM rates when the question involves a foreign currency.
+      // Дина: live official NBRM rates when the question involves a foreign currency.
       if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
@@ -1268,7 +1268,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    */
   prioritizeSources(docs, agent) {
     const maxBackground = parseInt(process.env.CHATBOT_MAX_BACKGROUND || '3', 10);
-    // САЛДО's corpus is a handful of tax laws, and one answer often needs several
+    // Дина's corpus is a handful of tax laws, and one answer often needs several
     // articles of the same law (e.g. ЗДД Член 8–11), so it gets a looser cap.
     const maxPerDoc = agent === 'accounting'
       ? 4
@@ -1448,15 +1448,15 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     }
 
     try {
-      // САЛДО: bridge everyday words to the tax laws' statutory terms.
+      // Дина: bridge everyday words to the tax laws' statutory terms.
       if (agent === 'accounting') question = expandAccountingQuery(question);
       const isComplex = this.isComplexQuestion(question);
-      // Per-agent collection: ГАРД (insurance) retrieves from its own Qdrant
+      // Per-agent collection: Стојан (insurance) retrieves from its own Qdrant
       // collection; legal/hr fall back to the default (legal) collection.
       const collection = getAgentCollection(agent) || this.collectionName;
       // Insurance conditions differ per insurer, so filter retrieval to the
       // insurer(s) named in the (condensed) query. Empty when none is named —
-      // then we retrieve unfiltered and ГАРД asks which insurer (per its prompt).
+      // then we retrieve unfiltered and Стојан asks which insurer (per its prompt).
       let companyConds = [];
       if (agent === 'insurance') {
         const slugs = detectInsurers(question);
@@ -1464,7 +1464,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
           companyConds = [{ key: 'company', match: { any: slugs } }];
           console.log(`🛡️ [RAG DEBUG] Insurer filter: ${slugs.map(insurerName).join(', ')}`);
         } else {
-          console.log('🛡️ [RAG DEBUG] No insurer named — unfiltered insurance retrieval (ГАРД will ask)');
+          console.log('🛡️ [RAG DEBUG] No insurer named — unfiltered insurance retrieval (Стојан will ask)');
         }
       }
       console.log(`\n🔍 [RAG DEBUG] Starting HYBRID document retrieval (complex: ${isComplex}, collection: ${collection}) for: "${question.substring(0, 100)}..."`);
@@ -1548,7 +1548,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Insurance stays STRICTLY within the insurance collection — skip the legal
       // LDH case-law + web supplements. They would pollute insurance answers and,
       // worse, fabricate an answer for an insurer we have NO data for (e.g. grawe),
-      // instead of letting ГАРД say "no data". САЛДО skips them too — MK case law
+      // instead of letting Стојан say "no data". Дина skips them too — MK case law
       // and EU sources are noise for bookkeeping/tax-filing questions.
       if (agent !== 'insurance' && agent !== 'accounting') {
       // Supplement with Legal Data Hunter. MK case law is queried only when the
@@ -1669,7 +1669,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         // Surface the VERIFIED article number (from metadata) so the model can cite it
         // accurately instead of guessing. This is a confirmed citation, safe to use.
         const article = doc.metadata?.article ? ` — ВЕРИФИЦИРАН ЧЛЕН: ${doc.metadata.article}` : '';
-        // Insurance chunks carry the issuing insurer — surface it so ГАРД cites the
+        // Insurance chunks carry the issuing insurer — surface it so Стојан cites the
         // right company (conditions differ per insurer).
         const insurer = doc.metadata?.companyName ? ` — ДРУШТВО: ${doc.metadata.companyName}` : '';
         return `[Source ${index + 1}] ${docName}${insurer}${article}${pageNum}:\n${doc.pageContent}`;
@@ -1742,26 +1742,26 @@ ${insuranceResourcesBlock()}## ФОРМАТ
     );
   }
 
-  // ── HR lane gate (ВЕРА) ──────────────────────────────────────────────────────
-  // ВЕРА advises only on employment/HR. For a question clearly in ANOTHER legal
+  // ── HR lane gate (Вера) ──────────────────────────────────────────────────────
+  // Вера advises only on employment/HR. For a question clearly in ANOTHER legal
   // domain (companies, tax, data, pure contracts) we DETERMINISTICALLY refer to
-  // ЈУРА instead of answering — a hard boundary, not a best-effort prompt rule.
+  // Лекс instead of answering — a hard boundary, not a best-effort prompt rule.
   // Classified on the QUESTION text (not retrieved docs, which the employment
-  // scope-boost skews). Ambiguous questions stay with ВЕРА — we only refer on a
+  // scope-boost skews). Ambiguous questions stay with Вера — we only refer on a
   // clear other-domain signal, so we never over-refer an HR question.
   _isOutOfHrLane(question) {
     // NB: JS \b word boundaries are ASCII-only — useless around Cyrillic — so these
     // use plain substrings (safe: the tokens below don't occur inside unrelated words).
     const q = String(question || '');
     const employment = /работн|вработ|отказ|работодав|синдикат|колективен договор|мобинг|систематизациј|годишен одмор|отсуство|дисциплин|пробна работа|боледув|прекувремен/i;
-    if (employment.test(q)) return false; // ВЕРА's own lane
+    if (employment.test(q)) return false; // Вера's own lane
     const otherDomain = /друштв|содружник|управител|акционер|централен регистар|основањ|статут|удел|доо|данок|ддв|добивк|придонес|лични податоц|гдпр|gdpr|приватност|закуп|купопродаж/i;
     return otherDomain.test(q);
   }
 
-  // The fixed, diplomatic referral ВЕРА gives for out-of-lane questions. The
+  // The fixed, diplomatic referral Вера gives for out-of-lane questions. The
   // trailing [[HANDOFF:…]] marker makes the client render the colleague chip.
-  // Pure bookkeeping/tax questions go to САЛДО; everything else to ЈУРА.
+  // Pure bookkeeping/tax questions go to Дина; everything else to Лекс.
   _hrReferral(question) {
     const q = String(question || '');
     const accounting = /данок|даноц|ддв|добивк|придонес|сметковод|книжењ|фактур|биланс|аконтациј/i;
@@ -1770,14 +1770,14 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       return (
         'Ова излегува малку од мојата област — јас сум тука за работните односи и HR ' +
         '(вработување, изведба, дисциплина, отказ, тимови). За бројки, даноци и книжење ' +
-        'вистинскиот од тимот е **САЛДО**, нашиот сметководител. Ајде да те префрлам кај неа.\n\n[[HANDOFF:accounting]]'
+        'вистинскиот од тимот е **Дина**, нашата сметководителка. Ајде да те префрлам кај неа.\n\n[[HANDOFF:accounting]]'
       );
     }
     return (
       'Ова излегува малку од мојата област — јас сум тука за работните односи и HR ' +
       '(вработување, изведба, дисциплина, отказ, тимови). За ова вистинскиот од тимот е ' +
-      '**ЈУРА**, нашиот адвокат — таа ги покрива друштвата, договорите, даноците и заштитата ' +
-      'на лични податоци. Ајде да те префрлам кај неа за прецизен одговор.\n\n[[HANDOFF:legal]]'
+      '**Лекс**, нашиот адвокат — тој ги покрива друштвата, договорите, даноците и заштитата ' +
+      'на лични податоци. Ајде да те префрлам кај него за прецизен одговор.\n\n[[HANDOFF:legal]]'
     );
   }
 
@@ -1891,7 +1891,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       const searchQuery = await this.condenseSearchQuery(question, conversationHistory);
       const relevantDocs = await this.retrieveRelevantDocuments(searchQuery, agent);
 
-      // HR lane gate: ВЕРА hard-refers non-employment questions to ЈУРА.
+      // HR lane gate: Вера hard-refers non-employment questions to Лекс.
       if (agent === 'hr' && this._isOutOfHrLane(question)) {
         const cleanResponse = this._hrReferral(question);
         onEvent({ type: 'sources', data: [] });
@@ -1919,7 +1919,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       }));
       onEvent({ type: 'sources', data: sources });
 
-      // Build chain for streaming (ГАРД uses the insurance base prompt)
+      // Build chain for streaming (Стојан uses the insurance base prompt)
       const chain = RunnableSequence.from([
         this._promptTemplateFor(agent),
         this.chatModel,
@@ -1933,7 +1933,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Stream tokens. Prefix = agent flavor · hand-off · memory · stance.
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
-      // САЛДО: live official NBRM rates when the question involves a foreign currency.
+      // Дина: live official NBRM rates when the question involves a foreign currency.
       if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       let fullResponse = '';
       const stream = await chain.stream({

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { visibleTier } from '../../lib/tier';
 import { AI_AGENTS } from '../../config/aiAgents';
+import AgentName from '../chatbot/AgentName';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import UpdateModal from './UpdateModal';
 import { resolveBlogImage } from '../../utils/blogImage';
@@ -206,7 +207,7 @@ const AiTeamBand = () => {
                 ? <img src={a.photo} alt="" className={styles.aiChipPhoto} loading="lazy" />
                 : <span className={styles.aiChipEmoji} aria-hidden>{a.icon}</span>}
               <span className={styles.aiChipText}>
-                <span className={styles.aiChipName}>{a.name}</span>
+                <span className={styles.aiChipName}><AgentName name={a.name} /></span>
                 <span className={styles.aiChipRole}>{a.role}</span>
               </span>
             </button>

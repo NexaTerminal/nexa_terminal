@@ -207,7 +207,7 @@ export default function EmployeeDetail() {
           <div className={styles.formActions}>
             <AskAgentButton
               agentKey="hr"
-              label="Прашај ја АРИА"
+              label="Прашај ја Вера"
               seed={`Имам прашање за вработениот ${emp.fullName} (${emp.position}, ${emp.employmentType} време). Што треба да внимавам во врска со работниот однос?`}
               context={{ kind: 'вработен', label: emp.fullName, data: { позиција: emp.position, типВработување: emp.employmentType, статус: STATUS_LABEL[emp.status] || emp.status } }}
             />

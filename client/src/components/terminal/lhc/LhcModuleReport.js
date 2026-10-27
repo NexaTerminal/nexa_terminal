@@ -42,7 +42,7 @@ const LhcModuleReport = ({ title, fetchBase, retakePath, redFlagNote }) => {
   const [expanded, setExpanded] = useState({});
   const [printing, handlePrint] = usePrintReport();
 
-  // AI/human review for this report. Employment modules → АРИА; the rest → ЈУРА.
+  // AI/human review for this report. Employment modules → АРИА; the rest → Лекс.
   const { openChat } = useChatDock();
   const { requireTerms, termsModal } = useTermsGate();
   const [reviewNotice, setReviewNotice] = useState(null);

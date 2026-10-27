@@ -11,6 +11,7 @@ import MemoryControl from '../../components/chatbot/MemoryControl';
 import AgentRoster from '../../components/chatbot/AgentRoster';
 import ContractAnalysisPanel from '../../components/contractAnalysis/ContractAnalysisPanel';
 import { DEFAULT_AGENT_KEY, getAgent } from '../../config/aiAgents';
+import AgentName from '../../components/chatbot/AgentName';
 import ChatbotApiService from '../../services/chatbotApi';
 import ProRequestsApiService from '../../services/proRequestsApi';
 import { fetchActiveProForConversation, mergeProMessages, toThreadMessage, mentionsAi } from '../../lib/proChat';
@@ -278,7 +279,7 @@ const AIChat = () => {
    * Teammate hand-off: user clicked „Префрли се на <колега>". Switch the active
    * agent, start a fresh thread, carry over the last question, and remember who
    * sent them so the receiving agent greets warmly (passed as `from` on next ask).
-   * Marketing (ПУЛС) lives on its own page, so route there instead.
+   * Marketing (Миа) lives on its own page, so route there instead.
    */
   const handleHandoff = (targetKey) => {
     const target = getAgent(targetKey);
@@ -729,7 +730,7 @@ const AIChat = () => {
                   </span>
                 )}
                 <div>
-                  <h1 className={styles.title}>{activeAgent.name}</h1>
+                  <h1 className={styles.title}><AgentName name={activeAgent.name} /></h1>
                   <p className={styles.roleLine}>
                     {activeAgent.role} · <span className={styles.onlineText}>достапен</span>
                   </p>

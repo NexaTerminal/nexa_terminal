@@ -1,5 +1,6 @@
 import React from 'react';
 import { AI_AGENTS } from '../../config/aiAgents';
+import AgentName from './AgentName';
 import styles from './AgentRoster.module.css';
 
 /**
@@ -24,7 +25,7 @@ export default function AgentRoster({ activeKey, onSelect, variant = 'bar' }) {
             onClick={() => onSelect?.(a)}
           >
             <span className={styles.cardIcon} aria-hidden="true">{a.icon}</span>
-            <span className={styles.cardName}>{a.name}</span>
+            <span className={styles.cardName}><AgentName name={a.name} /></span>
             <span className={styles.cardRole}>{a.role}</span>
             <span className={styles.cardBio}>{a.bio}</span>
             {a.hasContractReview && (
@@ -49,7 +50,7 @@ export default function AgentRoster({ activeKey, onSelect, variant = 'bar' }) {
           onClick={() => onSelect?.(a)}
         >
           <span className={styles.pillIcon} aria-hidden="true">{a.icon}</span>
-          <span className={styles.pillName}>{a.name}</span>
+          <span className={styles.pillName}><AgentName name={a.name} /></span>
           <span className={styles.pillRole}>{a.role}</span>
         </button>
       ))}

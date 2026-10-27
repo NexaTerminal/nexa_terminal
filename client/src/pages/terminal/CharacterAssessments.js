@@ -149,11 +149,11 @@ export default function CharacterAssessments() {
           <button type="submit" className={s.btnPrimary} disabled={creating}>
             {creating ? 'Се креира…' : 'Креирај и подготви линк'}
           </button>
-          {/* Prep: ВЕРА advises what traits matter for this hire before inviting. */}
+          {/* Prep: Вера advises what traits matter for this hire before inviting. */}
           <div style={{ marginTop: 12 }}>
             <AskAgentButton
               agentKey="hr"
-              label="Што да барам? Прашај ја ВЕРА"
+              label="Што да барам? Прашај ја Вера"
               seed={`Сакам да оценам карактер (моделот „Големите пет") за вработување${form.role ? ` на улога „${form.role.trim()}"` : ''}. Кои црти се најважни за оваа улога и на што да внимавам?`}
               context={{ kind: 'подготовка за проценка на карактер', label: form.role ? form.role.trim() : 'ново вработување', data: { улога: form.role } }}
             />
@@ -214,11 +214,11 @@ export default function CharacterAssessments() {
                                          report={detail.report} ranked={detail.ranked}
                                          overall={detail.overall} disclaimer={detail.disclaimer}
                                          completedAt={detail.completedAt} />
-                          {/* Interpret: hand the profile to ВЕРА for HR advice. */}
+                          {/* Interpret: hand the profile to Вера for HR advice. */}
                           <div style={{ marginTop: 14 }}>
                             <AskAgentButton
                               agentKey="hr"
-                              label="Разговарај со ВЕРА за резултатите"
+                              label="Разговарај со Вера за резултатите"
                               seed={`Еве ја проценката на карактер за вработениот/кандидатот ${detail.candidateName}${detail.role ? ` за улогата „${detail.role}"` : ''}. Како да го толкувам овој профил и на што да внимавам кога работам со него (онбординг, стил на менаџирање, можни ризици)?`}
                               context={{
                                 kind: 'проценка на карактер (Големите пет)',

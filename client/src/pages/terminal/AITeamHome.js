@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Sidebar from '../../components/terminal/Sidebar';
 import { AI_AGENTS } from '../../config/aiAgents';
+import AgentName from '../../components/chatbot/AgentName';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/terminal/AITeamHome.module.css';
@@ -70,7 +71,7 @@ const StaffCard = ({ agent: a, openChat }) => {
         </div>
         <div className={styles.idBlock}>
           <div className={styles.nameRow}>
-            <h2 className={styles.name}>{a.name}</h2>
+            <h2 className={styles.name}><AgentName name={a.name} /></h2>
             <span className={`${styles.status} ${a.comingSoon ? styles.statusSoon : styles.statusLive}`}>
               <span className={styles.statusDot} aria-hidden="true" />
               {a.comingSoon ? 'Наскоро' : 'Достапен'}

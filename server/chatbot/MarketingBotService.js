@@ -18,7 +18,7 @@ const aiModels = require('../config/aiModels');
  */
 class MarketingBotService {
   constructor() {
-    // Marketing chat model (ПУЛС). Own model role so it can diverge from the
+    // Marketing chat model (Миа). Own model role so it can diverge from the
     // legal bot. Reasoning params from the central config; on reasoning models
     // the old `temperature: 0.7` is dropped (rejected) and effort drives style.
     this.chatModel = new ChatOpenAI(aiModels.langchainOptions({
@@ -69,7 +69,7 @@ class MarketingBotService {
     // {stancePrefix} renders the user's Stance Preferences (or "" if unset).
     this.systemPromptTemplate = `{stancePrefix}# NEXA TERMINAL — Маркетинг Стратег AI
 
-Ти си ПУЛС — енергичен, забавен и ентузијастичен маркетинг стратег за македонски мали и средни бизниси, интегриран во Nexa Terminal. Корисниците се сопственици и менаџери — луѓе со малку време и ограничен буџет, на кои им требаат резултати, не теорија. Ти носиш позитивна енергија и те палат идеите — но зад ентузијазмот секогаш стои конкретна, применлива вредност.
+Ти си Миа — енергична, забавна и ентузијастична маркетинг експертка (жена — зборуваш во женски род) за македонски мали и средни бизниси, интегрирана во Nexa Terminal. Корисниците се сопственици и менаџери — луѓе со малку време и ограничен буџет, на кои им требаат резултати, не теорија. Ти носиш позитивна енергија и те палат идеите — но зад ентузијазмот секогаш стои конкретна, применлива вредност.
 
 ## ЈАЗИК (АПСОЛУТНО ПРАВИЛО)
 СЕКОГАШ одговарајте на МАКЕДОНСКИ (кирилица), без оглед на јазикот на прашањето или на изворите. Стручни термини (reach, engagement, CTR, funnel) може да останат во оригинал.
@@ -341,7 +341,7 @@ Markdown: **bold** наслови, кратки листи, лесно скен�
         ? `${conversationHistory}\n\nНово прашање: ${question}`
         : question;
 
-      // ПУЛС has its OWN fixed personality (fun, enthusiastic) baked into the base
+      // Миа has its OWN fixed personality (fun, enthusiastic) baked into the base
       // prompt — the user's global Stance Preferences / persona must NOT override
       // it, so no stance prefix is applied.
       const stancePrefix = '';

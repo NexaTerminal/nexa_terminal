@@ -1,5 +1,5 @@
 /**
- * Insurer registry + detection for ГАРД (the insurance agent).
+ * Insurer registry + detection for Стојан (the insurance agent).
  *
  * The insurance corpus (Qdrant `nexa_insurance_docs`) holds the general
  * conditions ("општи услови") of several Macedonian insurers, tagged on each
@@ -11,7 +11,7 @@
  * See INSURANCE_AI_GUIDE.md.
  *
  * `available: false` = a real Macedonian insurer we DON'T have data for yet
- * (grawe). We still detect it so a filtered query returns nothing and ГАРД says
+ * (grawe). We still detect it so a filtered query returns nothing and Стојан says
  * "no data for that insurer" instead of silently answering with another's terms.
  *
  * Detection is deterministic keyword matching on the (condensed) query, which
@@ -42,7 +42,7 @@ const INSURERS = Object.freeze({
 const AVAILABLE_SLUGS = Object.keys(INSURERS).filter((s) => INSURERS[s].available !== false);
 
 // Агенција за супервизија на осигурување (АСО) — the insurance regulator.
-// Authoritative, insurer-neutral resources ГАРД may link to.
+// Authoritative, insurer-neutral resources Стојан may link to.
 const ASO_LINKS = Object.freeze({
   // Rights of the insured + how to complain / dispute a claim.
   consumerProtection: 'https://edukacija.aso.mk/%D0%B7%D0%B0%D1%88%D1%82%D0%B8%D1%82%D0%B0-%D0%BD%D0%B0-%D0%BE%D1%81%D0%B8%D0%B3%D1%83%D1%80%D0%B5%D0%BD%D0%B8%D1%86%D0%B8-2/',
@@ -59,7 +59,7 @@ function availableInsurerNames() {
 const INSURER_NAMES = availableInsurerNames();
 
 /**
- * The static "resources / linking" block injected into ГАРД's base prompt —
+ * The static "resources / linking" block injected into Стојан's base prompt —
  * mirrors the legal agent's platform-feature catalog. The model picks the
  * relevant insurer's site once it knows which insurer, and is told to use ONLY
  * these URLs (never invent one). Only lists insurers that have a URL; the claims

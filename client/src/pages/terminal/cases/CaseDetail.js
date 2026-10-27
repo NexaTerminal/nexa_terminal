@@ -163,7 +163,7 @@ export default function CaseDetail() {
           <div className={ui.heroActions}>
             <AskAgentButton
               agentKey="corporate"
-              label="Прашај ја НОВА"
+              label="Прашај го Лекс"
               seed={`Помогни ми со предметот „${kase.title}" (${CASE_TYPE_LABEL[kase.caseType] || kase.caseType}${kase.clientName ? `, клиент: ${kase.clientName}` : ''}). Што треба да внимавам и кои се следните чекори?`}
               context={{ kind: 'предмет', label: kase.title, data: { тип: CASE_TYPE_LABEL[kase.caseType] || kase.caseType, клиент: kase.clientName, статус: STATUS_LABEL[kase.status] || kase.status, служебенБрој: kase.caseNumber, суд: kase.courtName } }}
             />

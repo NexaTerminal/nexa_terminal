@@ -220,7 +220,7 @@ class ConversationService {
       }
 
       // Add agent filter if specified — each AI Team character shows only its own
-      // threads (so ЈУРА, НОВА, АРИА don't share one list).
+      // threads (so Лекс, НОВА, АРИА don't share one list).
       if (options.agent) {
         query.agent = options.agent;
       }

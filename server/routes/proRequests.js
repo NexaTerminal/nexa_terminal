@@ -20,6 +20,7 @@ router.post('/:id/claim', c.claim);                 // Pro claims an open reques
 router.post('/:id/reveal', c.reveal);               // requester reveals/hides identity to the Pro
 router.post('/:id/reject', c.reject);               // admin removes a request
 router.post('/:id/close', c.close);
+router.post('/:id/cancel-invite', c.cancelInvite);  // requester withdraws an unclaimed invite
 router.post('/:id/email-prefs', c.emailPrefs);      // either side mutes/unmutes step emails
 
 module.exports = router;

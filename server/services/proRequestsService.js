@@ -638,6 +638,20 @@ class ProRequestsService {
       targets: ProRequestsService._notifyTargets(doc),
     };
   }
+
+  // Owner withdraws an invite no Pro has claimed yet, which hands the conversation
+  // back to the AI. Atomic on status so it can't close a chat a Pro just joined.
+  async cancelInvite(actor, id, isAdmin) {
+    const { doc, owner } = await this._getForActor(actor, id, isAdmin);
+    if (!owner && !isAdmin) throw forbidden();
+    const now = new Date();
+    const res = await this.col.updateOne(
+      { _id: doc._id, status: 'open' },
+      { $set: { status: 'closed', updatedAt: now, closedAt: now } }
+    );
+    if (!res.modifiedCount) throw invalid('Професионалец веќе се приклучи — поканата не може да се откаже.');
+    return { item: ProRequestsService.present({ ...doc, status: 'closed', updatedAt: now, closedAt: now }, 'user') };
+  }
 }
 
 module.exports = ProRequestsService;

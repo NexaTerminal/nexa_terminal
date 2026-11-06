@@ -91,3 +91,16 @@
 - `proRequestsService`: `userRevealed:false` at create; `present(doc, viewerRole)` masks userName/email/company + user message author to "Анонимен корисник" on the **Pro** view until revealed; board never shows company; owner/admin unaffected. `_notifyTargets` keeps raw emails for server notifications (so masking doesn't break "new message"/"Pro joined" emails). `claim` snapshots Pro's address/website/phone. New `setRevealed` + `POST /pro-requests/:id/reveal` (owner) + `ProRequestsApiService.reveal`.
 - Client: `proChat.js` returns `proProfile` + `userRevealed`; new `ProProfileModal`; both chat surfaces (AgentChatDock + AIChat) show an always-visible clickable Pro chip → profile modal + an "Анонимни сте · Откриј идентитет" toggle.
 - Verified: client build clean; server `present`/masking unit-exercised (pro=masked, owner=full, board=anon, reveal=unmasked).
+
+---
+
+## AI chat: way out of a Pro thread + „Нов разговор" (2026-11-06)
+
+**Problem:** after inviting a Pro, every message goes to the Pro. The dock had no „new" control and re-opening resumed that same thread, so the user could not ask the AI anything else. The full page had „Нова конверзација" only in the sidebar (hidden on phones), and a reload landed back in the locked thread. A waiting invite could never be withdrawn (`close` = active only).
+
+- [x] „Нов разговор": + icon in dock header, link in full-page header, link above the composer in a Pro thread
+- [x] A thread with a Pro invited is not auto-resumed (a new question would reach the Pro); „Отвори го разговорот со професионалец" link on the empty chat
+- [x] „Откажи покана": `POST /pro-requests/:id/cancel-invite`, owner/admin, atomic on `status:'open'` so it can't close a chat a Pro just joined
+- [x] Fixed: seeded message posting to the Pro from a stale closure (dock); double broadcast from the full-page „Побарај професионалец"
+
+**Review:** service test 5/5 (incl. claim race); dock RTL flows 4/4 against the real component (temp test, removed); client build clean; headless Chrome at 390px against a mock API: no horizontal overflow on either surface. Never run against the real backend (local env = prod DB; a real invite broadcasts to Pros). Not exercised in a browser: sending a message after the full-page „+ Нов разговор". Uncommitted.

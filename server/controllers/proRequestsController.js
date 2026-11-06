@@ -315,6 +315,14 @@ exports.close = async (req, res) => {
   } catch (err) { return handle(res, err); }
 };
 
+// Owner withdraws an unclaimed invite. Nobody has joined, so nobody is notified.
+exports.cancelInvite = async (req, res) => {
+  try {
+    const { item } = await make(req).cancelInvite(req.user, req.params.id, isAdmin(req));
+    return res.json({ success: true, item });
+  } catch (err) { return handle(res, err); }
+};
+
 // Either side turns this conversation's step emails on/off for themselves.
 exports.emailPrefs = async (req, res) => {
   try {

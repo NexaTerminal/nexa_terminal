@@ -280,6 +280,32 @@
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .askProBtn:hover { border-color: var(--color-primary, #1E4DB7); background: var(--color-accent-soft, #eff6ff); }
+.askProBtn:disabled { opacity: 0.6; cursor: default; border-color: var(--color-border, #e5e7eb); background: var(--color-neutral-50, #f8f9fa); }
+.newChatLink,
+.newChatLink:hover:not(:disabled),
+.newChatLink:active:not(:disabled),
+.proResumeLink,
+.proResumeLink:hover:not(:disabled),
+.proResumeLink:active:not(:disabled) {
+  /* undo the global <button> look — these are links */
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  color: var(--color-primary, #1E4DB7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.newChatLink:hover:not(:disabled),
+.proResumeLink:hover:not(:disabled) { text-decoration: underline; }
+.newChatLink:disabled { opacity: 0.5; cursor: default; }
+.proResumeLink { margin: 0 0 12px; text-decoration: underline; }
 .proNotice {
   margin: 0 0 10px;
   padding: 10px 14px;

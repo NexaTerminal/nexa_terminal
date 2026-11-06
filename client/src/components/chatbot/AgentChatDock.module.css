@@ -224,6 +224,12 @@
 .dock .proBarName:hover:not(:disabled),
 .dock .proAuthor:hover:not(:disabled) { background: none; }
 .dock .proBarReveal:hover:not(:disabled) { background: none; }
+.dock .proResume,
+.dock .proResume:hover:not(:disabled) {
+  margin: 0 0 12px; padding: 0; border: none; background: none;
+  color: var(--color-primary, #1E4DB7); font: inherit; font-size: 0.8rem;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+}
 
 /* Group chat (user + AI + pro): pro avatar stacked on the AI avatar. */
 .hdAvatarStack {

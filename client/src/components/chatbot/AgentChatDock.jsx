@@ -90,6 +90,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const [userRevealed, setUserRevealed] = useState(false); // did the user reveal identity?
   const [emailMuted, setEmailMuted] = useState(false);     // user's email opt-out for this conversation
   const [showProModal, setShowProModal] = useState(false);
+  // Conversation with a Pro invited that this empty chat can go back to.
+  const [proResumeId, setProResumeId] = useState(null);
   const endRef = useRef(null);
   const sendRef = useRef(null);
   // Refs so the seed effect + send() always read the latest without stale closures.
@@ -99,10 +101,21 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   contextRef.current = context;
   const setConv = (id) => { convIdRef.current = id; setActiveConvId(id); };
   const didInitRef = useRef(false);
+  // „Нов разговор" starts from zero, so it also drops the window's focus context.
+  const contextDroppedRef = useRef(false);
 
   const agent = getAgent(agentKey);
   const isMarketing = agent?.engine === 'marketing';
   const api = isMarketing ? MarketingBotApiService : ChatbotApiService;
+
+  const showConversation = (conv) => {
+    setMessages(conv.messages.map((m) => ({
+      role: m.type === 'ai' ? 'ai' : 'user',
+      content: m.type === 'ai' ? cleanAi(m.content) : m.content,
+      timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+    })));
+    setConv(String(conv._id));
+  };
 
   useEffect(() => {
     if (!minimized) endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -111,20 +124,20 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   // On first open, resume this character's latest conversation so the balloon
   // shows history (same continuity as the full page). Skipped when opened with a
   // seed (a seeded open starts a fresh contextual thread) and for marketing.
+  // A thread with a Pro invited isn't resumed: everything typed there goes to the
+  // Pro, so a new question would reach them by mistake. It stays one click away.
   useEffect(() => {
     if (didInitRef.current) return;
     didInitRef.current = true;
     if (!agent || isMarketing || seedId) return;
     ChatbotApiService.getLatestConversation(agent.key)
-      .then((res) => {
+      .then(async (res) => {
         const conv = res?.success ? res.data?.conversation : null;
         if (!conv || !Array.isArray(conv.messages) || conv.messages.length === 0) return;
-        setMessages(conv.messages.map((m) => ({
-          role: m.type === 'ai' ? 'ai' : 'user',
-          content: m.type === 'ai' ? cleanAi(m.content) : m.content,
-          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
-        })));
-        setConv(String(conv._id));
+        const pro = await fetchActiveProForConversation(conv._id);
+        if (convIdRef.current) return; // the user already started a new thread
+        if (pro) setProResumeId(String(conv._id));
+        else showConversation(conv);
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,6 +164,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   // seed starts a NEW thread so its focus context attaches cleanly.
   useEffect(() => {
     if (seedId && seed) {
+      contextDroppedRef.current = false;
       setMessages([]);
       setConv(null);
       sendRef.current?.(seed);
@@ -170,7 +184,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     // Human pro in the loop → the message goes ONLY to the pro's thread. No AI
     // call, so it costs no credits and doesn't count toward the weekly AI quota.
     // Re-check right before asking the AI: a pro may have joined since the last poll.
-    let liveProId = isMarketing ? null : proRequestId;
+    // No conversation means no linked Pro, even if the state hasn't caught up yet.
+    let liveProId = isMarketing || !convIdRef.current ? null : proRequestId;
     if (!isMarketing && !liveProId && convIdRef.current) {
       const r = await fetchActiveProForConversation(convIdRef.current);
       if (r) {
@@ -211,7 +226,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
       if (!convId) {
         const created = isMarketing
           ? await api.createConversation(q)
-          : await api.createConversation(q, agent.key, contextRef.current);
+          : await api.createConversation(q, agent.key, contextDroppedRef.current ? undefined : contextRef.current);
         if (created?.success) { convId = created.data.conversationId; setConv(convId); }
       }
       const res = isMarketing
@@ -259,6 +274,41 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         setProNotice('Поканата е испратена до професионалците. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано. NEXA е само канал за поврзување и не одговара за дадените совети.');
       } else setProNotice(res?.message || 'Грешка при поканата.');
     } catch (e) { setProNotice(e?.message || 'Грешка при поканата.'); }
+    finally { setProBusy(false); }
+  };
+
+  // „Нов разговор": empty chat with this character. The previous thread is kept,
+  // and if a Pro is on it, that conversation carries on untouched.
+  const newChat = () => {
+    if (loading || proBusy) return;
+    setProResumeId(proRequestId ? convIdRef.current : null);
+    setMessages([]); setInput(''); setError(null); setProNotice(null); setAiArmed(false);
+    setProRequestId(null); setProMsgs([]); setProProfile(null); setUserRevealed(false);
+    contextDroppedRef.current = true;
+    setConv(null);
+  };
+
+  const resumeProConversation = async () => {
+    const id = proResumeId;
+    setProResumeId(null);
+    try {
+      const res = await ChatbotApiService.getConversation(id);
+      if (res?.success && res.data?.conversation) showConversation({ ...res.data.conversation, _id: id });
+      else setError('Не можевме да го вчитаме разговорот.');
+    } catch (_) { setError('Не можевме да го вчитаме разговорот.'); }
+  };
+
+  // Withdraw a waiting invite: the same conversation goes back to the AI.
+  const cancelInvite = async () => {
+    if (!proRequestId || proBusy) return;
+    setProBusy(true); setError(null);
+    try {
+      const res = await ProRequestsApiService.cancelInvite(proRequestId);
+      if (res?.success) {
+        setProInvitedConv(null); setProNotice(null); setAiArmed(false);
+        setProRequestId(null); setProMsgs([]); setProProfile(null);
+      } else setError(res?.message || 'Поканата не е откажана. Обидете се повторно.');
+    } catch (e) { setError(e?.message || 'Поканата не е откажана. Обидете се повторно.'); }
     finally { setProBusy(false); }
   };
 
@@ -310,6 +360,14 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
           {!proProfile && <span className={styles.onlineDot} aria-hidden="true" />}
         </span>
         <span className={styles.hdActions}>
+          {messages.length > 0 && (
+            <span role="button" tabIndex={0} className={styles.iconBtn}
+              title="Нов разговор" aria-label="Нов разговор"
+              onClick={stop(newChat)}
+              onKeyDown={(e) => { if (e.key === 'Enter') stop(newChat)(e); }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            </span>
+          )}
           {!isMarketing && (
             <span role="button" tabIndex={0}
               className={`${styles.iconBtn} ${inviteSent || proProfile ? styles.iconBtnActive : ''}`}
@@ -362,6 +420,11 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
               <div className={styles.welcome}>
                 {agent.photo && <img src={agent.photo} alt={agent.name} className={styles.welcomeAvatar} />}
                 <p className={styles.welcomeText}>Здраво, јас сум {agent.name}. Како да помогнам?</p>
+                {proResumeId && (
+                  <button type="button" className={styles.proResume} onClick={resumeProConversation}>
+                    🧑‍⚖️ Отвори го разговорот со професионалец
+                  </button>
+                )}
                 <div className={styles.starters}>
                   {(agent.starters || []).slice(0, 3).map((s, i) => (
                     <button key={i} className={styles.starterChip} onClick={() => send(s)}>{s}</button>
@@ -408,7 +471,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
 
           {proRequestId && (
             <AiInviteLink agentName={agent.name} armed={aiArmed} waiting={!proProfile}
-              onToggle={() => setAiArmed((v) => !v)} />
+              onToggle={() => setAiArmed((v) => !v)}
+              onCancelInvite={cancelInvite} onNewChat={newChat} busy={proBusy || loading} />
           )}
 
           <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(); }}>

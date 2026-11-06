@@ -51,6 +51,11 @@ class ProRequestsApiService {
     return ApiService.post(`/pro-requests/${id}/close`, {});
   }
 
+  // Withdraw an invite no Pro has claimed yet (the chat goes back to the AI).
+  static cancelInvite(id) {
+    return ApiService.post(`/pro-requests/${id}/cancel-invite`, {});
+  }
+
   // Turn this conversation's step emails off/on for the caller's side.
   static setEmailMuted(id, muted) {
     return ApiService.post(`/pro-requests/${id}/email-prefs`, { muted: !!muted });

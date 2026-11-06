@@ -107,6 +107,9 @@ const AIChat = () => {
   const [userRevealed, setUserRevealed] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [revealBusy, setRevealBusy] = useState(false);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  // Conversation with a Pro invited that this empty chat can go back to.
+  const [proResumeId, setProResumeId] = useState(null);
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -154,10 +157,16 @@ const AIChat = () => {
       const resumeKey = picked && picked.engine === 'legal' ? picked.key : DEFAULT_AGENT_KEY;
 
       ChatbotApiService.getLatestConversation(resumeKey)
-        .then((res) => {
+        .then(async (res) => {
           const conv = res?.success ? res.data?.conversation : null;
           if (!conv || !Array.isArray(conv.messages) || conv.messages.length === 0) return;
           setAgent(resumeKey);
+          // A thread with a Pro invited isn't resumed: everything typed there goes
+          // to the Pro, so a new question would reach them by mistake.
+          if (await fetchActiveProForConversation(conv._id)) {
+            setProResumeId(String(conv._id));
+            return;
+          }
           setMessages(conv.messages.map((msg) => ({
             type: msg.type,
             content: msg.content,
@@ -273,6 +282,40 @@ const AIChat = () => {
     setMessages([]);
     setCurrentConversationId(null);
     setError(null);
+    setProNotice(null);
+    setProCardState({});
+    setAiArmed(false);
+    setProResumeId(null);
+    setProRequestId(null); setAssignedProName(null); setProMessages([]); setProProfile(null); setUserRevealed(false);
+  };
+
+  /**
+   * „Нов разговор" from the chat itself: empty chat with this character. The
+   * previous thread is kept, and if a Pro is on it, it carries on untouched.
+   */
+  const handleStartNewChat = () => {
+    if (isLoading || isStreaming) return;
+    const proConversation = proRequestId ? currentConversationId : null;
+    handleNewConversation();
+    setProResumeId(proConversation);
+    setQuestion('');
+    setHandoffFrom(null);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  /** Withdraw a waiting invite: the same conversation goes back to the AI. */
+  const handleCancelInvite = async () => {
+    if (!proRequestId || inviteBusy) return;
+    setInviteBusy(true);
+    setError(null);
+    try {
+      const res = await ProRequestsApiService.cancelInvite(proRequestId);
+      if (res?.success) {
+        setProNotice(null); setAiArmed(false); setProCardState({});
+        setProRequestId(null); setAssignedProName(null); setProMessages([]); setProProfile(null);
+      } else setError(res?.message || 'Поканата не е откажана. Обидете се повторно.');
+    } catch (e) { setError(e?.message || 'Поканата не е откажана. Обидете се повторно.'); }
+    finally { setInviteBusy(false); }
   };
 
   /**
@@ -318,6 +361,7 @@ const AIChat = () => {
    * gated behind the proRequest terms (data-sharing consent).
    */
   const handleAskPro = (reason = null, msgIndex = null) => {
+    if (proRequestId) return; // already invited: never broadcast the same chat twice
     // Wait for the AI's answer to land, so the Pro's session summary includes it.
     if (isLoading || isStreaming) { setError('Почекајте AI да го заврши одговорот, па побарајте професионалец.'); return; }
     // The excerpt below is a fallback: when the chat is saved, the server builds
@@ -383,6 +427,7 @@ const AIChat = () => {
 
         setMessages(formattedMessages);
         setCurrentConversationId(conversationId);
+        setProNotice(null); setProCardState({}); setAiArmed(false); setProResumeId(null);
         // Adopt the conversation's character so the header + bubbles match it.
         if (conversation.agent) {
           const picked = getAgent(conversation.agent);
@@ -746,13 +791,25 @@ const AIChat = () => {
                     📄 {showContract ? 'Затвори преглед' : 'Преглед на договор'}
                   </button>
                 )}
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.newChatLink}
+                    onClick={handleStartNewChat}
+                    disabled={isLoading || isStreaming}
+                    title="Започни од почеток — овој разговор останува зачуван"
+                  >
+                    + Нов разговор
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.askProBtn}
                   onClick={() => handleAskPro()}
-                  title="Провери дали има достапен професионалец што може да се вклучи во разговорот"
+                  disabled={!!proRequestId}
+                  title={proRequestId ? 'Професионалец е поканет во овој разговор' : 'Провери дали има достапен професионалец што може да се вклучи во разговорот'}
                 >
-                  🧑‍⚖️ Побарај професионалец
+                  🧑‍⚖️ {proRequestId ? 'Професионалец е поканет' : 'Побарај професионалец'}
                 </button>
                 <PersonaControl />
                 <MemoryControl />
@@ -805,6 +862,11 @@ const AIChat = () => {
                 )}
                 <h3 className={styles.welcomeTitle}>Здраво, јас сум {activeAgent.name}</h3>
                 <p className={styles.welcomeRole}>{activeAgent.role}</p>
+                {proResumeId && (
+                  <button type="button" className={styles.proResumeLink} onClick={() => handleSelectConversation(proResumeId)}>
+                    🧑‍⚖️ Отвори го разговорот со професионалец
+                  </button>
+                )}
                 {activeAgent.tags && activeAgent.tags.length > 0 && (
                   <div className={styles.welcomeTags}>
                     {activeAgent.tags.map((tag, i) => (
@@ -1090,7 +1152,9 @@ const AIChat = () => {
           <div className={styles.inputContainer}>
             {proRequestId && (
               <AiInviteLink agentName={activeAgent?.name || 'AI'} armed={aiArmed} waiting={!proProfile}
-                onToggle={() => { setAiArmed((v) => !v); textareaRef.current?.focus(); }} />
+                onToggle={() => { setAiArmed((v) => !v); textareaRef.current?.focus(); }}
+                onCancelInvite={handleCancelInvite} onNewChat={handleStartNewChat}
+                busy={inviteBusy || isLoading || isStreaming} />
             )}
             <form onSubmit={handleSubmit} className={styles.inputForm}>
               <textarea

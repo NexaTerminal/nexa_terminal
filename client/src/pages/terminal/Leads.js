@@ -6,6 +6,7 @@ import TrialDisabledNotice from '../../components/terminal/TrialDisabledNotice';
 import ExpressInterestModal from '../../components/terminal/ExpressInterestModal';
 import { isTrial, canExpressInterest, visibleTier, trialPreview, openSubscriptionGate } from '../../lib/tier';
 import { CATEGORY_LABEL } from '../../config/inquiryCategories';
+import CaseFunnel from '../../components/terminal/CaseFunnel';
 import styles from './Inquiries.module.css';
 
 // Sample cards used for the trial-period masked preview.
@@ -31,6 +32,12 @@ const CASE_SOURCES = [
   'samodaprasham.mk', 'immigration.mk', 'macedoniancitizenship.mk',
   'company.nexa.mk', 'iplaw.nexa.mk', 'osiguran.mk', 'properties.nexa.mk'
 ];
+
+// Board filter: the two catch-all keys show as one „Друго" chip.
+const OTHER = 'other';
+const OTHER_KEYS = ['other_legal', 'legal_questions'];
+const filterKey = (c) => (OTHER_KEYS.includes(c) ? OTHER : c);
+const filterLabel = (k) => (k === OTHER ? 'Друго' : CATEGORY_LABEL[k]);
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
@@ -152,19 +159,21 @@ export default function LeadsPage() {
 
   // Categories actually present on the board — drives the filter bar. We keep
   // only keys in the current taxonomy so legacy tags (e.g. 'legal') never show
-  // up as dead filter chips. Each entry carries its live count.
+  // up as dead filter chips. The two „Друго" keys collapse into one chip that
+  // always sorts last. Each entry carries its live count (one per case).
   const availableCategories = useMemo(() => {
     const counts = new Map();
-    items.forEach(it => (it.inquiry?.categories || []).forEach(c => {
-      if (CATEGORY_LABEL[c]) counts.set(c, (counts.get(c) || 0) + 1);
-    }));
+    items.forEach(it => {
+      const keys = new Set((it.inquiry?.categories || []).filter(c => CATEGORY_LABEL[c]).map(filterKey));
+      keys.forEach(k => counts.set(k, (counts.get(k) || 0) + 1));
+    });
     return Array.from(counts.entries())
       .map(([key, count]) => ({ key, count }))
-      .sort((a, b) => CATEGORY_LABEL[a.key].localeCompare(CATEGORY_LABEL[b.key], 'mk'));
+      .sort((a, b) => (a.key === OTHER) - (b.key === OTHER) || filterLabel(a.key).localeCompare(filterLabel(b.key), 'mk'));
   }, [items]);
 
   const visibleItems = useMemo(() => (
-    catFilter ? items.filter(it => (it.inquiry?.categories || []).includes(catFilter)) : items
+    catFilter ? items.filter(it => (it.inquiry?.categories || []).some(c => filterKey(c) === catFilter)) : items
   ), [items, catFilter]);
 
   const onExpress = (inq) => {
@@ -186,69 +195,13 @@ export default function LeadsPage() {
     <TerminalShell>
       <div className={styles.page}>
         <header className={styles.header}>
-          <span className={styles.eyebrow}>Случаи</span>
-
-          <div className={styles.caseFunnel}>
-            <div className={styles.funnelRain} aria-hidden="true">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <span key={i} className={styles.rainQ}>?</span>
-              ))}
-            </div>
-            <span className={styles.funnelBandLabel}>Прашања од посетителите на веб страните од мрежата</span>
-            <div className={styles.funnelSources}>
-              {CASE_SOURCES.map((host) => (
-                <a key={host} href={`https://${host}`} target="_blank" rel="noopener noreferrer"
-                   className={styles.funnelBubble}>
-                  <span className={styles.funnelBubbleQ} aria-hidden="true">?</span>
-                  <span className={styles.funnelBubbleHost}>{host}</span>
-                </a>
-              ))}
-            </div>
-
-            <div className={styles.funnelGraphic} aria-hidden="true">
-              <svg className={styles.funnelSvg} viewBox="0 0 440 96" preserveAspectRatio="xMidYMid meet">
-                {/* converging feeds from the source sites above */}
-                <path className={styles.funnelFeed} d="M28 4 Q140 20 200 38" />
-                <path className={styles.funnelFeed} d="M130 4 Q182 22 214 38" />
-                <path className={styles.funnelFeed} d="M220 4 L220 38" />
-                <path className={styles.funnelFeed} d="M310 4 Q258 22 226 38" />
-                <path className={styles.funnelFeed} d="M412 4 Q300 20 240 38" />
-
-                {/* funnel body + stem */}
-                <path className={styles.funnelShape} d="M36 40 L206 72 L234 72 L404 40 Z" />
-                <path className={styles.funnelNeck} d="M206 72 L234 72 L231 90 Q231 94 227 94 L213 94 Q209 94 209 90 Z" />
-
-                {/* elliptical mouth with a soft inner depression */}
-                <ellipse className={styles.funnelRim} cx="220" cy="40" rx="184" ry="6.5" />
-                <ellipse className={styles.funnelRimInner} cx="220" cy="40" rx="168" ry="4.5" />
-
-                {/* questions streaming down into the categories below */}
-                <circle className={`${styles.funnelDrop} ${styles.funnelDrop1}`} cx="220" cy="40" r="2.6" />
-                <circle className={`${styles.funnelDrop} ${styles.funnelDrop2}`} cx="220" cy="40" r="2.2" />
-                <circle className={`${styles.funnelDrop} ${styles.funnelDrop3}`} cx="220" cy="40" r="2.4" />
-              </svg>
-            </div>
-
-            {!loading && items.length > 0 && availableCategories.length > 0 && (
-              <div className={styles.funnelOutput}>
-                <span className={styles.funnelBandLabel}>Разгледајте ги случаите по област</span>
-                <div className={styles.catFilterBar} role="tablist" aria-label="Филтер по категорија">
-                  <button type="button" role="tab" aria-selected={catFilter === ''}
-                          className={`${styles.catFilterChip} ${catFilter === '' ? styles.catFilterChipActive : ''}`}
-                          onClick={() => setCatFilter('')}>
-                    Сите
-                  </button>
-                  {availableCategories.map(({ key }) => (
-                    <button key={key} type="button" role="tab" aria-selected={catFilter === key}
-                            className={`${styles.catFilterChip} ${catFilter === key ? styles.catFilterChipActive : ''}`}
-                            onClick={() => setCatFilter(key)}>
-                      {CATEGORY_LABEL[key]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <CaseFunnel
+            sources={CASE_SOURCES}
+            categories={!loading && items.length > 0 ? availableCategories : []}
+            active={catFilter}
+            onSelect={setCatFilter}
+            labelOf={filterLabel}
+          />
         </header>
 
         {trial && <TrialDisabledNotice />}
@@ -264,7 +217,7 @@ export default function LeadsPage() {
 
         {!loading && catFilter && (
           <div className={styles.resultBar}>
-            <span className={styles.resultCount}>{CATEGORY_LABEL[catFilter]}</span>
+            <span className={styles.resultCount}>{filterLabel(catFilter)}</span>
             <button type="button" className={styles.clearFilter} onClick={() => setCatFilter('')}>
               Сите области ✕
             </button>

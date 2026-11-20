@@ -193,7 +193,7 @@ export default function LeadsPage() {
 
   return (
     <TerminalShell>
-      <div className={styles.page}>
+      <div className={`${styles.page} ${styles.pageWide}`}>
         <header className={styles.header}>
           <CaseFunnel
             sources={CASE_SOURCES}
@@ -231,7 +231,7 @@ export default function LeadsPage() {
         ) : visibleItems.length === 0 ? (
           <div className={styles.emptyState}>Нема барања во избраната категорија.</div>
         ) : (
-          <div className={styles.list}>
+          <div className={`${styles.list} ${styles.boardList}`}>
             {visibleItems.map(item => (
               <Card key={item.inquiry._id}
                     item={item}

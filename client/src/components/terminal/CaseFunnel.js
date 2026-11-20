@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from '../../styles/terminal/CaseFunnel.module.css';
 
 /**
  * „Случаи" hero: network sites on the left → animated flow lines → one case
  * base on the right, with the area filter chips underneath.
- * Flow-line paths are generated from the source count (row pitch 48px), so
+ * Paths are generated from the source count and the measured width (1 SVG
+ * unit = 1px), so envelopes travel along them without being stretched and
  * adding/removing a site needs no SVG edits.
  */
 
-const ROW = 48;      // 40px source height + 8px gap
-const W = 200;       // SVG viewBox width
+const ROW = 32;      // 28px source height + 4px gap
+const DUR = 3.6;     // seconds per envelope trip
+
+// Small envelope glyph centred on (0,0) so animateMotion moves its middle.
+const Envelope = () => (
+  <g className={styles.envelope}>
+    <rect x="-7" y="-5" width="14" height="10" rx="2" />
+    <path d="M-6 -3.5 0 1 6 -3.5" />
+  </g>
+);
 
 const ExtIcon = () => (
   <svg className={styles.ext} width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -19,12 +28,24 @@ const ExtIcon = () => (
 );
 
 const CaseFunnel = ({ sources, categories, active, onSelect, labelOf }) => {
+  const wrapRef = useRef(null);
+  const [W, setW] = useState(200);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(([e]) => setW(Math.max(80, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const n = sources.length;
-  const height = ROW * n - 8;
+  const height = ROW * n - 4;
   const hubY = height / 2;
   const paths = sources.map((_, i) => {
-    const y = 20 + ROW * i;
-    return y === hubY ? `M0 ${y} L${W} ${hubY}` : `M0 ${y} C110 ${y} 90 ${hubY} ${W} ${hubY}`;
+    const y = 14 + ROW * i;
+    return y === hubY
+      ? `M0 ${y} L${W} ${hubY}`
+      : `M0 ${y} C${W * 0.55} ${y} ${W * 0.45} ${hubY} ${W} ${hubY}`;
   });
 
   return (
@@ -48,14 +69,24 @@ const CaseFunnel = ({ sources, categories, active, onSelect, labelOf }) => {
           ))}
         </ul>
 
-        <svg className={styles.lines} viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" aria-hidden="true">
-          <g>{paths.map((d, i) => <path key={i} className={styles.base} d={d} />)}</g>
-          <g>
-            {paths.map((d, i) => (
-              <path key={i} className={styles.pulse} pathLength="100" d={d} />
-            ))}
-          </g>
-        </svg>
+        <div className={styles.linesWrap} ref={wrapRef} aria-hidden="true">
+          <svg className={styles.lines} viewBox={`0 0 ${W} ${height}`} aria-hidden="true">
+            <g>{paths.map((d, i) => <path key={i} className={styles.base} d={d} />)}</g>
+            <g className={styles.mail}>
+              {paths.map((d, i) => {
+                const begin = `${-((i * 1.45) % DUR).toFixed(2)}s`;
+                return (
+                  <g key={i} opacity="0">
+                    <Envelope />
+                    <animateMotion dur={`${DUR}s`} begin={begin} repeatCount="indefinite" path={d} />
+                    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.82;1"
+                             dur={`${DUR}s`} begin={begin} repeatCount="indefinite" />
+                  </g>
+                );
+              })}
+            </g>
+          </svg>
+        </div>
 
         <div className={styles.hub}>
           <div className={styles.hubIcon} aria-hidden="true">
@@ -66,7 +97,7 @@ const CaseFunnel = ({ sources, categories, active, onSelect, labelOf }) => {
             </svg>
           </div>
           <h3>База на случаи</h3>
-          <p>Секое прашање станува случај, класифициран по област, за полесно пребарување.</p>
+          <p>Секое прашање станува случај, подреден по правна област.</p>
         </div>
       </div>
 

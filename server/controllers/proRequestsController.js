@@ -16,7 +16,6 @@ const { getAgentName } = require('../chatbot/agentProfiles');
 const make = (req) => new ProRequestsService(req.app.locals.db);
 const isAdmin = (req) => tierService.visibleTier(req.user) === 'ADMIN';
 const isProOrAdmin = (req) => ['B', 'ADMIN'].includes(tierService.visibleTier(req.user));
-const ADMIN_EMAIL = () => process.env.ADMIN_EMAIL || 'terminalnexa@gmail.com';
 const APP_URL = () => process.env.CLIENT_URL || process.env.APP_URL || 'https://nexa.mk';
 
 const handle = (res, err) => {
@@ -63,30 +62,16 @@ function stepEmail(to, muted, subject, html, link) {
 const quoteBody = (text) => `<blockquote style="margin:8px 0;padding:8px 12px;border-left:3px solid #ccc;color:#333">${esc(text).replace(/\n/g, '<br/>')}</blockquote>`;
 const snippet = (text) => { const t = String(text || '').replace(/\s+/g, ' ').trim(); return t.length > 120 ? `${t.slice(0, 117)}…` : t; };
 
-const TYPE_LABEL = { consult: 'Прашање до професионалец', contract_review: 'Преглед на договор' };
-const CATEGORY_LABEL = { legal: 'Правно', marketing: 'Маркетинг', hr: 'Човечки ресурси', insurance: 'Осигурување', accounting: 'Сметководство' };
 const esc = (s) => String(s == null ? '' : s).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 // Liability line shown to both sides — the Pro owns their advice; AI is informational.
 const LIABILITY_NOTE =
   'Напомена: AI одговорите се информативни и не се правен совет. Ако професионалец се приклучи и даде совет, тој е професионално одговорен за точноста на својот совет.';
 
-// Broadcast an open request to every Pro (bell; email only if PRO_CHAT_EMAILS=on) + confirm to the requester.
-// Pros only ever get the anonymized subject (`proSubject`) + the anonymized summary.
-async function broadcastToBoard(req, svc, item, summary, proSubject) {
+// Announce an open request to every Pro: in-app bell only. No email to anyone on
+// invite (user rule, Nov 2026): Pros see waiting invites when they log in.
+async function broadcastToBoard(req, svc, item, proSubject) {
   const pros = await svc.eligibleProsForCategory(item.category);
-  const boardLink = `${APP_URL()}/terminal/pro/conversations`;
-  const summaryHtml = esc(item.context?.aiSummary || summary || '').replace(/\n/g, '<br/>');
   for (const p of pros) {
-    if (PRO_CHAT_EMAILS()) notify(
-      p.email,
-      `Ново барање на таблата: ${esc(proSubject)}`,
-      `<p>Пристигна ново барање од корисник на Nexa што бара помош или проверка од професионалец.</p>
-       <p><strong>Област:</strong> ${esc(CATEGORY_LABEL[item.category] || item.category)}<br/>
-       <strong>Наслов:</strong> ${esc(proSubject)}</p>
-       ${summaryHtml ? `<p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>` : ''}
-       <p>Првиот професионалец што ќе се приклучи го презема разговорот. <a href="${boardLink}">Отвори ја таблата со барања</a>.</p>
-       <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
-    );
     notifyInApp(req, p._id, {
       type: 'pro_request_open',
       title: 'Ново барање за професионалец',
@@ -95,13 +80,6 @@ async function broadcastToBoard(req, svc, item, summary, proSubject) {
       severity: 'info',
     });
   }
-  notify(
-    item.userEmail,
-    'Вашето барање е споделено со професионалци',
-    `<p>Вашето барање „${esc(item.subject)}" е споделено со проверени професионалци. Наскоро некој ќе се приклучи во разговорот.</p>
-     <p><a href="${APP_URL()}/terminal/requests">Следете го тука</a>.</p>
-     <p style="color:#666;font-size:12px">${esc(LIABILITY_NOTE)}</p>`
-  );
   return pros.length;
 }
 
@@ -164,11 +142,19 @@ async function currentSessionTranscript(req, conversationId, agent) {
 }
 
 exports.create = async (req, res) => {
+  const svc = make(req);
+  let lockId = null;
   try {
-    // Summarize the AI↔user conversation up-front so the admin reviews a clean
-    // brief before approving, and the same text rides onto the Pro board. Fails
-    // safe (trimmed fallback) — never blocks creation.
     const ctx = req.body?.context || {};
+    // One live invite per conversation. Checked before the slow AI summary below,
+    // so repeated clicks can't each run it and each reach the board.
+    const slot = await svc.reserveInvite(req.user, ctx.conversationId);
+    if (slot.item) return res.json({ success: true, item: slot.item, notified: 0, deduped: true });
+    if (slot.pending) return res.json({ success: true, pending: true, notified: 0, deduped: true });
+    lockId = slot.lockId;
+
+    // Summarize the AI↔user conversation up-front; the same text rides onto the
+    // Pro board. Fails safe (trimmed fallback) — never blocks creation.
     // From a chat: the transcript is built server-side from the current session only.
     const session = await currentSessionTranscript(req, ctx.conversationId, req.body?.agent);
     if (session) {
@@ -182,29 +168,16 @@ exports.create = async (req, res) => {
       type: req.body?.type,
     });
 
-    const { item, proSubject } = await make(req).create(req.user, req.body || {}, summary);
+    const { item, proSubject } = await svc.create(req.user, req.body || {}, summary);
 
-    // Requests are auto-published to the Pro board — broadcast to eligible Pros now.
-    const notified = await broadcastToBoard(req, make(req), item, summary, proSubject);
-
-    // Admin gets a heads-up copy (informational; approval is no longer required).
-    const adminLink = `${APP_URL()}/terminal/admin-user/requests`;
-    const summaryHtml = esc(item.context?.aiSummary || '').replace(/\n/g, '<br/>');
-    notify(
-      ADMIN_EMAIL(),
-      `Ново барање: ${TYPE_LABEL[item.type] || item.type}`,
-      `<p>Пристигна ново барање за професионалец (автоматски објавено на таблата).</p>
-       <p><strong>Вид:</strong> ${esc(TYPE_LABEL[item.type] || item.type)}<br/>
-       <strong>Наслов:</strong> ${esc(item.subject)}<br/>
-       <strong>Корисник:</strong> ${esc(item.userName || '')} ${item.userEmail ? `(${esc(item.userEmail)})` : ''}<br/>
-       <strong>Фирма:</strong> ${esc(item.companyName || '-')}</p>
-       ${summaryHtml ? `<p><strong>Резиме на разговорот со AI:</strong><br/>${summaryHtml}</p>` : ''}
-       ${item.context?.question ? `<p><strong>Прашање:</strong><br/>${esc(item.context.question)}</p>` : ''}
-       ${item.context?.documentName ? `<p><strong>Документ:</strong> ${esc(item.context.documentName)}</p>` : ''}
-       <p><a href="${adminLink}">Отвори во админ панел</a> за да го отстраниш ако е потребно.</p>`
-    );
+    // Requests are auto-published to the Pro board — announce to eligible Pros now.
+    const notified = await broadcastToBoard(req, svc, item, proSubject);
     return res.status(201).json({ success: true, item, notified });
-  } catch (err) { return handle(res, err); }
+  } catch (err) {
+    return handle(res, err);
+  } finally {
+    if (lockId) await svc.releaseInvite(lockId);
+  }
 };
 
 // ── Thread ──────────────────────────────────────────────────────────────────────

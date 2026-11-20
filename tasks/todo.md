@@ -173,3 +173,19 @@ reply from that character (capped), with "continue in chat".
 - [x] Fixed: seeded message posting to the Pro from a stale closure (dock); double broadcast from the full-page „Побарај професионалец"
 
 **Review:** service test 5/5 (incl. claim race); dock RTL flows 4/4 against the real component (temp test, removed); client build clean; headless Chrome at 390px against a mock API: no horizontal overflow on either surface. Never run against the real backend (local env = prod DB; a real invite broadcasts to Pros). Not exercised in a browser: sending a message after the full-page „+ Нов разговор". Uncommitted.
+
+---
+
+## Pro invite: one per conversation, no emails (2026-11-07)
+
+**Problem:** create runs the AI summary before responding (seconds), the UI didn't react, and nothing deduped, so 3-4 clicks made 3-4 requests and 3-4 sets of emails.
+
+- [x] Removed all invite-time emails: Pro broadcast, admin copy, requester confirmation. Bell stays.
+- [x] One live invite per conversation: `reserveInvite` + `pro_invite_locks` (5 min TTL) before the slow summary; re-invite allowed after cancel/close
+- [x] Instant click feedback + synchronous click guard on dock and full page („Се испраќа…")
+- [x] A slow invite can't lock a chat the user opened meanwhile (full page)
+- [x] Pro badge now counts open board invites (was 0 at login)
+
+**Review:** real controller + fake DB: 4 simultaneous clicks = 1 request, 0 emails; late click returns the existing invite; other conversations unaffected; re-invite works. Headless Chrome with a 1.5s mock create: 1 POST on each surface, button changes at once. Pro badge shows 2 with 2 mock invites. Not run against the real backend or Atlas. Bell count not asserted. Document-review and LHC invites have no conversation id, so no dedupe there.
+
+**Follow-up (2026-11-07):** Pro sidebar link „Разговори" → `/terminal/pro/conversations`, first in the primary group (`proSections` only). Bell and messaging bar unchanged. Checked in headless Chrome with mock Pro and Basic users: Pro has the link, Basic doesn't.

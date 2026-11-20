@@ -66,8 +66,10 @@ const contracts = {
 
 const legalAi = { key: 'legal-ai', icon: 'ai', label: 'AI Тим', path: '/terminal/ai-team' };
 
-// „Разговори" (requester + Pro conversations) moved out of the sidebar into the
-// corner messaging bar — components/chatbot/MessagingBar.jsx.
+// „Разговори" (requester + Pro conversations) lives in the corner messaging bar
+// — components/chatbot/MessagingBar.jsx. Pros also get this sidebar link, because
+// invites send no email: this is where they find and join them.
+const proConversations = { key: 'pro-conversations', icon: 'inbox', label: 'Разговори', path: '/terminal/pro/conversations' };
 // „Сите барања" — admin-only oversight of every Ask-a-Pro request; admin can reject
 // (remove) an open request from here. Requests auto-publish, so this is for cleanup.
 const adminRequests = { key: 'admin-requests', icon: 'inbox', label: 'Сите барања', path: '/terminal/admin-user/requests', visible: (user) => user?.role === 'admin' };
@@ -162,13 +164,13 @@ const smbSections = [
 // compact "Алатки" drawer (Employees / Contracts registry / compliance checks /
 // Marketing-AI are omitted — accessible by URL, off the primary nav).
 const proSections = [
-  // Primary group — always open, no header. The three client-getting surfaces:
-  // Случаи (claim a case), Topics Q&A (visibility + SEO), Блог (branding), plus
-  // a lightweight CRM to track potential clients. Dashboard is reached via the
-  // Nexa logo, so it's not a nav item here.
+  // Primary group — always open, no header. Разговори (invites + client chats),
+  // then the three client-getting surfaces: Случаи (claim a case), Topics Q&A
+  // (visibility + SEO), Блог (branding), plus a lightweight CRM to track potential
+  // clients. Dashboard is reached via the Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [leads, topicsqa, proBlog, proClients]
+    items: [proConversations, leads, topicsqa, proBlog, proClients]
   },
   {
     key: 'pro-tools', label: 'Алатки',

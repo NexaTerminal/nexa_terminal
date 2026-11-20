@@ -12,7 +12,8 @@ export const isProUser = (user) => user?.role === 'admin_user' || user?.role ===
 
 /**
  * Messaging-bar badge: requester side = conversations with unseen pro replies;
- * Pro side = active conversations waiting on their reply. Polls every minute,
+ * Pro side = active conversations waiting on their reply + open invites on the
+ * board (invites send no email, so this is how a Pro finds them). Polls every minute,
  * on window focus and on INBOX_REFRESH_EVENT.
  */
 export function useInboxCount(user) {
@@ -24,11 +25,12 @@ export function useInboxCount(user) {
     let cancelled = false;
     const load = async () => {
       try {
-        const [mine, waiting] = await Promise.all([
+        const [mine, waiting, board] = await Promise.all([
           ProRequestsApiService.unread().catch(() => null),
           pro ? ProRequestsApiService.unanswered().catch(() => null) : null,
+          pro ? ProRequestsApiService.board().catch(() => null) : null,
         ]);
-        if (!cancelled) setCount((mine?.count || 0) + (waiting?.count || 0));
+        if (!cancelled) setCount((mine?.count || 0) + (waiting?.count || 0) + (board?.items?.length || 0));
       } catch (_) { /* badge is best-effort */ }
     };
     load();

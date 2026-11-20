@@ -103,6 +103,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   const didInitRef = useRef(false);
   // „Нов разговор" starts from zero, so it also drops the window's focus context.
   const contextDroppedRef = useRef(false);
+  // Blocks repeat clicks in the same tick, before `proBusy` has rendered.
+  const inviteRunningRef = useRef(false);
 
   const agent = getAgent(agentKey);
   const isMarketing = agent?.engine === 'marketing';
@@ -250,7 +252,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
   // user's last question + the AI answer to it) is shared, never earlier turns.
   const inviteSent = !!activeConvId && proInvitedConv === activeConvId;
   const inviteProNow = async () => {
-    if (proBusy || inviteSent || proRequestId) return;
+    if (inviteRunningRef.current || proBusy || inviteSent || proRequestId) return;
     // Wait for the AI's answer to land, so the Pro's summary includes it.
     if (loading) { setError('Почекајте AI да го заврши одговорот, па поканете професионалец.'); return; }
     let qIdx = -1;
@@ -258,7 +260,9 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
     if (qIdx < 0) { setError('Прво поставете прашање, па поканете професионалец.'); return; }
     const q = messages[qIdx].content.trim();
     const excerpt = messages.slice(qIdx).map((m) => `${m.role === 'user' ? 'Јас' : agent.name}: ${m.content}`).join('\n\n');
-    setProBusy(true); setError(null); setProNotice(null);
+    // Creating takes seconds (AI summary), so answer the click straight away.
+    inviteRunningRef.current = true;
+    setProBusy(true); setError(null); setProNotice('Ја испраќаме поканата…');
     try {
       const res = await ProRequestsApiService.create({
         type: 'consult',
@@ -274,7 +278,7 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
         setProNotice('Поканата е испратена до професионалците. Ако некој се приклучи, ќе ве известиме во „Разговори" — тоа засега не е загарантирано. NEXA е само канал за поврзување и не одговара за дадените совети.');
       } else setProNotice(res?.message || 'Грешка при поканата.');
     } catch (e) { setProNotice(e?.message || 'Грешка при поканата.'); }
-    finally { setProBusy(false); }
+    finally { inviteRunningRef.current = false; setProBusy(false); }
   };
 
   // „Нов разговор": empty chat with this character. The previous thread is kept,
@@ -370,8 +374,8 @@ function ChatWindow({ agentKey, minimized, seed, seedId, context, onClose, onTog
           )}
           {!isMarketing && (
             <span role="button" tabIndex={0}
-              className={`${styles.iconBtn} ${inviteSent || proProfile ? styles.iconBtnActive : ''}`}
-              title={proProfile ? 'Професионалец е во разговорот' : inviteSent ? 'Поканата е испратена' : 'Покани професионалец (еден клик)'}
+              className={`${styles.iconBtn} ${inviteSent || proProfile || proBusy ? styles.iconBtnActive : ''}`}
+              title={proProfile ? 'Професионалец е во разговорот' : proBusy ? 'Се испраќа…' : inviteSent ? 'Поканата е испратена' : 'Покани професионалец (еден клик)'}
               aria-label="Покани професионалец"
               onClick={stop(inviteProNow)}
               onKeyDown={(e) => { if (e.key === 'Enter') stop(inviteProNow)(e); }}>

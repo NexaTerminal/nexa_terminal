@@ -93,6 +93,7 @@ class ProRequestsService {
     this.db = db;
     this.col = db.collection(COLLECTION);
     this.users = db.collection('users');
+    this.locks = db.collection('pro_invite_locks');
     this._indexed = false;
   }
 
@@ -106,6 +107,8 @@ class ProRequestsService {
     await this.col.createIndex({ assignedProId: 1, updatedAt: -1 });
     await this.col.createIndex({ status: 1, createdAt: -1 });
     await this.col.createIndex({ status: 1, category: 1, createdAt: -1 });
+    // Safety net: a crashed create can't hold an invite slot for long.
+    await this.locks.createIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
     this._indexed = true;
   }
 
@@ -310,6 +313,44 @@ class ProRequestsService {
     const { insertedId } = await this.col.insertOne(doc);
     // `proSubject` is for Pro-facing notifications (the owner's item keeps the raw subject).
     return { item: ProRequestsService.present({ ...doc, _id: insertedId }), proSubject: context.proSafe.subject };
+  }
+
+  /**
+   * Claim the one invite slot for a conversation, before any slow work. Returns
+   * { item } when an invite is already live, { pending } while another click's
+   * create is running, or { lockId } for the caller to create and then release.
+   * The second live check closes the gap where the first create finished between
+   * our check and our lock. A closed or cancelled invite doesn't count, so the
+   * user can invite again.
+   */
+  async reserveInvite(user, conversationId) {
+    const conversation = clamp(conversationId, 64);
+    if (!conversation) return {};
+    await this._ensureIndexes();
+    const findLive = () => this.col.findOne(
+      { userId: user._id, 'context.conversationId': conversation, status: { $in: ['open', 'active'] } },
+      { sort: { updatedAt: -1 } }
+    );
+    const live = await findLive();
+    if (live) return { item: ProRequestsService.present(live, 'user') };
+
+    const lockId = `${user._id}:${conversation}`;
+    try {
+      await this.locks.insertOne({ _id: lockId, createdAt: new Date() });
+    } catch (err) {
+      if (err.code === 11000) return { pending: true };
+      throw err;
+    }
+    const justCreated = await findLive();
+    if (justCreated) {
+      await this.releaseInvite(lockId);
+      return { item: ProRequestsService.present(justCreated, 'user') };
+    }
+    return { lockId };
+  }
+
+  async releaseInvite(lockId) {
+    await this.locks.deleteOne({ _id: lockId }).catch(() => {});
   }
 
   // ── Reads (role-scoped) ─────────────────────────────────────────────────────

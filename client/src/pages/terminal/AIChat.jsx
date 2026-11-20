@@ -108,12 +108,17 @@ const AIChat = () => {
   const [showProModal, setShowProModal] = useState(false);
   const [revealBusy, setRevealBusy] = useState(false);
   const [inviteBusy, setInviteBusy] = useState(false);
+  const [askingPro, setAskingPro] = useState(false);
   // Conversation with a Pro invited that this empty chat can go back to.
   const [proResumeId, setProResumeId] = useState(null);
 
   // Refs
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  // Blocks repeat clicks in the same tick, before `askingPro` has rendered.
+  const askProRunningRef = useRef(false);
+  // Bumped when the chat changes, so a slow invite can't lock the chat opened since.
+  const chatGenerationRef = useRef(0);
 
   // Fetch user's remaining question limits on component mount
   useEffect(() => {
@@ -279,6 +284,7 @@ const AIChat = () => {
    * Handle starting a new conversation
    */
   const handleNewConversation = () => {
+    chatGenerationRef.current += 1;
     setMessages([]);
     setCurrentConversationId(null);
     setError(null);
@@ -361,7 +367,7 @@ const AIChat = () => {
    * gated behind the proRequest terms (data-sharing consent).
    */
   const handleAskPro = (reason = null, msgIndex = null) => {
-    if (proRequestId) return; // already invited: never broadcast the same chat twice
+    if (proRequestId || askProRunningRef.current) return; // never invite the same chat twice
     // Wait for the AI's answer to land, so the Pro's session summary includes it.
     if (isLoading || isStreaming) { setError('Почекајте AI да го заврши одговорот, па побарајте професионалец.'); return; }
     // The excerpt below is a fallback: when the chat is saved, the server builds
@@ -381,7 +387,11 @@ const AIChat = () => {
     // implied (and the one-line disclaimer lives in the conversation); consentVersion
     // is still recorded on the request.
     (async () => {
-      setProNotice(null);
+      // Creating takes seconds (AI summary), so answer the click straight away.
+      const generation = chatGenerationRef.current;
+      askProRunningRef.current = true;
+      setAskingPro(true);
+      setProNotice('Ја испраќаме поканата…');
       try {
         const res = await ProRequestsApiService.create({
           type: 'consult',
@@ -390,6 +400,7 @@ const AIChat = () => {
           context: { question: q, conversationId: currentConversationId, transcriptExcerpt: excerpt, reason: reason || undefined },
           consentVersion: CURRENT_VERSIONS.proRequest,
         });
+        if (generation !== chatGenerationRef.current) return; // the user moved on
         if (res.success) {
           // IMPORTANT: no pro users yet — do NOT promise a response. Frame it as
           // "we'll check availability".
@@ -397,8 +408,14 @@ const AIChat = () => {
           // From now on messages go to the Pro thread; the AI waits to be invited.
           if (res.item?._id) setProRequestId(res.item._id);
           if (msgIndex != null) setProCardState((s) => ({ ...s, [msgIndex]: 'invited' }));
-        } else setError(res.message || 'Грешка при испраќање на барањето.');
-      } catch (e) { setError(e.message || 'Грешка при испраќање на барањето.'); }
+        } else { setProNotice(null); setError(res.message || 'Грешка при испраќање на барањето.'); }
+      } catch (e) {
+        setProNotice(null);
+        setError(e.message || 'Грешка при испраќање на барањето.');
+      } finally {
+        askProRunningRef.current = false;
+        setAskingPro(false);
+      }
     })();
   };
 
@@ -407,6 +424,7 @@ const AIChat = () => {
    */
   const handleSelectConversation = async (conversationId) => {
     try {
+      chatGenerationRef.current += 1;
       setIsLoading(true);
       const response = await ChatbotApiService.getConversation(conversationId);
 
@@ -806,10 +824,10 @@ const AIChat = () => {
                   type="button"
                   className={styles.askProBtn}
                   onClick={() => handleAskPro()}
-                  disabled={!!proRequestId}
+                  disabled={!!proRequestId || askingPro}
                   title={proRequestId ? 'Професионалец е поканет во овој разговор' : 'Провери дали има достапен професионалец што може да се вклучи во разговорот'}
                 >
-                  🧑‍⚖️ {proRequestId ? 'Професионалец е поканет' : 'Побарај професионалец'}
+                  🧑‍⚖️ {askingPro ? 'Се испраќа…' : proRequestId ? 'Професионалец е поканет' : 'Побарај професионалец'}
                 </button>
                 <PersonaControl />
                 <MemoryControl />
@@ -1066,7 +1084,7 @@ const AIChat = () => {
                                   type="button"
                                   className={styles.askProYes}
                                   onClick={() => handleAskPro(askPro, index)}
-                                  disabled={isLoading || isStreaming}
+                                  disabled={isLoading || isStreaming || askingPro}
                                 >
                                   Да, провери
                                 </button>

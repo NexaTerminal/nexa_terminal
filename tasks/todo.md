@@ -1,3 +1,72 @@
+# Profile personalization („Мој профил") — 2026-11-20 — DONE
+
+Goal: every company gets a social profile — the identity layer of the
+"business network". Image = a LINK (URL), no uploads.
+
+## Data
+- `users.publicProfile` (separate from `companyInfo`, so verification/legal data
+  and document generation are untouched): { slug, displayName, headline, about,
+  avatarUrl, coverUrl, industry, city, website, links{linkedin,facebook,instagram},
+  offers[≤5], lookingFor[≤5], contactEmail?, visibility: members|public, updatedAt }
+- Unique sparse index on `publicProfile.slug`; slug from company name (utils/slugify).
+- Earned badges, computed (never self-declared): Верификувана фирма (isVerified),
+  Проверен работодавач (badge exists), Основачки член (first 100 profiles), Pro.
+
+## Server
+- [x] `GET/PUT /api/profile/me` — validate lengths; image links https-only (no data:/javascript:).
+- [x] `GET /api/profile/:slug` (members) + `GET /api/public/profile/:slug` (no auth; only visibility=public).
+- [x] Never expose email/phone/tax no./address unless the user filled `contactEmail`.
+- [x] Feed: comment authors resolved to { avatarUrl, slug } so names link to profiles.
+
+## Client
+- [x] `/terminal/moj-profil` — form + live preview card; completion meter.
+- [x] Profile view (one component): `/terminal/f/:slug` + public `/f/:slug` with
+      „Креирај бесплатен профил" CTA (growth loop) + meta tags.
+- [x] Header dropdown: „Мој профил" (new) + „Податоци за фирма" (old /terminal/verification).
+- [x] Dashboard suggestion (dismissible „Не сега", 30 days) until ≥70%.
+- [x] Images: initials fallback on broken link, referrerPolicy=no-referrer.
+
+## Not now
+- Directory „Фирми" + follow — hidden until ~20–30 real profiles (empty room).
+
+## Review (2026-11-20)
+- User rule: profile is OPTIONAL — nothing gated; suggestion is dismissible; first
+  visit prefilled from companyInfo (+ „Пополни празно од податоците за фирма").
+- Visibility: members (default) / public (opt-in, /f/:slug) / private (only me).
+- Delete profile anytime. Slug stable across renames. Founding # via atomic counter.
+- E2E (throwaway mongod, real routes, stubbed auth): prefill, javascript: link
+  rejected, http→https, tag dedupe, duplicate-name slug -2, Pro offers from
+  practice areas, members-only 404 publicly, private 404 to others / 200 to owner,
+  no phone/tax leak, feed bylines only for visible profiles, delete.
+- Client build compiles. Not clicked through in a browser.
+- Old unused styles/terminal/Profile.module.css left untouched (restored after an
+  accidental overwrite); new styles in CompanyProfile.module.css.
+
+# AI characters post to the feed (Option B) — 2026-11-20
+
+Goal: frame the dashboard feed as "your advisors post here". Admin stays editor:
+admin pastes source → chosen character drafts in its voice → admin edits →
+publish now or schedule. Comments on character posts get an automatic short
+reply from that character (capped), with "continue in chat".
+
+## Server
+- [x] `services/agentPostService.js` — `draftPost({agent, source, hint})` (JSON: title/body/category/ctaLabel/ctaHref; facts ONLY from source) + `replyToComment({agent, post, comment})` (2–4 sentences, general, no PII echo, points to private chat / Ask-a-Pro for own cases). Fails safe.
+- [x] `updatesController` — `authorAgent` field (whitelist), scheduled `publishAt` (publishedAt in future = hidden until then; no cron), member list/getOne only show `published && publishedAt<=now`, `POST /updates/admin/draft`, async agent reply after a comment on a character post (cap 10/user/day via `update_ai_replies` TTL collection; kill switch `UPDATES_AI_REPLIES=off`), deleting a comment also removes the agent's reply to it.
+
+## Client
+- [x] Admin `ManageUpdates` — „Објави како" (Nexa + 5 characters), „Извор" box + „Генерирај нацрт", „Закажи за" datetime, list shows author + „Закажано".
+- [x] Feed card + modal — character header (photo, Name·AI, role), „Прашај <Name>" opens dock with the post as focus context; agent replies styled as the character with „Продолжи во разговор"; modal polls for the reply ("<Name> пишува…").
+- [x] Hide zero counters (♡ / 💬 show number only when > 0).
+
+## Verify
+- [x] Build client; node syntax check server; exercise draft + reply via a script against the service (mock-free if OPENAI key present).
+
+## Review (2026-11-20)
+- Built as planned; client build compiles clean.
+- Live AI test: Дина draft from a UJP notice used only source facts; replies (Лекс, Дина) are on-voice and general. Replies moved to the MAIN model (public under Nexa's name). redactPii removed from replies — it erased deadlines ("[отстрането]").
+- E2E on a throwaway mongod: scheduled post hidden from members (404) but visible to admin; clearing the schedule publishes now; invalid `authorAgent` stripped; comment → async agent reply linked via `replyTo`; deleting the comment removes the reply; `UPDATES_AI_REPLIES=off` disables replies.
+- Committed with the profile feature (2026-11-20).
+
 # Fix Users: Free Basic + Invite-only Pro + Weekly Lead Digest
 
 ## Decisions (locked with user, 2026-10-19)

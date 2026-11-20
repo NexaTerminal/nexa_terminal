@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { visibleTier } from '../../lib/tier';
-import { AI_AGENTS } from '../../config/aiAgents';
+import { AI_AGENTS, getAgent } from '../../config/aiAgents';
 import AgentName from '../chatbot/AgentName';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import UpdateModal from './UpdateModal';
+import FeedAuthor, { askAboutPost } from './FeedAuthor';
+import profileStyles from '../../styles/terminal/CompanyProfile.module.css';
 import { resolveBlogImage } from '../../utils/blogImage';
 import styles from '../../styles/terminal/UpdatesFeed.module.css';
 
 const PREVIEW_WORDS = 50;
+const getAgentName = (k) => getAgent(k)?.name || '';
 
 // Truncate body to N words for the card; flag whether there's more to read.
 const previewBody = (text = '', n = PREVIEW_WORDS) => {
@@ -140,6 +143,7 @@ const UpdatesFeed = () => {
 
       <div className={styles.feedStream}>
         <AiTeamBand />
+        <ProfileSuggestion />
         {showBcTiles && <BcTileRow tier={tier} />}
         <ActionGridCard />
 
@@ -218,6 +222,52 @@ const AiTeamBand = () => {
   );
 };
 
+// Optional, dismissible nudge to set up „Мој профил". Never blocks anything:
+// hidden once the profile is ≥70% complete, for sub-seats, or after „Не сега"
+// (remembered per browser for 30 days).
+const PROFILE_NUDGE_KEY = 'nexa.profileNudgeDismissedAt';
+const ProfileSuggestion = () => {
+  const { currentUser } = useAuth();
+  const [state, setState] = useState(null); // { hasProfile, completion }
+  const [hidden, setHidden] = useState(() => {
+    try {
+      const at = Number(localStorage.getItem(PROFILE_NUDGE_KEY) || 0);
+      return at && Date.now() - at < 30 * 86400000;
+    } catch { return false; }
+  });
+
+  useEffect(() => {
+    if (hidden || currentUser?.role === 'sub_seat') return undefined;
+    let cancelled = false;
+    ApiService.request('/profile/me')
+      .then(d => !cancelled && setState({ hasProfile: !!d.profile, completion: d.completion || 0 }))
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [hidden, currentUser?.role]);
+
+  if (hidden || !state || state.completion >= 70) return null;
+
+  const dismiss = () => {
+    try { localStorage.setItem(PROFILE_NUDGE_KEY, String(Date.now())); } catch { /* ignore */ }
+    setHidden(true);
+  };
+
+  return (
+    <section className={profileStyles.suggest} aria-label="Предлог: профил">
+      <span className={profileStyles.suggestText}>
+        <strong>{state.hasProfile ? `Профилот е ${state.completion}% комплетен` : 'Претстави ја фирмата во мрежата'}</strong>
+        {state.hasProfile
+          ? 'Додади што нудите и што барате — така другите фирми знаат како да соработуваат со вас.'
+          : 'Опционално: профил со лого, што нудите и што барате. Се пополнува од податоците за фирма.'}
+      </span>
+      <Link to="/terminal/moj-profil" className={profileStyles.textLink}>
+        {state.hasProfile ? 'Дополни' : 'Направи профил'}
+      </Link>
+      <button type="button" className={profileStyles.textLink} onClick={dismiss}>Не сега</button>
+    </section>
+  );
+};
+
 // Suggested actions — rich tiles whose benefit copy nudges feature discovery.
 const SuggestedActions = () => (
   <div className={styles.shortcutGroup}>
@@ -276,6 +326,8 @@ const ActionGridCard = () => (
 
 const UpdateCard = ({ update, onOpen, onPatch }) => {
   const { text: preview } = previewBody(update.body);
+  const { openChat } = useChatDock();
+  const agentKey = update.authorAgent;
 
   const toggleLike = async (e) => {
     e.stopPropagation();
@@ -294,11 +346,17 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
         onClick={onOpen}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       >
+        {agentKey && (
+          <div className={styles.feedAuthorRow}>
+            <FeedAuthor agentKey={agentKey} />
+            <span className={styles.blogPostTime}>{fmtDate(update.publishedAt || update.createdAt)}</span>
+          </div>
+        )}
         <div className={styles.blogPostMeta}>
           {update.category
             ? <span className={styles.updateCategory}>{update.category}</span>
             : <span />}
-          <span className={styles.blogPostTime}>{fmtDate(update.publishedAt || update.createdAt)}</span>
+          {!agentKey && <span className={styles.blogPostTime}>{fmtDate(update.publishedAt || update.createdAt)}</span>}
         </div>
         <h3 className={styles.blogPostTitle}>{update.title}</h3>
         {update.body && <p className={styles.updateBody}>{preview}</p>}
@@ -311,7 +369,7 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
             title="Ми се допаѓа"
           >
             <span className={styles.engageIcon}>{update.likedByMe ? '♥' : '♡'}</span>
-            <span>{update.likesCount || 0}</span>
+            {update.likesCount > 0 && <span>{update.likesCount}</span>}
           </button>
           <button
             type="button"
@@ -320,8 +378,17 @@ const UpdateCard = ({ update, onOpen, onPatch }) => {
             title="Коментари"
           >
             <span className={styles.engageIcon}>💬</span>
-            <span>{update.commentsCount || 0}</span>
+            <span>{update.commentsCount > 0 ? update.commentsCount : 'Коментирај'}</span>
           </button>
+          {agentKey && (
+            <button
+              type="button"
+              className={`${styles.engageBtn} ${styles.askAgentBtn}`}
+              onClick={(e) => { e.stopPropagation(); askAboutPost(openChat, agentKey, update); }}
+            >
+              Прашај {getAgentName(agentKey)} →
+            </button>
+          )}
         </div>
       </div>
     </article>

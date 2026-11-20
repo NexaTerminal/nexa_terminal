@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
+import { getAgent } from '../../config/aiAgents';
+import { useChatDock } from '../../contexts/ChatDockContext';
+import FeedAuthor, { askAboutPost } from './FeedAuthor';
+import { ProfileAvatar } from '../profile/ProfileCard';
+import ProfilePreviewModal from '../profile/ProfilePreviewModal';
 import styles from '../../styles/terminal/UpdatesFeed.module.css';
 
 const fmtDate = (d) => d
@@ -20,8 +25,39 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
   const [draft, setDraft] = useState('');
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState('');
+  const [profileSlug, setProfileSlug] = useState(null);   // commenter profile popup
+  const [replyWaiting, setReplyWaiting] = useState(null); // { commentId, agent } while the character writes
+  const { openChat } = useChatDock();
 
   const id = seed._id;
+  const agentKey = item.authorAgent;
+  const agentName = agentKey ? getAgent(agentKey)?.name : '';
+
+  // After a comment on a character post, poll until the character's reply lands
+  // (generated async server-side; usually a few seconds). Gives up after ~40s.
+  useEffect(() => {
+    if (!replyWaiting) return undefined;
+    let tries = 0;
+    let stopped = false;
+    const timer = setInterval(async () => {
+      tries += 1;
+      try {
+        const data = await ApiService.request(`/updates/${id}`);
+        if (stopped) return;
+        const list = data.item.comments || [];
+        const got = list.some(c => c.isAgent && String(c.replyTo) === String(replyWaiting.commentId));
+        if (got || tries >= 13) {
+          setComments(list);
+          setItem(prev => ({ ...prev, commentsCount: data.item.commentsCount }));
+          onPatch?.(id, { commentsCount: data.item.commentsCount });
+          setReplyWaiting(null);
+        }
+      } catch {
+        if (tries >= 13) setReplyWaiting(null);
+      }
+    }, 3000);
+    return () => { stopped = true; clearInterval(timer); };
+  }, [replyWaiting, id, onPatch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +102,7 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
       setDraft('');
       setItem(prev => ({ ...prev, commentsCount: r.commentsCount }));
       onPatch?.(id, { commentsCount: r.commentsCount });
+      if (r.replyPending) setReplyWaiting({ commentId: r.comment._id, agent: r.replyAgent });
     } catch {
       setError('Коментарот не е испратен.');
     } finally {
@@ -76,7 +113,7 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
   const deleteComment = async (commentId) => {
     try {
       const r = await ApiService.delete(`/updates/${id}/comments/${commentId}`);
-      setComments(prev => prev.filter(c => c._id !== commentId));
+      setComments(prev => prev.filter(c => c._id !== commentId && String(c.replyTo) !== String(commentId)));
       setItem(prev => ({ ...prev, commentsCount: r.commentsCount }));
       onPatch?.(id, { commentsCount: r.commentsCount });
     } catch { /* ignore */ }
@@ -94,6 +131,11 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
         </header>
 
         <div className={styles.modalBody}>
+          {agentKey && (
+            <div className={styles.feedAuthorRow}>
+              <FeedAuthor agentKey={agentKey} />
+            </div>
+          )}
           <div className={styles.modalMeta}>
             {item.category && <span className={styles.updateCategory}>{item.category}</span>}
             <span className={styles.blogPostTime}>{fmtDate(item.publishedAt || item.createdAt)}</span>
@@ -113,12 +155,23 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
               type="button"
             >
               <span className={styles.engageIcon}>{item.likedByMe ? '♥' : '♡'}</span>
-              <span>{item.likesCount || 0}</span>
+              {item.likesCount > 0 && <span>{item.likesCount}</span>}
             </button>
-            <span className={styles.engageBtn} aria-hidden="true">
-              <span className={styles.engageIcon}>💬</span>
-              <span>{item.commentsCount || 0}</span>
-            </span>
+            {item.commentsCount > 0 && (
+              <span className={styles.engageBtn} aria-hidden="true">
+                <span className={styles.engageIcon}>💬</span>
+                <span>{item.commentsCount}</span>
+              </span>
+            )}
+            {agentKey && (
+              <button
+                type="button"
+                className={`${styles.engageBtn} ${styles.askAgentBtn}`}
+                onClick={() => { askAboutPost(openChat, agentKey, item); onClose(); }}
+              >
+                Прашај {agentName} →
+              </button>
+            )}
           </div>
         </div>
 
@@ -130,7 +183,7 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
               className={styles.commentInput}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Напишете коментар…"
+              placeholder={agentKey ? `Прашај или коментирај — ${agentName} одговара тука…` : 'Напишете коментар…'}
               rows={1}
             />
             <button className={styles.commentSubmit} type="submit" disabled={posting || !draft.trim()}>
@@ -138,29 +191,55 @@ const UpdateModal = ({ seed, onClose, onPatch }) => {
             </button>
           </form>
           {error && <div className={styles.feedError}>{error}</div>}
+          {replyWaiting && (
+            <div className={styles.agentTyping}>{agentName} пишува одговор…</div>
+          )}
 
           {loading ? (
             <div className={styles.commentEmpty}>Се вчитува…</div>
           ) : comments.length === 0 ? (
-            <div className={styles.commentEmpty}>Сè уште нема коментари. Бидете први.</div>
+            <div className={styles.commentEmpty}>
+              {agentKey ? `Имаш прашање за објавата? ${agentName} одговара во коментарите.` : 'Сè уште нема коментари. Бидете први.'}
+            </div>
           ) : (
             <div className={styles.commentList}>
-              {comments.map(c => (
-                <div key={c._id} className={styles.commentItem}>
+              {comments.map(c => {
+                const asker = c.isAgent ? comments.find(x => String(x._id) === String(c.replyTo)) : null;
+                return (
+                <div key={c._id} className={`${styles.commentItem} ${c.isAgent ? styles.commentAgent : ''}`}>
                   <div className={styles.commentTop}>
-                    <span className={styles.commentAuthor}>{c.authorName}</span>
+                    {c.isAgent
+                      ? <FeedAuthor agentKey={c.agent} compact />
+                      : c.authorSlug ? (
+                        <button type="button" className={styles.commentAuthorLink} onClick={() => setProfileSlug(c.authorSlug)}
+                          title="Погледни го профилот">
+                          <ProfileAvatar url={c.authorAvatar} name={c.authorName} size={22} />
+                          <span className={styles.commentAuthor}>{c.authorName}</span>
+                        </button>
+                      ) : <span className={styles.commentAuthor}>{c.authorName}</span>}
                     <span className={styles.commentDate}>{fmtDate(c.createdAt)}</span>
                   </div>
                   <p className={styles.commentText}>{c.content}</p>
+                  {c.isAgent && asker?.mine && (
+                    <button
+                      type="button"
+                      className={styles.commentContinue}
+                      onClick={() => { askAboutPost(openChat, c.agent, item, asker.content); onClose(); }}
+                    >
+                      Продолжи во разговор →
+                    </button>
+                  )}
                   {c.mine && (
                     <button className={styles.commentDelete} onClick={() => deleteComment(c._id)}>Избриши</button>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+      {profileSlug && <ProfilePreviewModal slug={profileSlug} onClose={() => setProfileSlug(null)} />}
     </div>
   ), document.body);
 };

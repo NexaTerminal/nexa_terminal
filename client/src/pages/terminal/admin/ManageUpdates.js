@@ -3,9 +3,20 @@ import ApiService from '../../../services/api';
 import Header from '../../../components/common/Header';
 import Sidebar from '../../../components/terminal/Sidebar';
 import ProfileRequired from '../../../components/common/ProfileRequired';
+import { AI_AGENTS } from '../../../config/aiAgents';
 import styles from '../../../styles/terminal/admin/ManageUpdates.module.css';
 
-const EMPTY = { title: '', body: '', category: '', ctaLabel: '', ctaHref: '', status: 'published' };
+const EMPTY = { title: '', body: '', category: '', ctaLabel: '', ctaHref: '', status: 'published', authorAgent: '', publishAt: '' };
+
+const agentByKey = (k) => AI_AGENTS.find(a => a.key === k);
+
+// Date → value for <input type="datetime-local"> (local time, no seconds).
+const toLocalInput = (d) => {
+  const x = new Date(d);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}T${pad(x.getHours())}:${pad(x.getMinutes())}`;
+};
+const isFuture = (d) => d && new Date(d).getTime() > Date.now();
 
 const fmtDate = (d) => d
   ? new Date(d).toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -19,6 +30,9 @@ const ManageUpdates = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [saving, setSaving] = useState(false);
+  const [source, setSource] = useState('');
+  const [hint, setHint] = useState('');
+  const [drafting, setDrafting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -36,7 +50,24 @@ const ManageUpdates = () => {
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  const resetForm = () => { setForm(EMPTY); setEditingId(null); };
+  const resetForm = () => { setForm(EMPTY); setEditingId(null); setSource(''); setHint(''); };
+
+  // The chosen character drafts the post from the pasted source; admin edits after.
+  const generateDraft = async () => {
+    setError(''); setSuccess('');
+    if (!form.authorAgent) { setError('Прво избери лик во „Објави како".'); return; }
+    if (!source.trim()) { setError('Внеси извор (текст, вест, рок…).'); return; }
+    setDrafting(true);
+    try {
+      const { draft } = await ApiService.post('/updates/admin/draft', { agent: form.authorAgent, source, hint });
+      setForm(f => ({ ...f, ...draft }));
+      setSuccess(`${agentByKey(form.authorAgent)?.name} напиша нацрт — провери го и уреди пред објава.`);
+    } catch (err) {
+      setError('Нацртот не успеа. Обиди се повторно.');
+    } finally {
+      setDrafting(false);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -46,13 +77,15 @@ const ManageUpdates = () => {
       return;
     }
     setSaving(true);
+    const payload = { ...form, publishAt: form.publishAt ? new Date(form.publishAt).toISOString() : '' };
+    const scheduled = form.status === 'published' && isFuture(payload.publishAt);
     try {
       if (editingId) {
-        await ApiService.put(`/updates/${editingId}`, form);
+        await ApiService.put(`/updates/${editingId}`, payload);
         setSuccess('Известувањето е ажурирано.');
       } else {
-        await ApiService.post('/updates', form);
-        setSuccess('Известувањето е објавено.');
+        await ApiService.post('/updates', payload);
+        setSuccess(scheduled ? 'Известувањето е закажано.' : 'Известувањето е зачувано.');
       }
       resetForm();
       await load();
@@ -71,8 +104,11 @@ const ManageUpdates = () => {
       category: it.category || '',
       ctaLabel: it.ctaLabel || '',
       ctaHref: it.ctaHref || '',
-      status: it.status || 'published'
+      status: it.status || 'published',
+      authorAgent: it.authorAgent || '',
+      publishAt: isFuture(it.publishedAt) ? toLocalInput(it.publishedAt) : ''
     });
+    setSource(''); setHint('');
     setSuccess(''); setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -109,6 +145,35 @@ const ManageUpdates = () => {
               {editingId ? 'Уреди известување' : 'Ново известување'}
             </h2>
             <div className={styles.row}>
+              <label className={styles.label}>Објави како</label>
+              <select className={styles.select} value={form.authorAgent} onChange={set('authorAgent')}>
+                <option value="">Nexa (без лик)</option>
+                {AI_AGENTS.map(a => (
+                  <option key={a.key} value={a.key}>{a.name} · {a.role}</option>
+                ))}
+              </select>
+            </div>
+
+            {form.authorAgent && (
+              <div className={styles.draftBox}>
+                <div className={styles.row}>
+                  <label className={styles.label}>Извор за {agentByKey(form.authorAgent)?.name}</label>
+                  <textarea className={styles.textarea} value={source} onChange={(e) => setSource(e.target.value)}
+                    placeholder="Залепи текст од закон, вест од УЈП, рок, линк со опис… Ликот ќе користи само факти од тука." />
+                </div>
+                <div className={styles.row}>
+                  <label className={styles.label}>Насока (опц.)</label>
+                  <input className={styles.input} value={hint} onChange={(e) => setHint(e.target.value)}
+                    placeholder="пр. нагласи го рокот; фокус на фирми со до 10 вработени" />
+                </div>
+                <button type="button" className={styles.linkBtn} onClick={generateDraft} disabled={drafting}>
+                  {drafting ? 'Се пишува нацрт…' : 'Генерирај нацрт →'}
+                </button>
+                <p className={styles.hint}>Коментарите под објавата добиваат автоматски краток одговор од ликот.</p>
+              </div>
+            )}
+
+            <div className={styles.row}>
               <label className={styles.label}>Наслов *</label>
               <input className={styles.input} value={form.title} onChange={set('title')}
                 placeholder="пр. Се менува минималната плата од 1 јули" />
@@ -144,9 +209,15 @@ const ManageUpdates = () => {
                   placeholder="/terminal/documents/... или https://..." />
               </div>
             </div>
+            <div className={styles.row}>
+              <label className={styles.label}>Закажи за (опц.)</label>
+              <input type="datetime-local" className={styles.input} value={form.publishAt} onChange={set('publishAt')} />
+            </div>
             <div className={styles.actions}>
               <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={saving}>
-                {saving ? 'Се зачувува…' : editingId ? 'Зачувај промени' : 'Објави'}
+                {saving ? 'Се зачувува…' : editingId ? 'Зачувај промени'
+                  : form.status === 'draft' ? 'Зачувај нацрт'
+                  : isFuture(form.publishAt) ? 'Закажи' : 'Објави'}
               </button>
               {editingId && (
                 <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={resetForm}>
@@ -167,9 +238,14 @@ const ManageUpdates = () => {
                 <div key={it._id} className={styles.card}>
                   <div>
                     <div className={styles.cardMeta}>
-                      <span className={`${styles.badge} ${it.status === 'published' ? styles.badgePublished : styles.badgeDraft}`}>
-                        {it.status === 'published' ? 'Објавено' : 'Нацрт'}
-                      </span>
+                      {it.status === 'published' && isFuture(it.publishedAt) ? (
+                        <span className={`${styles.badge} ${styles.badgeScheduled}`}>Закажано</span>
+                      ) : (
+                        <span className={`${styles.badge} ${it.status === 'published' ? styles.badgePublished : styles.badgeDraft}`}>
+                          {it.status === 'published' ? 'Објавено' : 'Нацрт'}
+                        </span>
+                      )}
+                      {it.authorAgent && <span className={styles.author}>{agentByKey(it.authorAgent)?.name}·AI</span>}
                       {it.category && <span className={styles.cat}>{it.category}</span>}
                       <span className={styles.date}>{fmtDate(it.publishedAt || it.createdAt)}</span>
                     </div>

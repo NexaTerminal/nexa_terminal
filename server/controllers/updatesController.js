@@ -1,5 +1,7 @@
 const { ObjectId } = require('mongodb');
 const UserService = require('../services/userService');
+const agentPosts = require('../services/agentPostService');
+const profiles = require('../services/profileService');
 
 /**
  * Terminal "Updates / Известувања" feed.
@@ -14,10 +16,32 @@ const UserService = require('../services/userService');
  * Collection: `updates`
  *   { title, body, category, ctaLabel, ctaHref,
  *     status: 'published'|'draft', publishedAt, createdAt, updatedAt, authorId,
- *     likes: [ObjectId], comments: [{ _id, userId, authorName, content, createdAt }] }
+ *     authorAgent: ''|'legal'|'hr'|'marketing'|'insurance'|'accounting',
+ *     likes: [ObjectId], comments: [{ _id, userId, authorName, content, createdAt,
+ *                                     isAgent?, agent?, replyTo? }] }
+ *
+ * Character posts: `authorAgent` makes an AI Team character the author. A
+ * comment on such a post gets an automatic short reply from that character
+ * (async, capped per user/day, kill switch UPDATES_AI_REPLIES=off).
+ *
+ * Scheduling: a published post whose publishedAt is in the future stays hidden
+ * from members until then — no cron needed.
  */
 
 const COLLECTION = 'updates';
+const AI_REPLIES = 'update_ai_replies';           // { userId, createdAt } — rate-limit ledger
+const AI_REPLY_DAILY_CAP = 10;
+
+// Members see only posts that are published AND due.
+const liveFilter = () => ({ status: 'published', publishedAt: { $lte: new Date() } });
+
+// Optional ISO/datetime string → Date | null | undefined (undefined = not sent).
+function parsePublishAt(v) {
+  if (v === undefined) return undefined;
+  if (v === null || v === '') return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
 
 function sanitize(body = {}) {
   const out = {};
@@ -27,6 +51,9 @@ function sanitize(body = {}) {
   if (body.ctaLabel !== undefined) out.ctaLabel = String(body.ctaLabel || '').trim();
   if (body.ctaHref !== undefined)  out.ctaHref  = String(body.ctaHref || '').trim();
   if (body.status !== undefined)   out.status   = body.status === 'draft' ? 'draft' : 'published';
+  if (body.authorAgent !== undefined) {
+    out.authorAgent = agentPosts.isAgentKey(body.authorAgent) ? body.authorAgent : '';
+  }
   return out;
 }
 
@@ -54,6 +81,7 @@ function toCard(doc, myId) {
     category: doc.category || '',
     ctaLabel: doc.ctaLabel || '',
     ctaHref: doc.ctaHref || '',
+    authorAgent: doc.authorAgent || '',
     publishedAt: doc.publishedAt,
     createdAt: doc.createdAt,
     likesCount: likes.length,
@@ -69,7 +97,7 @@ exports.list = async (req, res) => {
     const db = req.app.locals.db;
     const myId = uid(req);
     const docs = await db.collection(COLLECTION)
-      .find({ status: 'published' })
+      .find(liveFilter())
       .sort({ publishedAt: -1 })
       .limit(Math.min(parseInt(limit, 10) || 10, 50))
       .toArray();
@@ -86,7 +114,10 @@ exports.getOne = async (req, res) => {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid id' });
     const db = req.app.locals.db;
-    const doc = await db.collection(COLLECTION).findOne({ _id: new ObjectId(id) });
+    const isAdmin = req.user.role === 'admin' || req.user.isAdmin === true;
+    const doc = await db.collection(COLLECTION).findOne(
+      isAdmin ? { _id: new ObjectId(id) } : { _id: new ObjectId(id), ...liveFilter() }
+    );
     if (!doc) return res.status(404).json({ message: 'Update not found' });
 
     const myId = uid(req);
@@ -94,6 +125,12 @@ exports.getOne = async (req, res) => {
       .slice()
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
       .map(cm => ({ ...cm, mine: String(cm.userId) === myId }));
+    // Members with a (non-private) profile get a logo + link on their comments.
+    const by = await profiles.bylines(db, comments.filter(c => !c.isAgent).map(c => c.userId)).catch(() => new Map());
+    for (const cm of comments) {
+      const b = !cm.isAgent && by.get(String(cm.userId));
+      if (b) { cm.authorSlug = b.slug; cm.authorAvatar = b.avatarUrl; }
+    }
 
     res.json({ item: { ...toCard(doc, myId), comments } });
   } catch (error) {
@@ -126,15 +163,19 @@ exports.create = async (req, res) => {
     }
     const db = req.app.locals.db;
     const now = new Date();
+    const status = data.status || 'published';
+    const publishAt = parsePublishAt(req.body.publishAt);
     const doc = {
       title: data.title,
       body: data.body,
       category: data.category || '',
       ctaLabel: data.ctaLabel || '',
       ctaHref: data.ctaHref || '',
-      status: data.status || 'published',
+      authorAgent: data.authorAgent || '',
+      status,
       authorId: new ObjectId(uid(req)),
-      publishedAt: (data.status || 'published') === 'published' ? now : null,
+      // Draft keeps the chosen date (applied on publish); published uses it or now.
+      publishedAt: publishAt || (status === 'published' ? now : null),
       createdAt: now,
       updatedAt: now,
       likes: [],
@@ -160,9 +201,17 @@ exports.update = async (req, res) => {
 
     const data = sanitize(req.body);
     data.updatedAt = new Date();
-    // Stamp publishedAt the first time it transitions into published state.
-    if (data.status === 'published' && existing.status !== 'published') {
-      data.publishedAt = new Date();
+    // publishAt: a date → (re)schedule; '' → "no schedule" (publish now if it
+    // was still pending); omitted → keep, stamping now on first publish.
+    const publishAt = parsePublishAt(req.body.publishAt);
+    const now = new Date();
+    const pending = existing.publishedAt && existing.publishedAt > now;
+    if (publishAt) {
+      data.publishedAt = publishAt;
+    } else if (publishAt === null && pending) {
+      data.publishedAt = now;
+    } else if (data.status === 'published' && existing.status !== 'published' && !pending) {
+      data.publishedAt = now;
     }
 
     const result = await db.collection(COLLECTION).findOneAndUpdate(
@@ -240,10 +289,17 @@ exports.addComment = async (req, res) => {
     );
     if (!result.value) return res.status(404).json({ message: 'Update not found' });
 
+    const agent = result.value.authorAgent;
+    const replyPending = !!agent && await canAgentReply(db, myId);
     res.status(201).json({
       comment: { ...comment, mine: true },
-      commentsCount: (result.value.comments || []).length
+      commentsCount: (result.value.comments || []).length,
+      replyPending,
+      replyAgent: replyPending ? agent : ''
     });
+    if (replyPending) {
+      agentReply(db, result.value, comment).catch(e => console.warn('[updates] agent reply failed:', e.message));
+    }
   } catch (error) {
     console.error('Error commenting on update:', error);
     res.status(500).json({ message: 'Server error' });
@@ -275,9 +331,74 @@ exports.deleteComment = async (req, res) => {
       { $pull: { comments: { _id: new ObjectId(commentId) } } },
       { returnDocument: 'after' }
     );
+    // A member's comment takes the character's reply to it along.
+    const cleaned = await db.collection(COLLECTION).findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $pull: { comments: { replyTo: new ObjectId(commentId) } } },
+      { returnDocument: 'after' }
+    );
+    if (cleaned.value) result.value = cleaned.value;
     res.json({ commentsCount: (result.value.comments || []).length });
   } catch (error) {
     console.error('Error deleting comment:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// ── Character posts: drafting + automatic replies ───────────────────────────
+
+// POST /api/updates/admin/draft — admin: { agent, source, hint } → draft fields.
+exports.draft = async (req, res) => {
+  try {
+    const { agent, source, hint } = req.body || {};
+    if (!agentPosts.isAgentKey(agent)) return res.status(400).json({ message: 'Избери лик.' });
+    if (!String(source || '').trim()) return res.status(400).json({ message: 'Внеси извор.' });
+    const draft = await agentPosts.draftPost({ agent, source, hint });
+    if (!draft || !draft.title || !draft.body) {
+      return res.status(502).json({ message: 'Нацртот не успеа. Обиди се повторно.' });
+    }
+    res.json({ draft });
+  } catch (error) {
+    console.error('Error drafting update:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+let aiRepliesIndexed = false;
+async function canAgentReply(db, userId) {
+  if (process.env.UPDATES_AI_REPLIES === 'off') return false;
+  try {
+    const col = db.collection(AI_REPLIES);
+    if (!aiRepliesIndexed) {
+      aiRepliesIndexed = true;
+      col.createIndex({ createdAt: 1 }, { expireAfterSeconds: 2 * 86400 }).catch(() => {});
+    }
+    const since = new Date(Date.now() - 86400000);
+    const used = await col.countDocuments({ userId: String(userId), createdAt: { $gte: since } });
+    return used < AI_REPLY_DAILY_CAP;
+  } catch {
+    return false;
+  }
+}
+
+// Generate the character's reply and append it to the thread (fire-and-forget).
+async function agentReply(db, post, comment) {
+  const agent = post.authorAgent;
+  await db.collection(AI_REPLIES).insertOne({ userId: String(comment.userId), createdAt: new Date() });
+  const earlier = (post.comments || []).filter(c => String(c._id) !== String(comment._id));
+  const content = await agentPosts.replyToComment({ agent, post, comment: comment.content, earlier });
+  if (!content) return;
+  await db.collection(COLLECTION).updateOne(
+    { _id: post._id },
+    { $push: { comments: {
+      _id: new ObjectId(),
+      userId: null,
+      isAgent: true,
+      agent,
+      authorName: agentPosts.agentName(agent),
+      replyTo: comment._id,
+      content,
+      createdAt: new Date()
+    } } }
+  );
+}

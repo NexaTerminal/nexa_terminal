@@ -210,6 +210,9 @@ app.use('/api/public/screening', require('./routes/publicScreening'));
 // same public posture as screening, before CSRF).
 app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
 
+// Public company profile (profiles are always public; no auth, read-only, before CSRF).
+app.use('/api/public/profile', require('./routes/publicProfile'));
+
 // Public inquiry opt-out (visitor „remove me" link from auto-posted inquiries;
 // token-secured, no auth, before CSRF).
 app.use('/api/public/inquiry', require('./routes/publicInquiry'));
@@ -1323,6 +1326,8 @@ function registerRoutes() {
   try {
     app.use('/api/updates', require('./routes/updates'));
     console.log('✅ Updates feed routes loaded successfully');
+    // „Мој профил" — optional company profile (identity layer of the network).
+    app.use('/api/profile', require('./routes/profile'));
   } catch (error) {
     console.error('❌ Updates routes error:', error.message);
   }

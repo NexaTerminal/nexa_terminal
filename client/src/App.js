@@ -12,6 +12,9 @@ import UnderConstruction from './pages/website/UnderConstruction';
 import Proverka from './pages/website/Proverka';
 import EmployerBadgeCheck from './pages/website/EmployerBadgeCheck';
 import BadgeVerify from './pages/website/BadgeVerify';
+import PublicProfile from './pages/website/PublicProfile';
+import MyProfile from './pages/terminal/MyProfile';
+import CompanyProfile from './pages/terminal/CompanyProfile';
 import BadgeClaim from './pages/terminal/BadgeClaim';
 import MyBadge from './pages/terminal/MyBadge';
 import CharacterAssessment from './pages/website/CharacterAssessment';
@@ -277,6 +280,7 @@ function App() {
       <Route path="/proverka" element={<Proverka />} />
       <Route path="/proverka-rabotodavac" element={<EmployerBadgeCheck />} />
       <Route path="/badge/:token" element={<BadgeVerify />} />
+      <Route path="/f/:slug" element={<PublicProfile />} />
       <Route path="/karakter/:token" element={<CharacterAssessment />} />
       <Route path="/interview/:token" element={<InterviewForm />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
@@ -502,6 +506,8 @@ function App() {
       <Route path="/terminal/admin/pro-invoices" element={<PrivateRoute><AdminProInvoices /></PrivateRoute>} />
       <Route path="/terminal/team" element={<PrivateRoute><Team /></PrivateRoute>} />
       <Route path="/terminal/provider-profile" element={<PrivateRoute><ProviderProfile /></PrivateRoute>} />
+      <Route path="/terminal/moj-profil" element={<PrivateRoute><MyProfile /></PrivateRoute>} />
+      <Route path="/terminal/f/:slug" element={<PrivateRoute><CompanyProfile /></PrivateRoute>} />
       <Route path="/terminal/admin-user" element={<PrivateRoute><AdminUserDashboard /></PrivateRoute>} />
       <Route path="/terminal/admin-user/leads" element={<PrivateRoute><LeadsInbox /></PrivateRoute>} />
       <Route path="/terminal/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />

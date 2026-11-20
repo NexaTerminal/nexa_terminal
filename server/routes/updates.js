@@ -14,6 +14,7 @@ router.delete('/:id/comments/:commentId', authenticateJWT, c.deleteComment);
 
 // Admin authoring console.
 router.get('/admin/all', authenticateJWT, isAdmin, c.adminList);
+router.post('/admin/draft', authenticateJWT, isAdmin, c.draft);
 router.post('/',         authenticateJWT, isAdmin, c.create);
 router.put('/:id',       authenticateJWT, isAdmin, c.update);
 router.delete('/:id',    authenticateJWT, isAdmin, c.remove);

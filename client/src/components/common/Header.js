@@ -346,12 +346,20 @@ const Header = ({ isTerminal = false }) => {
             className={`${styles['profile-dropdown']} ${profileDropdownOpen ? styles['profile-dropdown-open'] : ''}`}
           >
             <Link
+              to="/terminal/moj-profil"
+              className={styles['dropdown-item']}
+              onClick={() => setProfileDropdownOpen(false)}
+            >
+              <span className={styles['dropdown-icon']}><DropdownIcon name="building" /></span>
+              Мој профил
+            </Link>
+            <Link
               to="/terminal/verification"
               className={styles['dropdown-item']}
               onClick={() => setProfileDropdownOpen(false)}
             >
               <span className={styles['dropdown-icon']}><DropdownIcon name="building" /></span>
-              Профил
+              Податоци за фирма
             </Link>
             <Link
               to="/terminal/subscription"
@@ -673,8 +681,11 @@ const Header = ({ isTerminal = false }) => {
             )}
 
             <div className={styles['mobile-menu-divider']}>Корисник</div>
+            <Link to="/terminal/moj-profil" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
+              <span>Мој профил</span>
+            </Link>
             <Link to="/terminal/verification" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
-              <span>Профил</span>
+              <span>Податоци за фирма</span>
             </Link>
             <Link to="/terminal/subscription" className={styles['mobile-menu-item']} onClick={() => setMobileMenuOpen(false)}>
               <span>Сметка</span>

@@ -45,17 +45,17 @@ export default function Home() {
         <div className={`nexa-container ${styles.heroInner}`}>
           <span className={`nx-pill ${styles.heroPill} nx-fade-in-up`}>
             <Icon name="globe" size={14} />
-            {isMk ? 'Помалку администрација. Повеќе бизнис.' : 'Less admin. More business.'}
+            {isMk ? 'За мали и средни фирми во Македонија' : 'For small and medium businesses in North Macedonia'}
           </span>
           <h1 className="nx-fade-in-up nx-d-100">{t('home.heroTitle')}</h1>
           <p className={`${styles.heroSub} nx-fade-in-up nx-d-200`}>{t('home.heroSubtitle')}</p>
           <div className={`${styles.heroCtas} nx-fade-in-up nx-d-300`}>
             <Link to="/proverka" className="nexa-btn nexa-btn-accent nexa-btn-lg">
-              {isMk ? 'Проверете се — бесплатно' : 'Check your compliance — free'}
+              {isMk ? 'Бесплатна проверка на усогласеноста' : 'Check your compliance — free'}
               <Icon name="arrowRight" size={18} />
             </Link>
             <Link to="/login" className="nexa-btn nexa-btn-secondary nexa-btn-lg">
-              {isMk ? 'Започни бесплатно' : 'Start free'}
+              {isMk ? 'Започнете бесплатно' : 'Start free'}
             </Link>
           </div>
         </div>

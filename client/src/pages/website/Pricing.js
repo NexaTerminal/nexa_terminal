@@ -25,17 +25,17 @@ export default function Pricing() {
       key: 'basic',
       name: T('Основен', 'Basic'),
       priceLabel: T('Бесплатно', 'Free'),
-      tagline: T('За мали и средни бизниси што сами водат усогласеност и документи.',
+      tagline: T('За мали и средни фирми што сами ги водат документите и усогласеноста.',
                  'For SMBs that run their own compliance and paperwork.'),
       features: [
-        T('Автоматизирани документи (45+ шаблони) + Мои шаблони', 'Automated documents (45+ templates) + My Templates'),
-        T('Правна AI помош + Анализа на договори', 'Legal AI assistance + contract analysis'),
-        T('Сите проверки на усогласеност (правна, ГДПР, данок, HR, кибер)', 'All compliance checks (legal, GDPR, tax, HR, cyber)'),
-        T('HR алатки: вработени, проценка на карактер, интервјуа', 'HR tools: employees, character assessment, interviews'),
-        T('Поврзување со адвокат кога ви треба', 'Connect with a lawyer when you need one'),
-        T('До 3 корисници во компанијата', 'Up to 3 co-worker seats'),
+        T('Автоматизирани документи (над 45 шаблони) и сопствени шаблони', 'Automated documents (45+ templates) + My Templates'),
+        T('AI-асистенти и анализа на договори', 'Legal AI assistance + contract analysis'),
+        T('Сите проверки на усогласеноста (правна, заштита на лични податоци, даноци, работни односи, сајбер-безбедност)', 'All compliance checks (legal, GDPR, tax, HR, cyber)'),
+        T('Кадровски алатки: евиденција на вработени, проценка на кандидати, интервјуа', 'HR tools: employees, character assessment, interviews'),
+        T('Помош од адвокат кога Ви е потребна', 'Connect with a lawyer when you need one'),
+        T('До 3 корисници во фирмата', 'Up to 3 co-worker seats'),
       ],
-      cta: T('Започни бесплатно', 'Start free'),
+      cta: T('Започнете бесплатно', 'Start free'),
       ctaTo: '/login',
       ctaAccent: false,
     },
@@ -44,15 +44,15 @@ export default function Pricing() {
       name: T('Про', 'Pro'),
       featured: true,
       priceLabel: T('По покана', 'Invite-only'),
-      tagline: T('За адвокати — квалификувани клиенти од бизниси на Nexa мрежата.',
+      tagline: T('За адвокати — барања за правна помош преку мрежата Nexa.',
                  'For lawyers — qualified clients from businesses on the Nexa network.'),
       features: [
-        T('Сè од Основен, плюс:', 'Everything in Basic, plus:'),
-        T('Влезни клиенти и предмети од Nexa мрежата', 'Inbound clients & cases from the Nexa network'),
-        T('До 25 клиентски сметки — управувај цели клиенти', 'Up to 25 client accounts — manage your whole book'),
-        T('Теми (Q&A) + Блог — видливост како експерт', 'Topics Q&A + blog — visibility as an expert'),
-        T('Профил на давател во мрежата', 'Provider profile in the network'),
-        T('Ограничен основачки круг', 'Limited founding cohort'),
+        T('Сè од пакетот Основен, плус:', 'Everything in Basic, plus:'),
+        T('Барања од клиенти преку специјализираните страници на мрежата', 'Inbound clients & cases from the Nexa network'),
+        T('До 25 сметки за Вашите клиенти', 'Up to 25 client accounts — manage your whole book'),
+        T('Стручни одговори (Теми) и блог — видливост како стручњак', 'Topics Q&A + blog — visibility as an expert'),
+        T('Професионален профил во мрежата', 'Provider profile in the network'),
+        T('Ограничен број места во основачкиот круг', 'Limited founding cohort'),
       ],
       cta: T('Контактирајте нè', 'Contact us'),
       ctaTo: '/contact',
@@ -64,7 +64,7 @@ export default function Pricing() {
     <PublicLayout>
       <SEOHelmet
         title={T('Пакети · Nexa', 'Plans · Nexa')}
-        description={T('Бесплатно за бизниси. За адвокати — пристап по покана во основачкиот круг на Nexa.',
+        description={T('Бесплатно за фирми. За адвокати — пристап по покана во основачкиот круг на Nexa.',
                        'Free for businesses. For lawyers — invite-only access to the Nexa founding cohort.')}
         locale={isMk ? 'mk_MK' : 'en_US'}
         jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: T('Пакети', 'Plans'), description: '', language: isMk ? 'mk' : 'en' })]}
@@ -73,10 +73,10 @@ export default function Pricing() {
       <section className={`nx-section ${styles.wrap}`}>
         <div className="nexa-container">
           <div className={styles.head} data-reveal>
-            <span className="nx-pill">{T('Бесплатно за бизниси', 'Free for businesses')}</span>
-            <h1 className={styles.title}>{T('Еден пакет бесплатно, еден по покана', 'One plan free, one invite-only')}</h1>
+            <span className="nx-pill">{T('Бесплатно за фирми', 'Free for businesses')}</span>
+            <h1 className={styles.title}>{T('Бесплатно за фирми, по покана за адвокати', 'One plan free, one invite-only')}</h1>
             <p className={styles.lead}>
-              {T('Бизнисите ги користат алатките бесплатно. Адвокатите се приклучуваат по покана во ограничен основачки круг.',
+              {T('Фирмите ги користат алатките бесплатно. Адвокатите се приклучуваат по покана, во основачки круг со ограничен број места.',
                  'Businesses use the tools for free. Lawyers join by invitation in a limited founding cohort.')}
             </p>
           </div>

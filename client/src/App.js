@@ -13,6 +13,8 @@ import Proverka from './pages/website/Proverka';
 import EmployerBadgeCheck from './pages/website/EmployerBadgeCheck';
 import BadgeVerify from './pages/website/BadgeVerify';
 import PublicProfile from './pages/website/PublicProfile';
+import Services from './pages/website/Services';
+import ServicePage from './pages/website/ServicePage';
 import MyProfile from './pages/terminal/MyProfile';
 import CompanyProfile from './pages/terminal/CompanyProfile';
 import BadgeClaim from './pages/terminal/BadgeClaim';
@@ -285,6 +287,8 @@ function App() {
       <Route path="/interview/:token" element={<InterviewForm />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/uslugi" element={<Services />} />
+      <Route path="/uslugi/:slug" element={<ServicePage />} />
       <Route path="/contact" element={<ContactPublic />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />

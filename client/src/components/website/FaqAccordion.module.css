@@ -1,7 +1,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 .item {
   border: 1px solid var(--nx-line);
@@ -27,6 +27,7 @@
   font-family: var(--nx-font);
   letter-spacing: -0.01em;
   line-height: 1.4;
+  box-shadow: none;
 }
 .icon {
   font-size: 18px;
@@ -41,9 +42,26 @@
   background: var(--nx-bg-soft);
   font-weight: 400;
 }
+.item:has(.a) { border-color: var(--nx-line-strong); }
 .a {
-  padding: 0 20px 18px;
+  margin: 0 20px;
+  padding: 16px 0 22px;
+  border-top: 1px solid var(--nx-line);
   color: var(--nx-text-soft);
   font-size: 14.5px;
   line-height: 1.6;
 }
+
+/* The global `button` styles (blue fill, big shadow, scale on hover/active)
+   must not leak into the accordion row. */
+.q, .q:hover, .q:active, .q:focus {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  color: var(--nx-ink);
+  border-radius: inherit;
+  min-height: 0;
+}
+.q:focus { outline: none; }
+.q:focus-visible { outline: 2px solid var(--nx-primary-600); outline-offset: -2px; }
+.q:hover .icon { background: var(--nx-line); color: var(--nx-ink); }

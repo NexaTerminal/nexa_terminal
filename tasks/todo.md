@@ -189,3 +189,53 @@ reply from that character (capped), with "continue in chat".
 **Review:** real controller + fake DB: 4 simultaneous clicks = 1 request, 0 emails; late click returns the existing invite; other conversations unaffected; re-invite works. Headless Chrome with a 1.5s mock create: 1 POST on each surface, button changes at once. Pro badge shows 2 with 2 mock invites. Not run against the real backend or Atlas. Bell count not asserted. Document-review and LHC invites have no conversation id, so no dedupe there.
 
 **Follow-up (2026-11-07):** Pro sidebar link „Разговори" → `/terminal/pro/conversations`, first in the primary group (`proSections` only). Bell and messaging bar unchanged. Checked in headless Chrome with mock Pro and Basic users: Pro has the link, Basic doesn't.
+
+---
+
+## Services pages „Услуги" — consulting & project management (PLAN, 2026-11-20)
+
+**Goal:** a separate, manual, high-touch offer: Martin (corporate law + COO + network) runs big projects as project lead. Unrelated to Terminal and satellites. Audience: owners, investors, boards, foreign buyers. Not SMB self-serve, not lawyers-Pro.
+
+**Positioning (hard constraint):** project management and coordination, NOT legal representation or legal opinions (founder is not a currently licensed attorney). Legal opinions, notary, tax and valuation come from partner licensed professionals that Nexa engages and coordinates. Every page says so plainly. No prices (scoping → written proposal), no invented clients, deal counts or testimonials.
+
+**Proposed lineup (5):**
+1. Due diligence на недвижност: coordinate title/cadastre, encumbrances, permits/legalisation, urban plan, contracts; red-flag report; closing checklist
+2. M&A — водење проект и советување: deal PMO from LOI to closing: DD coordination, data room, timeline, SPA negotiation support with counsel, closing and 100-day integration
+3. Стартап советување: structure (ДОО/ДООЕЛ), founders' agreement, cap table, investor readiness, first hires, ops setup
+4. Организациски развој: structure, roles, processes, internal acts, governance, KPI; change management
+5. (suggested) Влез на пазарот за странски компании: entity setup, permits/residence, bank, hiring, local partners: strongest fit with existing traffic from immigration.mk / company.nexa.mk
+   - Alternatives: Interim COO (fractional operations lead); restructuring/exit
+
+**Pages:**
+- `/uslugi` hub: one-line promise, 5 service cards, "како работиме" (4 steps: разговор → обем и понуда → водење → предавање), founder block, contact form
+- `/uslugi/:slug` per service: hero (outcome), за кого е, што опфаќа (phases), што добивате (deliverables), како работиме, што не правиме (partner professionals), FAQ, inquiry form
+- Content in one config file `client/src/data/services.js` (MK + EN), one shared page component, so adding a service needs no new code
+- SEO: SEOHelmet + schema.org `ProfessionalService`/`Service`; MK slugs (`/uslugi/due-diligence-nedviznosti`, etc.)
+- Nav: „Услуги" in PublicNavbarV2 on nexa.mk only (not on leads.nexa.mk); footer link
+
+**Lead capture:** reuse `POST /api/leads/inbound` with `practiceArea: 'services:<slug>'` + fields (company, deal size range, timeline). Admin sees it in existing inbound leads; email to info@ via current flow (verify). No new collection unless needed.
+
+**Steps:**
+- [x] Lineup confirmed (5). User: no founder presentation, "we" wording; experience stated as team experience
+- [x] `client/src/data/services.js`: MK + EN content for all 5 + shared copy
+- [x] `pages/website/Services.js` (/uslugi), `ServicePage.js` (/uslugi/:slug), `Services.module.css`, `components/website/ServiceInquiryForm.js`
+- [x] Inquiry: NEW `POST /api/public/services/inquiry` (pre-CSRF, 5/h/IP, Joi, honeypot) → `service_inquiries` + email to ADMIN_EMAIL. Changed from leads/inbound: that webhook needs an HMAC signature the browser can't send
+- [x] Routes, navbar „Услуги" (nexa.mk only), footer link, sitemap
+- [ ] Browser check (desktop/mobile)
+
+**Review:** endpoint tested with stubbed DB/email: valid 201 + saved + emailed (HTML escaped); missing consent 400; short message 400; honeypot 201, nothing saved. Client build clean. Not browser-checked. No admin UI for service_inquiries yet (email + DB only). Note: /contact form posts to /api/leads/inbound without a signature, so it likely 400s in production unless LEAD_WEBHOOK_BYPASS_HMAC=true.
+
+**Round 2 (2026-11-20): depth + visuals + EN**
+- [x] Content split into `client/src/data/services/*.js` (one file per service, MK + EN): intro, typical situation, signals, roadmap (phases, indicative durations, activities, outcome), Macedonia specifics, common mistakes, deliverables, what we need, roles, 8–11 FAQs
+- [x] Rendered words per page (headless Chrome, visible text, FAQ answers collapsed): MK 1503–1755, EN 1579–1861
+- [x] `ServiceIllustration` (inline SVG per topic + hub), centred symmetric layout, centred vertical roadmap, odd-count card grids centred
+- [x] Fixed: public MK/EN switch reverted on navigation (PublicNavbarV2 called i18n directly; LanguageContext re-applied its own state), now goes through LanguageContext
+- [x] Fixed: consent checkbox inherited global input width and overflowed 390px mobile
+- Checked: 390px mobile has no horizontal overflow on hub + 4 detail pages; ?lang=en renders EN everywhere
+- Open: other public pages are still MK-only (Login, Proverka, EmployerBadgeCheck, BadgeVerify, Blog/BlogPost UI, Corporate/Trademark/Employment/Residence/Topics SEO pages, Forgot/Reset password, PublicProfile, CharacterAssessment, InterviewForm)
+
+### Round 3 (2026-11-21)
+- [x] FAQ: spacing + divider between question/answer; global button styles neutralised in FaqAccordion
+- [x] Inquiry form: removed company + timeline (client, data, server schema/email)
+- [x] Centring bug: `.nexa-public p` margin overrode `margin:auto` (disclaimer + hub partners note)
+- [x] Real photos (Unsplash licence, free commercial use, no attribution required) in public/images/services/<slug>.jpg + hub.jpg; 21:9 band under hero

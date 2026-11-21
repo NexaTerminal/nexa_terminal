@@ -76,7 +76,7 @@ const Login = () => {
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('needInvite') === '1') {
       setIsLogin(false);
-      setError('Пристапот за адвокати е само по покана. Оставете ги вашите податоци — ќе ве контактираме со линк за активација.');
+      setError('Пристапот за адвокати е само по покана. Оставете ги Вашите податоци и ќе Ве контактираме со линк за активација.');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,16 +90,16 @@ const Login = () => {
     try {
       if (isLogin) {
         if (!username) {
-          throw new Error('Корисничкото име или даночен број е задолжително');
+          throw new Error('Внесете корисничко име или даночен број.');
         }
         if (!password) {
-          throw new Error('Лозинката е задолжителна');
+          throw new Error('Внесете лозинка.');
         }
 
         const result = await loginWithUsername(username, password);
 
         if (result.success) {
-          setSuccess('Успешна најава! Пренасочување...');
+          setSuccess('Успешна најава. Ве пренасочуваме…');
           setTimeout(() => {
             const params = new URLSearchParams(location.search);
             const redirect = params.get('redirect');
@@ -109,7 +109,7 @@ const Login = () => {
         } else {
           const errorMessage = result.error || 'Неуспешна најава';
           if (errorMessage.includes('Invalid credentials') || errorMessage.includes('password') || errorMessage.includes('лозинка')) {
-            setError('Неточна лозинка. Ве молиме проверете ја лозинката и обидете се повторно.');
+            setError('Неточна лозинка. Проверете ја и обидете се повторно.');
           } else if (errorMessage.includes('User not found') || errorMessage.includes('username') || errorMessage.includes('корисник')) {
             setError('Корисничкото име или даночен број не постои. Проверете ги податоците или се регистрирајте.');
           } else {
@@ -143,7 +143,7 @@ const Login = () => {
           setVerificationStep(true);
           setSuccess('Ви испративме 6-цифрен код на е-поштата.');
         } else if (result.success) {
-          setSuccess('Успешна регистрација! Добредојдовте во Nexa Terminal!');
+          setSuccess('Регистрацијата е успешна. Добредојдовте во Nexa!');
           setTimeout(() => {
             const params = new URLSearchParams(location.search);
             const redirect = params.get('redirect');
@@ -153,7 +153,7 @@ const Login = () => {
         } else {
           const errorMessage = result.error || 'Неуспешна регистрација';
           if (errorMessage.includes('already exists') || errorMessage.includes('постои') || errorMessage.includes('taken')) {
-            setError('Ова корисничко име е веќе зафатено. Ве молиме изберете друго.');
+            setError('Ова корисничко име е зафатено. Изберете друго.');
           } else {
             setError(errorMessage);
           }
@@ -225,8 +225,8 @@ const Login = () => {
               : (canRegister
                   ? (isLeadsStore
                       ? 'Регистрирајте се — пристапот за адвокати е по покана во основачкиот круг'
-                      : 'Бесплатно за бизниси — без картичка, без обврска')
-                  : 'Пристапот до Nexa е со покана. Оставете ги вашите податоци и ќе ве контактираме со линк за активација (30 дена Pro).')}
+                      : 'Бесплатно за фирми — без платежна картичка и без обврски')
+                  : 'Пристапот до Nexa е со покана. Оставете ги Вашите податоци и ќе Ве контактираме со линк за активација (30 дена Pro).')}
           </p>
 
           {!verificationStep && (
@@ -358,7 +358,7 @@ const Login = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       onFocus={handlePasswordFocus}
                       required
-                      placeholder={isLogin ? 'Внесете ја вашата лозинка' : 'Создајте безбедна лозинка'}
+                      placeholder={isLogin ? 'Внесете ја Вашата лозинка' : 'Создајте безбедна лозинка'}
                     />
                     <button
                       type="button"
@@ -508,7 +508,7 @@ function RequestAccessPanel({ styles, onSwitchToLogin }) {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!name.trim()) { setError('Внесете го вашето име.'); return; }
+    if (!name.trim()) { setError('Внесете го Вашето име.'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Внесете валидна е-пошта.'); return; }
     if (!company.trim()) { setError('Внесете го името на фирмата или дејноста.'); return; }
 

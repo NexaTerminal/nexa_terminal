@@ -212,6 +212,7 @@ app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
 
 // Public company profile (profiles are always public; no auth, read-only, before CSRF).
 app.use('/api/public/profile', require('./routes/publicProfile'));
+app.use('/api/public/services', require('./routes/publicServices'));
 
 // Public inquiry opt-out (visitor „remove me" link from auto-posted inquiries;
 // token-secured, no auth, before CSRF).

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
 import { isLeadsStorefront, otherStorefrontUrl } from '../../lib/storefront';
+import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './PublicNavbarV2.module.css';
 
 export default function PublicNavbarV2() {
@@ -10,10 +11,15 @@ export default function PublicNavbarV2() {
   const [open, setOpen] = useState(false);
   const lang = i18n.language || 'mk';
   const isMk = lang === 'mk';
-  const switchLang = (lng) => i18n.changeLanguage(lng);
+  // Go through LanguageContext (it owns the public-site language and re-applies
+  // it on every navigation); calling i18n directly was reverted on the next page.
+  const { changeLanguage } = useLanguage();
+  const switchLang = (lng) => changeLanguage(lng);
 
-  // Storefronts stay minimal: Landing (logo) · Цени · Blog · Contact.
+  // Storefronts stay minimal: Landing (logo) · Услуги · Цени · Blog · Contact.
+  // „Услуги" (consulting) is a nexa.mk offer — not shown on leads.nexa.mk.
   const links = [
+    ...(isLeadsStorefront() ? [] : [{ to: '/uslugi', label: isMk ? 'Услуги' : 'Services' }]),
     { to: '/pricing', label: isMk ? 'Цени' : 'Pricing' },
     { to: '/blog', label: t('nav.blog') },
     { to: '/contact', label: t('nav.contact') }

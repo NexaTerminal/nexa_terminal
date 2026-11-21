@@ -16,6 +16,36 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://nexa.mk/about?lang=en"/>
   </url>
   <url>
+    <loc>https://nexa.mk/uslugi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nexa.mk/uslugi/due-diligence-nedviznosti</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nexa.mk/uslugi/m-and-a</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nexa.mk/uslugi/startap-sovetuvanje</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nexa.mk/uslugi/organizaciski-razvoj</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nexa.mk/uslugi/vlez-na-pazar</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://nexa.mk/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

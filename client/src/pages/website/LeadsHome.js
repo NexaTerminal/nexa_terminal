@@ -71,37 +71,30 @@ export default function LeadsHome() {
   const FEATURES = [
     {
       label: T('Клиенти', 'Clients'),
-      hook: T('Ние имаме клиенти. Вие имате експертиза.',
+      hook: T('Клиентите бараат помош. Вие го имате знаењето.',
               'We have the clients. You have the expertise.'),
-      sub: T('Луѓе и бизниси со потреба од правна помош нè контактираат секој ден преку нашата мрежа сајтови. Преземете ги барањата од Вашата област и град.',
+      sub: T('Граѓани и фирми поставуваат правни прашања на специјализираните страници од мрежата Nexa. Прегледајте ги барањата од Вашата област и Вашиот град и преземете ги оние што Ви одговараат.',
              'People and businesses that need legal help reach us every day through our network of sites. Take the requests from your practice area and city.')
     },
     {
       label: T('Стручни одговори', 'Expert answers'),
-      hook: T('Нека клиентите дознаат дека постоите.',
+      hook: T('Покажете го Вашето знаење таму каде што се бара.',
               'People need to know you exist.'),
-      sub: T('Одговарајте на реални стручни прашања и градете репутација како експерт пред публика што веќе бара токму такво знаење.',
+      sub: T('Одговарајте на реални стручни прашања и градете углед пред публика што бара токму такво знаење.',
              'Answer real professional questions and build a reputation as the expert in front of an audience already looking for exactly that.')
     },
     {
       label: T('Блог', 'Blog'),
-      hook: T('Имате што да кажете — ние имаме каде да го пренесеме.',
+      hook: T('Вашите стручни текстови — пред целата мрежа Nexa.',
               'You have something to say — we have where to share it.'),
-      sub: T('Објавувајте стручни статии и стигнете до целата Nexa мрежа од сајтови, читатели и потенцијални клиенти.',
+      sub: T('Објавувајте стручни статии што ги читаат посетителите на сите страници од мрежата Nexa, меѓу кои и Вашите идни клиенти.',
              'Publish expert articles and reach the entire Nexa network of sites, readers and prospective clients.')
     },
     {
-      label: T('Саеми', 'Fairs'),
-      hook: T('Претставете се пред вистинската публика.',
-              'Present yourself to the right audience.'),
-      sub: T('Учествувајте на виртуелни саеми и настани и поврзете се директно со клиенти што бараат Ваши услуги.',
-             'Take part in virtual fairs and events and connect directly with clients seeking your services.')
-    },
-    {
       label: T('Алатки', 'Tools'),
-      hook: T('Целата Ваша работа на едно место.',
+      hook: T('Алатки за секојдневната работа.',
               'Your whole practice, in one place.'),
-      sub: T('Автоматизирани документи, анализа на договори, правни проверки и AI помошник — подготвени за секој случај.',
+      sub: T('Автоматизирани документи, анализа на договори, проверки на усогласеноста и AI-асистент — на располагање за секој предмет.',
              'Automated documents, contract analysis, compliance checks and an AI assistant — ready for every case.')
     }
   ];
@@ -126,7 +119,7 @@ export default function LeadsHome() {
     <div className={styles.page}>
       <SEOHelmet
         title={T('Nexa за адвокати — нови клиенти од нашата мрежа', 'Nexa for lawyers — new clients from our network')}
-        description={T('Насочени случаи од специјализирани сајти по област и град, плус видливост како експерт. Ограничени места по област.',
+        description={T('Барања за правна помош од специјализираните страници на мрежата Nexa, по област и град, и видливост како стручњак. Ограничен број места по област.',
                        'Routed legal cases from specialized sites by area and city, plus visibility as an expert. A limited founding cohort — invite-only.')}
         canonical="/"
         locale={isMk ? 'mk_MK' : 'en_US'}
@@ -200,7 +193,7 @@ export default function LeadsHome() {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>{T('Најавете се', 'Sign in')}</h2>
             <p className={styles.cardSub}>
-              {T('Продолжете во Вашиот Nexa Terminal.', 'Continue to your Nexa Terminal.')}
+              {T('Продолжете во Вашиот Nexa Терминал.', 'Continue to your Nexa Terminal.')}
             </p>
 
             <button type="button" className={styles.google} onClick={handleGoogleLogin} disabled={loading}>

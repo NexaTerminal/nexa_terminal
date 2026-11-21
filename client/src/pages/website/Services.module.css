@@ -1,0 +1,210 @@
+/* „Услуги" hub + detail pages. Every section is centred and symmetric.
+   Uses the public-site tokens (--nx-*). */
+
+/* ── Hero ───────────────────────────────────────────────────────────── */
+.hero { padding: 104px 0 56px; border-bottom: 1px solid var(--nx-line); }
+.heroInner { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.heroInner :global(.nx-pill) { margin-bottom: 22px; }
+.hero h1 {
+  font-size: 50px; letter-spacing: -0.03em; line-height: 1.12;
+  margin: 0 auto 18px; max-width: 860px; padding-bottom: 6px;
+  background: linear-gradient(135deg, var(--nx-ink) 0%, var(--nx-primary-600) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.heroLead { font-size: 18px; line-height: 1.65; color: var(--nx-text-soft); max-width: 700px; margin: 0 auto 30px; }
+.heroArt { width: 100%; max-width: 460px; margin-top: 32px; }
+.back { margin-bottom: 18px; font-size: 14px; color: var(--nx-text-soft) !important; text-decoration: none !important; }
+.back:hover { color: var(--nx-ink) !important; }
+
+/* ── Section heads ──────────────────────────────────────────────────── */
+.sectionHead { text-align: center; max-width: 720px; margin: 0 auto 40px; }
+.sectionTitle { font-size: 32px; letter-spacing: -0.02em; line-height: 1.2; margin: 0; color: var(--nx-ink); }
+.sectionTitle::after {
+  content: ""; display: block; width: 44px; height: 3px; border-radius: 3px;
+  background: var(--nx-accent-500); margin: 16px auto 0;
+}
+.sectionLead { margin: 16px auto 0; font-size: 16px; line-height: 1.65; color: var(--nx-text-soft); max-width: 680px; text-align: center; }
+
+/* ── Prose (intro) ──────────────────────────────────────────────────── */
+.narrow { max-width: 780px; }
+.prose { text-align: center; max-width: 760px; margin: 0 auto; }
+.prose p { font-size: 17px; line-height: 1.8; color: var(--nx-text); margin: 0 0 20px; }
+.prose p:first-child { font-size: 19px; color: var(--nx-ink); }
+.prose p:last-child { margin-bottom: 0; }
+
+/* ── Typical situation ──────────────────────────────────────────────── */
+.example {
+  position: relative; max-width: 820px; margin: 0 auto; text-align: center;
+  background: #fff; border: 1px solid var(--nx-line); border-radius: 22px;
+  padding: 44px 48px 34px; box-shadow: 0 18px 40px -28px rgba(15, 39, 102, .35);
+}
+.exampleMark {
+  position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--nx-primary-500); color: #fff; font-size: 34px; line-height: 1; padding-top: 12px;
+}
+.exampleLabel { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--nx-accent-500); margin-bottom: 14px; }
+.example blockquote { margin: 0; font-size: 17px; line-height: 1.8; color: var(--nx-ink); }
+.exampleNote { margin: 18px 0 0; font-size: 12.5px; color: var(--nx-text-soft); }
+
+/* ── Cards: shared ──────────────────────────────────────────────────── */
+.listCard, .infoCard, .mistakeCard, .phaseCard, .process li {
+  background: #fff; border: 1px solid var(--nx-line); border-radius: 18px; text-align: center;
+}
+.listCard { padding: 32px 28px; display: flex; flex-direction: column; align-items: center; }
+.listCard h3 { margin: 16px 0 14px; font-size: 20px; color: var(--nx-ink); }
+.listCard p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--nx-text-soft); }
+.listCard ul { list-style: none; margin: 0; padding: 0; width: 100%; }
+.listCard li {
+  font-size: 15px; line-height: 1.55; color: var(--nx-text);
+  padding: 11px 0; border-top: 1px solid var(--nx-line);
+}
+.listCard li:first-child { border-top: none; padding-top: 0; }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1000px; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+/* Centred grids: fixed card width + wrap, so odd counts stay symmetric. */
+.cardGrid { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; }
+.cardGrid > * { flex: 0 1 340px; }
+
+.infoCard { padding: 28px 24px; }
+.infoIcon {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: var(--nx-primary-50); color: var(--nx-primary-500);
+}
+.infoCard h3, .mistakeCard h3 { margin: 14px 0 8px; font-size: 17px; color: var(--nx-ink); }
+.infoCard p, .mistakeCard p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--nx-text-soft); }
+
+.mistakeCard { padding: 28px 24px; border-top: 3px solid var(--nx-accent-500); }
+.mistakeNum { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--nx-accent-500); }
+
+/* ── Roadmap: centred vertical timeline ─────────────────────────────── */
+.roadmap { list-style: none; margin: 0 auto; padding: 0; max-width: 760px; position: relative; }
+.roadmap::before {
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px;
+  background: linear-gradient(var(--nx-primary-200), var(--nx-primary-100));
+}
+.phase { position: relative; display: flex; flex-direction: column; align-items: center; padding-bottom: 36px; }
+.phase:last-child { padding-bottom: 0; }
+.phaseNum {
+  position: relative; z-index: 1; display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 50%; margin-bottom: 16px;
+  background: var(--nx-primary-500); color: #fff; font-size: 18px; font-weight: 800;
+  box-shadow: 0 0 0 8px var(--nx-bg, #fff);
+}
+.phaseCard { position: relative; z-index: 1; width: 100%; padding: 30px 32px; box-shadow: 0 10px 30px -18px rgba(15, 39, 102, .25); }
+.phaseCard h3 { margin: 0; font-size: 21px; color: var(--nx-ink); }
+.duration {
+  display: inline-flex; align-items: center; gap: 6px; margin: 10px 0 14px;
+  font-size: 12.5px; font-weight: 600; color: var(--nx-primary-600);
+  background: var(--nx-primary-50); border-radius: 999px; padding: 4px 12px;
+}
+.phaseCard > p { margin: 0 auto 18px; font-size: 15.5px; line-height: 1.7; color: var(--nx-text); max-width: 600px; }
+.activities { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.activities li {
+  font-size: 13.5px; line-height: 1.45; color: var(--nx-text);
+  background: var(--nx-bg-tint); border: 1px solid var(--nx-line); border-radius: 12px; padding: 8px 12px;
+}
+.output {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 15px; font-weight: 600; color: var(--nx-ink);
+  border-top: 1px dashed var(--nx-line-strong); padding-top: 14px; width: 100%;
+}
+.output span { font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--nx-accent-500); }
+
+/* ── How we work ────────────────────────────────────────────────────── */
+.process { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.process li { padding: 28px 22px; display: flex; flex-direction: column; align-items: center; }
+.process h3 { margin: 14px 0 6px; font-size: 17px; color: var(--nx-ink); }
+.process p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--nx-text-soft); }
+.stepNum {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--nx-primary-500); color: #fff; font-size: 15px; font-weight: 700;
+}
+
+/* ── Hub: service cards ─────────────────────────────────────────────── */
+.serviceGrid { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; }
+.serviceCard {
+  flex: 0 1 340px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+  text-decoration: none !important; color: inherit !important;
+}
+.serviceCard h3 { margin: 4px 0 0; font-size: 20px; color: var(--nx-ink); }
+.serviceCard p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--nx-text-soft); flex: 1; }
+.more { font-size: 14px; font-weight: 600; color: var(--nx-primary-600); }
+
+/* ── FAQ / other / misc ─────────────────────────────────────────────── */
+.faqWrap { max-width: 800px; }
+.otherGrid { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; }
+.otherCard {
+  flex: 0 1 220px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  padding: 18px; font-size: 15px; font-weight: 600; text-decoration: none !important; color: var(--nx-ink) !important;
+}
+.disclaimer { max-width: 680px; margin: 44px auto 0; text-align: center; font-size: 12.5px; line-height: 1.6; color: var(--nx-text-soft); }
+.notFound { padding: 120px 0; text-align: center; }
+
+/* ── Inquiry form (fields stay left-aligned for readability) ────────── */
+.formWrap { max-width: 760px; }
+.form {
+  display: flex; flex-direction: column; gap: 16px; text-align: left;
+  background: #fff; border: 1px solid var(--nx-line); border-radius: 18px; padding: 30px;
+}
+.formRow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: var(--nx-ink); }
+.field input, .field select, .field textarea {
+  font: inherit; font-weight: 400; font-size: 15px; color: var(--nx-text);
+  padding: 11px 13px; border: 1px solid var(--nx-line-strong); border-radius: 10px; background: #fff;
+}
+.field textarea { resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--nx-primary-600); }
+.consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; color: var(--nx-text-soft); }
+.consent input { margin-top: 3px; flex: none; width: auto; min-width: 0; }
+.consent span { flex: 1; min-width: 0; }
+.form button { align-self: center; min-width: 240px; justify-content: center; }
+.form button:disabled { opacity: .6; cursor: not-allowed; }
+.formOk {
+  background: #ECFDF5; border: 1px solid #BBF7D0; color: #15803D;
+  border-radius: 14px; padding: 22px; text-align: center; font-size: 16px;
+}
+.formErr { margin: 0; color: #B91C1C; font-size: 14px; text-align: center; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .trio { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; }
+  .process { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .pair { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .hero { padding: 84px 0 44px; }
+  .hero h1 { font-size: 33px; }
+  .heroLead { font-size: 16px; }
+  .heroArt { max-width: 300px; margin-top: 28px; }
+  .sectionHead { margin-bottom: 28px; }
+  .sectionTitle { font-size: 25px; }
+  .prose p, .prose p:first-child { font-size: 16px; }
+  .process, .formRow2 { grid-template-columns: 1fr; }
+  .phaseCard { padding: 24px 18px; }
+  .example { padding: 40px 22px 26px; }
+  .example blockquote { font-size: 16px; }
+  .form { padding: 20px; }
+  .form button { align-self: stretch; min-width: 0; }
+}
+
+/* ── Photo band (Unsplash licence, files in public/images/services) ──── */
+.photoBand { padding: 8px 0 0; }
+.photo {
+  margin: 0 auto; max-width: 1080px; aspect-ratio: 21 / 9; overflow: hidden;
+  border-radius: 22px; box-shadow: 0 24px 60px -28px rgba(15, 23, 42, .35);
+}
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 640px) { .photo { aspect-ratio: 4 / 3; border-radius: 16px; } }
+
+/* `.nexa-public p { margin: 0 0 16px }` outranks a single class and kills
+   `margin: auto` — restate centring with matching specificity. */
+:global(.nexa-public) .sectionLead { margin: 16px auto 0; }
+:global(.nexa-public) .sectionHead .sectionLead { margin-top: 16px; }
+:global(.nexa-public) .disclaimer { margin: 44px auto 0; }
+:global(.nexa-public) .process + .sectionLead { margin-top: 36px; }

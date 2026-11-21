@@ -77,7 +77,7 @@ export default function Contact() {
               <span className="nx-icon-wrap"><Icon name="mail" size={22} /></span>
               <h3>{lang === 'mk' ? 'Е-пошта' : 'Email'}</h3>
               <p>info@nexa.mk</p>
-              <span className={styles.methodHint}>{lang === 'mk' ? 'Одговараме во 2 работни дена' : 'We reply within 2 business days'}</span>
+              <span className={styles.methodHint}>{lang === 'mk' ? 'Одговараме во рок од два работни дена' : 'We reply within 2 business days'}</span>
             </a>
             <a href="tel:+38978534258" className={`nx-card nx-card-hover ${styles.methodCard} nx-reveal`} style={{ transitionDelay: '80ms' }}>
               <span className="nx-icon-wrap nx-icon-wrap-emerald"><Icon name="phone" size={22} /></span>
@@ -89,7 +89,7 @@ export default function Contact() {
               <span className="nx-icon-wrap nx-icon-wrap-amber"><Icon name="pin" size={22} /></span>
               <h3>{lang === 'mk' ? 'Канцеларија' : 'Office'}</h3>
               <p>{t('contact.officeAddress')}</p>
-              <span className={styles.methodHint}>{lang === 'mk' ? 'Само со закажување' : 'By appointment'}</span>
+              <span className={styles.methodHint}>{lang === 'mk' ? 'Само со претходна најава' : 'By appointment'}</span>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function Contact() {
           {status === 'ok' ? (
             <div className={`${styles.successCard} nx-reveal`}>
               <Icon name="check" size={28} />
-              <p>{lang === 'mk' ? 'Пораката е примена. Ќе одговориме во рок од два работни дена.' : 'Message received. We will reply within two business days.'}</p>
+              <p>{lang === 'mk' ? 'Пораката е примена. Ќе Ви одговориме во рок од два работни дена.' : 'Message received. We will reply within two business days.'}</p>
             </div>
           ) : (
             <form onSubmit={submit} className={`${styles.form} nx-reveal`}>
@@ -136,7 +136,7 @@ export default function Contact() {
                 <Icon name="arrowRight" size={18} />
               </button>
               {status === 'error' && (
-                <p className={styles.err}>{lang === 'mk' ? 'Грешка. Обидете се повторно или пишете директно на info@nexa.mk.' : 'Error. Please try again or write directly to info@nexa.mk.'}</p>
+                <p className={styles.err}>{lang === 'mk' ? 'Пораката не е испратена. Обидете се повторно или пишете ни директно на info@nexa.mk.' : 'Error. Please try again or write directly to info@nexa.mk.'}</p>
               )}
             </form>
           )}

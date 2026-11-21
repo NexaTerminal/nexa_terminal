@@ -1,0 +1,29 @@
+.wrap { width: 100%; max-width: 420px; margin: 0 auto; }
+.sm { max-width: 220px; }
+.svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.halo { fill: var(--nx-primary-50, #F0F7FF); }
+.ring { fill: none; stroke: var(--nx-primary-100, #E0EEFF); stroke-width: 1.5; stroke-dasharray: 3 7; }
+
+.card { fill: #fff; stroke: var(--nx-primary-500, #1E4DB7); stroke-width: 2; }
+.cardAlt { fill: var(--nx-primary-100, #E0EEFF); stroke: var(--nx-primary-500, #1E4DB7); stroke-width: 2; }
+.cardAccent { fill: var(--nx-primary-500, #1E4DB7); stroke: none; }
+.lens { fill: #fff; stroke: var(--nx-primary-500, #1E4DB7); stroke-width: 2.5; }
+
+.line, .lineBold, .lineLight, .lineWhite, .soft, .dash, .accentLine {
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+}
+.line { stroke: var(--nx-primary-500, #1E4DB7); stroke-width: 2; }
+.lineBold { stroke: var(--nx-primary-500, #1E4DB7); stroke-width: 5; }
+.lineLight { stroke: var(--nx-primary-300, #A5D2FF); stroke-width: 2; }
+.lineWhite { stroke: #fff; stroke-width: 2.5; }
+.soft { stroke: var(--nx-primary-200, #C7E2FF); stroke-width: 6; }
+.dash { stroke: var(--nx-primary-400, #7BB8FF); stroke-width: 2; stroke-dasharray: 5 6; }
+.accentLine { stroke: var(--nx-accent-500, #F97316); stroke-width: 3; }
+.accentDot { fill: var(--nx-accent-500, #F97316); }
+.dotLight { fill: #fff; }
+
+/* Gentle float on the focal element; off for reduced motion. */
+.float { animation: svcFloat 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes svcFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .float { animation: none; } }

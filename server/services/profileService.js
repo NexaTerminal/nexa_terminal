@@ -11,7 +11,7 @@
  * users.publicProfile = {
  *   slug, displayName, headline, avatarUrl, coverUrl, city,
  *   website, links: { linkedin, facebook, instagram }, offers[], lookingFor[],
- *   contactEmail, visibility: 'public',   // profiles are ALWAYS public (user decision, Nov 2026)
+ *   contactEmail, phone, about, visibility: 'public',   // profiles are ALWAYS public (user decision, Nov 2026)
  *   foundingNumber?, createdAt, updatedAt
  * }
  */
@@ -25,7 +25,14 @@ const VISIBILITY = ['public'];
 const LIMITS = {
   displayName: 80, headline: 120, city: 60,
   url: 500, contactEmail: 120, tag: 60, tags: 5,
+  about: 600, phone: 30,
 };
+
+// Images uploaded to Nexa are served from our own API (MongoDB-backed, see
+// routes/profile.js) — keep those relative paths as-is.
+const OWN_IMAGE_RE = /^\/api\/public\/profile\/img\/[a-f0-9]{24}\/(avatar|cover)(\?v=\d+)?$/;
+const cleanImage = (v) => (typeof v === 'string' && OWN_IMAGE_RE.test(v.trim()) ? v.trim() : cleanUrl(v));
+const PHONE_RE = /^\+?[0-9][0-9\s\-/()]{5,28}$/;
 
 // Practice-area keys (Pro) → readable offers for the prefill.
 const AREA_LABELS = {
@@ -74,8 +81,8 @@ function sanitize(body = {}) {
   const data = {
     displayName: str(body.displayName, LIMITS.displayName),
     headline: str(body.headline, LIMITS.headline),
-    avatarUrl: cleanUrl(body.avatarUrl),
-    coverUrl: cleanUrl(body.coverUrl),
+    avatarUrl: cleanImage(body.avatarUrl),
+    coverUrl: cleanImage(body.coverUrl),
     city: str(body.city, LIMITS.city),
     website: cleanUrl(body.website),
     links: {
@@ -86,10 +93,13 @@ function sanitize(body = {}) {
     offers: cleanTags(body.offers),
     lookingFor: cleanTags(body.lookingFor),
     contactEmail: str(body.contactEmail, LIMITS.contactEmail),
+    phone: str(body.phone, LIMITS.phone),
+    about: typeof body.about === 'string' ? body.about.replace(/\r/g, '').trim().slice(0, LIMITS.about) : '',
     visibility: 'public',
   };
   if (!data.displayName) errors.push('Внеси име на профилот.');
   if (data.contactEmail && !isEmail(data.contactEmail)) errors.push('Е-поштата за контакт не е валидна.');
+  if (data.phone && !PHONE_RE.test(data.phone)) errors.push('Телефонот не е валиден.');
   if (body.avatarUrl && !data.avatarUrl) errors.push('Линкот за лого/слика не е валиден.');
   if (body.coverUrl && !data.coverUrl) errors.push('Линкот за насловна слика не е валиден.');
   return { errors, data };
@@ -123,11 +133,17 @@ function suggestFromCompany(user = {}) {
 function completion(p) {
   if (!p) return 0;
   const checks = [
-    !!p.displayName, !!p.headline, !!p.avatarUrl, !!p.city,
+    !!p.displayName, !!p.headline, !!p.avatarUrl, !!p.coverUrl, !!p.city, !!p.about,
     (p.offers || []).length > 0, (p.lookingFor || []).length > 0,
-    !!(p.website || p.links?.linkedin || p.links?.facebook || p.links?.instagram),
+    !!(p.website || p.contactEmail || p.phone || p.links?.linkedin || p.links?.facebook || p.links?.instagram),
   ];
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+// Only reasonably complete profiles go to search engines — near-empty pages
+// hurt the whole site. Same rule on the client (noindex) and in the sitemap.
+function isIndexable(p) {
+  return !!(p && p.displayName && p.headline && (p.about || (p.offers || []).length));
 }
 
 async function uniqueSlug(db, name, userId) {
@@ -216,6 +232,10 @@ async function toView(db, user, viewerId) {
     offers: p.offers || [],
     lookingFor: p.lookingFor || [],
     contactEmail: p.contactEmail || '',
+    phone: p.phone || '',
+    about: p.about || '',
+    indexable: isIndexable(p),
+    updatedAt: p.updatedAt,
     visibility: 'public',
     memberSince: p.createdAt,
     badges: await badgesFor(db, user),
@@ -245,7 +265,17 @@ async function bylines(db, userIds = []) {
   }]));
 }
 
+/** Slugs + lastmod of indexable profiles (dynamic sitemap). */
+async function listIndexable(db) {
+  const users = await db.collection('users').find(
+    { 'publicProfile.slug': { $type: 'string' } },
+    { projection: { publicProfile: 1 } }
+  ).toArray();
+  return users.map((u) => u.publicProfile).filter(isIndexable)
+    .map((p) => ({ slug: p.slug, updatedAt: p.updatedAt || p.createdAt }));
+}
+
 module.exports = {
-  VISIBILITY, LIMITS, sanitize, suggestFromCompany, completion,
+  VISIBILITY, LIMITS, sanitize, suggestFromCompany, completion, isIndexable, listIndexable,
   saveProfile, deleteProfile, findBySlug, toView, bylines,
 };

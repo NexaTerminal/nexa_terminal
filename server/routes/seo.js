@@ -28,18 +28,9 @@ router.get('/sitemap.xml', async (req, res) => {
       createdAt: 1
     }).sort({ createdAt: -1 }).toArray();
 
-    // Static pages with their priorities and change frequencies
-    const staticPages = [
-      { url: '/', priority: '1.0', changefreq: 'daily' },
-      { url: '/blog', priority: '0.9', changefreq: 'daily' },
-      { url: '/about', priority: '0.7', changefreq: 'monthly' },
-      { url: '/contact', priority: '0.6', changefreq: 'monthly' },
-      { url: '/legal-health-check', priority: '0.8', changefreq: 'weekly' },
-      { url: '/marketing-health-check', priority: '0.8', changefreq: 'weekly' },
-      { url: '/company-health-check', priority: '0.8', changefreq: 'weekly' },
-      { url: '/login', priority: '0.5', changefreq: 'monthly' },
-      { url: '/register', priority: '0.5', changefreq: 'monthly' }
-    ];
+    // Static pages live in the build-time sitemap (client/scripts/seo-prerender.mjs);
+    // this one carries the dynamic URLs: blog posts + complete company profiles.
+    const companyProfiles = await require('../services/profileService').listIndexable(db);
 
     // Current date for lastmod
     const now = new Date().toISOString().split('T')[0];
@@ -48,13 +39,13 @@ router.get('/sitemap.xml', async (req, res) => {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
-    // Add static pages
-    for (const page of staticPages) {
+    for (const p of companyProfiles) {
+      const lastmod = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : now;
       xml += '  <url>\n';
-      xml += `    <loc>${BASE_URL}${page.url}</loc>\n`;
-      xml += `    <lastmod>${now}</lastmod>\n`;
-      xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
-      xml += `    <priority>${page.priority}</priority>\n`;
+      xml += `    <loc>${BASE_URL}/f/${encodeURIComponent(p.slug)}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += '    <changefreq>weekly</changefreq>\n';
+      xml += '    <priority>0.6</priority>\n';
       xml += '  </url>\n';
     }
 

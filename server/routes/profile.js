@@ -4,12 +4,16 @@
 //   GET    /me       → { profile|null, suggested, completion }
 //   PUT    /me       → create/update (prefill-friendly; slug assigned once)
 //   DELETE /me       → remove the profile entirely
+//   PUT    /me/image/:kind   → upload logo/cover ({ dataUrl }, client-resized) → { url }
+//   DELETE /me/image/:kind   → remove an uploaded image
+//   GET    /me/insights      → views/contacts + latest visitor messages
 //   GET    /:slug    → a profile (all profiles are public)
 
 const express = require('express');
 const { ObjectId } = require('mongodb');
 const { authenticateJWT } = require('../middleware/auth');
 const profiles = require('../services/profileService');
+const site = require('../services/profileSiteService');
 
 const router = express.Router();
 const uid = (req) => String(req.user._id || req.user.id);
@@ -54,6 +58,40 @@ router.delete('/me', authenticateJWT, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     console.error('[profile] delete:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/me/image/:kind', authenticateJWT, async (req, res) => {
+  try {
+    if (req.user.role === 'sub_seat') return res.status(403).json({ message: 'Профилот го уредува сопственикот на сметката.' });
+    if (!site.KINDS.includes(req.params.kind)) return res.status(400).json({ message: 'Непознат тип слика.' });
+    const parsed = site.parseDataUrl(req.body?.dataUrl);
+    if (parsed.error) return res.status(400).json({ message: parsed.error });
+    const url = await site.saveImage(req.app.locals.db, uid(req), req.params.kind, parsed);
+    res.json({ url });
+  } catch (e) {
+    console.error('[profile] image:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.delete('/me/image/:kind', authenticateJWT, async (req, res) => {
+  try {
+    if (!site.KINDS.includes(req.params.kind)) return res.status(400).json({ message: 'Непознат тип слика.' });
+    await site.deleteImage(req.app.locals.db, uid(req), req.params.kind);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[profile] image delete:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/me/insights', authenticateJWT, async (req, res) => {
+  try {
+    res.json(await site.insights(req.app.locals.db, uid(req)));
+  } catch (e) {
+    console.error('[profile] insights:', e);
     res.status(500).json({ message: 'Server error' });
   }
 });

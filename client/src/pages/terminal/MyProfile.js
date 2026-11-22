@@ -1,23 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
 import TerminalShell from '../../components/terminal/TerminalShell';
 import FeatureTermsModal from '../../components/terminal/FeatureTermsModal';
 import useTermsGate from '../../hooks/useTermsGate';
 import ProfileCard from '../../components/profile/ProfileCard';
+import ImageUpload from '../../components/profile/ImageUpload';
+import SharePanel from '../../components/profile/SharePanel';
+import ProfileInsights from '../../components/profile/ProfileInsights';
 import { MK_CITIES } from '../../config/mkCities';
 import styles from '../../styles/terminal/CompanyProfile.module.css';
 
 /**
  * „Мој профил" — the OPTIONAL company profile editor. Nothing in the app needs
- * it; it is only how others in the network see the company. First visit is
+ * it. Saving publishes the company's one-page website at /f/:slug (cover, logo,
+ * about, offers, contact form) that can be shared anywhere. First visit is
  * prefilled from the company data (companyInfo) so it takes one click to start.
  */
 
 const EMPTY = {
   displayName: '', headline: '', avatarUrl: '', coverUrl: '', city: '', website: '',
   links: { linkedin: '', facebook: '', instagram: '' },
-  offers: [], lookingFor: [], contactEmail: '',
+  offers: [], lookingFor: [], contactEmail: '', phone: '', about: '',
 };
 
 const fromProfile = (p) => ({
@@ -149,9 +152,9 @@ const MyProfile = () => {
 
   const pct = useMemo(() => {
     const checks = [
-      form.displayName, form.headline, form.avatarUrl, form.city,
+      form.displayName, form.headline, form.avatarUrl, form.coverUrl, form.city, form.about,
       form.offers.length, form.lookingFor.length,
-      form.website || form.links.linkedin || form.links.facebook || form.links.instagram,
+      form.website || form.contactEmail || form.phone || form.links.linkedin || form.links.facebook || form.links.instagram,
     ];
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   }, [form]);
@@ -163,7 +166,8 @@ const MyProfile = () => {
       <div className={styles.page}>
         <h1 className={styles.pageTitle}>Мој профил</h1>
         <p className={styles.pageSub}>
-          Опционално, за 2 минути — јавна визиткарта на фирмата во мрежата на Nexa. Сè во апликацијата работи и без профил.
+          Опционално, за неколку минути — едноставна веб-страница за Вашата фирма што можете да ја споделите насекаде
+          (LinkedIn, WhatsApp, Viber, визит-карта со QR код). Сè во апликацијата работи и без профил.
         </p>
 
         {loading ? <div className={styles.empty}>Се вчитува…</div> : (
@@ -177,10 +181,8 @@ const MyProfile = () => {
               {saved && (
                 <div className={styles.notice}>
                   <span>
-                    Профилот е активен.{' '}
-                    <Link to={`/terminal/f/${saved.slug}`} className={styles.textLink}>Погледни го</Link>
-                    {' · '}
-                    <a href={publicUrl} target="_blank" rel="noopener noreferrer" className={styles.textLink}>Јавен линк ↗</a>
+                    Вашата страница е објавена.{' '}
+                    <a href={publicUrl} target="_blank" rel="noopener noreferrer" className={styles.textLink}>Отвори ја ↗</a>
                   </span>
                   <button type="button" className={styles.textLink} onClick={fillFromCompany}>Пополни празно од податоците за фирма</button>
                 </div>
@@ -204,6 +206,12 @@ const MyProfile = () => {
                     placeholder="пр. Свеж леб и пецива за кафулиња и хотели во Скопје" />
                 </div>
                 <div className={styles.row}>
+                  <label className={styles.label}>За нас (опц.)</label>
+                  <textarea className={styles.textarea} rows={4} value={form.about} onChange={set('about')} maxLength={600}
+                    placeholder="2–3 реченици: од кога работите, за кого, што Ве издвојува. Пр. „Од 2012 печеме леб без адитиви за над 40 кафулиња и хотели во Скопје…“" />
+                  <span className={styles.counter}>{form.about.length}/600</span>
+                </div>
+                <div className={styles.row}>
                   <label className={styles.label}>Град</label>
                   <select className={styles.select} value={form.city} onChange={set('city')}>
                     <option value="">Избери град</option>
@@ -215,19 +223,9 @@ const MyProfile = () => {
               </div>
 
               <div className={styles.group}>
-                <h2 className={styles.groupTitle}>Слики (линкови)</h2>
-                <div className={styles.row}>
-                  <label className={styles.label}>Лого / слика — линк</label>
-                  <input className={styles.input} value={form.avatarUrl} onChange={set('avatarUrl')} placeholder="https://…/logo.png" />
-                </div>
-                <div className={styles.row}>
-                  <label className={styles.label}>Насловна слика — линк (опц.)</label>
-                  <input className={styles.input} value={form.coverUrl} onChange={set('coverUrl')} placeholder="https://…/cover.jpg" />
-                </div>
-                <p className={styles.help}>
-                  Залепи линк до слика (пр. од твојата веб-страница или десен клик на логото → „Copy image address").
-                  Ако линкот не работи, се прикажуваат иницијалите.
-                </p>
+                <h2 className={styles.groupTitle}>Лого и насловна слика</h2>
+                <ImageUpload kind="avatar" value={form.avatarUrl} onChange={(v) => setForm(f => ({ ...f, avatarUrl: v }))} />
+                <ImageUpload kind="cover" value={form.coverUrl} onChange={(v) => setForm(f => ({ ...f, coverUrl: v }))} />
               </div>
 
               <div className={styles.group}>
@@ -265,11 +263,20 @@ const MyProfile = () => {
                     <input className={styles.input} value={form.links.facebook} onChange={setLink('facebook')} placeholder="facebook.com/…" />
                   </div>
                 </div>
-                <div className={styles.row}>
-                  <label className={styles.label}>Instagram</label>
-                  <input className={styles.input} value={form.links.instagram} onChange={setLink('instagram')} placeholder="instagram.com/…" />
+                <div className={styles.row2}>
+                  <div className={styles.row}>
+                    <label className={styles.label}>Instagram</label>
+                    <input className={styles.input} value={form.links.instagram} onChange={setLink('instagram')} placeholder="instagram.com/…" />
+                  </div>
+                  <div className={styles.row}>
+                    <label className={styles.label}>Телефон (опц.)</label>
+                    <input className={styles.input} value={form.phone} onChange={set('phone')} maxLength={30} placeholder="+389 70 123 456" />
+                  </div>
                 </div>
-                <p className={styles.help}>Телефон, адреса и даночен број никогаш не се прикажуваат на профилот.</p>
+                <p className={styles.help}>
+                  Телефонот се прикажува само ако го внесете. Адресата и даночниот број никогаш не се прикажуваат.
+                  Посетителите можат да Ви пишат и преку формуларот на страницата — пораката стигнува на е-поштата за контакт.
+                </p>
               </div>
 
               {error && <div className={styles.error}>{error}</div>}
@@ -284,7 +291,9 @@ const MyProfile = () => {
             </form>
 
             <div className={styles.previewCol}>
-              <p className={styles.previewLabel}>Преглед</p>
+              {saved && <SharePanel url={publicUrl} title={saved.displayName} text={saved.headline} />}
+              {saved && <ProfileInsights />}
+              <p className={styles.previewLabel}>Преглед (картичка во мрежата)</p>
               <ProfileCard profile={preview} preview />
             </div>
           </div>

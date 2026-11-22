@@ -24,7 +24,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BUILD = path.join(ROOT, 'build');
+// BUILD_PATH matches react-scripts' own override (used for test builds).
+const BUILD = process.env.BUILD_PATH ? path.resolve(process.env.BUILD_PATH) : path.join(ROOT, 'build');
 const SRC = path.join(ROOT, 'src');
 const SITE = 'https://nexa.mk';
 const TODAY = new Date().toISOString().slice(0, 10);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SERVICES, SERVICES_COMMON } from '../../data/services';
 import styles from '../../pages/website/Services.module.css';
+import { API_BASE } from '../../lib/apiBase';
 
 /** Inquiry form for the „Услуги" pages → POST /api/public/services/inquiry. */
 export default function ServiceInquiryForm({ lang = 'mk', defaultService = '' }) {
@@ -17,7 +18,7 @@ export default function ServiceInquiryForm({ lang = 'mk', defaultService = '' })
     if (!form.consent || status === 'sending') return;
     setStatus('sending');
     try {
-      const res = await fetch('/api/public/services/inquiry', {
+      const res = await fetch(`${API_BASE}/public/services/inquiry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, language: lang }),

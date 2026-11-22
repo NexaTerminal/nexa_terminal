@@ -513,6 +513,7 @@ class EmailService {
         subject: subject,
         html: html
       };
+      if (options.replyTo) emailData.replyTo = options.replyTo;
       if (attachments.length > 0) {
         emailData.attachments = attachments.map(a => ({
           filename: a.filename,
@@ -553,7 +554,8 @@ class EmailService {
             from: 'terminalnexa@gmail.com',
             to: to,
             subject: subject,
-            html: html
+            html: html,
+            ...(options.replyTo ? { replyTo: options.replyTo } : {})
           };
           if (attachments.length > 0) {
             mailOptions.attachments = attachments.map(a => ({

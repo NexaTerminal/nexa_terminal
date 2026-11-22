@@ -252,3 +252,38 @@ reply from that character (capped), with "continue in chat".
 - [x] OrganizationSchema no longer LegalService; breadcrumbs/Service/SoftwareApplication JSON-LD; per-service OG photos 1600x900
 - [x] noindex 404 catch-all; SEOHelmet on login (index) / forgot+reset (noindex); blog title/h1 fixed
 - [ ] Known: leads.nexa.mk "/" non-JS bots get the nexa.mk home shell (same build); submit sitemap in Search Console/Bing
+
+---
+
+## Company one-pager site (`/f/:slug`) — plan (2026-11-22)
+
+Goal: turn the optional public profile into a small website a company is proud to share — found on
+Google/AI, shareable everywhere (no Facebook share button), with cover + logo and a working contact path.
+
+### Backend
+- [x] profileService: optional `about` (600) + `phone` (30, validated); allow our own image paths; completion counts about/cover; toView returns them
+- [x] Images in MongoDB (`profile_images`, not local disk — Railway disk is ephemeral): `PUT/DELETE /api/profile/me/image/:kind` (avatar|cover, client-resized JPEG/PNG/WebP ≤1.5 MB) + public `GET /api/public/profile/img/:userId/:kind` (long cache, `?v=` busting)
+- [x] Contact form: `POST /api/public/profile/:slug/contact` (rate limit, honeypot, consent) → email to the company (Reply-To visitor) + stored in `profile_messages`
+- [x] Stats: `POST /api/public/profile/:slug/view` (monthly counters in `profile_stats`), `GET /api/profile/me/insights` (views/contacts this month + total, last 20 messages)
+- [x] emailService: support `replyTo`
+- [x] Dynamic sitemap (`/api/seo/sitemap.xml`): drop stale static URLs, add blogs + complete profiles
+
+### Frontend
+- [x] New one-pager `ProfileSite` (Nexa navy/blue/orange, centred): sticky bar with anchors + CTA · full-bleed cover hero with logo, name, headline, city, badges, buttons · За нас · Нудиме cards · Бараме соработка · Контакт (details + form) · share strip · footer with Nexa growth CTA
+- [x] SEOHelmet per profile (title, description, cover as OG image, canonical, JSON-LD Organization/LocalBusiness, noindex when thin)
+- [x] Editor (Мој профил): upload logo/cover (client resize, preview, remove, link fallback), За нас, телефон; „Сподели" panel (copy, LinkedIn, WhatsApp, Viber, e-mail, native share, QR download); insights + recent messages
+
+### Crawlers
+- [x] Vercel `api/profile-preview.js` + rewrite `/f/:slug`: social + AI bots get full HTML (meta, OG image, JSON-LD, page text); people get the SPA
+
+### Verify
+- [x] Server unit check of sanitize/contact/image endpoints (stub DB) · client build · puppeteer desktop + 390px mobile screenshots · bot-UA HTML check of the preview function logic
+
+### Review (2026-11-22)
+- Built as planned; Facebook share button omitted (user). Images stored in MongoDB (`profile_images`) because every existing upload uses Railway local disk.
+- Server: 15/16 stubbed endpoint checks pass; the 16th only fails because the fake DB ignores projections (real Mongo applies `{ userId: 0 }`).
+- Client: build OK; desktop + 390px screenshots (full profile and name-only profile), contact form submit, view beacon, SEO meta/JSON-LD, noindex for thin profiles, editor rendered with a mocked session — no page errors, no horizontal overflow. All API calls in tests were intercepted (dev server on :5002 uses the prod DB — never hit).
+- Preview function unit-checked (bot detection, escaping, OG image, human → SPA). Needs a live check after deploy: share a profile link in LinkedIn Post Inspector / WhatsApp.
+- Public fetches now use the same API base as ApiService (`lib/apiBase.js`), incl. the services form.
+- **E2E (real backend, 2026-11-22):** separate server on :5055 against a throwaway local mongod (`nexa_e2e`), email in mock mode, site built against it. 25/25 pass: editor login, real logo/cover upload (browser resize → API → MongoDB, 73 KB PNG / 157 KB JPEG), save through the terms modal, public page as logged-out visitor (cover+logo load, sections, SEO title/indexable, OG = cover, JSON-LD), single view per session, contact form → stored + emailed to the company address, owner insights + QR panel, sitemap entry, image endpoint caching, rate limit (429 after 5), cover removal.
+- **Bug found by E2E and fixed:** uploaded images were stored as `/api/...` paths and only loaded when the site proxies `/api` (true on nexa.mk via Vercel, false on any separate API host) → `mediaUrl()` in `lib/apiBase.js` resolves them against the API host (ProfileCard incl. feed avatars, ProfileSite, ImageUpload). `seo-prerender.mjs` now honours `BUILD_PATH`.

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/terminal/CompanyProfile.module.css';
+import { mediaUrl } from '../../lib/apiBase';
 
 /**
  * Company profile rendering, shared by the editor preview, the member view
@@ -16,7 +17,7 @@ export const ProfileAvatar = ({ url, name, size = 72 }) => {
   return (
     <span className={styles.avatar} style={{ '--size': `${size}px` }}>
       {show
-        ? <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />
+        ? <img src={mediaUrl(url)} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />
         : <span className={styles.avatarInitials}>{initials(name)}</span>}
     </span>
   );
@@ -26,7 +27,7 @@ const Cover = ({ url }) => {
   const [broken, setBroken] = useState(false);
   return (
     <div className={styles.cover}>
-      {url && !broken && <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />}
+      {url && !broken && <img src={mediaUrl(url)} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />}
     </div>
   );
 };

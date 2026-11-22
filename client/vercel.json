@@ -7,6 +7,10 @@
       "destination": "/api/blog-preview?id=:id"
     },
     {
+      "source": "/f/:slug",
+      "destination": "/api/profile-preview?slug=:slug"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://nexa-terminal-api-production-74cc.up.railway.app/api/:path*"
     }

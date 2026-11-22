@@ -15,6 +15,7 @@ import BadgeVerify from './pages/website/BadgeVerify';
 import PublicProfile from './pages/website/PublicProfile';
 import Services from './pages/website/Services';
 import ServicePage from './pages/website/ServicePage';
+import NotFound from './pages/website/NotFound';
 import MyProfile from './pages/terminal/MyProfile';
 import CompanyProfile from './pages/terminal/CompanyProfile';
 import BadgeClaim from './pages/terminal/BadgeClaim';
@@ -25,7 +26,6 @@ import InterviewForm from './pages/website/InterviewForm';
 import Interviews from './pages/terminal/Interviews';
 import ProcurementRegister from './pages/terminal/ProcurementRegister';
 import Accountants from './pages/website/Accountants';
-import Pricing from './pages/website/Pricing';
 import ContactPublic from './pages/website/Contact';
 import ForgotPassword from './pages/website/ForgotPassword';
 import ResetPassword from './pages/website/ResetPassword';
@@ -286,7 +286,7 @@ function App() {
       <Route path="/karakter/:token" element={<CharacterAssessment />} />
       <Route path="/interview/:token" element={<InterviewForm />} />
       <Route path="/smetkovoditeli" element={<Accountants />} />
-      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/pricing" element={<Navigate to="/#paketi" replace />} />
       <Route path="/uslugi" element={<Services />} />
       <Route path="/uslugi/:slug" element={<ServicePage />} />
       <Route path="/contact" element={<ContactPublic />} />
@@ -553,6 +553,9 @@ function App() {
       <Route path="/terminal/admin/topics/worklist/:id/edit"  element={<PrivateRoute><AdminTopicsWorklistEditPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions"        element={<PrivateRoute><AdminTopicsSubmissionsPage /></PrivateRoute>} />
       <Route path="/terminal/admin/topics/submissions/:id"    element={<PrivateRoute><AdminTopicsSubmissionDetailPage /></PrivateRoute>} />
+
+      {/* Unknown URL → noindex 404 (was a blank page). */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
     <AgentChatDock />
     <ActivityTracker />

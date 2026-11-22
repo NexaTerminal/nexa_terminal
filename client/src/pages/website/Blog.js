@@ -164,8 +164,8 @@ export default function Blog() {
   return (
     <>
       <SEOHelmet
-        title="Теми - Бизнис совети и правни насоки за претприемачи"
-        description="Експертски совети за правни прашања, бизнис стратегии, маркетинг и инвестиции. Информирајте се за успешно водење на вашиот бизнис во Македонија."
+        title="Блог — деловни совети и правни насоки за фирми · Nexa"
+        description="Совети за правни прашања, работни односи, маркетинг и инвестиции — за полесно водење на Вашата фирма во Македонија."
         keywords="бизнис совети, правни насоки, претприемништво, маркетинг стратегии, инвестиции македонија"
         canonical="/blog"
       />
@@ -177,8 +177,8 @@ export default function Blog() {
         {/* Hero Header */}
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <span className={styles.headerLabel}>Теми</span>
-            <h1 className={styles.headerTitle}>Консумирај квалитетна содржина</h1>
+            <span className={styles.headerLabel}>Блог</span>
+            <h1 className={styles.headerTitle}>Деловни совети и правни насоки</h1>
             <p className={styles.headerSubtitle}>
               Експертски анализи, практични совети и најнови трендови за претприемачи и бизнис лидери
             </p>

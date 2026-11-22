@@ -6,7 +6,7 @@ import Icon from '../../components/website/Icon';
 import ServiceInquiryForm from '../../components/website/ServiceInquiryForm';
 import ServiceIllustration from '../../components/website/ServiceIllustration';
 import useScrollReveal from '../../hooks/useScrollReveal';
-import { NEXA_ORG, NEXA_WEBSITE, webPage } from '../../components/seo/schemaGraph';
+import { NEXA_ORG, NEXA_WEBSITE, webPage, breadcrumbList } from '../../components/seo/schemaGraph';
 import { SERVICES, SERVICES_COMMON } from '../../data/services';
 import styles from './Services.module.css';
 
@@ -20,9 +20,13 @@ export default function Services() {
   const offerCatalog = {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
+    '@id': `${url}#service`,
     name: 'Nexa — ' + c.navLabel,
     url,
-    areaServed: 'MK',
+    description: c.seoDesc,
+    image: 'https://nexa.mk/images/services/hub.jpg',
+    areaServed: { '@type': 'Country', name: 'North Macedonia' },
+    availableLanguage: ['mk', 'en'],
     provider: { '@id': 'https://nexa.mk/#organization' },
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
@@ -42,7 +46,11 @@ export default function Services() {
         canonical="/uslugi"
         locale={lang === 'mk' ? 'mk_MK' : 'en_US'}
         altLocale={lang === 'mk' ? 'en_US' : 'mk_MK'}
-        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: c.seoTitle, description: c.seoDesc, language: lang }), offerCatalog]}
+        ogImage="/images/services/hub.jpg"
+        ogImageWidth={1600}
+        ogImageHeight={900}
+        ogImageAlt={c.navLabel}
+        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: c.seoTitle, description: c.seoDesc, language: lang }), breadcrumbList([['Nexa', '/'], [c.navLabel, '/uslugi']]), offerCatalog]}
       />
 
       <section className={`${styles.hero} nx-hero-aurora`}>
@@ -63,12 +71,16 @@ export default function Services() {
         </div>
       </section>
 
-      {/* Photo */}
+      {/* Photo — full-bleed with overlay */}
       <section className={styles.photoBand}>
-        <div className="nexa-container">
-          <figure className={`${styles.photo} nx-reveal`}>
-            <img src={"/images/services/hub.jpg"} alt={c.navLabel} loading="lazy" width="1600" height="900" />
-          </figure>
+        <img className={styles.photoImg} src={"/images/services/hub.jpg"} alt={c.navLabel} loading="lazy" width="1600" height="900" />
+        <div className={styles.photoShade} aria-hidden="true"></div>
+        <div className={`nexa-container ${styles.photoText} nx-reveal`}>
+          <span className={styles.photoEyebrow}>{c.pill}</span>
+          <p className={styles.photoQuote}>{c.photoQuote}</p>
+          <a href="#kontakt" className={`nexa-btn nexa-btn-glass ${styles.photoCta}`}>
+            {c.heroCta} <Icon name="arrowRight" size={16} />
+          </a>
         </div>
       </section>
 

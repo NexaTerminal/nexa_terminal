@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
 import Icon from '../../components/website/Icon';
+import PlansSection from '../../components/website/PlansSection';
 import useScrollReveal from '../../hooks/useScrollReveal';
 import { NEXA_ORG, NEXA_WEBSITE, webPage } from '../../components/seo/schemaGraph';
 import styles from './Home.module.css';
@@ -13,6 +15,13 @@ import styles from './Home.module.css';
 export default function Home() {
   const { t } = useTranslation('website');
   useScrollReveal();
+  const { hash } = useLocation();
+  // /#paketi (and the old /pricing redirect) scrolls to the plans section.
+  useEffect(() => {
+    if (!hash) return;
+    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 80);
+    return () => clearTimeout(t);
+  }, [hash]);
   const lang = i18n.language || 'mk';
   const isMk = lang === 'mk';
   const url = 'https://nexa.mk/';
@@ -26,6 +35,21 @@ export default function Home() {
     { key: 'feature6', icon: 'layers' }
   ];
 
+  // Mirrors scripts/seo-prerender.mjs so crawlers see the same data with or without JS.
+  const softwareApp = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Nexa Terminal',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: 'https://nexa.mk',
+    inLanguage: ['mk', 'en'],
+    description: t('home.terminalLead'),
+    publisher: { '@id': 'https://nexa.mk/#organization' },
+    offers: { '@type': 'Offer', name: isMk ? 'Основен' : 'Basic', price: '0', priceCurrency: 'EUR', category: 'free' },
+    featureList: TERMINAL_FEATURES.map(f => t(`home.${f.key}Title`)),
+  };
+
   return (
     <PublicLayout>
       <SEOHelmet
@@ -34,7 +58,7 @@ export default function Home() {
         canonical="/"
         locale={isMk ? 'mk_MK' : 'en_US'}
         altLocale={isMk ? 'en_US' : 'mk_MK'}
-        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa', description: t('home.seoDesc'), language: lang })]}
+        jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa', description: t('home.seoDesc'), language: lang }), softwareApp]}
       />
 
       {/* ============ HERO ============ */}
@@ -84,6 +108,8 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ============ PLANS (was /pricing) ============ */}
+      <PlansSection />
     </PublicLayout>
   );
 }

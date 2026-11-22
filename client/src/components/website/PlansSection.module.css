@@ -40,7 +40,7 @@
 }
 .cardName { font-size: 20px; font-weight: 800; color: #0B1220; }
 .cardTagline { font-size: 13.5px; line-height: 1.5; color: #64748b; margin: 6px 0 16px; min-height: 40px; }
-.priceRow { display: flex; align-items: baseline; gap: 6px; }
+.priceRow { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 22px; }
 .priceNum { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: #0B1220; line-height: 1; }
 .priceUnit { font-size: 15px; color: #64748b; font-weight: 500; }
 .priceMkd { font-size: 12.5px; color: #94a3b8; margin: 6px 0 18px; }
@@ -55,4 +55,22 @@
 .finePrint {
   max-width: 680px; margin: 30px auto 0; text-align: center;
   font-size: 12px; line-height: 1.6; color: #94a3b8;
+}
+
+/* Homepage section wrapper + "services are separate" callout */
+.section { scroll-margin-top: 80px; }
+.separate {
+  max-width: 860px; margin: 28px auto 0; display: flex; align-items: center; gap: 16px;
+  padding: 18px 22px; border-radius: 16px; background: #F7F8FA; border: 1px dashed #CBD5E1;
+}
+.separateIcon {
+  flex: none; width: 40px; height: 40px; border-radius: 12px; display: inline-flex;
+  align-items: center; justify-content: center; background: #FFF7ED; color: #EA580C;
+}
+.separate p { margin: 0; font-size: 14px; line-height: 1.55; color: #334155; text-align: left; }
+.separate strong { color: #0B1220; }
+.separateLink { flex: none; font-size: 14px; font-weight: 600; color: #1e4db7; white-space: nowrap; }
+@media (max-width: 640px) {
+  .separate { flex-direction: column; text-align: center; }
+  .separate p { text-align: center; }
 }

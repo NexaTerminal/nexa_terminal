@@ -1,24 +1,40 @@
-# Nexa — robots.txt
+# Nexa — robots.txt  (https://nexa.mk)
 
+# One group for everyone — AI assistants and answer engines are explicitly
+# welcome to read and cite the public pages (same exclusions apply).
 User-agent: *
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
 Allow: /
-
-# Sitemaps
-Sitemap: https://nexa.mk/sitemap.xml
-Sitemap: https://nexa.mk/api/seo/sitemap.xml
-
-# Disallow private/admin areas
+# Private app areas and one-off token links
 Disallow: /terminal/
 Disallow: /admin/
 Disallow: /api/
+Disallow: /auth/
+Disallow: /redeem
+Disallow: /join
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verification-result
+Disallow: /shared/
+Disallow: /dokument/
+Disallow: /predmet/
+Disallow: /provider-response/
+Disallow: /karakter/
+Disallow: /interview/
+Disallow: /preview/
+# Public SEO endpoints live under /api — keep them reachable
+Allow: /api/seo/
+Allow: /api/blog-preview
 
-# Allow public pages
-Allow: /
-Allow: /about
-Allow: /pricing
-Allow: /contact
-Allow: /blog
-Allow: /terms-conditions
-Allow: /privacy-policy
-
-Crawl-delay: 1
+Sitemap: https://nexa.mk/sitemap.xml
+Sitemap: https://nexa.mk/api/seo/sitemap.xml

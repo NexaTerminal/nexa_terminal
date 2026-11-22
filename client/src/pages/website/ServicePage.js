@@ -7,7 +7,7 @@ import FaqAccordion from '../../components/website/FaqAccordion';
 import ServiceInquiryForm from '../../components/website/ServiceInquiryForm';
 import ServiceIllustration from '../../components/website/ServiceIllustration';
 import useScrollReveal from '../../hooks/useScrollReveal';
-import { NEXA_ORG, webPage } from '../../components/seo/schemaGraph';
+import { NEXA_ORG, webPage, breadcrumbList } from '../../components/seo/schemaGraph';
 import { SERVICES, SERVICES_COMMON, getService } from '../../data/services';
 import styles from './Services.module.css';
 
@@ -39,6 +39,7 @@ export default function ServicePage() {
   if (!service) {
     return (
       <PublicLayout>
+        <SEOHelmet title={c.notFound} canonical="/uslugi" noIndex />
         <div className={`nexa-container ${styles.notFound}`}>
           <p>{c.notFound}</p>
           <Link to="/uslugi">{c.allServices}</Link>
@@ -53,7 +54,8 @@ export default function ServicePage() {
   const jsonLd = [
     NEXA_ORG,
     webPage({ url, name: s.title, description: s.short, language: lang }),
-    { '@context': 'https://schema.org', '@type': 'Service', name: s.title, description: s.short, url, areaServed: 'MK', provider: { '@id': 'https://nexa.mk/#organization' } },
+    breadcrumbList([['Nexa', '/'], [c.navLabel, '/uslugi'], [s.title, `/uslugi/${service.slug}`]]),
+    { '@context': 'https://schema.org', '@type': 'Service', '@id': `${url}#service`, name: s.title, serviceType: s.title, description: s.short, url, image: `https://nexa.mk/images/services/${service.slug}.jpg`, areaServed: { '@type': 'Country', name: 'North Macedonia' }, availableLanguage: ['mk', 'en'], provider: { '@id': 'https://nexa.mk/#organization' } },
     { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: s.faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
   ];
 
@@ -65,6 +67,10 @@ export default function ServicePage() {
         canonical={`/uslugi/${service.slug}`}
         locale={lang === 'mk' ? 'mk_MK' : 'en_US'}
         altLocale={lang === 'mk' ? 'en_US' : 'mk_MK'}
+        ogImage={`/images/services/${service.slug}.jpg`}
+        ogImageWidth={1600}
+        ogImageHeight={900}
+        ogImageAlt={s.title}
         jsonLd={jsonLd}
       />
 
@@ -88,12 +94,16 @@ export default function ServicePage() {
         </div>
       </section>
 
-      {/* Photo */}
+      {/* Photo — full-bleed with overlay */}
       <section className={styles.photoBand}>
-        <div className="nexa-container">
-          <figure className={`${styles.photo} nx-reveal`}>
-            <img src={`/images/services/${service.slug}.jpg`} alt={s.title} loading="lazy" width="1600" height="900" />
-          </figure>
+        <img className={styles.photoImg} src={`/images/services/${service.slug}.jpg`} alt={s.title} loading="lazy" width="1600" height="900" />
+        <div className={styles.photoShade} aria-hidden="true"></div>
+        <div className={`nexa-container ${styles.photoText} nx-reveal`}>
+          <span className={styles.photoEyebrow}>{s.title}</span>
+          <p className={styles.photoQuote}>{s.short}</p>
+          <a href="#kontakt" className={`nexa-btn nexa-btn-glass ${styles.photoCta}`}>
+            {c.heroCta} <Icon name="arrowRight" size={16} />
+          </a>
         </div>
       </section>
 

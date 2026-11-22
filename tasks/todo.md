@@ -239,3 +239,16 @@ reply from that character (capped), with "continue in chat".
 - [x] Inquiry form: removed company + timeline (client, data, server schema/email)
 - [x] Centring bug: `.nexa-public p` margin overrode `margin:auto` (disclaimer + hub partners note)
 - [x] Real photos (Unsplash licence, free commercial use, no attribution required) in public/images/services/<slug>.jpg + hub.jpg; 21:9 band under hero
+- [x] Photo band → full-bleed, faded over navy + gradient, centred overlay text (service summary / hub line) + CTA; all 6 pages, MK+EN
+- [x] /pricing removed → homepage #paketi (PlansSection + "services are separate" callout); /pricing redirects; nav „Цени" + cross-site link removed; footer „Пакети"
+- [x] Signup redesigned (nexa.mk): pitch panel — free forever, 5 features incl. business social network; ?mode=register opens signup tab
+- [x] LanguageContext kept dropping #hash on ?lang rewrite — fixed (all anchor links)
+
+### SEO/GEO pass (2026-11-22)
+- [x] Post-build prerender `client/scripts/seo-prerender.mjs` (no browser): 20 public routes get own HTML (meta, OG, hreflang, JSON-LD, full text in #seo-shell) + build/sitemap.xml (+EN alternates) + build/llms-full.txt
+- [x] Static tags carry data-rh → Helmet replaces instead of duplicating (fixed site-wide double canonical)
+- [x] hreflang only on bilingual pages; EN canonical = ?lang=en
+- [x] robots.txt one group incl. AI bots + private token paths; llms.txt rewritten (removed false "reviewed by licensed professionals")
+- [x] OrganizationSchema no longer LegalService; breadcrumbs/Service/SoftwareApplication JSON-LD; per-service OG photos 1600x900
+- [x] noindex 404 catch-all; SEOHelmet on login (index) / forgot+reset (noindex); blog title/h1 fixed
+- [ ] Known: leads.nexa.mk "/" non-JS bots get the nexa.mk home shell (same build); submit sitemap in Search Console/Bing

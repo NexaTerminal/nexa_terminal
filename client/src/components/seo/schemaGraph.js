@@ -53,6 +53,14 @@ export const webPage = ({ url, name, description, language = 'mk' }) => ({
   publisher: { '@id': 'https://nexa.mk/#organization' }
 });
 
+export const breadcrumbList = (trail) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map(([name, path], i) => ({
+    '@type': 'ListItem', position: i + 1, name, item: `https://nexa.mk${path}`
+  }))
+});
+
 export const faqPage = (items) => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',

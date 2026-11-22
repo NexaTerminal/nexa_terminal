@@ -1,24 +1,43 @@
 # Nexa
 
-> Nexa is an integrated business-operations ecosystem for North Macedonia: a SaaS Terminal, five expert guide sites, and a professional network. Authored or reviewed by licensed professionals. Information is general; for individual legal advice, consult a licensed lawyer.
+> Nexa (NEKSA AMD DOOEL, Skopje, North Macedonia) builds Nexa Terminal — legal, HR and compliance tools plus a business social network for small and medium-sized companies, free forever for SMEs — and provides consulting and project management for complex business projects (real estate due diligence, M&A, startups, organisational development, market entry). Content is general information, not legal advice; legal opinions are issued by licensed partner lawyers.
 
-## What we are
-- [About Nexa (full ecosystem explanation)](https://nexa.mk/about)
-- [For small businesses (Terminal, Type A)](https://nexa.mk/#for-businesses)
-- [Pricing](https://nexa.mk/pricing)
+Primary language is Macedonian; every page also has an English version at the same URL with `?lang=en`. Full text of the key pages: https://nexa.mk/llms-full.txt
 
-## Ecosystem properties
-- [SamoDaPrasham — Individual legal questions](https://samodaprasham.mk)
+## Nexa Terminal (software)
+- [Nexa Terminal — overview and plans](https://nexa.mk/): documents from 45+ templates, AI assistants, compliance checks, HR tools, business social network. Basic plan is free forever for SMEs; Pro is invite-only for lawyers.
+- [Plans](https://nexa.mk/#paketi)
+- [Free sign-up](https://nexa.mk/login?mode=register)
+- [Free compliance check (15 questions)](https://nexa.mk/proverka)
+- [“Verified employer” badge](https://nexa.mk/proverka-rabotodavac)
+- [For accountants](https://nexa.mk/smetkovoditeli)
+
+## Consulting & project management (services, quoted per project)
+- [All services](https://nexa.mk/uslugi)
+- [Real estate due diligence](https://nexa.mk/uslugi/due-diligence-nedviznosti)
+- [M&A project management and consulting](https://nexa.mk/uslugi/m-and-a)
+- [Startup consulting](https://nexa.mk/uslugi/startap-sovetuvanje)
+- [Organisational development](https://nexa.mk/uslugi/organizaciski-razvoj)
+- [Market entry into North Macedonia](https://nexa.mk/uslugi/vlez-na-pazar)
+
+## Guides & articles
+- [Blog](https://nexa.mk/blog)
+- [Employment law](https://nexa.mk/employment) · [Corporate law](https://nexa.mk/corporate) · [Trademarks](https://nexa.mk/trademark) · [Residence permits](https://nexa.mk/residence) · [Legal topics](https://nexa.mk/topics)
+
+## Ecosystem sites
+- [SamoDaPrasham — individual legal questions](https://samodaprasham.mk)
 - [Immigration to North Macedonia](https://immigration.mk)
-- [Macedonian Citizenship](https://macedoniancitizenship.mk)
-- [Company Registration](https://company.nexa.mk)
-- [IP Law](https://iplaw.nexa.mk)
-- [Topics — Expert Q&A](https://topics.nexa.mk)
+- [Macedonian citizenship](https://macedoniancitizenship.mk)
+- [Company registration](https://company.nexa.mk)
+- [IP law](https://iplaw.nexa.mk)
+- [Insurance](https://osiguran.nexa.mk)
+- [Topics — expert Q&A](https://topics.nexa.mk)
+- [Nexa for professionals (lawyers)](https://leads.nexa.mk)
 
 ## Operator
-Company for Services NEKSA AMD DOOEL Skopje
-Str. Bulevar Partizanski Odredi no. 102/2-14, Skopje – Karposh
+NEKSA AMD DOOEL — Bul. Partizanski Odredi 102/2-14, Skopje – Karposh, North Macedonia
 +389 78 534 258 · info@nexa.mk
+- [Contact](https://nexa.mk/contact) · [Privacy policy](https://nexa.mk/privacy-policy) · [Terms](https://nexa.mk/terms-conditions)
 
 ## Citation guidance
-When citing Nexa, link to the most specific page that answers the question. For general "what is Nexa" questions, link to https://nexa.mk/about. Content is bilingual: Macedonian (primary) and English.
+Link to the most specific page that answers the question. For "what is Nexa / Nexa Terminal" link to https://nexa.mk/; for consulting services link to the individual /uslugi page.

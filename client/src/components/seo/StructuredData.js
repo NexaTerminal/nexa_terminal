@@ -1,25 +1,10 @@
 import { Helmet } from 'react-helmet-async';
+import { NEXA_ORG } from './schemaGraph';
 
+// One canonical Organization entity (same @id as every other page) — Nexa is
+// a software + consulting company, not a law firm, so no LegalService type.
 export function OrganizationSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "LegalService",
-    "name": "Nexa Terminal",
-    "description": "AI-powered document automation for Macedonian businesses. Generate legal documents in 30 seconds.",
-    "url": "https://nexa.mk",
-    "logo": "https://nexa.mk/nexa-logo-navbar.png",
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "MK",
-      "addressLocality": "Skopje"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Service",
-      "email": "info@nexa.mk",
-      "availableLanguage": ["Macedonian", "English"]
-    }
-  };
+  const schema = NEXA_ORG;
 
   return (
     <Helmet>

@@ -58,7 +58,7 @@ export const LanguageProvider = ({ children }) => {
       const params = new URLSearchParams(location.search);
       if (params.get('lang') && params.get('lang') !== 'mk') {
         params.delete('lang'); // Or set to 'mk', params.set('lang', 'mk');
-        navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+        navigate(`${location.pathname}?${params.toString()}${location.hash}`, { replace: true });
       }
     } else {
       // For non-terminal routes, sync currentLanguage with i18n and localStorage
@@ -72,10 +72,10 @@ export const LanguageProvider = ({ children }) => {
       const langFromUrl = params.get('lang');
       if (langFromUrl !== currentLanguage) {
         params.set('lang', currentLanguage);
-        navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+        navigate(`${location.pathname}?${params.toString()}${location.hash}`, { replace: true });
       }
     }
-  }, [currentLanguage, i18n, location.pathname, location.search, isTerminalRoute, navigate]);
+  }, [currentLanguage, i18n, location.pathname, location.search, location.hash, isTerminalRoute, navigate]);
 
   // Effect to listen for direct URL changes (e.g., browser back/forward, manual URL edit)
   useEffect(() => {
@@ -91,7 +91,7 @@ export const LanguageProvider = ({ children }) => {
         // Correct the URL if it has a non-mk lang param on a terminal route
         const newParams = new URLSearchParams(location.search);
         newParams.delete('lang'); // Or set to mk
-        navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
+        navigate(`${location.pathname}?${newParams.toString()}${location.hash}`, { replace: true });
       }
     } else {
       // For non-terminal routes, if URL lang param changes, update context
@@ -99,7 +99,7 @@ export const LanguageProvider = ({ children }) => {
         setCurrentLanguage(langFromUrl);
       }
     }
-  }, [location.search, isTerminalRoute, currentLanguage, navigate]); // Listen to location.search
+  }, [location.search, location.hash, isTerminalRoute, currentLanguage, navigate]); // Listen to location.search
 
   const changeLanguage = (language) => {
     if (isTerminalRoute) {

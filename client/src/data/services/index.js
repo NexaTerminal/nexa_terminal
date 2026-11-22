@@ -27,6 +27,7 @@ export const SERVICES_COMMON = {
     heroLead: 'Купување недвижност, продажба на фирма, влез на нов пазар или реорганизација — проекти со многу учесници и тесни рокови. Ние го водиме проектот, ги координираме сите вклучени и се грижиме да заврши навреме.',
     heroCta: 'Закажете разговор',
     servicesHeading: 'Што правиме',
+    photoQuote: 'Еден тим што го води целиот проект — од првиот разговор до потпишувањето.',
     experienceHeading: 'Искуство што стои зад проектите',
     experience: [
       { icon: 'briefcase', t: 'Корпоративно право', d: 'Повеќе од 10 години искуство во корпоративното право, трансакциите и деловните договори.' },
@@ -89,6 +90,7 @@ export const SERVICES_COMMON = {
     heroLead: 'Buying property, selling a company, entering a new market or reorganising — projects with many parties and tight deadlines. We run the project, coordinate everyone involved and make sure it finishes on time.',
     heroCta: 'Book a call',
     servicesHeading: 'What we do',
+    photoQuote: 'One team running the whole project — from the first call to signing.',
     experienceHeading: 'The experience behind our projects',
     experience: [
       { icon: 'briefcase', t: 'Corporate law', d: 'More than 10 years of experience in corporate law, transactions and commercial contracts.' },

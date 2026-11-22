@@ -43,7 +43,7 @@ export default function PublicFooterV2() {
             <li><Link to="/privacy-policy">{t('footer.privacyLink')}</Link></li>
             <li><Link to="/">{t('footer.aboutNexa')}</Link></li>
             <li><Link to="/uslugi">{t('footer.servicesLink')}</Link></li>
-            <li><Link to="/pricing">{t('footer.pricingLink')}</Link></li>
+            <li><Link to="/#paketi">{t('footer.pricingLink')}</Link></li>
             <li><Link to="/smetkovoditeli">{t('footer.accountantsLink')}</Link></li>
             <li><Link to="/contact">{t('footer.contactLink')}</Link></li>
             <li>

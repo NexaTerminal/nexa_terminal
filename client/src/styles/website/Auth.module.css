@@ -376,3 +376,38 @@
   .card { padding: 28px 20px; border-radius: 16px; }
   .title { font-size: 23px; }
 }
+
+/* ── nexa.mk signup: pitch panel + form side by side ─────────────────── */
+.mainSplit {
+  gap: 48px; align-items: center; max-width: 1120px; width: 100%; margin: 0 auto;
+}
+.pitch { flex: 1 1 0; max-width: 520px; }
+.pitchPill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: #ECFDF5; border: 1px solid #BBF7D0; color: #15803D; font-size: 13px; font-weight: 700;
+}
+.pitchTitle {
+  margin: 16px 0 10px; font-size: 30px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em;
+  color: var(--nx-ink, #0B1220);
+}
+.pitchLead { margin: 0 0 22px; font-size: 15.5px; line-height: 1.6; color: var(--nx-text-soft, #4B5563); }
+.pitchList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.pitchList li { display: flex; gap: 12px; align-items: flex-start; }
+.pitchList strong { display: block; font-size: 15px; color: var(--nx-ink, #0B1220); margin-bottom: 2px; }
+.pitchList span:not(.pitchIcon) { display: block; font-size: 13.8px; line-height: 1.5; color: var(--nx-text-soft, #4B5563); }
+.pitchIcon {
+  flex: none; width: 36px; height: 36px; border-radius: 10px; display: inline-flex;
+  align-items: center; justify-content: center; background: #EEF4FF; color: #1E4DB7;
+}
+.pitchFacts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.pitchFacts span {
+  font-size: 12.5px; font-weight: 600; color: #334155; padding: 5px 11px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--nx-line, #E6E8EC);
+}
+.mainSplit .card { flex: 0 0 440px; }
+@media (max-width: 960px) {
+  .mainSplit { flex-direction: column; gap: 28px; }
+  .mainSplit .card { flex: none; order: -1; }   /* form first on small screens */
+  .pitch { max-width: 440px; width: 100%; }
+  .pitchTitle { font-size: 24px; }
+}

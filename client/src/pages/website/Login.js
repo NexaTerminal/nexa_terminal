@@ -9,6 +9,8 @@ import ApiService from '../../services/api';
 import { PENDING_PROMO_KEY } from '../../components/PromoRedeemWatcher';
 import { validatePassword, validatePasswordMatch, validateUsername } from '../../utils/passwordValidation';
 import { isLeadsStorefront, getStorefront } from '../../lib/storefront';
+import Icon from '../../components/website/Icon';
+import SEOHelmet from '../../components/seo/SEOHelmet';
 
 // Self-serve signup is OPEN on nexa.mk only: anyone can create a free-forever
 // Basic account (one per email). Pro (leads.nexa.mk) is invite-only regardless
@@ -17,9 +19,19 @@ import { isLeadsStorefront, getStorefront } from '../../lib/storefront';
 // also gate nexa.mk behind that panel.
 const OPEN_REGISTRATION = true;
 
+// nexa.mk signup pitch — what the free Basic Terminal gives a business.
+const PITCH = [
+  { icon: 'documents', t: 'Документи за неколку минути', d: 'Над 45 шаблони — договори за вработување, одлуки, заштита на лични податоци.' },
+  { icon: 'ai', t: 'AI-асистенти', d: 'Брзи одговори за работни односи, даноци и маркетинг, и анализа на договори.' },
+  { icon: 'shield', t: 'Проверки на усогласеноста', d: 'Дознајте што недостасува во фирмата, пред тоа да стане проблем.' },
+  { icon: 'users', t: 'Кадровски алатки', d: 'Евиденција на вработени, отсуства, проценка на кандидати и интервјуа.' },
+  { icon: 'network', t: 'Деловна социјална мрежа', d: 'Профил на фирмата, објави и разговори со други мали и средни фирми.' },
+];
+
 const Login = () => {
   const { t } = useTranslation();
-  const [isLogin, setIsLogin] = useState(true);
+  // `?mode=register` (e.g. from the homepage plans) opens the signup tab.
+  const [isLogin, setIsLogin] = useState(() => new URLSearchParams(window.location.search).get('mode') !== 'register');
   const isLeadsStore = isLeadsStorefront(); // leads.nexa.mk → lawyer-facing copy
   // Plan is NO LONGER chosen by the user. It is fixed by the storefront:
   // nexa.mk → free Basic (self-serve), leads.nexa.mk → Pro (invite-only, the
@@ -204,6 +216,14 @@ const Login = () => {
 
   return (
     <div className={styles.page}>
+      <SEOHelmet
+        title={isLeadsStore ? 'Најава · Nexa за професионалци' : 'Регистрација и најава · Nexa Terminal'}
+        description={isLeadsStore
+          ? 'Најавете се во Nexa за професионалци.'
+          : 'Создадете бесплатен профил за Вашата фирма: документи, AI-асистенти, проверки на усогласеноста и деловна социјална мрежа. Бесплатно засекогаш за мали и средни фирми.'}
+        canonical="/login"
+        noIndex={isLeadsStore}
+      />
       <header className={styles.topBar}>
         <Link to="/" className={styles.backLink}>
           <span className={styles.backArrow} aria-hidden>←</span>
@@ -211,7 +231,28 @@ const Login = () => {
         </Link>
       </header>
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${isLeadsStore ? '' : styles.mainSplit}`}>
+        {/* nexa.mk: quick pitch for the free Basic Terminal next to the form. */}
+        {!isLeadsStore && (
+          <aside className={styles.pitch}>
+            <span className={styles.pitchPill}><Icon name="check" size={14} /> Бесплатно засекогаш за фирми</span>
+            <h2 className={styles.pitchTitle}>Правни алатки и деловна мрежа за Вашата фирма — на едно место</h2>
+            <p className={styles.pitchLead}>
+              Nexa Terminal е бесплатен засекогаш за мали и средни фирми. Без платежна картичка и без пробен период што истекува.
+            </p>
+            <ul className={styles.pitchList}>
+              {PITCH.map(f => (
+                <li key={f.t}>
+                  <span className={styles.pitchIcon}><Icon name={f.icon} size={18} /></span>
+                  <div><strong>{f.t}</strong><span>{f.d}</span></div>
+                </li>
+              ))}
+            </ul>
+            <div className={styles.pitchFacts}>
+              <span>Без картичка</span><span>До 3 корисници</span><span>Регистрација за 1 минута</span>
+            </div>
+          </aside>
+        )}
         <div className={styles.card}>
           <img src="/nexa-logo-navbar.png" alt="Nexa" className={styles.logo} />
           <h1 className={styles.title}>
@@ -225,7 +266,7 @@ const Login = () => {
               : (canRegister
                   ? (isLeadsStore
                       ? 'Регистрирајте се — пристапот за адвокати е по покана во основачкиот круг'
-                      : 'Бесплатно за фирми — без платежна картичка и без обврски')
+                      : 'Бесплатно засекогаш за фирми — без платежна картичка и без обврски')
                   : 'Пристапот до Nexa е со покана. Оставете ги Вашите податоци и ќе Ве контактираме со линк за активација (30 дена Pro).')}
           </p>
 

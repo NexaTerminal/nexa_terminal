@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n';
-import { isLeadsStorefront, otherStorefrontUrl } from '../../lib/storefront';
+import { isLeadsStorefront } from '../../lib/storefront';
 import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './PublicNavbarV2.module.css';
 
@@ -16,23 +16,14 @@ export default function PublicNavbarV2() {
   const { changeLanguage } = useLanguage();
   const switchLang = (lng) => changeLanguage(lng);
 
-  // Storefronts stay minimal: Landing (logo) · Услуги · Цени · Blog · Contact.
+  // Storefronts stay minimal: Landing (logo) · Услуги · Blog · Contact.
+  // Plans live on the homepage (#paketi); /pricing redirects there.
   // „Услуги" (consulting) is a nexa.mk offer — not shown on leads.nexa.mk.
   const links = [
     ...(isLeadsStorefront() ? [] : [{ to: '/uslugi', label: isMk ? 'Услуги' : 'Services' }]),
-    { to: '/pricing', label: isMk ? 'Цени' : 'Pricing' },
     { to: '/blog', label: t('nav.blog') },
     { to: '/contact', label: t('nav.contact') }
   ];
-
-  // Cross-product link so the two sibling sites stay reachable from each other
-  // (and the logo always returns to THIS site's home). On leads.nexa.mk it
-  // points to the SMB site; on nexa.mk it points to the professionals' site.
-  const onLeads = isLeadsStorefront();
-  const crossHref = otherStorefrontUrl('/');
-  const crossLabel = onLeads
-    ? (isMk ? 'Nexa за бизниси' : 'Nexa for business')
-    : (isMk ? 'Nexa за професионалци' : 'Nexa for professionals');
 
   return (
     <nav className={styles.navbar} aria-label="Primary">
@@ -44,9 +35,6 @@ export default function PublicNavbarV2() {
           {links.map(l => (
             <Link key={l.to} to={l.to} className={styles.navLink}>{l.label}</Link>
           ))}
-          <a href={crossHref} className={styles.crossLink}>
-            {crossLabel}<span aria-hidden> ↗</span>
-          </a>
         </div>
         <div className={styles.right}>
           <div className={styles.langSwitch} role="group" aria-label="Language">
@@ -76,9 +64,6 @@ export default function PublicNavbarV2() {
         {links.map(l => (
           <Link key={l.to} to={l.to} onClick={() => setOpen(false)}>{l.label}</Link>
         ))}
-        <a href={crossHref} onClick={() => setOpen(false)}>
-          {crossLabel}<span aria-hidden> ↗</span>
-        </a>
         <div className={styles.mobileLangSwitch} role="group" aria-label="Language">
           <button
             type="button"

@@ -6,6 +6,7 @@ import PasswordStrengthIndicator from '../../components/common/PasswordStrengthI
 import ApiService from '../../services/api';
 import { validatePassword } from '../../utils/passwordValidation';
 import PublicFooter from '../../components/common/PublicFooter';
+import SEOHelmet from '../../components/seo/SEOHelmet';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -101,6 +102,7 @@ const ResetPassword = () => {
   if (validating) {
     return (
       <div className={styles.loginPage}>
+        <SEOHelmet title="Нова лозинка · Nexa" canonical="/reset-password" noIndex />
         <div className={styles.mainContainer}>
           <div className={styles.loginSidebar}>
             <div className={styles.loginContainer}>
@@ -120,6 +122,7 @@ const ResetPassword = () => {
   if (!tokenValid) {
     return (
       <div className={styles.loginPage}>
+        <SEOHelmet title="Нова лозинка · Nexa" canonical="/reset-password" noIndex />
         <div className={styles.mainContainer}>
           <div className={styles.loginSidebar}>
             <div className={styles.loginContainer}>
@@ -161,6 +164,7 @@ const ResetPassword = () => {
 
   return (
     <div className={styles.loginPage}>
+        <SEOHelmet title="Нова лозинка · Nexa" canonical="/reset-password" noIndex />
       <div className={styles.mainContainer}>
         {/* Left Side - Business Content */}
         <div className={styles.businessContent}>

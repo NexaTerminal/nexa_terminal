@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import PublicLayout from '../../components/website/PublicLayout';
 import SEOHelmet from '../../components/seo/SEOHelmet';
+import { NEXA_ORG, webPage, breadcrumbList } from '../../components/seo/schemaGraph';
 import Icon from '../../components/website/Icon';
 import styles from './Proverka.module.css';
 
@@ -110,9 +111,12 @@ export default function Proverka() {
     <PublicLayout>
       <SEOHelmet
         title="Бесплатна проверка на усогласеност · Nexa"
-        description="Одговорете 15 прашања и дознајте колку вашата фирма е усогласена со работните односи, личните податоци, безбедноста при работа и повеќе — бесплатно, за 3 минути."
+        description="Одговорете 15 прашања и дознајте колку Вашата фирма е усогласена со работните односи, личните податоци, безбедноста при работа и повеќе — бесплатно, за 3 минути."
         canonical="/proverka"
         locale="mk_MK"
+        jsonLd={[NEXA_ORG,
+          webPage({ url: 'https://nexa.mk/proverka', name: 'Бесплатна проверка на усогласеност', description: 'Одговорете 15 прашања и дознајте колку Вашата фирма е усогласена — бесплатно, за 3 минути.' }),
+          breadcrumbList([['Nexa', '/'], ['Проверка на усогласеност', '/proverka']])]}
       />
 
       <section className={`nx-section ${styles.wrap}`}>

@@ -57,6 +57,7 @@ export default function Accountants() {
           : 'Accountants manage documents, compliance and deadlines for all their clients through one Nexa Pro account — up to 25 client firms.'}
         canonical="/smetkovoditeli"
         locale={isMk ? 'mk_MK' : 'en_US'}
+        altLocale={isMk ? 'en_US' : 'mk_MK'}
         jsonLd={[NEXA_ORG, NEXA_WEBSITE, webPage({ url, name: 'Nexa за сметководители', description: '', language: isMk ? 'mk' : 'en' })]}
       />
 

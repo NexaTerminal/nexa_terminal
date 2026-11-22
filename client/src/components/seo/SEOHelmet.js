@@ -21,9 +21,12 @@ export default function SEOHelmet({
   keywords,
   canonical = '/',
   ogImage = '/nexa-blog-share-v2.png',
+  ogImageWidth = 1200,
+  ogImageHeight = 630,
+  ogImageAlt,
   type = 'website',
   locale = 'mk_MK',
-  altLocale = 'en_US',
+  altLocale = null, // pass only when the page really exists in both languages
   jsonLd = [],
   noIndex = false,
   hreflangPath
@@ -31,7 +34,10 @@ export default function SEOHelmet({
   const leads = isLeads();
   const baseUrl = activeSiteUrl();
   const fullTitle = title || (leads ? DEFAULT_TITLE.leads : DEFAULT_TITLE.main);
-  const fullUrl = `${baseUrl}${canonical}`;
+  const isEn = locale.startsWith('en');
+  const withLang = (p) => `${p}${p.includes('?') ? '&' : '?'}lang=en`;
+  // Each language version canonicalises to itself so hreflang pairs are valid.
+  const fullUrl = `${baseUrl}${isEn && altLocale ? withLang(canonical) : canonical}`;
   const fullImageUrl = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`;
   const hreflangBase = hreflangPath || canonical;
   const blocks = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
@@ -40,32 +46,33 @@ export default function SEOHelmet({
     <Helmet>
       <html lang={locale.startsWith('mk') ? 'mk' : 'en'} />
       <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+      {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
       <link rel="canonical" href={fullUrl} />
-      <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
+      <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
       <meta name="geo.region" content="MK" />
       <meta name="geo.placename" content="Skopje" />
 
       <meta property="og:site_name" content={leads ? DEFAULT_SITE_NAME.leads : DEFAULT_SITE_NAME.main} />
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      {description && <meta property="og:description" content={description} />}
       <meta property="og:url" content={fullUrl} />
       <meta property="og:image" content={fullImageUrl} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      <meta property="og:image:width" content={String(ogImageWidth)} />
+      <meta property="og:image:height" content={String(ogImageHeight)} />
+      <meta property="og:image:alt" content={ogImageAlt || fullTitle} />
       <meta property="og:locale" content={locale} />
-      <meta property="og:locale:alternate" content={altLocale} />
+      {altLocale && <meta property="og:locale:alternate" content={altLocale} />}
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      {description && <meta name="twitter:description" content={description} />}
       <meta name="twitter:image" content={fullImageUrl} />
 
-      <link rel="alternate" hrefLang="mk" href={`${baseUrl}${hreflangBase}`} />
-      <link rel="alternate" hrefLang="en" href={`${baseUrl}${hreflangBase}?lang=en`} />
-      <link rel="alternate" hrefLang="x-default" href={`${baseUrl}${hreflangBase}`} />
+      {altLocale && <link rel="alternate" hrefLang="mk" href={`${baseUrl}${hreflangBase}`} />}
+      {altLocale && <link rel="alternate" hrefLang="en" href={`${baseUrl}${withLang(hreflangBase)}`} />}
+      {altLocale && <link rel="alternate" hrefLang="x-default" href={`${baseUrl}${hreflangBase}`} />}
 
       {blocks.filter(Boolean).map((block, i) => (
         <script key={i} type="application/ld+json">

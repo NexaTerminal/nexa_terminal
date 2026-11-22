@@ -4,6 +4,7 @@ import styles from '../../styles/website/Login.module.css';
 import AuthMessage from '../../components/common/AuthMessage';
 import ApiService from '../../services/api';
 import PublicFooter from '../../components/common/PublicFooter';
+import SEOHelmet from '../../components/seo/SEOHelmet';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -49,6 +50,7 @@ const ForgotPassword = () => {
 
   return (
     <div className={styles.loginPage}>
+        <SEOHelmet title="Заборавена лозинка · Nexa" canonical="/forgot-password" noIndex />
       <div className={styles.mainContainer}>
         {/* Left Side - Business Content */}
         <div className={styles.businessContent}>

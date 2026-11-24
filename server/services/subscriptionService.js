@@ -550,6 +550,37 @@ class SubscriptionService {
    * stored status matches what the guard already enforces. Idempotent; returns
    * the number suspended. Cheap (indexed) and safe to run on every admin view.
    */
+  /**
+   * Undo a suspension (admin). Restores access in the shape that matches the
+   * plan: Basic → active with no end date (free forever); Pro → active, keeping
+   * a still-valid end date or starting a fresh 180-day pilot. Also re-enables
+   * the account if it was deactivated (isActive=false).
+   */
+  async reactivate(userId, { pilotDays = 180 } = {}) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    if (user.role === 'admin' || user.role === 'sub_seat') throw new Error('Овој корисник нема своја претплата.');
+    const now = new Date();
+    const plan = canonicalPlan(user.subscription?.plan)
+      || (user.role === 'admin_user' ? 'pro' : 'basic');
+    const current = user.subscription?.endsAt ? new Date(user.subscription.endsAt) : null;
+    const endsAt = plan === 'pro'
+      ? (current && current > now ? current : addDays(now, pilotDays))
+      : null;
+    await this.users.updateOne(
+      { _id: toObjectId(userId) },
+      { $set: {
+        'subscription.plan': plan,
+        'subscription.status': SUBSCRIPTION_STATUSES.ACTIVE,
+        'subscription.endsAt': endsAt,
+        'subscription.notes': 'reactivated-by-admin',
+        isActive: true,
+        updatedAt: now,
+      } }
+    );
+    return this.getUser(userId);
+  }
+
   async suspendExpired(now = new Date()) {
     const expired = await this.users.find({
       'subscription.status': SUBSCRIPTION_STATUSES.ACTIVE,

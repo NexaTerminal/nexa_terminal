@@ -30,6 +30,7 @@ function adminRoutes(controller) {
   router.post('/:userId/reject',      (req, res) => controller.reject(req, res));
   router.post('/:userId/extend',      (req, res) => controller.extend(req, res));
   router.post('/:userId/suspend',     (req, res) => controller.suspend(req, res));
+  router.post('/:userId/reactivate',  (req, res) => controller.reactivate(req, res));
   // Promo / sales codes. Static paths are registered BEFORE the `:userId`
   // routes above only matter for collisions; `/codes` does not collide with
   // `/:userId/*`, so ordering is safe.

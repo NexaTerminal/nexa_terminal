@@ -365,6 +365,17 @@ class AdminUsersController {
         const sub = { ...(user.subscription || {}) };
         sub.plan = resolvedPlan;
         if (!sub.status) sub.status = 'active';
+        // Keep end dates consistent with the model: Basic is free forever (no
+        // end date — otherwise the nightly job would suspend a demoted Pro on
+        // the old pilot date); Pro is a 180-day pilot unless a later end date
+        // already exists. A suspended user stays suspended („Врати пристап").
+        const now = new Date();
+        const currentEnd = sub.endsAt ? new Date(sub.endsAt) : null;
+        if (resolvedPlan === PLANS.BASIC) {
+          sub.endsAt = null;
+        } else if (!currentEnd || currentEnd <= now) {
+          sub.endsAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+        }
         updates.subscription = sub;
         updates.intendedPlan = resolvedPlan;
       }

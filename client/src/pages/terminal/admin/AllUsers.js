@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
@@ -104,6 +104,22 @@ export default function AllUsers() {
         headers: { Authorization: `Bearer ${token}` }
       });
       showFlash('Корисникот е суспендиран.');
+      fetchList();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally { setSuspendingId(null); }
+  };
+
+  // Undo a suspension straight from the row (Basic → free forever again;
+  // Pro → keeps a valid end date or gets a fresh 180-day pilot).
+  const handleReactivate = async (user) => {
+    if (!window.confirm(`Врати му пристап на ${user.email || user.username}?`)) return;
+    setSuspendingId(user._id); setError('');
+    try {
+      await axios.post(`/api/admin/subscriptions/${user._id}/reactivate`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showFlash('Пристапот е вратен.');
       fetchList();
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -247,6 +263,16 @@ export default function AllUsers() {
                             style={{ marginLeft: 6, color: '#B45309', borderColor: '#FDE68A' }}
                           >
                             {suspendingId === u._id ? 'Се суспендира…' : '⛔ Суспендирај'}
+                          </button>
+                        )}
+                        {u.role !== 'admin' && u.role !== 'sub_seat' && sub.status === 'suspended' && (
+                          <button
+                            className={styles.btnGhost}
+                            onClick={(e) => { e.stopPropagation(); handleReactivate(u); }}
+                            disabled={suspendingId === u._id}
+                            style={{ marginLeft: 6, color: '#15803D', borderColor: '#BBF7D0' }}
+                          >
+                            {suspendingId === u._id ? 'Се враќа…' : '✅ Врати пристап'}
                           </button>
                         )}
                         {u.role !== 'admin' && (
@@ -476,6 +502,14 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
     });
   };
 
+  const onReactivate = () => {
+    if (!window.confirm('Врати му пристап на корисникот? Основен → бесплатно без рок; Про → важечкиот рок или нови 180 дена.')) return;
+    doAction('Пристапот е вратен', async () => {
+      await axios.post(`/api/admin/subscriptions/${userId}/reactivate`, {},
+        { headers: { Authorization: `Bearer ${token}` } });
+    });
+  };
+
   const onExtend = (days) => {
     doAction(`Продолжено за ${days} дена`, async () => {
       await axios.post(`/api/admin/subscriptions/${userId}/extend`, { days },
@@ -598,6 +632,12 @@ function UserDetailDrawer({ userId, token, onClose, onReveal, onAfterAction, sho
                   ⛔ Суспендирај
                 </button>
               )}
+              {(data.user.subscription?.status === 'suspended' || data.user.isActive === false)
+                && data.user.role !== 'admin' && data.user.role !== 'sub_seat' && (
+                <button className={styles.btnPrimary} disabled={busy} onClick={onReactivate}>
+                  ✅ Врати пристап
+                </button>
+              )}
               {data.user.role !== 'admin' && data.user.role !== 'sub_seat' && (
                 <button className={styles.btnGhost} disabled={busy} onClick={() => setShowRoleForm(true)}>
                   Смени пакет (Основен/Про)
@@ -640,6 +680,11 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
   const [pkg, setPkg] = useState(currentPkg === 'basic' ? 'pro' : 'basic');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const formRef = useRef(null);
+  const suspended = user.subscription?.status === 'suspended' || user.isActive === false;
+
+  // The form opens at the bottom of a long drawer — bring it into view.
+  useEffect(() => { formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, []);
 
   const submit = async () => {
     setBusy(true); setErr('');
@@ -649,15 +694,22 @@ function RoleChangeForm({ user, token, onCancel, onDone }) {
       if (pkg === 'pro') body.plan = 'pro';
       await axios.post(`/api/admin/all-users/${user._id}/change-role`, body,
         { headers: { Authorization: `Bearer ${token}` } });
-      onDone(`Пакетот е променет на ${opt.label}`);
+      onDone(suspended
+        ? `Пакетот е променет на ${opt.label}. Корисникот е сè уште суспендиран — кликнете „Врати пристап“.`
+        : `Пакетот е променет на ${opt.label}`);
     } catch (e) {
       setErr(e.response?.data?.message || e.message);
     } finally { setBusy(false); }
   };
 
   return (
-    <div className={styles.roleForm}>
+    <div className={styles.roleForm} ref={formRef}>
       <h4 className={styles.subhead}>Смени пакет</h4>
+      {suspended && (
+        <div className={styles.error}>
+          Корисникот е суспендиран. Промената на пакет не го враќа пристапот — користете „✅ Врати пристап“.
+        </div>
+      )}
       <label className={styles.fieldLabel}>Пакет</label>
       <select value={pkg} onChange={e => setPkg(e.target.value)}>
         {PKG_OPTIONS.map(o => (

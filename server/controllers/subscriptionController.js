@@ -692,7 +692,16 @@ class SubscriptionController {
     }
   }
 
-  _projectUser(u) {
+  async reactivate(req, res) {
+    try {
+      const user = await this.subscriptionService.reactivate(req.params.userId);
+      res.json({ success: true, user: this._projectUser(user) });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+    _projectUser(u) {
     if (!u) return null;
     return {
       _id: u._id,

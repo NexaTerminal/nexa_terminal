@@ -214,9 +214,9 @@ as docked chat windows.
   it (a fixed keyword→document map, `lhcDocumentMap.js`, so links can't break); and per-finding
   **„ask the AI"** handoff into the AI Team chat, with the option to bring in a human Pro.
 
-### 5.6 AI Тим — five AI characters
+### 5.6 AI Тим — six AI characters
 
-- **What:** five named advisers, each with a fixed personality, specialty and photo:
+- **What:** six named advisers, each with a fixed personality, specialty and photo:
 
 | Character | Area | Personality | Knowledge source |
 |---|---|---|---|
@@ -225,6 +225,7 @@ as docked chat windows.
 | **Миа** | Marketing | Fun and energetic, but always concrete steps and numbers | Marketing corpus (separate service) |
 | **Стојан** | Insurance | Precise; asks which insurer and policy first, quotes the policy terms word for word | General terms of 7 MK insurers + ASO regulator links |
 | **Дина** | Accounting / tax | Calm, "number + deadline" | 13 official accounting/tax documents + live NBRM exchange rates |
+| **Борис** | Business consulting | Direct but constructive; numbers first, ends idea reviews with „Што би го убило ова?" + the cheapest test | No corpus yet (business data planned) — sourced web search on official MK sources + live NBRM rates; arithmetic auto-checked |
 
 - **Why:** a named team feels like an advisory office rather than a chatbot, keeps answers in lane,
   and creates natural hand-offs ("this is a question for Дина").
@@ -246,6 +247,17 @@ as docked chat windows.
     across pages. Answers render as structured Markdown.
   - Server AI runs on `gpt-5-mini` (utility tasks on a mini model; LHC narrative on a larger model).
   - The old "persona/stance" picker no longer changes answers — the character *is* the personality.
+  - **Борис (business consultant, Nov 2026):** own method prompt (`server/chatbot/businessPrompt.js`):
+    question types (quick maths → short answer; new idea → 8-area „Скршете ја идејата" stress test;
+    pricing/discount/hiring → numbers + decision rule), exact formulas (margin vs markup, price from
+    margin, VAT, break-even, discount/price-rise volume, payback, working capital, LTV/CAC), labelled
+    numbers (data / assumption / estimate), benchmark ranges labelled as international practice, and a
+    "forgotten costs" checklist. Macedonian facts only from sources: business web search
+    (stat.gov.mk, nbrm.mk, crm.com.mk, fitr.mk…) runs only when a question needs current facts.
+    Every written equation is recomputed and wrong results are corrected (`chatbot/mathCheck.js`).
+    Mentions „Услуги" once for big projects (company sale/purchase, market entry). No "invite a
+    professional" button (no consultant vertical). A business corpus switches on with
+    `QDRANT_BUSINESS_COLLECTION_NAME` — data plan in `tasks/business-consultant-agent-plan.md`.
 
 ### 5.7 A real lawyer in the same chat (Pro-in-the-loop)
 
@@ -621,7 +633,7 @@ don't know what they're missing, can't fix it themselves, and have no system to 
 - 45+ automated documents (employment, GDPR, contracts, company formation/changes, accounting decisions)
   + upload-your-own templates.
 - Compliance checks with an AI-written report and one-click document fixes.
-- **AI Тим** — Лекс, Вера, Миа, Стојан, Дина — with memory, verified law citations, and hand-offs.
+- **AI Тим** — Лекс, Вера, Миа, Стојан, Дина and Борис (business consultant: idea stress tests, pricing, margins, break-even) — with memory, verified law citations, checked arithmetic and hand-offs.
 - **Invite a lawyer into the chat** (availability not guaranteed — say so).
 - HR: employee register with leave balances, Big Five assessment, interview scan, exit interview.
 - Contracts register with reminders, contract analysis, procurement register with re-quote reminders.

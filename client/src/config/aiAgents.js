@@ -116,6 +116,32 @@ export const AI_AGENTS = [
   },
 ];
 
+
+// Борис — business consultant. Same RAG engine with his own base prompt
+// (server/chatbot/businessPrompt.js); no corpus yet — current Macedonian facts
+// come from a sourced web search. No Pro vertical behind him, so the
+// "invite a professional" control is hidden (canInvitePro: false).
+AI_AGENTS.push({
+  key: 'business',
+  name: 'Борис',
+  role: 'Деловен консултант',
+  tagline: 'Идеи, цени, маржи, рентабилност и пазар',
+  tags: ['Бизнис идеи', 'Цени и маржи', 'Рентабилност', 'Готовина', 'Пазар'],
+  bio: 'Борис е деловен консултант што ги проверува идеите и одлуките пред да вложите — со бројки. Ја пресметува маржата и точката на рентабилност, ја поставува цената, ги брои парите што ќе Ви требаат и отворено кажува што не држи. Секогаш завршува со најевтиниот тест што можете да го направите оваа недела.',
+  greeting: 'Опишете ми ја идејата или одлуката — што продавате, по која цена, колку чини да се произведе и кој е купувачот. Ако немате бројки, ќе работиме со претпоставки. Ќе Ви кажам отворено што држи, што не, и како да го проверите евтино пред да вложите.',
+  icon: '📊',
+  photo: '/ai-team/boris.png',
+  accent: '#0E7490',
+  engine: 'legal',
+  hasContractReview: false,
+  canInvitePro: false,
+  starters: [
+    'Скршете ми ја идејата: кафе-бар во Битола',
+    'Каква цена ми треба за 30% маржа?',
+    'Дали се исплатува да дадам попуст од 15%?',
+  ],
+});
+
 export const DEFAULT_AGENT_KEY = 'legal';
 
 /** Agents handled in-page by AIChat (legal RAG engine). */

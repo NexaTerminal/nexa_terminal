@@ -37,12 +37,16 @@ const CONTRACT_PRESCAN_MODEL = process.env.CONTRACT_PRESCAN_MODEL || OPENAI_UTIL
 const CASE_BRIEF_MODEL = process.env.CASE_BRIEF_MODEL || OPENAI_UTILITY_MODEL;
 const INTERVIEW_SUMMARY_MODEL = process.env.INTERVIEW_SUMMARY_MODEL || OPENAI_UTILITY_MODEL;
 const BLOG_GUIDELINE_MODEL = process.env.BLOG_GUIDELINE_MODEL || OPENAI_UTILITY_MODEL;
-const CHATBOT_WEB_MODEL = process.env.CHATBOT_WEB_MODEL || OPENAI_MODEL;                   // web_search fallback
+const CHATBOT_WEB_MODEL = process.env.CHATBOT_WEB_MODEL || OPENAI_MODEL;
+// Борис (business consultant) writes long original analysis — optionally a
+// stronger model / higher effort for him only. Defaults keep today's cost.
+const OPENAI_BUSINESS_MODEL = process.env.OPENAI_BUSINESS_MODEL || OPENAI_MODEL;                   // web_search fallback
 
 // --- Effort per role (env-overridable) ---
 const EFFORT_MAIN = process.env.AI_EFFORT_MAIN || 'low';
 const EFFORT_UTILITY = process.env.AI_EFFORT_UTILITY || 'minimal';
 const EFFORT_MARKETING = process.env.AI_EFFORT_MARKETING || 'low';
+const EFFORT_BUSINESS = process.env.AI_EFFORT_BUSINESS || EFFORT_MAIN;
 
 // --- Token floors so reasoning tokens can't starve the visible output ---
 const FLOOR_UTILITY = 2000; // minimal-effort / JSON / short utility calls
@@ -116,6 +120,8 @@ module.exports = {
   INTERVIEW_SUMMARY_MODEL,
   BLOG_GUIDELINE_MODEL,
   CHATBOT_WEB_MODEL,
+  OPENAI_BUSINESS_MODEL,
+  EFFORT_BUSINESS,
   EFFORT_MAIN,
   EFFORT_UTILITY,
   EFFORT_MARKETING,

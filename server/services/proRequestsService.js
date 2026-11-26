@@ -41,6 +41,7 @@ const AGENT_TO_CATEGORY = Object.freeze({
   people: 'hr',
   insurance: 'insurance',
   accounting: 'accounting',
+  business: 'business', // no Pro vertical yet — the invite button is hidden for Борис
 });
 const DEFAULT_CATEGORY = 'legal';
 

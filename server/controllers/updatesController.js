@@ -16,7 +16,7 @@ const profiles = require('../services/profileService');
  * Collection: `updates`
  *   { title, body, category, ctaLabel, ctaHref,
  *     status: 'published'|'draft', publishedAt, createdAt, updatedAt, authorId,
- *     authorAgent: ''|'legal'|'hr'|'marketing'|'insurance'|'accounting',
+ *     authorAgent: ''|'legal'|'hr'|'marketing'|'insurance'|'accounting'|'business',
  *     likes: [ObjectId], comments: [{ _id, userId, authorName, content, createdAt,
  *                                     isAgent?, agent?, replyTo? }] }
  *

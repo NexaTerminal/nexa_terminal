@@ -9,7 +9,9 @@ const legalDataHunter = require('./LegalDataHunterService');
 const StancePreferencesService = require('../services/stancePreferencesService');
 const UserMemoryService = require('../services/userMemoryService');
 const AgentMemoryService = require('./services/agentMemoryService');
-const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection } = require('./agentProfiles');
+const { getAgentFlavor, getHandoffNote, getAgentScopePatterns, getAgentName, getAgentCollection, agentUsesCorpus } = require('./agentProfiles');
+const { BUSINESS_SYSTEM_PROMPT } = require('./businessPrompt');
+const { checkMath } = require('./mathCheck');
 const { detectInsurers, insurerName, insuranceResourcesBlock, availableInsurerNames } = require('./insurers');
 const { nbrmRatesBlock } = require('./nbrmRates');
 const { expandAccountingQuery } = require('./accountingTerms');
@@ -106,6 +108,14 @@ class ChatBotService {
       model: aiModels.OPENAI_MODEL,
       maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 8000,
       effort: aiModels.EFFORT_MAIN,
+    }));
+
+    // Борис: own model/effort when configured (OPENAI_BUSINESS_MODEL /
+    // AI_EFFORT_BUSINESS); otherwise the same settings as the main model.
+    this.businessChatModel = new ChatOpenAI(aiModels.langchainOptions({
+      model: aiModels.OPENAI_BUSINESS_MODEL,
+      maxTokens: parseInt(process.env.CHATBOT_MAX_TOKENS) || 8000,
+      effort: aiModels.EFFORT_BUSINESS,
     }));
 
     // Cheap utility model for auxiliary calls (query condensation for
@@ -466,12 +476,22 @@ ${insuranceResourcesBlock()}## ФОРМАТ
 Ова е информативен одговор, не замена за овластен сметководител или ревизор; конкретната ситуација може да бара проверка на документацијата.`;
 
     this.accountingPromptTemplate = PromptTemplate.fromTemplate(this.accountingSystemPromptTemplate);
+
+    // Борис (business consultant) — method, formulas and grounding rules live in
+    // chatbot/businessPrompt.js; personality in agentProfiles.js.
+    this.businessPromptTemplate = PromptTemplate.fromTemplate(BUSINESS_SYSTEM_PROMPT);
   }
 
-  /** The base prompt template for an agent — Стојан/Дина get their own prompts. */
+  /** The answering model for an agent (Борис may run on his own model). */
+  _chatModelFor(agent) {
+    return agent === 'business' ? this.businessChatModel : this.chatModel;
+  }
+
+  /** The base prompt template for an agent — Стојан/Дина/Борис get their own prompts. */
   _promptTemplateFor(agent) {
     if (agent === 'insurance') return this.insurancePromptTemplate;
     if (agent === 'accounting') return this.accountingPromptTemplate;
+    if (agent === 'business') return this.businessPromptTemplate;
     return this.promptTemplate;
   }
 
@@ -481,12 +501,18 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    * @returns {{ cleanResponse: string, suggestions: string[] }}
    */
   parseSuggestions(responseText) {
-    const match = responseText.match(/\[SUGGESTIONS\]([\s\S]*?)\[\/SUGGESTIONS\]/);
+    // Tolerate a missing closing tag: everything after [SUGGESTIONS] (up to a
+    // hand-off marker) is the list — never leak raw tags into the chat.
+    let match = responseText.match(/\[SUGGESTIONS\]([\s\S]*?)\[\/SUGGESTIONS\]/);
+    let block = match ? match[0] : null;
     if (!match) {
-      return { cleanResponse: responseText.trim(), suggestions: [] };
+      const open = responseText.match(/\[SUGGESTIONS\]([\s\S]*?)(?=\[\[HANDOFF:|$)/);
+      if (!open) return { cleanResponse: responseText.trim(), suggestions: [] };
+      match = open;
+      block = open[0];
     }
 
-    const cleanResponse = responseText.replace(/\[SUGGESTIONS\][\s\S]*?\[\/SUGGESTIONS\]/, '').trim();
+    const cleanResponse = responseText.replace(block, '').trim();
     const suggestionsBlock = match[1].trim();
     const suggestions = suggestionsBlock
       .split('\n')
@@ -769,6 +795,31 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    * outcome is logged to ai_citation_checks (90-day TTL) so we can see which
    * character invents articles. Never throws — on failure the answer passes as is.
    */
+  /**
+   * Борис: for big projects (company sale/purchase/valuation, market entry,
+   * business property purchase, reorganisation, investor-backed startup) make
+   * sure the one-line „Услуги" pointer is there — once per conversation.
+   */
+  _ensureServicesMention(question, answer, agent, history = '') {
+    if (agent !== 'business' || /nexa\.mk\/uslugi/i.test(answer) || /nexa\.mk\/uslugi/i.test(history || '')) return answer;
+    const big = /(прода(дам|деме|жба|ва|де)|куп(ам|име|и|увам|уваме|ување|увања)|преземање|спојување|проценка на вредност|вредност на (фирма|компанија|бизнис))[^.?!]{0,60}(фирм|компаниј|бизнис|удел|друштв)|(фирм|компаниј|бизнис|удел|друштв)[^.?!]{0,40}(прода|куп(ам|и|ув)|преземање|спојување|вредност)|странска (фирма|компанија)|влез на (македонскиот )?пазар|деловн(а|и) (недвижност|простор)[^.?!]{0,40}(куп|инвест)|реорганизациј|инвеститор/i;
+    if (!big.test(question)) return answer;
+    return `${answer.trim()}\n\nЗа ваков проект, тимот на Nexa може да го води процесот од почеток до крај — повеќе на [nexa.mk/uslugi](https://nexa.mk/uslugi).`;
+  }
+
+  /** Борис: recompute written equations and correct wrong results (see chatbot/mathCheck.js). */
+  _checkBusinessMath(answer, agent) {
+    if (agent !== 'business') return answer;
+    try {
+      const r = checkMath(answer);
+      if (r.fixed.length) console.warn(`🧮 [math] business: corrected ${r.fixed.length}/${r.checked} result(s): ${r.fixed.map(f => `${f.expr} = ${f.stated}→${f.correct}`).join('; ')}`);
+      return r.text;
+    } catch (e) {
+      console.warn('[math] check failed:', e.message);
+      return answer;
+    }
+  }
+
   _checkCitations(answer, docs, { userId, agent, conversationId } = {}) {
     let result;
     try {
@@ -874,7 +925,9 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       }
 
       // Step 3: Format context from retrieved documents
-      const context = this.formatContext(relevantDocs);
+      const context = (agent === 'business' && relevantDocs.length === 0)
+        ? 'Нема доставени документи ни веб извори за ова прашање. Работи со формулите, општите факти и бројките од корисникот; за специфични македонски податоци кажи дека немаш верифициран податок.'
+        : this.formatContext(relevantDocs);
       console.log(`\n📝 [RAG DEBUG] Context being sent to LLM (${context.length} characters):`);
       console.log('─'.repeat(70));
       console.log(context.substring(0, 500) + (context.length > 500 ? '...' : ''));
@@ -883,7 +936,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Step 4: Create the RAG chain (Стојан uses the insurance base prompt)
       const chain = RunnableSequence.from([
         this._promptTemplateFor(agent),
-        this.chatModel,
+        this._chatModelFor(agent),
         new StringOutputParser(),
       ]);
 
@@ -899,7 +952,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
       // Дина: live official NBRM rates when the question involves a foreign currency.
-      if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
+      if (agent === 'accounting' || agent === 'business') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       console.log('\n💬 [RAG DEBUG] Sending to OpenAI LLM...');
       const llmStartTime = Date.now();
       const response = await chain.invoke({
@@ -915,7 +968,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       const parsed = this.parseSuggestions(response);
       const { suggestions } = parsed;
       const check = this._checkCitations(parsed.cleanResponse, relevantDocs, { userId, agent, conversationId });
-      const cleanResponse = check.text;
+      const cleanResponse = this._ensureServicesMention(question, this._checkBusinessMath(check.text, agent), agent, conversationHistory);
 
       // Step 5: Track usage (increment question count)
       await this.incrementUsageCount(userId);
@@ -1368,6 +1421,69 @@ ${insuranceResourcesBlock()}## ФОРМАТ
    *
    * Fails open: returns null on disabled flag / no access / any error.
    */
+  /**
+   * Борис: does this question need CURRENT Macedonian facts (statistics, market,
+   * companies, rates, grants) that the prompt must not invent? Pure logic/maths
+   * questions ("which price gives 30% margin?") skip the (paid, slower) search.
+   */
+  _needsBusinessWeb(question = '') {
+    const q = String(question);
+    return /колку\s+(фирми|компании|претпријатија|вработени|жители|луѓе|туристи|продавници|ресторани|кафулиња)|статистик|податоц|просечн(а|ата|и|ите|от)?\s+(нето|бруто)?\s*(плат|цен|закуп|кири|промет|потрошув)|пазар(от|ни|на)?\s+(во|за|на)|македонск(иот|ата|ите)?\s+пазар|конкурен|увоз|извоз|туриз|население|инфлациј|\bБДП\b|камат|кредит(и|ни)?\s|грант|субвенц|фонд за иноваци|\bФИТР\b|закупнин|кирија|цена на (закуп|квадрат|струја|гориво)|најголем(и|ите)?\s|лидер|берза|ДЗС|НБРМ|централен регистар|котира|тренд|раст на пазар|(да|ќе)\s+(отворам|отвориме|започнам|започнеме|стартувам|лансирам)|отворање на|бизнис идеја|деловна идеја|дали има смисла|дали се исплат|скршете|стрес[- ]тест|извезувам|извоз во/i.test(q);
+  }
+
+  /**
+   * Борис's sourced web search: official/primary Macedonian business sources,
+   * returns a short factual extract WITH years and URLs. Rendered to the model
+   * as „ВЕБ ИЗВОРИ" (citable with link) — unlike the legal web fallback, which is
+   * background-only. Fails safe to null.
+   */
+  async businessWebSearch(question) {
+    if (process.env.CHATBOT_WEB_SEARCH === 'off' || process.env.BUSINESS_WEB_SEARCH === 'off') return null;
+    try {
+      const model = aiModels.CHATBOT_WEB_MODEL;
+      const resp = await this.openaiClient.responses.create({
+        model,
+        tools: [{ type: 'web_search' }],
+        ...(aiModels.isReasoningModel(model) ? { reasoning: { effort: 'low' } } : {}),
+        input:
+          'Пребарај на интернет ФАКТИ за деловно прашање поврзано со Република Северна Македонија. ' +
+          'Дај предност на официјални и примарни извори: stat.gov.mk (Државен завод за статистика / MakStat), nbrm.mk (НБРМ), ' +
+          'crm.com.mk (Централен регистар), finance.gov.mk, economy.gov.mk, fitr.mk (Фонд за иновации), apprm.gov.mk, mse.mk (Македонска берза), ' +
+          'mchamber.mk (Стопанска комора), ec.europa.eu, worldbank.org, ebrd.com. ' +
+          'Врати краток фактички извадок на македонски (најмногу 8 реченици): конкретни бројки со ГОДИНА на податокот и изворот за секоја. ' +
+          'Не давај совети и мислења — само факти. Ако не најдеш веродостоен извор, кажи го тоа отворено и не измислувај.\n\n' +
+          `Прашање: ${question}`,
+      });
+      const text = (resp.output_text || '').trim();
+      if (!text) return null;
+      const urls = [];
+      for (const item of resp.output || []) {
+        for (const c of item.content || []) {
+          for (const a of c.annotations || []) {
+            if (a.type === 'url_citation' && a.url) urls.push(a.url);
+          }
+        }
+      }
+      // Drop tracking params (utm_*) so cited links are clean.
+      const clean = (u) => u.replace(/([?&])utm_[^=&]+=[^&]*/g, '$1').replace(/[?&]+$/, '').replace('?&', '?');
+      const uniqueUrls = [...new Set(urls.map(clean))].slice(0, 5);
+      console.log(`📊 [RAG DEBUG] Business web search — ${text.length} chars, ${uniqueUrls.length} source url(s)`);
+      return {
+        pageContent: text.slice(0, 2400),
+        metadata: {
+          documentName: 'Веб извори (деловни)',
+          sourceClass: 'business_web',
+          citable: false,
+          score: 0.5,
+          url: uniqueUrls.join(' | ') || null,
+        },
+      };
+    } catch (e) {
+      console.warn('⚠️ [RAG DEBUG] Business web search failed (continuing without it):', e.message);
+      return null;
+    }
+  }
+
   async webSearchFallback(question) {
     if (process.env.CHATBOT_WEB_SEARCH === 'off') return null;
     try {
@@ -1436,6 +1552,15 @@ ${insuranceResourcesBlock()}## ФОРМАТ
   }
 
   async retrieveRelevantDocuments(question, agent = 'legal') {
+    // Agents without a corpus of their own (Борис before his business collection
+    // exists) must not fall back to the legal corpus — law chunks would pollute
+    // business answers. Current Macedonian facts come from a sourced web search.
+    if (!agentUsesCorpus(agent)) {
+      const web = agent === 'business' && this._needsBusinessWeb(question)
+        ? await this.businessWebSearch(question) : null;
+      console.log(`📊 [RAG DEBUG] ${agent}: no corpus — ${web ? 'business web sources attached' : 'prompt-only answer'}`);
+      return web ? [web] : [];
+    }
     if (!this.vectorStore) {
       console.warn('⚠️  Vector store not initialized. Using placeholder context.');
       return [{
@@ -1550,7 +1675,11 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // worse, fabricate an answer for an insurer we have NO data for (e.g. grawe),
       // instead of letting Стојан say "no data". Дина skips them too — MK case law
       // and EU sources are noise for bookkeeping/tax-filing questions.
-      if (agent !== 'insurance' && agent !== 'accounting') {
+      if (agent === 'business' && this._needsBusinessWeb(question)) {
+        const web = await this.businessWebSearch(question);
+        if (web) topResults = topResults.concat(web);
+      }
+      if (agent !== 'insurance' && agent !== 'accounting' && agent !== 'business') {
       // Supplement with Legal Data Hunter. MK case law is queried only when the
       // local corpus is WEAK on this question (best local score below threshold)
       // — when we already have a strong statute match, the extra call added
@@ -1656,6 +1785,10 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         // Web fallback: unofficial internet info used only when no law was
         // found. The model MAY reference it with an explicit reservation + link,
         // but never as binding legal authority.
+        if (doc.metadata?.sourceClass === 'business_web') {
+          const url = doc.metadata.url ? `\nЛинкови: ${doc.metadata.url}` : '';
+          return `[ВЕБ ИЗВОРИ ${index + 1} — пребарување на интернет: користи ги фактите со извор, година и линк; провери дали се актуелни]${url}\n${doc.pageContent}`;
+        }
         if (doc.metadata?.sourceClass === 'web') {
           const url = doc.metadata.url ? `\nИзвори: ${doc.metadata.url}` : '';
           return `[Интернет извор ${index + 1} — НЕОФИЦИЈАЛНО/НЕПРОВЕРЕНО: смее да се спомене со ограда и линк, но НЕ како обврзувачки закон; секогаш упати на проверка во Службен весник/адвокат]${url}\n${doc.pageContent}`;
@@ -1909,7 +2042,9 @@ ${insuranceResourcesBlock()}## ФОРМАТ
         return;
       }
 
-      const context = this.formatContext(relevantDocs);
+      const context = (agent === 'business' && relevantDocs.length === 0)
+        ? 'Нема доставени документи ни веб извори за ова прашање. Работи со формулите, општите факти и бројките од корисникот; за специфични македонски податоци кажи дека немаш верифициран податок.'
+        : this.formatContext(relevantDocs);
 
       // Send sources event first
       const sources = relevantDocs.filter(doc => isCitableSource(doc.metadata)).map(doc => ({
@@ -1922,7 +2057,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Build chain for streaming (Стојан uses the insurance base prompt)
       const chain = RunnableSequence.from([
         this._promptTemplateFor(agent),
-        this.chatModel,
+        this._chatModelFor(agent),
         new StringOutputParser(),
       ]);
 
@@ -1934,7 +2069,7 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       let stancePrefix = await this._buildPrefix(userId, agent, fromAgent);
       if (humanProActive) stancePrefix = this._humanProDirective(typeof humanProActive === 'string' ? humanProActive : '') + stancePrefix;
       // Дина: live official NBRM rates when the question involves a foreign currency.
-      if (agent === 'accounting') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
+      if (agent === 'accounting' || agent === 'business') stancePrefix += await nbrmRatesBlock(`${searchQuery}\n${question}`);
       let fullResponse = '';
       const stream = await chain.stream({
         stancePrefix,
@@ -1959,8 +2094,10 @@ ${insuranceResourcesBlock()}## ФОРМАТ
       // Verify every cited article; the client swaps in the checked text
       // (⚠ on unverified numbers) and shows the verified ones as chips.
       const check = this._checkCitations(parsed.cleanResponse, relevantDocs, { userId, agent, conversationId });
-      const cleanResponse = check.text;
-      if (check.cited > 0) {
+      const cleanResponse = this._ensureServicesMention(question, this._checkBusinessMath(check.text, agent), agent, conversationHistory);
+      // Same event swaps the streamed text for the checked one (citations and/or
+      // corrected arithmetic).
+      if (check.cited > 0 || cleanResponse !== check.text) {
         onEvent({ type: 'citations', data: { content: cleanResponse, citations: check.citations, unverified: check.unverified } });
       }
 

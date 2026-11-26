@@ -29,7 +29,7 @@ import styles from '../../styles/terminal/AIChat.module.css';
 // We parse it at render time so it works for streamed, fallback and loaded messages
 // alike: the key drives the „Префрли се на <Име> →" chip; the marker is stripped
 // from the displayed text (incl. any trailing partial fragment mid-stream).
-const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|insurance|accounting|marketing)\]\]/i;
+const HANDOFF_RE = /\[\[HANDOFF:(legal|corporate|hr|insurance|accounting|marketing|business)\]\]/i;
 // AI-suggested human handoff: [[ASK_PRO: short reason why a human helps]] on the
 // final line. The captured reason is shown in the inline "invite a pro" card.
 const ASK_PRO_RE = /\[\[ASK_PRO:\s*([^\]]*?)\]\]/i;
@@ -820,6 +820,7 @@ const AIChat = () => {
                     + Нов разговор
                   </button>
                 )}
+                {activeAgent.canInvitePro !== false && (
                 <button
                   type="button"
                   className={styles.askProBtn}
@@ -829,6 +830,7 @@ const AIChat = () => {
                 >
                   🧑‍⚖️ {askingPro ? 'Се испраќа…' : proRequestId ? 'Професионалец е поканет' : 'Побарај професионалец'}
                 </button>
+                )}
                 <PersonaControl />
                 <MemoryControl />
                 <div className={`${styles.limitsBadge} ${limits.remaining <= 1 ? styles.limitsBadgeLow : ''}`}>

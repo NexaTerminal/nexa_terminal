@@ -883,7 +883,7 @@ router.get('/nudges', authenticateJWT, async (req, res) => {
 
     // Resume nudges — characters the user has an in-progress relationship with.
     // Ordered most specialized first (insurance/accounting/hr → legal).
-    for (const key of ['insurance', 'accounting', 'hr', 'corporate', 'legal']) {
+    for (const key of ['business', 'insurance', 'accounting', 'hr', 'corporate', 'legal']) {
       const note = memEnabled ? (await agentMem.get(userId, key)).note : '';
       const latest = await convService.getLatestForAgent(userId, key);
       if (note) {

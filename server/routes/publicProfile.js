@@ -25,6 +25,8 @@ const contactSchema = Joi.object({
   email: Joi.string().trim().email().max(150).required(),
   phone: Joi.string().trim().max(30).allow(''),
   message: Joi.string().trim().min(10).max(2000).required(),
+  service: Joi.string().trim().max(120).allow(''), // „Побарај понуда" on a „Што нудиме" card
+  postId: Joi.string().hex().length(24).allow(''),   // „Контактирајте" on an „Актуелно" post
   consent: Joi.boolean().valid(true).required(),
   website: Joi.string().allow(''), // honeypot
 });
@@ -46,9 +48,15 @@ router.get('/img/:userId/:kind', async (req, res) => {
 
 router.get('/:slug', async (req, res) => {
   try {
-    const profile = await profiles.findBySlug(req.app.locals.db, req.params.slug);
+    const db = req.app.locals.db;
+    const profile = await profiles.findBySlug(db, req.params.slug);
     if (!profile) return res.status(404).json({ message: 'Профилот не е пронајден.' });
-    res.json({ profile });
+    let posts = [];
+    try {
+      const u = await db.collection('users').findOne({ 'publicProfile.slug': String(req.params.slug) }, { projection: { _id: 1 } });
+      if (u && req.app.locals.companyPostsService) posts = await req.app.locals.companyPostsService.forUser(u._id);
+    } catch (_) { /* posts are optional */ }
+    res.json({ profile, posts });
   } catch (e) {
     console.error('[publicProfile] get:', e);
     res.status(500).json({ message: 'Server error' });
@@ -79,8 +87,16 @@ router.post('/:slug/contact', contactLimiter, async (req, res) => {
     if (!user?.publicProfile) return res.status(404).json({ message: 'Профилот не е пронајден.' });
     const p = user.publicProfile;
     const to = p.contactEmail || user.email;
+    // Only keep a service that is really one of the company's offers.
+    const service = value.service && (p.offers || []).includes(value.service) ? value.service : '';
+    // A post reference counts only if it is a live post of this company.
+    let postRef = null;
+    if (value.postId && req.app.locals.companyPostsService) {
+      const post = await req.app.locals.companyPostsService.findLive(value.postId);
+      if (post && String(post.userId) === String(user._id)) postRef = { postId: post._id, postTitle: post.title };
+    }
 
-    await site.saveMessage(db, user._id, { name: value.name, email: value.email, phone: value.phone || '', message: value.message });
+    await site.saveMessage(db, user._id, { name: value.name, email: value.email, phone: value.phone || '', message: value.message, service, ...(postRef || {}) });
 
     if (to) {
       const html = `
@@ -91,12 +107,14 @@ router.post('/:slug/contact', contactLimiter, async (req, res) => {
             <tr><td style="padding:6px 0;color:#64748b;width:110px">Име</td><td><strong>${esc(value.name)}</strong></td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Е-пошта</td><td><a href="mailto:${esc(value.email)}">${esc(value.email)}</a></td></tr>
             ${value.phone ? `<tr><td style="padding:6px 0;color:#64748b">Телефон</td><td>${esc(value.phone)}</td></tr>` : ''}
+            ${service ? `<tr><td style="padding:6px 0;color:#64748b">Бара понуда за</td><td><strong>${esc(service)}</strong></td></tr>` : ''}
+            ${postRef ? `<tr><td style="padding:6px 0;color:#64748b">Во врска со</td><td><strong>${esc(postRef.postTitle)}</strong></td></tr>` : ''}
           </table>
           <div style="margin:16px 0;padding:14px 16px;background:#F7F8FA;border-radius:10px;white-space:pre-wrap;font-size:14px;line-height:1.55">${esc(value.message)}</div>
-          <p style="font-size:13px;color:#64748b">Одговорете директно на оваа порака — одговорот оди до посетителот. Сите пораки ги гледате и во Nexa → Мој профил.</p>
+          <p style="font-size:13px;color:#64748b">Одговорете директно на оваа порака — одговорот оди до посетителот. Во Nexa → Моја страница можете со еден клик да го додадете во Клиенти и да му направите понуда.</p>
         </div>`;
       emailService
-        .sendEmail(to, `Нова порака од профилот — ${value.name}`, html, { replyTo: value.email })
+        .sendEmail(to, service ? `Барање понуда: ${service} — ${value.name}` : `Нова порака од профилот — ${value.name}`, html, { replyTo: value.email })
         .catch((e) => console.warn('[publicProfile] email failed:', e.message));
     }
     res.status(201).json({ ok: true });

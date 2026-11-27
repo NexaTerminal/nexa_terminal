@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Icon from '../website/Icon';
 import ShareLinks from './ShareLinks';
 import styles from './ProfileSite.module.css';
+import CompanyPostCard from '../posts/CompanyPostCard';
 import { API_BASE, mediaUrl } from '../../lib/apiBase';
 
 /**
@@ -29,7 +30,7 @@ function Logo({ src, name, className }) {
   return <span className={`${className} ${styles.logoInitials}`} aria-hidden="true">{initials(name)}</span>;
 }
 
-function ContactForm({ slug }) {
+function ContactForm({ slug, service, onClearService, post, onClearPost }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', consent: false, website: '' });
   const [status, setStatus] = useState(null); // null | sending | ok | error
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
@@ -40,7 +41,7 @@ function ContactForm({ slug }) {
     setStatus('sending');
     try {
       const res = await fetch(`${API_BASE}/public/profile/${encodeURIComponent(slug)}/contact`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, service: service || '', postId: post?._id || '' }),
       });
       setStatus(res.ok ? 'ok' : 'error');
     } catch {
@@ -59,32 +60,47 @@ function ContactForm({ slug }) {
   }
   return (
     <form className={styles.form} onSubmit={submit}>
+      {post && (
+        <div className={styles.serviceChip}>
+          <span>Во врска со: <strong>{post.type === 'news' ? post.fields?.text : post.title}</strong></span>
+          <button type="button" onClick={onClearPost} aria-label="Отстрани">×</button>
+        </div>
+      )}
+      {service && (
+        <div className={styles.serviceChip}>
+          <span>Барате понуда за: <strong>{service}</strong></span>
+          <button type="button" onClick={onClearService} aria-label="Отстрани">×</button>
+        </div>
+      )}
       <div className={styles.formRow}>
         <label><span>Име и презиме</span><input required maxLength={100} value={form.name} onChange={set('name')} /></label>
         <label><span>Е-пошта</span><input required type="email" maxLength={150} value={form.email} onChange={set('email')} /></label>
       </div>
       <label><span>Телефон (опционално)</span><input maxLength={30} value={form.phone} onChange={set('phone')} /></label>
       <label><span>Порака</span><textarea required minLength={10} maxLength={2000} rows={5} value={form.message} onChange={set('message')}
-        placeholder="Опишете што Ви треба — производ, услуга, соработка…" /></label>
+        placeholder={service ? 'Количина, рок, локација — што повеќе детали, толку попрецизна понуда.' : 'Опишете што Ви треба — производ, услуга, соработка…'} /></label>
       <input className={styles.hp} tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.website} onChange={set('website')} />
       <label className={styles.consent}>
         <input type="checkbox" checked={form.consent} onChange={set('consent')} />
         <span>Се согласувам податоците да се проследат до фирмата за да одговори на мојата порака (<a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Политика за приватност</a>).</span>
       </label>
       <button type="submit" className={styles.btnPrimary} disabled={!form.consent || status === 'sending'}>
-        {status === 'sending' ? 'Се испраќа…' : 'Испрати порака'}
+        {status === 'sending' ? 'Се испраќа…' : service ? 'Побарај понуда' : 'Испрати порака'}
       </button>
       {status === 'error' && <p className={styles.formErr}>Пораката не беше испратена. Обидете се повторно.</p>}
     </form>
   );
 }
 
-export default function ProfileSite({ profile, shareUrl }) {
+export default function ProfileSite({ profile, shareUrl, posts = [] }) {
+  const [service, setService] = useState(''); // which offer the visitor asked a quote for
+  const [post, setPost] = useState(null);     // which „Актуелно" post the visitor writes about
   const p = profile;
   const socials = useMemo(() => Object.entries(p.links || {}).filter(([, v]) => v), [p.links]);
   const hasContactDetails = !!(p.contactEmail || p.phone || p.website || p.city || socials.length);
   const nav = [
     p.about && ['za-nas', 'За нас'],
+    posts.length && ['aktuelno', 'Актуелно'],
     p.offers?.length && ['nudime', 'Што нудиме'],
     ['kontakt', 'Контакт'],
   ].filter(Boolean);
@@ -140,6 +156,26 @@ export default function ProfileSite({ profile, shareUrl }) {
         </section>
       )}
 
+      {posts.length > 0 && (
+        <section id="aktuelno" className={styles.section}>
+          <div className={styles.container}>
+            <div className={styles.head}>
+              <span className={styles.eyebrow}>Актуелно</span>
+              <h2 className={styles.h2}>Понуди и новости</h2>
+            </div>
+            <div className={styles.postGrid}>
+              {posts.map((x) => (
+                <CompanyPostCard key={x._id} id={`objava-${x._id}`} post={x} showAuthor={false}>
+                  <a href="#kontakt" className={styles.cardLink} onClick={() => { setPost(x); setService(''); }}>
+                    {x.type === 'seeking' ? 'Испратете понуда →' : x.type === 'offer' ? 'Искористете ја понудата →' : 'Контактирајте →'}
+                  </a>
+                </CompanyPostCard>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {p.offers?.length > 0 && (
         <section id="nudime" className={`${styles.section} ${styles.sectionSoft}`}>
           <div className={styles.container}>
@@ -152,7 +188,7 @@ export default function ProfileSite({ profile, shareUrl }) {
                 <div key={o} className={styles.card}>
                   <span className={styles.cardNum}>{String(i + 1).padStart(2, '0')}</span>
                   <h3>{o}</h3>
-                  <a href="#kontakt" className={styles.cardLink}>Побарајте понуда →</a>
+                  <a href="#kontakt" className={styles.cardLink} onClick={() => { setService(o); setPost(null); }}>Побарајте понуда →</a>
                 </div>
               ))}
             </div>
@@ -197,7 +233,7 @@ export default function ProfileSite({ profile, shareUrl }) {
                 )}
               </div>
             )}
-            <ContactForm slug={p.slug} />
+            <ContactForm slug={p.slug} service={service} onClearService={() => setService('')} post={post} onClearPost={() => setPost(null)} />
           </div>
         </div>
       </section>

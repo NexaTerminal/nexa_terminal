@@ -46,13 +46,14 @@ function jsonLd(p, url) {
 const PublicProfile = () => {
   const { slug } = useParams();
   const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [state, setState] = useState('loading');
 
   useEffect(() => {
     let cancelled = false;
     setState('loading');
     ApiService.get(`/public/profile/${encodeURIComponent(slug)}`)
-      .then((d) => { if (!cancelled) { setProfile(d.profile); setState('ok'); } })
+      .then((d) => { if (!cancelled) { setProfile(d.profile); setPosts(d.posts || []); setState('ok'); } })
       .catch(() => !cancelled && setState('missing'));
     return () => { cancelled = true; };
   }, [slug]);
@@ -101,7 +102,7 @@ const PublicProfile = () => {
         noIndex={!p.indexable}
         jsonLd={jsonLd(p, url)}
       />
-      <ProfileSite profile={p} shareUrl={url} />
+      <ProfileSite profile={p} shareUrl={url} posts={posts} />
     </>
   );
 };

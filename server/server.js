@@ -148,6 +148,9 @@ app.use('/api/employees', subscriptionGuard, require('./routes/employees'));
 // Продажна инка — „Sales Funnel" (Basic tool, not credit-metered)
 app.use('/api/sales', subscriptionGuard, require('./routes/sales'));
 
+// „Објави" — structured company posts (feed + one-pager „Актуелно")
+app.use('/api/company-posts', subscriptionGuard, require('./routes/companyPosts'));
+
 // Dashboard command-center summary (master-plan Phase 3)
 app.use('/api/dashboard', subscriptionGuard, require('./routes/dashboard'));
 
@@ -213,6 +216,9 @@ app.use('/api/public/employer-badge', require('./routes/publicEmployerBadge'));
 // Public company profile (profiles are always public; no auth, read-only, before CSRF).
 app.use('/api/public/profile', require('./routes/publicProfile'));
 app.use('/api/public/services', require('./routes/publicServices'));
+// Public „Понуда" — the client opens a quote link, accepts / declines / asks
+// (token-secured, no auth, before CSRF).
+app.use('/api/public/quote', require('./routes/publicQuote'));
 
 // Public inquiry opt-out (visitor „remove me" link from auto-posted inquiries;
 // token-secured, no auth, before CSRF).
@@ -461,7 +467,15 @@ async function initializeServices(database) {
     const salesDealsService = new SalesDealsService(database);
     await salesDealsService.ensureIndexes();
     app.locals.salesDealsService = salesDealsService;
-    console.log('✅ Sales Funnel ready');
+    const SalesQuotesService = require('./services/salesQuotesService');
+    const salesQuotesService = new SalesQuotesService(database);
+    await salesQuotesService.ensureIndexes();
+    app.locals.salesQuotesService = salesQuotesService;
+    const CompanyPostsService = require('./services/companyPostsService');
+    const companyPostsService = new CompanyPostsService(database);
+    await companyPostsService.ensureIndexes();
+    app.locals.companyPostsService = companyPostsService;
+    console.log('✅ Sales Funnel + quotes ready');
   } catch (e) {
     console.error('Sales Funnel init failed:', e.message);
   }

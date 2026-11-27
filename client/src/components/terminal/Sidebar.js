@@ -27,6 +27,7 @@ const Icon = ({ name }) => {
     case 'rfq':        return (<svg {...common}><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4"/><circle cx="14.5" cy="15.5" r="2.2"/><path d="M16.2 17.2L18 19"/></svg>);
     case 'funnel':     return (<svg {...common}><path d="M3 5h18l-6.5 7.5V19l-5 2v-8.5L3 5z"/></svg>);
     case 'people':     return (<svg {...common}><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.6.4 4.5 2.7 4.5 5.5"/></svg>);
+    case 'globe':      return (<svg {...common}><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>);
     case 'folder':     return (<svg {...common}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>);
     default: return null;
   }
@@ -224,7 +225,7 @@ const Sidebar = () => {
           );
           const open = openSections[section.key] !== undefined
             ? openSections[section.key]
-            : sectionActive;
+            : (sectionActive || !!section.defaultOpen);
 
           return (
             <div key={section.key} className={styles['nav-section']}>

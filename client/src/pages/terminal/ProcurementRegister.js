@@ -29,7 +29,7 @@ const numAmount = (a) => { const n = String(a || '').replace(/[^\d]/g, ''); retu
 const daysUntil = (d) => (d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86400000) : null);
 
 export default function ProcurementRegister() {
-  const { token } = useAuth();
+  const { token, currentUser } = useAuth();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +170,8 @@ export default function ProcurementRegister() {
         <div className={s.listHead}>
           <h2 className={s.cardTitle}>Мои набавки</h2>
           <div className={s.filterWrap}>
-            <Link to="/terminal/sourcing" className={s.sourcingLink}>Побарај понуди преку Nexa →</Link>
+            {/* „Барање за понуди" is hidden until there is supply (admin only). */}
+            {currentUser?.role === 'admin' && <Link to="/terminal/sourcing" className={s.sourcingLink}>Побарај понуди преку Nexa →</Link>}
             {categories.length > 1 && (
               <select className={s.filter} value={filter} onChange={(e) => setFilter(e.target.value)}>
                 <option value="">Сите типови ({items.length})</option>

@@ -226,3 +226,19 @@ a.detail:hover { background: rgba(255, 255, 255, .08); }
 /* 2 or 4 offers read best as pairs (2×2), not 3 + 1. */
 .cardsPairs { max-width: 660px; margin: 0 auto; }
 .shareWide { max-width: 1120px; margin: 0 auto; }
+
+/* „Побарајте понуда" — the chosen service above the contact form. */
+.serviceChip {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 14px; border-radius: 10px; background: #fff7ed;
+  border: 1px solid #fed7aa; color: #7c2d12; font-size: 14px;
+}
+.serviceChip button {
+  background: none; border: 0; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px;
+  box-shadow: none; opacity: 0.8;
+}
+.serviceChip button:hover { opacity: 1; background: none; transform: none; box-shadow: none; }
+
+/* „Актуелно" — the company's live structured posts */
+.postGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 980px; margin: 0 auto; }
+.postGrid article { scroll-margin-top: 90px; }

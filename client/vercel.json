@@ -14,5 +14,16 @@
       "source": "/api/:path*",
       "destination": "https://nexa-terminal-api-production-74cc.up.railway.app/api/:path*"
     }
+  ],
+  "headers": [
+    {
+      "source": "/ponuda/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
   ]
 }

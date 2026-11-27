@@ -17,6 +17,51 @@ async function summary(req, res) {
   }
 }
 
+/**
+ * Dashboard strip „Продажба овој месец": pipeline, quotes and the one-pager in
+ * one call. Every block is best-effort so one failing source never hides the rest.
+ */
+async function overview(req, res) {
+  try {
+    const db = req.app.locals.db;
+    const uid = new ObjectId(String(req.user._id));
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const quotesSvc = req.app.locals.salesQuotesService;
+    const { computeTotals, effectiveStatus, MKD_PER_EUR } = require('../services/salesQuotesService');
+    const toMkd = (q, n) => (q.currency === 'EUR' ? n * MKD_PER_EUR : n);
+
+    const [pipe, quotes, stats, newMessages] = await Promise.all([
+      svc(req).summary(req.user._id).catch(() => null),
+      quotesSvc ? db.collection('sales_quotes').find({ userId: uid, status: { $ne: 'draft' } })
+        .project({ items: 1, discountPct: 1, currency: 1, status: 1, validUntil: 1, sentAt: 1, response: 1, viewCount: 1 })
+        .toArray().catch(() => []) : [],
+      db.collection('profile_stats').findOne({ userId: uid, month: new Date().toISOString().slice(0, 7) }).catch(() => null),
+      db.collection('profile_messages').countDocuments({ userId: uid, dealId: { $exists: false }, createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } }).catch(() => 0),
+    ]);
+
+    let awaiting = 0; let awaitingMkd = 0; let unopened = 0;
+    let sentMonth = 0; let acceptedMonth = 0; let acceptedMonthMkd = 0;
+    for (const q of quotes) {
+      const st = effectiveStatus(q);
+      const net = computeTotals(q.items || [], q.discountPct).net;
+      if (st === 'sent' || st === 'viewed') { awaiting += 1; awaitingMkd += toMkd(q, net); if (!q.viewCount) unopened += 1; }
+      if (q.sentAt && q.sentAt >= monthStart) sentMonth += 1;
+      if (st === 'accepted' && q.response?.at && q.response.at >= monthStart) { acceptedMonth += 1; acceptedMonthMkd += toMkd(q, net); }
+    }
+    const open = pipe ? ['potential', 'contacted', 'offer', 'negotiation'].reduce((a, k) => a + (pipe.stages[k]?.count || 0), 0) : 0;
+    const openValue = pipe ? ['potential', 'contacted', 'offer', 'negotiation'].reduce((a, k) => a + (pipe.stages[k]?.value || 0), 0) : 0;
+
+    res.json({ success: true, data: {
+      pipeline: { open, openValueEur: Math.round(openValue), overdue: pipe?.overdue || 0, wonMonth: pipe?.wonThisMonth || { count: 0, value: 0 } },
+      quotes: { awaiting, awaitingMkd: Math.round(awaitingMkd), unopened, sentMonth, acceptedMonth, acceptedMonthMkd: Math.round(acceptedMonthMkd) },
+      page: { views: stats?.views || 0, contacts: stats?.contacts || 0, newMessages },
+    } });
+  } catch (err) {
+    console.error('[sales] overview error:', err);
+    res.status(500).json({ success: false, message: 'Грешка при вчитување на прегледот.' });
+  }
+}
+
 async function list(req, res) {
   try {
     const items = await svc(req).list(req.user._id, { stage: req.query.stage, q: req.query.q });
@@ -80,4 +125,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { summary, list, create, update, setStage, remove };
+module.exports = { summary, overview, list, create, update, setStage, remove };

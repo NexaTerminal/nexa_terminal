@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ApiService from '../../services/api';
 import styles from '../../styles/terminal/CompanyProfile.module.css';
 
@@ -6,6 +7,17 @@ import styles from '../../styles/terminal/CompanyProfile.module.css';
 export default function ProfileInsights() {
   const [data, setData] = useState(null);
   const [open, setOpen] = useState(null);
+  const [adding, setAdding] = useState(null);
+
+  // „Додај во Клиенти": the visitor becomes a potential deal in the pipeline.
+  const toDeal = async (m) => {
+    setAdding(m._id);
+    try {
+      const r = await ApiService.request(`/profile/me/messages/${m._id}/to-deal`, { method: 'POST' });
+      setData((d) => ({ ...d, messages: d.messages.map((x) => (x._id === m._id ? { ...x, dealId: r.dealId } : x)) }));
+    } catch (_) { /* keep the button; user can retry */ }
+    setAdding(null);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -28,7 +40,12 @@ export default function ProfileInsights() {
           {data.messages.map((m) => (
             <li key={m._id}>
               <button type="button" className={styles.messageHead} onClick={() => setOpen(open === m._id ? null : m._id)}>
-                <span><strong>{m.name}</strong> · {fmt(m.createdAt)}</span>
+                <span>
+                  <strong>{m.name}</strong> · {fmt(m.createdAt)}
+                  {m.service && <span className={styles.msgService}> · понуда: {m.service}</span>}
+                  {m.postTitle && <span className={styles.msgService}> · објава: {m.postTitle}</span>}
+                  {m.dealId && <span className={styles.msgInPipe}> · во Клиенти</span>}
+                </span>
                 <span aria-hidden="true">{open === m._id ? '−' : '+'}</span>
               </button>
               {open === m._id && (
@@ -37,7 +54,15 @@ export default function ProfileInsights() {
                   <p className={styles.help}>
                     <a href={`mailto:${m.email}`} className={styles.textLink}>{m.email}</a>
                     {m.phone ? ` · ${m.phone}` : ''}
+                    {m.fromSlug ? <> · <a href={`/f/${m.fromSlug}`} target="_blank" rel="noopener noreferrer" className={styles.textLink}>страница на фирмата</a></> : ''}
                   </p>
+                  {m.dealId ? (
+                    <Link to="/terminal/sales" className={styles.textLink}>Отвори во Клиенти →</Link>
+                  ) : (
+                    <button type="button" className={styles.msgAction} disabled={adding === m._id} onClick={() => toDeal(m)}>
+                      {adding === m._id ? 'Се додава…' : '+ Додај во Клиенти'}
+                    </button>
+                  )}
                 </div>
               )}
             </li>

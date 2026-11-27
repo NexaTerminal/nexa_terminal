@@ -283,9 +283,12 @@ export function showsSubUsers(user) {
 // an SMB opening an empty marketplace reads it as a dead product. Admin keeps
 // access to seed booths; reopening is a marketable event later.
 export function showsFair(user)     { return user?.role === 'admin'; }
-// Sourcing (Барање за понуди) stays visible to everyone — it is the demand-side
-// "get offers" surface and works concierge-style regardless of visible supply.
-export function showsSourcing(user) { return !!user; }
-// Продажна инка (sales funnel) is a supply-side / provider growth tool — Pro
-// (B) and admin only. Hidden for Basic (A), whose owners don't run a pipeline.
-export function showsSalesFunnel(user) { const v = visibleTier(user); return v === 'B' || v === 'ADMIN'; }
+// Sourcing (Барање за понуди) — hidden from the menu (Nov 2026 sales pivot):
+// an empty marketplace reads as a dead product. Admin keeps it; the URL still
+// works. Регистар на набавки uses showsProcurementRegister (everyone).
+export function showsSourcing(user) { return user?.role === 'admin'; }
+export function showsProcurementRegister(user) { return !!user; }
+// Продажна инка (sales funnel) — every signed-in company (Nov 2026 sales
+// pivot: Basic owners track their own clients and deals too). The API was
+// already open to Basic; only the menu entry was hidden.
+export function showsSalesFunnel(user) { return !!user; }

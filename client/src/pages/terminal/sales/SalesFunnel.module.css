@@ -503,3 +503,17 @@
   .kpiRow { grid-template-columns: 1fr; }
   .fieldRow { flex-direction: column; gap: 0; }
 }
+
+/* Latest quote on a deal card (links to the quote editor). */
+.dealQuote {
+  display: inline-block;
+  margin: 6px 0 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.dealQuote:hover { background: #dbeafe; }

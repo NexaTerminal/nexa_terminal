@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
+import FeedPost from '../posts/FeedPost';
 import { visibleTier } from '../../lib/tier';
 import { AI_AGENTS, getAgent } from '../../config/aiAgents';
 import AgentName from '../chatbot/AgentName';
@@ -38,8 +39,9 @@ const BLOG_LIMIT = 10;
 const stripHtml = (html = '') => String(html).replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 
 // One stream of notices and articles, newest first.
-const mergeByDate = (updates, blogs) => [
+const mergeByDate = (updates, blogs, posts = []) => [
   ...updates.map(item => ({ kind: 'update', item, ts: new Date(item.publishedAt || item.createdAt || 0).getTime() })),
+  ...posts.map(item => ({ kind: 'post', item, ts: new Date(item.createdAt || 0).getTime() })),
   ...blogs.map(item => ({ kind: 'blog', item, ts: new Date(item.createdAt || 0).getTime() })),
 ].sort((a, b) => b.ts - a.ts);
 
@@ -100,6 +102,19 @@ const UpdatesFeed = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [blogs, setBlogs] = useState([]);
+  const [posts, setPosts] = useState([]);
+
+  // Company posts (Објави) — structured, from the network; newest first.
+  useEffect(() => {
+    let cancelled = false;
+    ApiService.request('/company-posts/feed?limit=20')
+      .then(data => { if (!cancelled) setPosts(data?.items || []); })
+      .catch(() => { /* feed works without posts */ });
+    return () => { cancelled = true; };
+  }, [token]);
+  const patchPost = useCallback((id, next) => {
+    setPosts(prev => (next ? prev.map(p => (p._id === id ? next : p)) : prev.filter(p => p._id !== id)));
+  }, []);
 
   // Public list endpoint (excerpts only); newest first.
   useEffect(() => {
@@ -148,20 +163,24 @@ const UpdatesFeed = () => {
         <ActionGridCard />
 
         <div className={styles.sectionBreak} role="separator" aria-hidden="true">
-          <span className={styles.sectionBreakLabel}>Известувања и статии</span>
+          <span className={styles.sectionBreakLabel}>Од мрежата: објави, известувања и статии</span>
         </div>
 
         {loading && updates.length === 0 && (
           <div className={styles.feedLoading}>Се вчитува…</div>
         )}
 
-        {!loading && updates.length === 0 && blogs.length === 0 && (
+        <a href="/terminal/objavi" className={styles.postCta}>+ Објавете понуда, барање или новост од Вашата фирма</a>
+
+        {!loading && updates.length === 0 && blogs.length === 0 && posts.length === 0 && (
           <div className={styles.topicEmpty}>Сè уште нема известувања.</div>
         )}
 
-        {mergeByDate(updates, blogs).map(({ kind, item }) => (kind === 'update'
+        {mergeByDate(updates, blogs, posts).map(({ kind, item }) => (kind === 'update'
           ? <UpdateCard key={item._id} update={item} onOpen={() => setOpenId(item._id)} onPatch={patchItem} />
-          : <BlogCard key={`blog-${item._id}`} post={item} />
+          : kind === 'post'
+            ? <FeedPost key={`post-${item._id}`} post={item} onChange={(next) => patchPost(item._id, next)} />
+            : <BlogCard key={`blog-${item._id}`} post={item} />
         ))}
 
         {blogs.length > 0 && (

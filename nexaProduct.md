@@ -316,6 +316,44 @@ as docked chat windows.
 
 ### 5.11 Growth & visibility
 
+- **Клиенти (Продажна инка)** — a simple sales pipeline for every company (Nov 2026: opened to Basic):
+  Потенцијални → Контактирани → Испратена понуда → Преговори → Добиени / Изгубени, value in €, next
+  step date, won-this-month. `/terminal/sales`, `sales_deals`.
+- **Продажба (sidebar, first group, Nov 2026)** — Моја страница · Објави · Клиенти · Понуди. The dashboard opens
+  with **„Продажба овој месец"** (accepted quotes, awaiting answer, pipeline, page views, nudges for new
+  page messages and overdue steps; an empty account sees three first steps). „Барање за понуди" is
+  hidden from the menu until there is supply (admin only).
+- **One-pager → client:** „Побарајте понуда" on a service card sends the chosen service with the
+  message; in Моја страница each message has **+ Додај во Клиенти** (potential deal, next step
+  „Испрати понуда за X").
+- **Објави (structured company posts)** — `/terminal/objavi`. Three types only — Понуда / акција
+  (discount 5–90 %, free delivery, bundle, trial; audience; valid ≤ 60 days), Бараме (category from a
+  fixed list, what, quantity, city; ≤ 30 days), Ново кај нас (kind + 200 chars; 30 days). Fixed forms,
+  generated card design, no links/e-mails/phones in text, 1 active per type, 2 a week, page + logo +
+  terms required, 3 reports hide a post. Shown in the dashboard feed and on the company one-pager
+  („Актуелно"). Actions: „Заинтересирани сме" (message + e-mail to the company), on „Бараме"
+  **„Испратете понуда"** (deal + quote for the responder; the poster is notified with the quote link).
+  Code: `services/companyPostsService.js`, `routes/companyPosts.js`, `components/posts/*`,
+  `pages/terminal/posts/Posts.js`.
+- **Понуди (quotes that sell)** — `/terminal/ponudi`. Why: a quote the client accepts with one click
+  brings money directly, and it works with the company's own clients outside Nexa (no network needed);
+  every quote link also advertises Nexa („Понуда направена со Nexa"). How:
+  - Builder: client (prefilled from a deal), items (qty, unit ком./ч./мес.…, price, ДДВ 18/10/5/0),
+    discount, ден/€, valid-until, payment/delivery terms, intro. Number ПОН-YYYY-NNN per company.
+  - **Private cost per item** → margin shown only to the owner. **Борис** button opens his chat with the
+    quote pre-filled (margin, discount cost); **Миа** writes the intro and a follow-up message
+    (utility model, 30/day cap, formal capitals enforced in code).
+  - Share as a link `nexa.mk/ponuda/:token` (copy, WhatsApp, Viber, e-mail). Public page: branded
+    document, print → PDF, buttons **Прифаќам / Имам прашање / Одбивам** (name recorded, not an
+    e-signature). noindex. Owner preview (`?preview=1`) doesn't count opens.
+  - Tracking: opened (count, last), accepted / declined / question → bell for every event, e-mail to
+    the owner for answers. Sending moves the deal to „Испратена понуда" (fills an empty value);
+    accepting moves it to „Добиени" with the quote value (MKD converted at 61,5), declining to
+    „Изгубени" with the reason. Answered quotes are read-only („Копирај како нова"); expired quotes
+    can't be accepted.
+  - Code: `services/salesQuotesService.js`, `controllers/salesQuotesController.js`, `routes/sales.js`
+    (`/api/sales/quotes`), `routes/publicQuote.js` (`/api/public/quote`), `pages/terminal/sales/Quotes.js`
+    + `QuoteEditor.js`, `pages/public/PublicQuote.js`, `lib/quotes.js`.
 - **Маркетинг проверка** — marketing health check.
 - **Банер во билтенот** — book a banner in the monthly Nexa newsletter (3 slots/month, 1 booking per
   quarter, image + link). Available to Basic; flag `newsletterAds`.

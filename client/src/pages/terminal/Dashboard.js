@@ -5,6 +5,7 @@ import Sidebar from "../../components/terminal/Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import RightSidebar from "../../components/terminal/RightSidebar";
 import UpdatesFeed from "../../components/terminal/UpdatesFeed";
+import SalesStrip from "../../components/terminal/SalesStrip";
 import SubscriptionStatusBanner from "../../components/terminal/SubscriptionStatusBanner";
 import FeatureTour from "../../components/terminal/FeatureTour";
 import LockedWelcome from "../../components/terminal/LockedWelcome";
@@ -105,6 +106,8 @@ const Dashboard = () => {
                   </div>
                 ) : null}
 
+                {/* Money first (Nov 2026 sales pivot): pipeline, quotes, page. */}
+                <SalesStrip />
                 <UpdatesFeed />
               </>
             )}

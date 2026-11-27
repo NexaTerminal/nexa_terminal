@@ -96,6 +96,33 @@ router.get('/me/insights', authenticateJWT, async (req, res) => {
   }
 });
 
+// „Додај во Клиенти": a visitor message becomes a potential deal (once).
+router.post('/me/messages/:id/to-deal', authenticateJWT, async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ message: 'Невалиден идентификатор.' });
+    const db = req.app.locals.db;
+    const deals = req.app.locals.salesDealsService;
+    const msgs = db.collection('profile_messages');
+    const m = await msgs.findOne({ _id: new ObjectId(req.params.id), userId: new ObjectId(uid(req)) });
+    if (!m) return res.status(404).json({ message: 'Пораката не е пронајдена.' });
+    if (m.dealId) return res.json({ dealId: m.dealId, existing: true });
+    const when = new Date(m.createdAt).toLocaleDateString('mk-MK');
+    const deal = await deals.create(uid(req), {
+      name: m.name,
+      contact: { person: m.name, email: m.email || '', phone: m.phone || '' },
+      stage: 'potential',
+      note: `${m.service ? `Бара понуда за: ${m.service}\n` : ''}Порака од Моја страница (${when}):\n${m.message || ''}`,
+      nextActionAt: new Date(),
+      nextActionNote: m.service ? `Испрати понуда за ${m.service}` : 'Одговори на пораката',
+    });
+    await msgs.updateOne({ _id: m._id }, { $set: { dealId: deal._id } });
+    res.status(201).json({ dealId: deal._id });
+  } catch (e) {
+    console.error('[profile] message to deal:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 router.get('/:slug', authenticateJWT, async (req, res) => {
   try {
     const profile = await profiles.findBySlug(req.app.locals.db, req.params.slug, { viewerId: uid(req) });

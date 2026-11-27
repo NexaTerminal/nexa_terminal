@@ -11,32 +11,38 @@ const MAX_TOUR_VIEWS = 3;
 // Steps anchor to the 4 collapsible SECTION HEADERS via their
 // `data-tour="section-{key}"` attribute (set in components/terminal/
 // Sidebar.js). Sections start collapsed, so the tour points at the group
-// headers — the full map of the app: Администрирај → Набави → Расти → Учи.
+// headers — the full map of the app: Продавај → Расти → Администрирај → Набави → Учи.
 // This is the Product A (Basic / nexa.mk) layout — see PRO_TOUR_STEPS below
 // for the Product B (Pro / leads.nexa.mk) layout, which has different sections.
 const TOUR_STEPS = [
   {
-    target: '[data-tour="section-administration"]',
-    title: 'Администрација',
-    text: 'Сè за обврските: генерирај 45+ правни документи, води ги вработените и договорите, прашај го Правниот AI и провери ја усогласеноста (правна, HR, сајбер). Кликни за да ги видиш алатките.',
-    position: 'right'
-  },
-  {
-    target: '[data-tour="section-procurement"]',
-    title: 'Набавки',
-    text: 'Кога купуваш: побарај понуди од проверени добавувачи — ние ги собираме и ти ги доставуваме.',
+    target: '[data-tour="section-sales"]',
+    title: 'Продажба',
+    text: 'Тука Nexa Ви носи клиенти: бесплатна страница за фирмата што ја споделувате насекаде, Клиенти за да знаете кого да побарате денес и Понуди што клиентот ги прифаќа со едно копче.',
     position: 'right'
   },
   {
     target: '[data-tour="section-growth"]',
     title: 'Маркетинг и раст',
-    text: 'Кога растеш: објави статија под твое име на Nexa блогот, резервирај банер во билтенот до 1000+ претплатници, користи Маркетинг AI и провери го маркетингот.',
+    text: 'Проверете го маркетингот на фирмата и резервирајте банер во месечниот билтен на Nexa.',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="section-administration"]',
+    title: 'Администрација',
+    text: 'Обврските на едно место: правни документи, договори, AI тимот и проверки на усогласеноста (правна, HR, сајбер).',
+    position: 'right'
+  },
+  {
+    target: '[data-tour="section-procurement"]',
+    title: 'Набавки',
+    text: 'Водете ги понудите од добавувачите и роковите за обнова — Nexa Ве потсетува кога е време за нова понуда.',
     position: 'right'
   },
   {
     target: '[data-tour="section-education-sec"]',
     title: 'Едукација',
-    text: 'Кога учиш: курсеви и стручни содржини за бизнис и право. Добредојде во Nexa!',
+    text: 'Курсеви и стручни содржини за бизнис и право. Добредојдовте во Nexa!',
     position: 'right'
   }
 ];

@@ -4,7 +4,7 @@ import styles from './Header.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCredit } from '../../contexts/CreditContext';
 import { useTranslation } from 'react-i18next';
-import { showsMarketing, showsLeads, showsTopicsQA, interiorProduct } from '../../lib/tier';
+import { showsMarketing, showsLeads, showsTopicsQA, showsSourcing, interiorProduct } from '../../lib/tier';
 import { BILLING_UI_ENABLED } from '../../config/billing';
 import Notifications from '../terminal/Notifications';
 
@@ -233,6 +233,15 @@ const Header = ({ isTerminal = false }) => {
       ]
     },
     {
+      key: 'sales', label: 'Продажба',
+      items: [
+        { key: 'my-page', label: 'Моја страница', path: '/terminal/moj-profil' },
+        { key: 'posts',   label: 'Објави',        path: '/terminal/objavi' },
+        { key: 'sales',   label: 'Клиенти',       path: '/terminal/sales' },
+        { key: 'quotes',  label: 'Понуди',        path: '/terminal/ponudi' }
+      ]
+    },
+    {
       key: 'administration', label: 'Администрација',
       items: [
         { key: 'documents',  label: 'Документи', children: [
@@ -255,7 +264,8 @@ const Header = ({ isTerminal = false }) => {
     {
       key: 'procurement', label: 'Набавки',
       items: [
-        { key: 'sourcing', label: 'Барање за понуди', path: '/terminal/sourcing' }
+        { key: 'procurement-register', label: 'Регистар на набавки', path: '/terminal/nabavki' },
+        { key: 'sourcing', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing }
       ]
     },
     {

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../contexts/AuthContext';
 import TerminalShell from '../../../components/terminal/TerminalShell';
 import { fmtDate } from '../contracts/Contracts';
+import { STATUS as QUOTE_STATUS } from '../../../lib/quotes';
 import styles from './SalesFunnel.module.css';
 
 /**
@@ -56,7 +58,11 @@ export default function SalesFunnel() {
   const { token } = useAuth();
   const auth = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
 
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
+  // Latest quote per deal (for the badge on each deal card).
+  const [quoteByDeal, setQuoteByDeal] = useState({});
+  const [quoting, setQuoting] = useState(null); // deal id while a quote is being created
   const [stage, setStage] = useState('potential');
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,16 +92,27 @@ export default function SalesFunnel() {
     }
   }, [auth]);
 
+  const loadQuotes = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/sales/quotes', auth);
+      const map = {};
+      for (const q of res.data.data || []) {
+        if (q.dealId && !map[q.dealId]) map[q.dealId] = q; // list is newest first
+      }
+      setQuoteByDeal(map);
+    } catch (_) { /* badges are optional */ }
+  }, [auth]);
+
   const loadAll = useCallback(async (st) => {
     setError('');
     try {
-      await Promise.all([loadSummary(), loadDeals(st)]);
+      await Promise.all([loadSummary(), loadDeals(st), loadQuotes()]);
     } catch (err) {
       setError(err.response?.data?.message || 'Грешка при вчитување на продажната инка.');
     } finally {
       setLoading(false);
     }
-  }, [loadSummary, loadDeals]);
+  }, [loadSummary, loadDeals, loadQuotes]);
 
   useEffect(() => { loadAll(stage); }, [loadAll, stage]);
 
@@ -110,6 +127,17 @@ export default function SalesFunnel() {
       await loadAll(stage);
     } catch (err) {
       setError(err.response?.data?.message || 'Грешка при преместување на зделката.');
+    }
+  };
+
+  const createQuote = async (deal) => {
+    setQuoting(deal._id);
+    try {
+      const res = await axios.post('/api/sales/quotes', { dealId: deal._id }, auth);
+      navigate(`/terminal/ponudi/${res.data.data._id}`);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Грешка при креирање на понудата.');
+      setQuoting(null);
     }
   };
 
@@ -363,6 +391,14 @@ export default function SalesFunnel() {
                           </div>
                         )}
 
+                        {quoteByDeal[d._id] && (
+                          <Link to={`/terminal/ponudi/${quoteByDeal[d._id]._id}`} className={styles.dealQuote}>
+                            Понуда {quoteByDeal[d._id].number} · {QUOTE_STATUS[quoteByDeal[d._id].statusNow]?.label || ''}
+                            {quoteByDeal[d._id].viewCount > 0 && (quoteByDeal[d._id].statusNow === 'sent' || quoteByDeal[d._id].statusNow === 'viewed')
+                              ? ` · отворена ${quoteByDeal[d._id].viewCount}×` : ''}
+                          </Link>
+                        )}
+
                         {d.note && <p className={styles.dealNote}>{d.note}</p>}
                         {stage === 'lost' && d.lostReason && (
                           <p className={styles.dealNote}>Причина: {d.lostReason}</p>
@@ -403,6 +439,11 @@ export default function SalesFunnel() {
                             </button>
                           )}
                           <span className={styles.dealActionsRight}>
+                            {d.stage !== 'lost' && (
+                              <button className={styles.ghostBtn} disabled={quoting === d._id} onClick={() => createQuote(d)}>
+                                {quoting === d._id ? 'Се креира…' : quoteByDeal[d._id] ? '+ Нова понуда' : '+ Понуда'}
+                              </button>
+                            )}
                             <button className={styles.ghostBtn} onClick={() => openEdit(d)}>Уреди</button>
                             {confirmDelete === d._id ? (
                               <>

@@ -26,6 +26,7 @@ import {
   showsFair,
   showsSourcing,
   showsSalesFunnel,
+  showsProcurementRegister,
   interiorProduct
 } from '../lib/tier';
 
@@ -99,8 +100,14 @@ const interviews = {
 
 const sourcing          = { key: 'sourcing', icon: 'rfq', label: 'Барање за понуди', path: '/terminal/sourcing', visible: showsSourcing };
 // Регистар на набавки — log offers per type of purchase + renewal reminders.
-const procurementRegister = { key: 'procurement-register', icon: 'inbox', label: 'Регистар на набавки', path: '/terminal/nabavki', visible: showsSourcing };
+const procurementRegister = { key: 'procurement-register', icon: 'inbox', label: 'Регистар на набавки', path: '/terminal/nabavki', visible: showsProcurementRegister };
 const sales             = { key: 'sales', icon: 'funnel', label: 'Клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
+// Моја страница — the company's public one-pager (/f/:slug), edited in Мој профил.
+const myPage            = { key: 'my-page', icon: 'globe', label: 'Моја страница', path: '/terminal/moj-profil' };
+// Објави — structured company posts (Понуда/акција · Бараме · Ново кај нас).
+const posts             = { key: 'posts', icon: 'pencil', label: 'Објави', path: '/terminal/objavi', visible: showsSalesFunnel };
+// Понуди — quotes sent as a link; the client accepts with one click (moves the deal).
+const quotes            = { key: 'quotes', icon: 'rfq', label: 'Понуди', path: '/terminal/ponudi', visible: showsSalesFunnel };
 const marketingScreening = { key: 'marketing-screening', icon: 'check', label: 'Маркетинг проверка', path: '/terminal/marketing-screening' };
 // Банер во билтенот — book a banner slot in the monthly Nexa newsletter. Deep-links
 // straight to the banner tab; the Blog tab of the hub stays a Pro surface, so Basic
@@ -129,10 +136,19 @@ const proBlog    = { key: 'marketing-hub', icon: 'pencil', label: 'Блог', pa
 const proClients = { key: 'sales', icon: 'people', label: 'Потенцијални клиенти', path: '/terminal/sales', visible: showsSalesFunnel };
 
 // ── Product A (SMB) + ADMIN — the historical task-based layout ──────────────
-// Unchanged for A/ADMIN except that Продажна инка now carries showsSalesFunnel
-// (a supply-side tool — hidden for Basic, kept for admin).
+// Продажна инка („Клиенти") is visible to every company (showsSalesFunnel).
 const smbSections = [
   { key: 'top', label: null, items: [dashboard] },
+  // Продажба first (Nov 2026 pivot: Nexa brings clients and money, not only
+  // saves time) — open by default until the user collapses it.
+  {
+    key: 'sales', label: 'Продажба', defaultOpen: true,
+    items: [myPage, posts, sales, quotes]
+  },
+  {
+    key: 'growth', label: 'Маркетинг и раст',
+    items: [marketingScreening, newsletterBanner, fair]
+  },
   {
     key: 'administration', label: 'Администрација',
     items: [documents, contracts, adminRequests, screening]
@@ -144,12 +160,6 @@ const smbSections = [
   {
     key: 'procurement', label: 'Набавки',
     items: [sourcing, procurementRegister]
-  },
-  {
-    // Случаи, Topics Q&A and Маркетинг live only in the Pro (leads.nexa.mk)
-    // layout — they are the lawyer/provider surfaces. Basic keeps the rest.
-    key: 'growth', label: 'Маркетинг и раст',
-    items: [sales, marketingScreening, newsletterBanner, fair]
   },
   {
     key: 'education-sec', label: 'Едукација',
@@ -170,7 +180,7 @@ const proSections = [
   // clients. Dashboard is reached via the Nexa logo, so it's not a nav item here.
   {
     key: 'clients-growth', label: null,
-    items: [proConversations, leads, topicsqa, proBlog, proClients]
+    items: [proConversations, leads, topicsqa, proBlog, proClients, quotes]
   },
   {
     key: 'pro-tools', label: 'Алатки',

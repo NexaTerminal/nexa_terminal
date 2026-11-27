@@ -1,0 +1,18 @@
+/* Action buttons shared by the post surfaces (feed, „Објави", one-pager). */
+.primary, .ghost, .link {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border-radius: 8px; padding: 7px 12px; text-decoration: none; box-shadow: none !important; transform: none !important;
+}
+.primary { background: #111827; color: #fff; border: 1px solid #111827; }
+.primary:hover:not(:disabled) { background: #000; }
+.ghost { background: #fff; color: #111827; border: 1px solid #e5e7eb; }
+.ghost:hover:not(:disabled) { border-color: #9ca3af; background: #fff; }
+.link { background: none; border: 0; padding: 7px 4px; color: #6b7280; font-weight: 500; }
+.link:hover { color: #111827; background: none; text-decoration: underline; }
+.primary:disabled, .ghost:disabled { opacity: 0.6; cursor: default; }
+.done { font-size: 13px; color: #15803d; font-weight: 600; }
+.right { margin-left: auto; display: inline-flex; gap: 4px; align-items: center; }
+.noteRow { display: flex; gap: 6px; width: 100%; }
+.noteRow input { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13.5px; font-family: inherit; }
+.noteRow input:focus { outline: none; border-color: #1e4db7; box-shadow: 0 0 0 3px rgba(30, 77, 183, 0.12); }
+.err { font-size: 12.5px; color: #b91c1c; width: 100%; }

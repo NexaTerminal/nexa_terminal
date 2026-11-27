@@ -189,3 +189,13 @@
 .messageHead:hover { background: #f8fafc; }
 .messageBody { padding: 0 10px 10px; font-size: 13px; color: #334155; white-space: pre-wrap; }
 .messageBody p { margin: 0 0 6px; }
+
+/* Visitor messages → pipeline */
+.msgService { color: #1d4ed8; font-weight: 500; }
+.msgInPipe { color: #15803d; font-weight: 500; }
+.msgAction {
+  margin-top: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid #c7d2fe; background: #eef2ff;
+  color: #1e40af; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none;
+}
+.msgAction:hover:not(:disabled) { background: #e0e7ff; transform: none; box-shadow: none; }
+.msgAction:disabled { opacity: 0.6; cursor: default; }

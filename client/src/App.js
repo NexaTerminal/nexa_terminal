@@ -101,6 +101,10 @@ import Dashboard from './pages/terminal/Dashboard';
 import DocumentGen from './pages/terminal/DocumentGen';
 import Contracts from './pages/terminal/contracts/Contracts';
 import SalesFunnel from './pages/terminal/sales/SalesFunnel';
+import Quotes from './pages/terminal/sales/Quotes';
+import QuoteEditor from './pages/terminal/sales/QuoteEditor';
+import PublicQuote from './pages/public/PublicQuote';
+import Posts from './pages/terminal/posts/Posts';
 import ContractDetail from './pages/terminal/contracts/ContractDetail';
 import ContractForm from './pages/terminal/contracts/ContractForm';
 import Employees from './pages/terminal/employees/Employees';
@@ -318,6 +322,7 @@ function App() {
       <Route path="/shared/:shareToken" element={<SharedDocument />} />
       <Route path="/dokument/:token" element={<PublicDocumentPage />} />
       <Route path="/predmet/:token" element={<CaseStatus />} />
+      <Route path="/ponuda/:token" element={<PublicQuote />} />
 
       {/* Document Preview - Public (no auth required) */}
       <Route path="/preview/:documentType" element={<DocumentPreviewPage />} />
@@ -337,6 +342,9 @@ function App() {
       {/* Договори — Contract Management System (master-plan Phase 2) */}
       <Route path="/terminal/contracts" element={<PrivateRoute><VerificationRequired><Contracts /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/sales" element={<PrivateRoute><VerificationRequired><SalesFunnel /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/objavi" element={<PrivateRoute><VerificationRequired><Posts /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/ponudi" element={<PrivateRoute><VerificationRequired><Quotes /></VerificationRequired></PrivateRoute>} />
+      <Route path="/terminal/ponudi/:id" element={<PrivateRoute><VerificationRequired><QuoteEditor /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/new" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id" element={<PrivateRoute><VerificationRequired><ContractDetail /></VerificationRequired></PrivateRoute>} />
       <Route path="/terminal/contracts/:id/edit" element={<PrivateRoute><VerificationRequired><ContractForm /></VerificationRequired></PrivateRoute>} />
